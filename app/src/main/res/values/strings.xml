@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">API sample</string>
+    <string name="share">Share</string>
+    <string name="instant_add">Instant-Add</string>
+    <string name="more_items">Other apps</string>
+    <string name="settings">Settings</string>
+    <string name="n_items_selected">%d items selected</string>
+    <string name="n_items_added">%d items added to AnkiDroid</string>
+    <string name="deck_add_fail">Error creating deck in AnkiDroid</string>
+    <string name="model_add_fail">Error creating model in AnkiDroid</string>
+    <string name="card_add_fail">Error adding cards to AnkiDroid</string>
+    <string name="confirm_add_models">A new note type and deck will be added to AnkiDroid</string>
+</resources>
