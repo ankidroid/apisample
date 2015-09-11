@@ -250,14 +250,14 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         // Get api instance
         final AddContentApi api = new AddContentApi(MainActivity.this);
         // Look for our deck, add a new one if it doesn't exist
-        Long did = api.findDeckIdByName(this, AnkiDroidConfig.DECK_NAME);
+        Long did = api.findDeckIdByName(AnkiDroidConfig.DECK_NAME);
         if (did == null) {
-            did = api.addNewDeck(this, AnkiDroidConfig.DECK_NAME);
+            did = api.addNewDeck(AnkiDroidConfig.DECK_NAME);
         }
         // Look for our model, add a new one if it doesn't exist
-        Long mid = api.findModelIdByName(this, AnkiDroidConfig.MODEL_NAME, AnkiDroidConfig.FIELDS.length);
+        Long mid = api.findModelIdByName(AnkiDroidConfig.MODEL_NAME, AnkiDroidConfig.FIELDS.length);
         if (mid == null) {
-            mid = api.addNewCustomModel(this, AnkiDroidConfig.MODEL_NAME, AnkiDroidConfig.FIELDS,
+            mid = api.addNewCustomModel(AnkiDroidConfig.MODEL_NAME, AnkiDroidConfig.FIELDS,
                     AnkiDroidConfig.CARD_NAMES, AnkiDroidConfig.QFMT, AnkiDroidConfig.AFMT,
                     AnkiDroidConfig.CSS, did);
         }
@@ -280,9 +280,12 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             }
             // Add a new note using the current field map
             try {
-                Uri noteUri = api.addNewNote(mid, did, flds, AnkiDroidConfig.TAGS);
-                if (noteUri != null) {
-                    added++;
+                // Only add item if there aren't any duplicates
+                if (!api.checkForDuplicates(mid, did, flds)) {
+                    Uri noteUri = api.addNewNote(mid, did, flds, AnkiDroidConfig.TAGS);
+                    if (noteUri != null) {
+                        added++;
+                    }
                 }
             } catch (Exception e) {
                 Log.e(LOG_TAG, "Exception adding cards to AnkiDroid", e);
