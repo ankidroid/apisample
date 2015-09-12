@@ -10,4 +10,5 @@
     <string name="model_add_fail">Error creating model in AnkiDroid</string>
     <string name="card_add_fail">Error adding cards to AnkiDroid</string>
     <string name="confirm_add_models">A new note type and deck will be added to AnkiDroid</string>
+    <string name="permission_denied">Couldn't get permission to access the AnkiDroid database</string>
 </resources>
