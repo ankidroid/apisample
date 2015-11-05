@@ -1,0 +1,37 @@
+<TaskerData sr="" dvi="1" tv="4.7u3m">
+	<Profile sr="prof9" ve="2">
+		<cdate>1446713011681</cdate>
+		<edate>1446713143626</edate>
+		<id>9</id>
+		<mid0>4</mid0>
+		<nme>AnkiDroid Sync</nme>
+		<Event sr="con0" ve="2">
+			<code>599</code>
+			<Str sr="arg0" ve="3">android.intent.action.ACTION_POWER_CONNECTED</Str>
+			<Int sr="arg1" val="0"/>
+			<Int sr="arg2" val="0"/>
+			<Str sr="arg3" ve="3"/>
+			<Str sr="arg4" ve="3"/>
+		</Event>
+	</Profile>
+	<Task sr="task4">
+		<cdate>1445006914290</cdate>
+		<edate>1445022789689</edate>
+		<id>4</id>
+		<nme>AnkiDroid Sync</nme>
+		<pri>100</pri>
+		<Action sr="act0" ve="7">
+			<code>877</code>
+			<Str sr="arg0" ve="3">com.ichi2.anki.DO_SYNC</Str>
+			<Int sr="arg1" val="1"/>
+			<Str sr="arg2" ve="3"/>
+			<Str sr="arg3" ve="3"/>
+			<Str sr="arg4" ve="3"/>
+			<Str sr="arg5" ve="3"/>
+			<Str sr="arg6" ve="3"/>
+			<Str sr="arg7" ve="3"/>
+			<Str sr="arg8" ve="3"/>
+			<Int sr="arg9" val="2"/>
+		</Action>
+	</Task>
+</TaskerData>
