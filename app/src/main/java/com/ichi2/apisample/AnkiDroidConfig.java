@@ -1,16 +1,21 @@
 package com.ichi2.apisample;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-
-public final class AnkiDroidConfig {
+/** Some fields to store configuration details for AnkiDroid **/
+final class AnkiDroidConfig {
     // Name of deck which will be created in AnkiDroid
     public static final String DECK_NAME = "API Sample";
     // Name of model which will be created in AnkiDroid
     public static final String MODEL_NAME = "com.ichi2.apisample";
     // Optional space separated list of tags to add to every note
-    public static final String TAGS = "API_Sample_App";
+    public static final Set<String> TAGS = new HashSet<>(Collections.singletonList("API_Sample_App"));
     // List of field names that will be used in AnkiDroid model
     public static final String[] FIELDS = {"Expression","Reading","Meaning","Furigana","Grammar","Sentence",
             "SentenceFurigana","SentenceMeaning"};
@@ -49,9 +54,8 @@ public final class AnkiDroidConfig {
 
     /**
      * Generate the ArrayList<HashMap> example data which will be sent to AnkiDroid
-     * @return
      */
-    public static ArrayList<HashMap<String, String>> getExampleData() {
+    public static List<Map<String, String>> getExampleData() {
         final String[] EXAMPLE_WORDS = {"例", "データ", "送る"};
         final String[] EXAMPLE_READINGS = {"れい", "データ", "おくる"};
         final String[] EXAMPLE_TRANSLATIONS = {"Example", "Data", "To send"};
@@ -63,9 +67,9 @@ public final class AnkiDroidConfig {
         final String[] EXAMPLE_SENTENCE_MEANING = {"We have no such example", "Oh, I lost the data！",
                 "I lead a fast way of living."};
 
-        ArrayList<HashMap<String, String>> data = new ArrayList<>();
+        List<Map<String, String>> data = new ArrayList<>();
         for (int idx = 0; idx < EXAMPLE_WORDS.length; idx++) {
-            HashMap<String, String> hm = new HashMap<>();
+            Map<String, String> hm = new HashMap<>();
             hm.put(FIELDS[0], EXAMPLE_WORDS[idx]);
             hm.put(FIELDS[1], EXAMPLE_READINGS[idx]);
             hm.put(FIELDS[2], EXAMPLE_TRANSLATIONS[idx]);

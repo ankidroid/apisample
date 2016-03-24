@@ -5,12 +5,10 @@ import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.ShareCompat;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.util.SparseBooleanArray;
@@ -29,7 +27,10 @@ import com.ichi2.anki.api.AddContentApi;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 
 public class MainActivity extends AppCompatActivity implements ActivityCompat.OnRequestPermissionsResultCallback {
@@ -37,7 +38,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private static final int AD_PERM_REQUEST = 0;
 
     private ListView mListView;
-    private ArrayList<HashMap<String, String>> mListData;
+    private List<Map<String, String>> mListData;
+    private AnkiDroidHelper mAnkiDroid;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,6 +55,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         mListView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE_MODAL);
         // When an item is long-pressed the ListSelectListener will make a Contextual Action Bar with Share icon
         mListView.setMultiChoiceModeListener(new ListSelectListener());
+        // Create instance of helper class
+        mAnkiDroid = new AnkiDroidHelper(this);
     }
 
 
@@ -136,10 +140,10 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
     }
 
-    ArrayList<HashMap<String, String>> getSelectedData() {
+    List<Map<String, String>> getSelectedData() {
         // Extract the selected data
         SparseBooleanArray checked = mListView.getCheckedItemPositions();
-        ArrayList<HashMap<String, String>> selectedData = new ArrayList<>();
+        List<Map<String, String>> selectedData = new ArrayList<>();
         for (int i=0;i<checked.size();i++) {
             if (checked.valueAt(i)) {
                 selectedData.add(mListData.get(checked.keyAt(i)));
@@ -156,7 +160,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
         static final int ANKIDROID_INSTANT_ADD = 0;
         static final int ALL_APPS = 1;
-        ArrayList<HashMap<String, String>> mSelectedData;
+        List<Map<String, String>> mSelectedData;
 
 
         /**
@@ -164,7 +168,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
          *
          * @param context Context for accessing resources.
          */
-        public AnkiDroidActionProvider(Activity context, ArrayList<HashMap<String, String>> selectedData) {
+        public AnkiDroidActionProvider(Activity context,List<Map<String, String>> selectedData) {
             super(context);
             mSelectedData = selectedData;
         }
@@ -210,11 +214,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         public boolean onMenuItemClick(MenuItem item) {
             // Handle when the submenu items are clicked
             if (item.getItemId() == ANKIDROID_INSTANT_ADD) {
-                // Request permission to access API if required (necessary for operation on Android 6+)
-                String reqPerm = AddContentApi.checkRequiredPermission(MainActivity.this);
-                if (reqPerm != null && ContextCompat.checkSelfPermission(MainActivity.this, reqPerm)
-                        != PackageManager.PERMISSION_GRANTED) {
-                    ActivityCompat.requestPermissions(MainActivity.this, new String[]{reqPerm}, AD_PERM_REQUEST);
+                // Request permission to access API if required
+                if (mAnkiDroid.shouldRequestPermission()) {
+                    mAnkiDroid.requestPermission(MainActivity.this, AD_PERM_REQUEST);
                     return true;
                 }
                 // Add all data using AnkiDroid provider
@@ -229,9 +231,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
     /**
      * Send a simple front / back flashcard via the ACTION_SEND intent
-     * @param data
      */
-    private void shareViaSendIntent(HashMap<String, String> data) {
+    private void shareViaSendIntent(Map<String, String> data) {
         // Use ShareCompat so that the sending app info is correctly included in the share intent
         Activity context = MainActivity.this;
         Intent shareIntent = ShareCompat.IntentBuilder.from(context)
@@ -244,57 +245,51 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
     }
 
+    private long getDeckId() {
+        Long did = mAnkiDroid.findDeckIdByName(AnkiDroidConfig.DECK_NAME);
+        if (did == null) {
+            did = mAnkiDroid.getApi().addNewDeck(AnkiDroidConfig.DECK_NAME);
+            mAnkiDroid.storeDeckReference(AnkiDroidConfig.DECK_NAME, did);
+        }
+        return did;
+    }
+
+    private long getModelId() {
+        Long mid = mAnkiDroid.findModelIdByName(AnkiDroidConfig.MODEL_NAME, AnkiDroidConfig.FIELDS.length);
+        if (mid == null) {
+            mid = mAnkiDroid.getApi().addNewCustomModel(AnkiDroidConfig.MODEL_NAME, AnkiDroidConfig.FIELDS,
+                    AnkiDroidConfig.CARD_NAMES, AnkiDroidConfig.QFMT, AnkiDroidConfig.AFMT, AnkiDroidConfig.CSS, getDeckId(), null);
+            mAnkiDroid.storeModelReference(AnkiDroidConfig.MODEL_NAME, mid);
+        }
+        return mid;
+    }
+
     /**
-     * Use the instant-add API to add flashcards directly to AnkiDroid
+     * Use the instant-add API to add flashcards directly to AnkiDroid.
      * @param data List of cards to be added. Each card has a HashMap of field name / field value pairs.
      */
-    private void addCardsToAnkiDroid(final ArrayList<HashMap<String, String>> data) {
-        // Get api instance
-        final AddContentApi api = new AddContentApi(MainActivity.this);
-        // Look for our deck, add a new one if it doesn't exist
-        Long did = api.findDeckIdByName(AnkiDroidConfig.DECK_NAME);
-        if (did == null) {
-            did = api.addNewDeck(AnkiDroidConfig.DECK_NAME);
-        }
-        // Look for our model, add a new one if it doesn't exist
-        Long mid = api.findModelIdByName(AnkiDroidConfig.MODEL_NAME, AnkiDroidConfig.FIELDS.length);
-        if (mid == null) {
-            mid = api.addNewCustomModel(AnkiDroidConfig.MODEL_NAME, AnkiDroidConfig.FIELDS,
-                    AnkiDroidConfig.CARD_NAMES, AnkiDroidConfig.QFMT, AnkiDroidConfig.AFMT,
-                    AnkiDroidConfig.CSS, did);
-        }
-        // Double-check that everything was added correctly
-        String[] fieldNames = api.getFieldList(mid);
-        if (mid == null || did == null || fieldNames == null) {
-            Toast.makeText(MainActivity.this, R.string.card_add_fail, Toast.LENGTH_LONG).show();
-            return;
-        }
-        // Add cards
-        int added = 0;
-        for (HashMap<String, String> hm: data) {
+    private void addCardsToAnkiDroid(final List<Map<String, String>> data) {
+        long deckId =getDeckId();
+        long modelId = getModelId();
+        String[] fieldNames = mAnkiDroid.getApi().getFieldList(modelId);
+        // Build list of fields and tags
+        LinkedList<String []> fields = new LinkedList<>();
+        LinkedList<Set<String>> tags = new LinkedList<>();
+        for (Map<String, String> fieldMap: data) {
             // Build a field map accounting for the fact that the user could have changed the fields in the model
             String[] flds = new String[fieldNames.length];
             for (int i = 0; i < flds.length; i++) {
-                // Fill up the fields one-by-one up until either all fields are filled or we run out of fields to send
+                // Fill up the fields one-by-one until either all fields are filled or we run out of fields to send
                 if (i < AnkiDroidConfig.FIELDS.length) {
-                    flds[i] = hm.get(AnkiDroidConfig.FIELDS[i]);
+                    flds[i] = fieldMap.get(AnkiDroidConfig.FIELDS[i]);
                 }
             }
-            // Add a new note using the current field map
-            try {
-                // Only add item if there aren't any duplicates
-                if (!api.checkForDuplicates(mid, did, flds)) {
-                    Uri noteUri = api.addNewNote(mid, did, flds, AnkiDroidConfig.TAGS);
-                    if (noteUri != null) {
-                        added++;
-                    }
-                }
-            } catch (Exception e) {
-                Log.e(LOG_TAG, "Exception adding cards to AnkiDroid", e);
-                Toast.makeText(MainActivity.this, R.string.card_add_fail, Toast.LENGTH_LONG).show();
-                return;
-            }
+            tags.add(AnkiDroidConfig.TAGS);
+            fields.add(flds);
         }
+        // Remove any duplicates from the LinkedLists and then add over the API
+        mAnkiDroid.removeDuplicates(fields, tags, modelId);
+        int added = mAnkiDroid.getApi().addNotes(modelId, deckId, fields, tags);
         Toast.makeText(MainActivity.this, getResources().getString(R.string.n_items_added, added), Toast.LENGTH_LONG).show();
     }
 }
