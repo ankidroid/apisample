@@ -121,7 +121,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                         If you don't need to share with any apps other than AnkiDroid, you can completely replace
                         this code block with the code in AnkiDroidActionProvider.onMenuItemClick()
                      **/
-                    if (AddContentApi.getAnkiDroidPackageName(MainActivity.this) != null) {
+                    if (AnkiDroidHelper.isApiAvailable(MainActivity.this)) {
                         // Use AnkiDroidActionProvider to handle the click event if the provider is installed
                         item.setActionProvider(new AnkiDroidActionProvider(MainActivity.this, getSelectedData()));
                     } else {
