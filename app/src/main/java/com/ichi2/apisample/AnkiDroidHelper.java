@@ -89,27 +89,35 @@ public class AnkiDroidHelper {
      * @param modelId ID of model to search for duplicates on
      */
     public void removeDuplicates(LinkedList<String []> fields, LinkedList<Set<String>> tags, long modelId) {
-        if (tags.size() != fields.size()) {
-            throw new IllegalStateException("List of tags must be the same length as the list of fields");
-        }
         // Build a list of the duplicate keys (first fields) and find all notes that have a match with each key
         List<String> keys = new ArrayList<>(fields.size());
         for (String[] f: fields) {
             keys.add(f[0]);
         }
         SparseArray<List<NoteInfo>> duplicateNotes = getApi().findDuplicateNotes(modelId, keys);
+        // Do some sanity checks
+        if (tags.size() != fields.size()) {
+            throw new IllegalStateException("List of tags must be the same length as the list of fields");
+        }
+        if (duplicateNotes.size() == 0 || fields.size() == 0 || tags.size() == 0) {
+            return;
+        }
+        if (duplicateNotes.keyAt(duplicateNotes.size() - 1) >= fields.size()) {
+            throw new IllegalStateException("The array of duplicates goes outside the bounds of the original lists");
+        }
         // Iterate through the fields and tags LinkedLists, removing those that had a duplicate
         ListIterator<String[]> fieldIterator = fields.listIterator();
         ListIterator<Set<String>> tagIterator = tags.listIterator();
-        int i = 0;
-        while (fieldIterator.hasNext()) {
-            fieldIterator.next();
-            tagIterator.next();
-            if (duplicateNotes.indexOfKey(i) >= 0) {
-                tagIterator.remove();
-                fieldIterator.remove();
+        int listIndex = -1;
+        for (int i = 0; i < duplicateNotes.size(); i++) {
+            int duplicateIndex = duplicateNotes.keyAt(i);
+            while (listIndex < duplicateIndex) {
+                fieldIterator.next();
+                tagIterator.next();
+                listIndex++;
             }
-            i++;
+            fieldIterator.remove();
+            tagIterator.remove();
         }
     }
 
