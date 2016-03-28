@@ -188,7 +188,7 @@ public class AnkiDroidHelper {
     private Long getDeckId(String deckName) {
         Map<Long, String> deckList = mApi.getDeckList();
         for (Map.Entry<Long, String> entry : deckList.entrySet()) {
-            if (entry.getValue().equals(deckName)) {
+            if (entry.getValue().equalsIgnoreCase(deckName)) {
                 return entry.getKey();
             }
         }
