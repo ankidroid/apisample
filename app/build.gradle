@@ -31,5 +31,5 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'com.android.support:appcompat-v7:26.1.0'
-    implementation 'com.ichi2.anki:api:1.1.0alpha4'
+    implementation 'com.ichi2.anki:api:1.1.0alpha6'
 }
