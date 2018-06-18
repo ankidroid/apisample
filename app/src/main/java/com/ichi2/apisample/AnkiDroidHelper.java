@@ -99,7 +99,7 @@ public class AnkiDroidHelper {
         if (tags.size() != fields.size()) {
             throw new IllegalStateException("List of tags must be the same length as the list of fields");
         }
-        if (duplicateNotes.size() == 0 || fields.size() == 0 || tags.size() == 0) {
+        if (duplicateNotes == null || duplicateNotes.size() == 0 || fields.size() == 0 || tags.size() == 0) {
             return;
         }
         if (duplicateNotes.keyAt(duplicateNotes.size() - 1) >= fields.size()) {
@@ -131,23 +131,27 @@ public class AnkiDroidHelper {
      * Otherwise return null
      * @param modelName the name of the model to find
      * @param numFields the minimum number of fields the model is required to have
-     * @return the model ID
+     * @return the model ID or null if something went wrong
      */
     public Long findModelIdByName(String modelName, int numFields) {
         SharedPreferences modelsDb = mContext.getSharedPreferences(MODEL_REF_DB, Context.MODE_PRIVATE);
         long prefsModelId = modelsDb.getLong(modelName, -1L);
         // if we have a reference saved to modelName and it exists and has at least numFields then return it
-        if (prefsModelId != -1L && mApi.getModelName(prefsModelId) != null
-                && mApi.getFieldList(prefsModelId).length >= numFields) { // could potentially have been renamed
+        if ((prefsModelId != -1L)
+                && (mApi.getModelName(prefsModelId) != null)
+                && (mApi.getFieldList(prefsModelId) != null)
+                && (mApi.getFieldList(prefsModelId).length >= numFields)) { // could potentially have been renamed
             return prefsModelId;
         }
         Map<Long, String> modelList = mApi.getModelList(numFields);
-        for (Map.Entry<Long, String> entry : modelList.entrySet()) {
-            if (entry.getValue().equals(modelName)) {
-                return entry.getKey(); // first model wins
+        if (modelList != null) {
+            for (Map.Entry<Long, String> entry : modelList.entrySet()) {
+                if (entry.getValue().equals(modelName)) {
+                    return entry.getKey(); // first model wins
+                }
             }
         }
-        // model no longer exists (by name nor old id) or the number of fields was reduced
+        // model no longer exists (by name nor old id), the number of fields was reduced, or API error
         return null;
     }
 
@@ -183,13 +187,15 @@ public class AnkiDroidHelper {
     /**
      * Get the ID of the deck which matches the name
      * @param deckName Exact name of deck (note: deck names are unique in Anki)
-     * @return the ID of the deck that has given name, or null if no deck was found
+     * @return the ID of the deck that has given name, or null if no deck was found or API error
      */
     private Long getDeckId(String deckName) {
         Map<Long, String> deckList = mApi.getDeckList();
-        for (Map.Entry<Long, String> entry : deckList.entrySet()) {
-            if (entry.getValue().equalsIgnoreCase(deckName)) {
-                return entry.getKey();
+        if (deckList != null) {
+            for (Map.Entry<Long, String> entry : deckList.entrySet()) {
+                if (entry.getValue().equalsIgnoreCase(deckName)) {
+                    return entry.getKey();
+                }
             }
         }
         return null;
