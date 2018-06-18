@@ -245,7 +245,11 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
     }
 
-    private long getDeckId() {
+    /**
+     * get the deck id
+     * @return might be null if there was a problem
+     */
+    private Long getDeckId() {
         Long did = mAnkiDroid.findDeckIdByName(AnkiDroidConfig.DECK_NAME);
         if (did == null) {
             did = mAnkiDroid.getApi().addNewDeck(AnkiDroidConfig.DECK_NAME);
@@ -254,7 +258,11 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         return did;
     }
 
-    private long getModelId() {
+    /**
+     * get model id
+     * @return might be null if there was an error
+     */
+    private Long getModelId() {
         Long mid = mAnkiDroid.findModelIdByName(AnkiDroidConfig.MODEL_NAME, AnkiDroidConfig.FIELDS.length);
         if (mid == null) {
             mid = mAnkiDroid.getApi().addNewCustomModel(AnkiDroidConfig.MODEL_NAME, AnkiDroidConfig.FIELDS,
@@ -269,9 +277,19 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
      * @param data List of cards to be added. Each card has a HashMap of field name / field value pairs.
      */
     private void addCardsToAnkiDroid(final List<Map<String, String>> data) {
-        long deckId =getDeckId();
-        long modelId = getModelId();
+        Long deckId = getDeckId();
+        Long modelId = getModelId();
+        if ((deckId == null) || (modelId == null)) {
+            // we had an API error, report failure and return
+            Toast.makeText(MainActivity.this, getResources().getString(R.string.card_add_fail), Toast.LENGTH_LONG).show();
+            return;
+        }
         String[] fieldNames = mAnkiDroid.getApi().getFieldList(modelId);
+        if (fieldNames == null) {
+            // we had an API error, report failure and return
+            Toast.makeText(MainActivity.this, getResources().getString(R.string.card_add_fail), Toast.LENGTH_LONG).show();
+            return;
+        }
         // Build list of fields and tags
         LinkedList<String []> fields = new LinkedList<>();
         LinkedList<Set<String>> tags = new LinkedList<>();
@@ -290,6 +308,11 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         // Remove any duplicates from the LinkedLists and then add over the API
         mAnkiDroid.removeDuplicates(fields, tags, modelId);
         int added = mAnkiDroid.getApi().addNotes(modelId, deckId, fields, tags);
-        Toast.makeText(MainActivity.this, getResources().getString(R.string.n_items_added, added), Toast.LENGTH_LONG).show();
+        if (added != 0) {
+            Toast.makeText(MainActivity.this, getResources().getString(R.string.n_items_added, added), Toast.LENGTH_LONG).show();
+        } else {
+            // API indicates that a 0 return value is an error
+            Toast.makeText(MainActivity.this, getResources().getString(R.string.card_add_fail), Toast.LENGTH_LONG).show();
+        }
     }
 }
