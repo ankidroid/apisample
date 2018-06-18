@@ -117,10 +117,10 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             // This is called when the contextual action bar buttons are pressed
             switch (item.getItemId()) {
                 case R.id.share_data_button:
-                    /** Use AnkiDroid provider if installed, otherwise use ACTION_SEND intent
-                        If you don't need to share with any apps other than AnkiDroid, you can completely replace
-                        this code block with the code in AnkiDroidActionProvider.onMenuItemClick()
-                     **/
+                    /* Use AnkiDroid provider if installed, otherwise use ACTION_SEND intent
+                     * If you don't need to share with any apps other than AnkiDroid, you can completely replace
+                     * this code block with the code in AnkiDroidActionProvider.onMenuItemClick()
+                     */
                     if (AnkiDroidHelper.isApiAvailable(MainActivity.this)) {
                         // Use AnkiDroidActionProvider to handle the click event if the provider is installed
                         item.setActionProvider(new AnkiDroidActionProvider(MainActivity.this, getSelectedData()));
@@ -174,6 +174,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
 
         @Override
+        @Deprecated
         public View onCreateActionView() {
             // Just return null for a simple dropdown menu
             return null;
