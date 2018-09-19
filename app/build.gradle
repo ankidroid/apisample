@@ -2,12 +2,12 @@ apply plugin: 'com.android.application'
 def homePath = System.properties['user.home']
 
 android {
-    compileSdkVersion 26
+    compileSdkVersion 27
 
     defaultConfig {
         applicationId "com.ichi2.apisample"
         minSdkVersion 15
-        targetSdkVersion 25
+        targetSdkVersion 27
         versionCode 2
         versionName "1.0.1"
     }
@@ -30,6 +30,6 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'com.android.support:appcompat-v7:26.1.0'
+    implementation 'com.android.support:appcompat-v7:27.1.1'
     implementation 'com.ichi2.anki:api:1.1.0alpha6'
 }
