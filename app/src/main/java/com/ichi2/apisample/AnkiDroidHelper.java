@@ -25,6 +25,10 @@ public class AnkiDroidHelper {
     private static final String DECK_REF_DB = "com.ichi2.anki.api.decks";
     private static final String MODEL_REF_DB = "com.ichi2.anki.api.models";
 
+    // Temporary until new API is published and we can import static as with READ_WRITE_PERMISSION
+    public static final String READ_PERMISSION = "com.ichi2.anki.permission.READ_DATABASE";
+
+
     private AddContentApi mApi;
     private Context mContext;
 
@@ -47,9 +51,20 @@ public class AnkiDroidHelper {
     }
 
     /**
+     * Whether or not we should request read-only access to the AnkiDroid API
+     */
+    public boolean shouldRequestReadPermission() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            return false;
+        }
+        return shouldRequestReadWritePermission()
+            || ContextCompat.checkSelfPermission(mContext, READ_PERMISSION) != PackageManager.PERMISSION_GRANTED;
+    }
+
+    /**
      * Whether or not we should request full access to the AnkiDroid API
      */
-    public boolean shouldRequestPermission() {
+    public boolean shouldRequestReadWritePermission() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
             return false;
         }
@@ -57,11 +72,20 @@ public class AnkiDroidHelper {
     }
 
     /**
+     * Request permission from the user for read-only access to the AnkiDroid API (for SDK 23+)
+     * @param callbackActivity An Activity which implements onRequestPermissionsResult()
+     * @param callbackCode The callback code to be used in onRequestPermissionsResult()
+     */
+    public void requestReadPermission(Activity callbackActivity, int callbackCode) {
+        ActivityCompat.requestPermissions(callbackActivity, new String[]{READ_PERMISSION}, callbackCode);
+    }
+
+    /**
      * Request permission from the user to access the AnkiDroid API (for SDK 23+)
      * @param callbackActivity An Activity which implements onRequestPermissionsResult()
      * @param callbackCode The callback code to be used in onRequestPermissionsResult()
      */
-    public void requestPermission(Activity callbackActivity, int callbackCode) {
+    public void requestReadWritePermission(Activity callbackActivity, int callbackCode) {
         ActivityCompat.requestPermissions(callbackActivity, new String[]{READ_WRITE_PERMISSION}, callbackCode);
     }
 
