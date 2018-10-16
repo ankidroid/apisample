@@ -7,5 +7,11 @@
     <string name="n_items_selected">%d items selected</string>
     <string name="n_items_added">%d items added to AnkiDroid</string>
     <string name="card_add_fail">Error adding cards to AnkiDroid</string>
+    <string name="api_not_available">AnkiDroid API not available</string>
     <string name="permission_denied">Couldn\'t get permission to access the AnkiDroid database</string>
+    <string name="card_counts">Card Counts</string>
+    <string name="mature_cards">Mature cards %d</string>
+    <string name="young_cards">Young cards %d</string>
+    <string name="new_cards">New cards %d</string>
+    <string name="suspended_cards">Suspended cards %d</string>
 </resources>

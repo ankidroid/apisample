@@ -80,6 +80,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
+            case R.id.stats_menu_item:
+                startActivity(new Intent(this, StatsActivity.class));
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -216,8 +219,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             // Handle when the submenu items are clicked
             if (item.getItemId() == ANKIDROID_INSTANT_ADD) {
                 // Request permission to access API if required
-                if (mAnkiDroid.shouldRequestPermission()) {
-                    mAnkiDroid.requestPermission(MainActivity.this, AD_PERM_REQUEST);
+                if (mAnkiDroid.shouldRequestReadWritePermission()) {
+                    mAnkiDroid.requestReadWritePermission(MainActivity.this, AD_PERM_REQUEST);
                     return true;
                 }
                 // Add all data using AnkiDroid provider
