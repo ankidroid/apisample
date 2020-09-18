@@ -65,7 +65,6 @@ public class AnkiDroidHelper {
         ActivityCompat.requestPermissions(callbackActivity, new String[]{READ_WRITE_PERMISSION}, callbackCode);
     }
 
-
     /**
      * Save a mapping from deckName to getDeckId in the SharedPreferences
      */
@@ -95,6 +94,7 @@ public class AnkiDroidHelper {
             keys.add(f[0]);
         }
         SparseArray<List<NoteInfo>> duplicateNotes = getApi().findDuplicateNotes(modelId, keys);
+
         // Do some sanity checks
         if (tags.size() != fields.size()) {
             throw new IllegalStateException("List of tags must be the same length as the list of fields");
@@ -105,6 +105,7 @@ public class AnkiDroidHelper {
         if (duplicateNotes.keyAt(duplicateNotes.size() - 1) >= fields.size()) {
             throw new IllegalStateException("The array of duplicates goes outside the bounds of the original lists");
         }
+
         // Iterate through the fields and tags LinkedLists, removing those that had a duplicate
         ListIterator<String[]> fieldIterator = fields.listIterator();
         ListIterator<Set<String>> tagIterator = tags.listIterator();
