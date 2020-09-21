@@ -27,16 +27,12 @@ final class AnkiDroidConfig {
             ".small { font-size: 18px;}\n";
 
     // Template for the question of each card
-    static final String QFMT1 = "<div class=big>QFMT1 Question = {{Question}}</div><br/>What's the answer?";
-    static final String QFMT2 = "<div class=big>QFMT2 Answer = {{Answer}}</div><br/>What's the question?";
+    static final String QFMT1 = "<div class=big>QFMT1 Question = {{Question}}</div> <br/>What's the answer?";
+    static final String QFMT2 = "<div class=big>QFMT2 Answer = {{Answer}}</div> <br/>What's the question?";
     public static final String[] QFMT = {QFMT1, QFMT2};
 
     // Template for the answer
     static final String AFMT1 = "<div class=big>AFMT1 Answer = {{Answer}}";
     static final String AFMT2 = "<div class=big>AFMT2 Question = {{Question}}";
     public static final String[] AFMT = {AFMT1, AFMT2};
-
-    // Define two keys which will be used when using legacy ACTION_SEND intent
-    public static final String FRONT_SIDE_KEY = FIELDS[0];
-    public static final String BACK_SIDE_KEY = FIELDS[1];
 }

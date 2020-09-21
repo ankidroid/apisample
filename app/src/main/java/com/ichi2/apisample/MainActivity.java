@@ -5,15 +5,13 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.appcompat.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.ichi2.anki.api.AddContentApi;
-
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -50,17 +48,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             }
         });
 
-        PackageManager manager = getApplicationContext().getPackageManager();
-
-        // Disable button if AnkiDroid is not installed
-        try {
-            manager.getApplicationInfo(AddContentApi.getAnkiDroidPackageName(MainActivity.this),0);
-            actionAddToAnki.setEnabled(false);
-        } catch (PackageManager.NameNotFoundException e) {
-            Log.e(MainActivity.LOG_TAG, "AnkiDroid app could not be found");
-            actionAddToAnki.setEnabled(false);
-        }
-
         // Create instance of helper class
         mAnkiDroid = new AnkiDroidHelper(this);
     }
@@ -74,9 +61,13 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     }
 
     List<Map<String, String>> getSelectedData() {
+        Map<String, String> questionAnswer = new HashMap<String, String>();
+        questionAnswer.put(AnkiDroidConfig.FIELDS[0], inputQuestion.getText().toString());
+        questionAnswer.put(AnkiDroidConfig.FIELDS[1], inputAnswer.getText().toString());
+
         List<Map<String, String>> selectedData = new ArrayList<>();
-        //selectedData.add("question", inputQuestion.getText());
-        //selectedData.add("answer", inputAnswer.getText());
+        selectedData.add(questionAnswer);
+
         return selectedData;
     }
 
