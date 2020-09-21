@@ -6,6 +6,7 @@
     <string name="settings">Settings</string>
     <string name="n_items_selected">%d items selected</string>
     <string name="n_items_added">%d items added to AnkiDroid</string>
-    <string name="card_add_fail">Error adding cards to AnkiDroid, such card may already exist</string>
+    <string name="card_exists">Card already exists</string>
+    <string name="card_add_fail">Error adding cards to AnkiDroid</string>
     <string name="permission_denied">Couldn\'t get permission to access the AnkiDroid database</string>
 </resources>

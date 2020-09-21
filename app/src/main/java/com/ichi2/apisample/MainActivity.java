@@ -10,16 +10,13 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 
 public class MainActivity extends AppCompatActivity implements ActivityCompat.OnRequestPermissionsResultCallback {
-    public static final String LOG_TAG = "AnkiDroidApiSample";
     private static final int AD_PERM_REQUEST = 0;
 
     private EditText inputQuestion;
@@ -60,15 +57,11 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
     }
 
-    List<Map<String, String>> getSelectedData() {
-        Map<String, String> questionAnswer = new HashMap<String, String>();
-        questionAnswer.put(AnkiDroidConfig.FIELDS[0], inputQuestion.getText().toString());
-        questionAnswer.put(AnkiDroidConfig.FIELDS[1], inputAnswer.getText().toString());
-
-        List<Map<String, String>> selectedData = new ArrayList<>();
-        selectedData.add(questionAnswer);
-
-        return selectedData;
+    Map<String, String> getSelectedData() {
+        Map<String, String> data = new HashMap<String, String>();
+        data.put(AnkiDroidConfig.FIELDS[0], inputQuestion.getText().toString());
+        data.put(AnkiDroidConfig.FIELDS[1], inputAnswer.getText().toString());
+        return data;
     }
 
     /**
@@ -100,9 +93,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
     /**
      * Use the instant-add API to add flashcards directly to AnkiDroid.
-     * @param data List of cards to be added. Each card has a HashMap of field name / field value pairs.
+     * @param data HashMap of field name / field value pairs
      */
-    private void addCardsToAnkiDroid(final List<Map<String, String>> data) {
+    private void addCardsToAnkiDroid(final Map<String, String> data) {
         Long deckId = getDeckId();
         Long modelId = getModelId();
 
@@ -122,28 +115,33 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         // Build list of fields and tags
         LinkedList<String []> fields = new LinkedList<>();
         LinkedList<Set<String>> tags = new LinkedList<>();
-        for (Map<String, String> fieldMap: data) {
-            // Build a field map accounting for the fact that the user could have changed the fields in the model
-            String[] flds = new String[fieldNames.length];
-            for (int i = 0; i < flds.length; i++) {
-                // Fill up the fields one-by-one until either all fields are filled or we run out of fields to send
-                if (i < AnkiDroidConfig.FIELDS.length) {
-                    flds[i] = fieldMap.get(AnkiDroidConfig.FIELDS[i]);
-                }
+
+        // Build a field map accounting for the fact that the user could have changed the fields in the model
+        String[] flds = new String[fieldNames.length];
+        for (int i = 0; i < flds.length; i++) {
+            // Fill up the fields one-by-one until either all fields are filled or we run out of fields to send
+            if (i < AnkiDroidConfig.FIELDS.length) {
+                flds[i] = data.get(AnkiDroidConfig.FIELDS[i]);
             }
-            tags.add(AnkiDroidConfig.TAGS);
-            fields.add(flds);
         }
+
+        fields.add(flds);
+        tags.add(AnkiDroidConfig.TAGS);
 
         // Remove any duplicates from the LinkedLists and then add over the API
         mAnkiDroid.removeDuplicates(fields, tags, modelId);
-        int added = mAnkiDroid.getApi().addNotes(modelId, deckId, fields, tags);
 
-        if (added != 0) {
-            Toast.makeText(MainActivity.this, getResources().getString(R.string.n_items_added, added), Toast.LENGTH_LONG).show();
+        if (fields.isEmpty()) {
+            Toast.makeText(MainActivity.this, getResources().getString(R.string.card_exists), Toast.LENGTH_LONG).show();
         } else {
-            // API indicates that a 0 return value is an error
-            Toast.makeText(MainActivity.this, getResources().getString(R.string.card_add_fail), Toast.LENGTH_LONG).show();
+            int added = mAnkiDroid.getApi().addNotes(modelId, deckId, fields, tags);
+
+            if (added != 0) {
+                Toast.makeText(MainActivity.this, getResources().getString(R.string.n_items_added, added), Toast.LENGTH_LONG).show();
+            } else {
+                // API indicates that a 0 return value is an error
+                Toast.makeText(MainActivity.this, getResources().getString(R.string.card_add_fail), Toast.LENGTH_LONG).show();
+            }
         }
     }
 }
