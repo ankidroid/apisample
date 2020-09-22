@@ -34,7 +34,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         inputAnswer = (EditText) findViewById(R.id.inputAnswer);
 
         actionAddToAnki = (Button) findViewById(R.id.actionAddToAnki);
-        actionAddToAnki.setOnClickListener( new View.OnClickListener() {
+        actionAddToAnki.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (mAnkiDroid.shouldRequestPermission()) {
@@ -44,6 +44,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 addCardsToAnkiDroid(getSelectedData());
             }
         });
+
+        //AnkiDroidHelper.isApiAvailable(this)
 
         // Create instance of helper class
         mAnkiDroid = new AnkiDroidHelper(this);
