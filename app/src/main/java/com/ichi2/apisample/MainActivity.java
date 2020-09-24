@@ -144,10 +144,10 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         if (fields.isEmpty()) {
             Toast.makeText(MainActivity.this, getResources().getString(R.string.card_exists), Toast.LENGTH_LONG).show();
         } else {
-            int added = mAnkiDroid.getApi().addNotes(modelId, deckId, fields, tags);
+            int added = mAnkiDroid.addNotes(modelId, deckId, fields, tags);
 
             if (added != 0) {
-                Toast.makeText(MainActivity.this, getResources().getString(R.string.n_items_added, added), Toast.LENGTH_LONG).show();
+                Toast.makeText(MainActivity.this, getResources().getString(R.string.item_added), Toast.LENGTH_LONG).show();
             } else {
                 // API indicates that a 0 return value is an error
                 Toast.makeText(MainActivity.this, getResources().getString(R.string.card_add_fail), Toast.LENGTH_LONG).show();

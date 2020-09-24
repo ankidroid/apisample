@@ -219,5 +219,9 @@ public class AnkiDroidHelper {
     public String[] getFieldList(long modelId) {
         return getApi().getFieldList(modelId);
     }
+
+    public int addNotes(long modelId, long deckId, List<String[]> fieldsList, List<Set<String>> tagsList) {
+        return getApi().addNotes(modelId, deckId, fieldsList, tagsList);
+    }
 }
 
