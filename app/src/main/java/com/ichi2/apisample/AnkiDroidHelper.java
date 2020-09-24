@@ -1,14 +1,19 @@
 package com.ichi2.apisample;
 
 import android.app.Activity;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Build;
+
+import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import android.util.SparseArray;
 
+import com.ichi2.anki.FlashCardsContract;
 import com.ichi2.anki.api.AddContentApi;
 import com.ichi2.anki.api.NoteInfo;
 
@@ -200,6 +205,19 @@ public class AnkiDroidHelper {
             }
         }
         return null;
+    }
+
+    public Long addNewDeck(String deckName) {
+        return getApi().addNewDeck(deckName);
+    }
+
+    public Long addNewCustomModel(String name, String[] fields, String[] cards, String[] qfmt,
+                                  String[] afmt, String css, Long did, Integer sortf) {
+        return getApi().addNewCustomModel(name, fields, cards, qfmt, afmt, css, did, sortf);
+    }
+
+    public String[] getFieldList(long modelId) {
+        return getApi().getFieldList(modelId);
     }
 }
 

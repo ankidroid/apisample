@@ -51,6 +51,10 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         mAnkiDroid = new AnkiDroidHelper(this);
     }
 
+    public void setAnkiDroidHelper(AnkiDroidHelper helper) {
+        mAnkiDroid = helper;
+    }
+
     public void onRequestPermissionsResult (int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if (requestCode == AD_PERM_REQUEST && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             addCardsToAnkiDroid(getSelectedData());
@@ -73,8 +77,10 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private Long getDeckId() {
         Long did = mAnkiDroid.findDeckIdByName(AnkiDroidConfig.DECK_NAME);
         if (did == null) {
-            did = mAnkiDroid.getApi().addNewDeck(AnkiDroidConfig.DECK_NAME);
-            mAnkiDroid.storeDeckReference(AnkiDroidConfig.DECK_NAME, did);
+            did = mAnkiDroid.addNewDeck(AnkiDroidConfig.DECK_NAME);
+            if (did != null) {
+                mAnkiDroid.storeDeckReference(AnkiDroidConfig.DECK_NAME, did);
+            }
         }
         return did;
     }
@@ -86,9 +92,11 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private Long getModelId() {
         Long mid = mAnkiDroid.findModelIdByName(AnkiDroidConfig.MODEL_NAME, AnkiDroidConfig.FIELDS.length);
         if (mid == null) {
-            mid = mAnkiDroid.getApi().addNewCustomModel(AnkiDroidConfig.MODEL_NAME, AnkiDroidConfig.FIELDS,
+            mid = mAnkiDroid.addNewCustomModel(AnkiDroidConfig.MODEL_NAME, AnkiDroidConfig.FIELDS,
                     AnkiDroidConfig.CARD_NAMES, AnkiDroidConfig.QFMT, AnkiDroidConfig.AFMT, AnkiDroidConfig.CSS, getDeckId(), null);
-            mAnkiDroid.storeModelReference(AnkiDroidConfig.MODEL_NAME, mid);
+            if (mid != null) {
+                mAnkiDroid.storeModelReference(AnkiDroidConfig.MODEL_NAME, mid);
+            }
         }
         return mid;
     }
@@ -107,7 +115,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             return;
         }
 
-        String[] fieldNames = mAnkiDroid.getApi().getFieldList(modelId);
+        String[] fieldNames = mAnkiDroid.getFieldList(modelId);
         if (fieldNames == null) {
             // we had an API error, report failure and return
             Toast.makeText(MainActivity.this, getResources().getString(R.string.card_add_fail), Toast.LENGTH_LONG).show();
