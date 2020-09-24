@@ -14,45 +14,144 @@
         android:orientation="vertical">
 
         <TextView
-            android:id="@+id/textView2"
+            android:id="@+id/labelFilename"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Question:" />
+            android:text="@string/label_filename" />
 
-        <EditText
-            android:id="@+id/inputQuestion"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:ems="10"
-            android:inputType="textPersonName"
-            android:text="Hello" />
+            android:orientation="horizontal">
 
-        <Space
-            android:layout_width="match_parent"
-            android:layout_height="56dp" />
+            <EditText
+                android:id="@+id/inputFilename"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:editable="false"
+                android:ems="10"
+                android:enabled="false"
+                android:inputType="textPersonName" />
+
+            <Button
+                android:id="@+id/actionSelectFile"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/select_filename" />
+        </LinearLayout>
 
         <TextView
-            android:id="@+id/textView3"
+            android:id="@+id/labelIntervalDescription"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Answer:" />
+            android:text="@string/interval_description" />
 
         <EditText
-            android:id="@+id/inputAnswer"
+            android:id="@+id/inputIntervalDescription"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:ems="10"
-            android:inputType="textPersonName"
-            android:text="World" />
+            android:inputType="textPersonName" />
 
-        <Space
-            android:layout_width="match_parent"
-            android:layout_height="87dp" />
-
-        <Button
-            android:id="@+id/actionAddToAnki"
+        <TextView
+            android:id="@+id/labelStartNote"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Add to AnkiDroid" />
+            android:text="@string/start_note" />
+
+        <EditText
+            android:id="@+id/inputStartNote"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:inputType="textPersonName" />
+
+        <TextView
+            android:id="@+id/labelAscendingDescending"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/ascending_descending" />
+
+        <EditText
+            android:id="@+id/inputAscendingDescending"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:inputType="textPersonName" />
+
+        <TextView
+            android:id="@+id/labelMelodicHarmonic"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/melodic_harmonic" />
+
+        <EditText
+            android:id="@+id/inputMelodicHarmonic"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:inputType="textPersonName" />
+
+        <TextView
+            android:id="@+id/labelInterval"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/interval" />
+
+        <EditText
+            android:id="@+id/inputInterval"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:inputType="textPersonName" />
+
+        <TextView
+            android:id="@+id/labelTempo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/tempo" />
+
+        <EditText
+            android:id="@+id/inputTempo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:inputType="textPersonName" />
+
+        <TextView
+            android:id="@+id/labelInstrument"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/instrument" />
+
+        <EditText
+            android:id="@+id/inputInstrument"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:inputType="textPersonName" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/actionCheckExistence"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/action_check_existence" />
+
+            <Button
+                android:id="@+id/actionAddToAnki"
+                android:layout_width="186dp"
+                android:layout_height="wrap_content"
+                android:text="@string/action_add_to_anki" />
+
+        </LinearLayout>
+
     </LinearLayout>
 </RelativeLayout>

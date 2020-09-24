@@ -1,6 +1,5 @@
 <resources>
     <string name="app_name">API sample</string>
-    <string name="share">Share</string>
     <string name="instant_add">Instant-Add</string>
     <string name="more_items">Other apps</string>
     <string name="settings">Settings</string>
@@ -8,4 +7,16 @@
     <string name="card_exists">Card already exists</string>
     <string name="card_add_fail">Error adding cards to AnkiDroid</string>
     <string name="permission_denied">Couldn\'t get permission to access the AnkiDroid database</string>
+
+    <string name="label_filename">Filename</string>
+    <string name="select_filename">Select file</string>
+    <string name="interval_description">Interval description</string>
+    <string name="start_note">Start note</string>
+    <string name="ascending_descending">Ascending/descending</string>
+    <string name="melodic_harmonic">Melodic/harmonic</string>
+    <string name="interval">Interval</string>
+    <string name="tempo">Tempo</string>
+    <string name="instrument">Instrument</string>
+    <string name="action_check_existence">Check existence</string>
+    <string name="action_add_to_anki">Add to Anki</string>
 </resources>

@@ -19,9 +19,14 @@ import java.util.Set;
 public class MainActivity extends AppCompatActivity implements ActivityCompat.OnRequestPermissionsResultCallback {
     private static final int AD_PERM_REQUEST = 0;
 
-    private EditText inputQuestion;
-    private EditText inputAnswer;
-    private Button actionAddToAnki;
+    private EditText inputFilename;
+    private EditText inputIntervalDescription;
+    private EditText inputStartNote;
+    private EditText inputAscendingDescending;
+    private EditText inputMelodicHarmonic;
+    private EditText inputInterval;
+    private EditText inputTempo;
+    private EditText inputInstrument;
 
     private AnkiDroidHelper mAnkiDroid;
 
@@ -30,10 +35,36 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        inputQuestion = (EditText) findViewById(R.id.inputQuestion);
-        inputAnswer = (EditText) findViewById(R.id.inputAnswer);
+        inputFilename = findViewById(R.id.inputFilename);
+        inputIntervalDescription = findViewById(R.id.inputIntervalDescription);
+        inputStartNote = findViewById(R.id.inputStartNote);
+        inputAscendingDescending = findViewById(R.id.inputAscendingDescending);
+        inputMelodicHarmonic = findViewById(R.id.inputMelodicHarmonic);
+        inputInterval = findViewById(R.id.inputInterval);
+        inputTempo = findViewById(R.id.inputTempo);
+        inputInstrument = findViewById(R.id.inputInstrument);
 
-        actionAddToAnki = (Button) findViewById(R.id.actionAddToAnki);
+        Button actionSelectFile = findViewById(R.id.actionSelectFile);
+        actionSelectFile.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //showFileChooser();
+            }
+        });
+
+        Button actionCheckExistence = findViewById(R.id.actionCheckExistence);
+        actionCheckExistence.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mAnkiDroid.shouldRequestPermission()) {
+                    mAnkiDroid.requestPermission(MainActivity.this, AD_PERM_REQUEST);
+                    return;
+                }
+                checkIfDataAlreadyExists(getEnteredData());
+            }
+        });
+
+        Button actionAddToAnki = findViewById(R.id.actionAddToAnki);
         actionAddToAnki.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -41,11 +72,14 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     mAnkiDroid.requestPermission(MainActivity.this, AD_PERM_REQUEST);
                     return;
                 }
-                addCardsToAnkiDroid(getSelectedData());
+                if (!checkIfDataAlreadyExists(getEnteredData())) {
+                    addCardToAnkiDroid(getEnteredData());
+                }
             }
         });
 
-        //AnkiDroidHelper.isApiAvailable(this)
+        // @todo Disable buttons if AnkiDroid is unavailable
+        //AnkiDroidHelper.isApiAvailable(this);
 
         // Create instance of helper class
         mAnkiDroid = new AnkiDroidHelper(this);
@@ -57,16 +91,22 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
     public void onRequestPermissionsResult (int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if (requestCode == AD_PERM_REQUEST && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            addCardsToAnkiDroid(getSelectedData());
+            addCardToAnkiDroid(getEnteredData());
         } else {
             Toast.makeText(MainActivity.this, R.string.permission_denied, Toast.LENGTH_LONG).show();
         }
     }
 
-    Map<String, String> getSelectedData() {
+    Map<String, String> getEnteredData() {
         Map<String, String> data = new HashMap<String, String>();
-        data.put(AnkiDroidConfig.FIELDS[0], inputQuestion.getText().toString());
-        data.put(AnkiDroidConfig.FIELDS[1], inputAnswer.getText().toString());
+        data.put(AnkiDroidConfig.FIELDS[0], inputFilename.getText().toString());
+        data.put(AnkiDroidConfig.FIELDS[1], inputIntervalDescription.getText().toString());
+        data.put(AnkiDroidConfig.FIELDS[2], inputStartNote.getText().toString());
+        data.put(AnkiDroidConfig.FIELDS[3], inputAscendingDescending.getText().toString());
+        data.put(AnkiDroidConfig.FIELDS[4], inputMelodicHarmonic.getText().toString());
+        data.put(AnkiDroidConfig.FIELDS[5], inputInterval.getText().toString());
+        data.put(AnkiDroidConfig.FIELDS[6], inputTempo.getText().toString());
+        data.put(AnkiDroidConfig.FIELDS[7], inputInstrument.getText().toString());
         return data;
     }
 
@@ -93,7 +133,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         Long mid = mAnkiDroid.findModelIdByName(AnkiDroidConfig.MODEL_NAME, AnkiDroidConfig.FIELDS.length);
         if (mid == null) {
             mid = mAnkiDroid.addNewCustomModel(AnkiDroidConfig.MODEL_NAME, AnkiDroidConfig.FIELDS,
-                    AnkiDroidConfig.CARD_NAMES, AnkiDroidConfig.QFMT, AnkiDroidConfig.AFMT, AnkiDroidConfig.CSS, getDeckId(), null);
+                    AnkiDroidConfig.CARD_NAMES, AnkiDroidConfig.QFMT, null, AnkiDroidConfig.CSS, getDeckId(), null);
             if (mid != null) {
                 mAnkiDroid.storeModelReference(AnkiDroidConfig.MODEL_NAME, mid);
             }
@@ -101,11 +141,47 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         return mid;
     }
 
+    private boolean checkIfDataAlreadyExists(final Map<String, String> data) {
+        Long deckId = getDeckId();
+        Long modelId = getModelId();
+
+        if ((deckId == null) || (modelId == null)) {
+            // we had an API error, report failure and return
+            Toast.makeText(MainActivity.this, getResources().getString(R.string.card_add_fail), Toast.LENGTH_LONG).show();
+            return true;
+        }
+
+        String[] fieldNames = mAnkiDroid.getFieldList(modelId);
+        if (fieldNames == null) {
+            // we had an API error, report failure and return
+            Toast.makeText(MainActivity.this, getResources().getString(R.string.card_add_fail), Toast.LENGTH_LONG).show();
+            return true;
+        }
+
+        // Build list of fields and tags
+        LinkedList<String []> fields = new LinkedList<>();
+        LinkedList<Set<String>> tags = new LinkedList<>();
+
+        String[] flds = new String[fieldNames.length];
+        for (int i = 0; i < flds.length; i++) {
+            if (i < AnkiDroidConfig.FIELDS.length) {
+                flds[i] = data.get(AnkiDroidConfig.FIELDS[i]);
+            }
+        }
+
+        fields.add(flds);
+        tags.add(AnkiDroidConfig.TAGS);
+
+        mAnkiDroid.removeDuplicates(fields, tags, modelId);
+
+        return fields.isEmpty();
+    }
+
     /**
      * Use the instant-add API to add flashcards directly to AnkiDroid.
      * @param data HashMap of field name / field value pairs
      */
-    private void addCardsToAnkiDroid(final Map<String, String> data) {
+    private void addCardToAnkiDroid(final Map<String, String> data) {
         Long deckId = getDeckId();
         Long modelId = getModelId();
 
