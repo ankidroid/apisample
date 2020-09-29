@@ -87,14 +87,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         switch (requestCode) {
             case AD_PERM_REQUEST: {
-                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    // @todo Re-check why this is needed
-                    try {
-                        getMusInterval().addToAnki();
-                    } catch (MusInterval.NoSuchModelException e) {
-                        e.printStackTrace();
-                    }
-                } else {
+                if (grantResults.length > 0 && grantResults[0] != PackageManager.PERMISSION_GRANTED) {
                     Toast.makeText(MainActivity.this, R.string.anki_permission_denied, Toast.LENGTH_LONG).show();
                 }
             }
