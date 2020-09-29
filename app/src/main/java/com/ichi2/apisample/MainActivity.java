@@ -15,9 +15,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import java.util.HashMap;
-import java.util.Map;
-
 
 public class MainActivity extends AppCompatActivity implements ActivityCompat.OnRequestPermissionsResultCallback {
     private static final int AD_PERM_REQUEST = 0;
@@ -106,11 +103,11 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     }
 
     public MusInterval getMusInterval() {
-        Map<String, String> data = new HashMap<>();
-        data.put("sound", inputFilename.getText().toString());
-        data.put("start_note", inputStartNote.getText().toString());
-
-        return new MusInterval(mAnkiDroid, data);
+        return new MusInterval(
+                mAnkiDroid,
+                inputFilename.getText().toString(),
+                inputStartNote.getText().toString()
+        );
     }
 
 }

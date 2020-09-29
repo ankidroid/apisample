@@ -25,15 +25,11 @@ public class MusIntervalTest {
         final long deckId = new Random().nextLong();
         final String model = "Music.intervals";
 
-        final Map<String, String> data = new HashMap<>();
-        data.put("sound", "");
-        data.put("start_note", "C#3");
-
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         doReturn(null).when(helper).findModelIdByName(model);
         doReturn(deckId).when(helper).findDeckIdByName(deck);
 
-        MusInterval mi = new MusInterval(helper, model, deck, data);
+        MusInterval mi = new MusInterval(helper, "", "C#3", model, deck);
         assertFalse(mi.isExistsInAnki());
     }
 
@@ -44,10 +40,6 @@ public class MusIntervalTest {
         final String model = "Music.intervals";
         final long modelId = new Random().nextLong();
 
-        final Map<String, String> data = new HashMap<>();
-        data.put("sound", "");
-        data.put("start_note", "C#3");
-
         LinkedList<Map<String, String>> existingNotesData = new LinkedList<>();
 
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
@@ -55,7 +47,7 @@ public class MusIntervalTest {
         doReturn(deckId).when(helper).findDeckIdByName(deck);
         doReturn(existingNotesData).when(helper).getNotes(modelId);
 
-        MusInterval mi = new MusInterval(helper, model, deck, data);
+        MusInterval mi = new MusInterval(helper, "", "C#3", model, deck);
         assertFalse(mi.isExistsInAnki());
     }
 
@@ -65,10 +57,6 @@ public class MusIntervalTest {
         final long deckId = new Random().nextLong();
         final String model = "Music.intervals";
         final long modelId = new Random().nextLong();
-
-        final Map<String, String> data = new HashMap<>();
-        data.put("sound", "");
-        data.put("start_note", "C#3");
 
         Map<String, String> item1 = new HashMap<>();
         item1.put("start_note", "C1");
@@ -84,7 +72,7 @@ public class MusIntervalTest {
         doReturn(deckId).when(helper).findDeckIdByName(deck);
         doReturn(existingNotesData).when(helper).getNotes(modelId);
 
-        MusInterval mi = new MusInterval(helper, model, deck, data);
+        MusInterval mi = new MusInterval(helper, "", "C#3", model, deck);
         assertFalse(mi.isExistsInAnki());
     }
 
@@ -94,10 +82,6 @@ public class MusIntervalTest {
         final long deckId = new Random().nextLong();
         final String model = "Music.intervals";
         final long modelId = new Random().nextLong();
-
-        final Map<String, String> data = new HashMap<>();
-        data.put("sound", "");
-        data.put("start_note", "C#3");
 
         LinkedList<Map<String, String>> existingNotesData = new LinkedList<>();
         Map<String, String> item1 = new HashMap<>();
@@ -109,7 +93,7 @@ public class MusIntervalTest {
         doReturn(deckId).when(helper).findDeckIdByName(deck);
         doReturn(existingNotesData).when(helper).getNotes(modelId);
 
-        MusInterval mi = new MusInterval(helper, model, deck, data);
+        MusInterval mi = new MusInterval(helper, "", "C#3", model, deck);
         assertTrue(mi.isExistsInAnki());
     }
 
@@ -119,10 +103,6 @@ public class MusIntervalTest {
         final long deckId = new Random().nextLong();
         final String model = "Music.intervals";
 
-        final Map<String, String> data = new HashMap<>();
-        data.put("sound", "");
-        data.put("start_note", "C#3");
-
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         // can't create model for some reason
         doReturn(null).when(helper).findModelIdByName(model);
@@ -130,7 +110,7 @@ public class MusIntervalTest {
         // deck ok
         doReturn(deckId).when(helper).findDeckIdByName(deck);
 
-        MusInterval mi = new MusInterval(helper, model, deck, data);
+        MusInterval mi = new MusInterval(helper, "", "C#3", model, deck);
         assertFalse(mi.addToAnki());
     }
 
@@ -140,10 +120,6 @@ public class MusIntervalTest {
         final String model = "Music.intervals";
         final long modelId = new Random().nextLong();
 
-        final Map<String, String> data = new HashMap<>();
-        data.put("sound", "");
-        data.put("start_note", "C#3");
-
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         // model ok
         doReturn(modelId).when(helper).findModelIdByName(model);
@@ -151,7 +127,7 @@ public class MusIntervalTest {
         doReturn(null).when(helper).findDeckIdByName(deck);
         doReturn(null).when(helper).addNewDeck(deck);
 
-        MusInterval mi = new MusInterval(helper, model, deck, data);
+        MusInterval mi = new MusInterval(helper, "", "C#3", model, deck);
         assertFalse(mi.addToAnki());
     }
 
@@ -161,10 +137,6 @@ public class MusIntervalTest {
         final long deckId = new Random().nextLong();
         final String model = "Music.intervals";
         final long modelId = new Random().nextLong();
-
-        final Map<String, String> data = new HashMap<>();
-        data.put("sound", "");
-        data.put("start_note", "C#3");
 
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         // create model
@@ -179,7 +151,7 @@ public class MusIntervalTest {
         // can't create note for some reason
         doReturn(null).when(helper).addNote(eq(modelId), eq(deckId), any(Map.class), nullable(Set.class));
 
-        MusInterval mi = new MusInterval(helper, model, deck, data);
+        MusInterval mi = new MusInterval(helper, "", "C#3", model, deck);
         assertFalse(mi.addToAnki());
     }
 
@@ -190,10 +162,6 @@ public class MusIntervalTest {
         final String model = "Music.intervals";
         final long modelId = new Random().nextLong();
         final long noteId = new Random().nextLong();
-
-        final Map<String, String> data = new HashMap<>();
-        data.put("sound", "");
-        data.put("start_note", "C#3");
 
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         // create model
@@ -208,7 +176,7 @@ public class MusIntervalTest {
         // successful note creation
         doReturn(noteId).when(helper).addNote(eq(modelId), eq(deckId), any(Map.class), nullable(Set.class));
 
-        MusInterval mi = new MusInterval(helper, model, deck, data);
+        MusInterval mi = new MusInterval(helper, "", "C#3", model, deck);
         assertTrue(mi.addToAnki());
     }
 
@@ -220,10 +188,6 @@ public class MusIntervalTest {
         final long modelId = new Random().nextLong();
         final long noteId = new Random().nextLong();
 
-        final Map<String, String> data = new HashMap<>();
-        data.put("sound", "");
-        data.put("start_note", "C#3");
-
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         // existing model
         doReturn(modelId).when(helper).findModelIdByName(model);
@@ -233,7 +197,7 @@ public class MusIntervalTest {
         // successful note creation
         doReturn(noteId).when(helper).addNote(eq(modelId), eq(deckId), any(Map.class), nullable(Set.class));
 
-        MusInterval mi = new MusInterval(helper, model, deck, data);
+        MusInterval mi = new MusInterval(helper, "", "C#3", model, deck);
         assertTrue(mi.addToAnki());
     }
 

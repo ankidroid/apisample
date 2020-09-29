@@ -1,5 +1,6 @@
 package com.ichi2.apisample;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 
@@ -64,17 +65,15 @@ public class MusInterval {
     private final String mDeckName;
     private Long mDeckId;
 
-    private final Map<String, String> mData;
+    private final String mSound;
+    private final String mStartNote;
 
     /**
      * Construct MusInterval instance.
      *
-     * @param helper
-     * @param modelName
-     * @param deckName
-     * @param data
+     *
      */
-    public MusInterval(AnkiDroidHelper helper, String modelName, String deckName, Map<String, String> data) {
+    public MusInterval(AnkiDroidHelper helper, String sound, String startNote, String modelName, String deckName) {
         mHelper = helper;
 
         mModelName = modelName;
@@ -82,11 +81,12 @@ public class MusInterval {
         mDeckName = deckName;
         mDeckId = mHelper.findDeckIdByName(deckName);
 
-        mData = data;
+        mSound = sound;
+        mStartNote = startNote;
     }
 
-    public MusInterval(AnkiDroidHelper mAnkiDroid, Map<String, String> data) {
-        this(mAnkiDroid, MODEL_NAME, DECK_NAME, data);
+    public MusInterval(AnkiDroidHelper mAnkiDroid, String sound, String startNote) {
+        this(mAnkiDroid, sound, startNote, MODEL_NAME, DECK_NAME);
     }
 
     /**
@@ -102,17 +102,9 @@ public class MusInterval {
         LinkedList<Map<String, String>> notes = mHelper.getNotes(mModelId);
 
         for (Map<String, String> note : notes) {
-            boolean exists = true;
-
-            for (String field : mData.keySet()) { //noinspection ConstantConditions
-                if (!mData.get(field).isEmpty()
-                        && note.containsKey(field)
-                        && !mData.get(field).equals(note.get(field))) {
-                    exists = false;
-                }
-            }
-
-            if (exists) {
+            if ((mSound.isEmpty() || mSound.equals(note.get("sound")))
+                && (mStartNote.isEmpty() || mStartNote.equals(note.get("start_note"))))
+            {
                 return true;
             }
         }
@@ -150,7 +142,11 @@ public class MusInterval {
             mHelper.storeDeckReference(mDeckName, mDeckId);
         }
 
-        Long noteId = mHelper.addNote(mModelId, mDeckId, mData, null);
+        Map<String, String> data = new HashMap<>();
+        data.put("sound", mSound);
+        data.put("start_note", mStartNote);
+
+        Long noteId = mHelper.addNote(mModelId, mDeckId, data, null);
         return noteId != null;
     }
 }
