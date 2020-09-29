@@ -68,10 +68,14 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     mAnkiDroid.requestPermission(MainActivity.this, AD_PERM_REQUEST);
                     return;
                 }
-                if (getMusInterval().addToAnki()){
-                    Toast.makeText(MainActivity.this, getResources().getString(R.string.item_added), Toast.LENGTH_LONG).show();
-                } else {
-                    Toast.makeText(MainActivity.this, getResources().getString(R.string.card_add_fail), Toast.LENGTH_LONG).show();
+                try {
+                    if (getMusInterval().addToAnki()){
+                        Toast.makeText(MainActivity.this, getResources().getString(R.string.item_added), Toast.LENGTH_LONG).show();
+                    } else {
+                        Toast.makeText(MainActivity.this, getResources().getString(R.string.card_add_fail), Toast.LENGTH_LONG).show();
+                    }
+                } catch (MusInterval.NoSuchModelException e) {
+                    Toast.makeText(MainActivity.this, getResources().getString(R.string.model_not_found, MusInterval.DEFAULT_MODEL_NAME), Toast.LENGTH_LONG).show();
                 }
             }
         });
@@ -83,7 +87,12 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         switch (requestCode) {
             case AD_PERM_REQUEST: {
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    getMusInterval().addToAnki();
+                    // @todo Re-check why this is needed
+                    try {
+                        getMusInterval().addToAnki();
+                    } catch (MusInterval.NoSuchModelException e) {
+                        e.printStackTrace();
+                    }
                 } else {
                     Toast.makeText(MainActivity.this, R.string.anki_permission_denied, Toast.LENGTH_LONG).show();
                 }

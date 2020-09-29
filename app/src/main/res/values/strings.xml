@@ -4,6 +4,7 @@
     <string name="card_exists">Data already exists</string>
     <string name="card_not_exists">Such data not found</string>
     <string name="card_add_fail">Error adding cards to AnkiDroid</string>
+    <string name="model_not_found">Note type "%s" not found</string>
     <string name="anki_permission_denied">Couldn\'t get permission to access the AnkiDroid database</string>
     <string name="fs_permission_denied">Filesystem read permission denied</string>
 

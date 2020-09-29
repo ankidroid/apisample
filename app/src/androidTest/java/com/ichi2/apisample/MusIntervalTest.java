@@ -121,8 +121,8 @@ public class MusIntervalTest {
         assertTrue(mi.existsInAnki());
     }
 
-    @Test
-    public void add_NoSuchModelCantCreate() {
+    @Test(expected = MusInterval.NoSuchModelException.class)
+    public void add_NoSuchModel() throws MusInterval.NoSuchModelException {
         final String deck = "Music intervals";
         final long deckId = new Random().nextLong();
         final String model = "Music.intervals";
@@ -130,16 +130,15 @@ public class MusIntervalTest {
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         // can't create model for some reason
         doReturn(null).when(helper).findModelIdByName(model);
-        doReturn(null).when(helper).addNewCustomModel(model, MusInterval.FIELDS, MusInterval.CARD_NAMES, MusInterval.QFMT, MusInterval.AFMT, MusInterval.CSS);
         // deck ok
         doReturn(deckId).when(helper).findDeckIdByName(deck);
 
         MusInterval mi = new MusInterval(helper, "", "C#3", model, deck);
-        assertFalse(mi.addToAnki());
+        mi.addToAnki();
     }
 
     @Test
-    public void add_NoSuchDeckCantCreate() {
+    public void add_NoSuchDeckCantCreate() throws MusInterval.NoSuchModelException {
         final String deck = "Music intervals";
         final String model = "Music.intervals";
         final long modelId = new Random().nextLong();
@@ -156,17 +155,15 @@ public class MusIntervalTest {
     }
 
     @Test
-    public void add_NoSuchModelAndDeckNotCreated() {
+    public void add_NoSuchDeckNotCreated() throws MusInterval.NoSuchModelException {
         final String deck = "Music intervals";
         final long deckId = new Random().nextLong();
         final String model = "Music.intervals";
         final long modelId = new Random().nextLong();
 
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
-        // create model
-        doReturn(null).when(helper).findModelIdByName(model);
-        doReturn(modelId).when(helper).addNewCustomModel(model, MusInterval.FIELDS, MusInterval.CARD_NAMES, MusInterval.QFMT, MusInterval.AFMT, MusInterval.CSS);
-        doNothing().when(helper).storeModelReference(model, modelId);
+        // model ok
+        doReturn(modelId).when(helper).findModelIdByName(model);
         // create deck
         doReturn(null).when(helper).findDeckIdByName(deck);
         doReturn(deckId).when(helper).addNewDeck(deck);
@@ -180,7 +177,7 @@ public class MusIntervalTest {
     }
 
     @Test
-    public void add_NoSuchModelAndDeckCreated() {
+    public void add_NoSuchDeckCreated() throws MusInterval.NoSuchModelException {
         final String deck = "Music intervals";
         final long deckId = new Random().nextLong();
         final String model = "Music.intervals";
@@ -188,10 +185,8 @@ public class MusIntervalTest {
         final long noteId = new Random().nextLong();
 
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
-        // create model
-        doReturn(null).when(helper).findModelIdByName(model);
-        doReturn(modelId).when(helper).addNewCustomModel(model, MusInterval.FIELDS, MusInterval.CARD_NAMES, MusInterval.QFMT, MusInterval.AFMT, MusInterval.CSS);
-        doNothing().when(helper).storeModelReference(model, modelId);
+        // model ok
+        doReturn(modelId).when(helper).findModelIdByName(model);
         // create deck
         doReturn(null).when(helper).findDeckIdByName(deck);
         doReturn(deckId).when(helper).addNewDeck(deck);
@@ -205,7 +200,7 @@ public class MusIntervalTest {
     }
 
     @Test
-    public void add_ExistingModelAndDeckCreated() {
+    public void add_ExistingModelAndDeckCreated() throws MusInterval.NoSuchModelException {
         final String deck = "Music intervals";
         final long deckId = new Random().nextLong();
         final String model = "Music.intervals";
@@ -224,5 +219,4 @@ public class MusIntervalTest {
         MusInterval mi = new MusInterval(helper, "", "C#3", model, deck);
         assertTrue(mi.addToAnki());
     }
-
 }
