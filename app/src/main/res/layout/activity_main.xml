@@ -43,19 +43,6 @@
         </LinearLayout>
 
         <TextView
-            android:id="@+id/labelIntervalDescription"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/interval_description" />
-
-        <EditText
-            android:id="@+id/inputIntervalDescription"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:ems="10"
-            android:inputType="textPersonName" />
-
-        <TextView
             android:id="@+id/labelStartNote"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -63,71 +50,6 @@
 
         <EditText
             android:id="@+id/inputStartNote"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:ems="10"
-            android:inputType="textPersonName" />
-
-        <TextView
-            android:id="@+id/labelAscendingDescending"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/ascending_descending" />
-
-        <EditText
-            android:id="@+id/inputAscendingDescending"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:ems="10"
-            android:inputType="textPersonName" />
-
-        <TextView
-            android:id="@+id/labelMelodicHarmonic"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/melodic_harmonic" />
-
-        <EditText
-            android:id="@+id/inputMelodicHarmonic"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:ems="10"
-            android:inputType="textPersonName" />
-
-        <TextView
-            android:id="@+id/labelInterval"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/interval" />
-
-        <EditText
-            android:id="@+id/inputInterval"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:ems="10"
-            android:inputType="textPersonName" />
-
-        <TextView
-            android:id="@+id/labelTempo"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/tempo" />
-
-        <EditText
-            android:id="@+id/inputTempo"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:ems="10"
-            android:inputType="textPersonName" />
-
-        <TextView
-            android:id="@+id/labelInstrument"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/instrument" />
-
-        <EditText
-            android:id="@+id/inputInstrument"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:ems="10"

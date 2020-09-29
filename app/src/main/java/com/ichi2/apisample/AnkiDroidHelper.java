@@ -1,26 +1,24 @@
 package com.ichi2.apisample;
 
 import android.app.Activity;
-import android.content.ContentValues;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.net.Uri;
+import android.database.Cursor;
 import android.os.Build;
 
-import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import android.util.SparseArray;
 
 import com.ichi2.anki.FlashCardsContract;
 import com.ichi2.anki.api.AddContentApi;
-import com.ichi2.anki.api.NoteInfo;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.ListIterator;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -30,11 +28,13 @@ public class AnkiDroidHelper {
     private static final String DECK_REF_DB = "com.ichi2.anki.api.decks";
     private static final String MODEL_REF_DB = "com.ichi2.anki.api.models";
 
-    private AddContentApi mApi;
     private Context mContext;
+    ContentResolver mResolver;
+    private AddContentApi mApi;
 
     public AnkiDroidHelper(Context context) {
         mContext = context.getApplicationContext();
+        mResolver = mContext.getContentResolver();
         mApi = new AddContentApi(mContext);
     }
 
@@ -87,48 +87,6 @@ public class AnkiDroidHelper {
     }
 
     /**
-     * Remove the duplicates from a list of note fields and tags
-     * @param fields List of fields to remove duplicates from
-     * @param tags List of tags to remove duplicates from
-     * @param modelId ID of model to search for duplicates on
-     */
-    public void removeDuplicates(LinkedList<String []> fields, LinkedList<Set<String>> tags, long modelId) {
-        // Build a list of the duplicate keys (first fields) and find all notes that have a match with each key
-        List<String> keys = new ArrayList<>(fields.size());
-        for (String[] f: fields) {
-            keys.add(f[0]);
-        }
-        SparseArray<List<NoteInfo>> duplicateNotes = getApi().findDuplicateNotes(modelId, keys);
-
-        // Do some sanity checks
-        if (tags.size() != fields.size()) {
-            throw new IllegalStateException("List of tags must be the same length as the list of fields");
-        }
-        if (duplicateNotes == null || duplicateNotes.size() == 0 || fields.size() == 0 || tags.size() == 0) {
-            return;
-        }
-        if (duplicateNotes.keyAt(duplicateNotes.size() - 1) >= fields.size()) {
-            throw new IllegalStateException("The array of duplicates goes outside the bounds of the original lists");
-        }
-
-        // Iterate through the fields and tags LinkedLists, removing those that had a duplicate
-        ListIterator<String[]> fieldIterator = fields.listIterator();
-        ListIterator<Set<String>> tagIterator = tags.listIterator();
-        int listIndex = -1;
-        for (int i = 0; i < duplicateNotes.size(); i++) {
-            int duplicateIndex = duplicateNotes.keyAt(i);
-            while (listIndex < duplicateIndex) {
-                fieldIterator.next();
-                tagIterator.next();
-                listIndex++;
-            }
-            fieldIterator.remove();
-            tagIterator.remove();
-        }
-    }
-
-
-    /**
      * Try to find the given model by name, accounting for renaming of the model:
      * If there's a model with this modelName that is known to have previously been created (by this app)
      *   and the corresponding model ID exists and has the required number of fields
@@ -161,6 +119,9 @@ public class AnkiDroidHelper {
         return null;
     }
 
+    public Long findModelIdByName(String modelName) {
+        return findModelIdByName(modelName, 1);
+    }
 
     /**
      * Try to find the given deck by name, accounting for potential renaming of the deck by the user as follows:
@@ -211,17 +172,84 @@ public class AnkiDroidHelper {
         return getApi().addNewDeck(deckName);
     }
 
-    public Long addNewCustomModel(String name, String[] fields, String[] cards, String[] qfmt,
-                                  String[] afmt, String css, Long did, Integer sortf) {
-        return getApi().addNewCustomModel(name, fields, cards, qfmt, afmt, css, did, sortf);
+    public Long addNewCustomModel(String name, String[] fields, String[] cards, String[] qfmt, String[] afmt, String css) {
+        return getApi().addNewCustomModel(name, fields, cards, qfmt, afmt, css, null, null);
     }
 
     public String[] getFieldList(long modelId) {
         return getApi().getFieldList(modelId);
     }
 
-    public int addNotes(long modelId, long deckId, List<String[]> fieldsList, List<Set<String>> tagsList) {
-        return getApi().addNotes(modelId, deckId, fieldsList, tagsList);
+    /**
+     * Add note to Anki.
+     *
+     * Transforms Map into simple array of strings.
+     *
+     * @param modelId
+     * @param deckId
+     * @param data
+     * @param tags
+     * @return
+     */
+    public Long addNote(long modelId, long deckId, Map<String, String> data, Set<String> tags) {
+        String[] fieldNames = getFieldList(modelId);
+        List<String> fields = new ArrayList<>();
+
+        for (String fieldName : fieldNames) {
+            String value = data.containsKey(fieldName) ? data.get(fieldName) : "";
+            fields.add(value);
+        }
+
+        String[] result = new String[fields.size()];
+        fields.toArray(result);
+
+        return getApi().addNote(modelId, deckId, result, tags);
+    }
+
+    /**
+     * Get all the notes, related to the passed model id.
+     *
+     * @param modelId Needed model
+     * @return List of note ids
+     */
+    public LinkedList<Map<String, String>> getNotes(long modelId) {
+        LinkedList<Map<String, String>> result = new LinkedList<>();
+
+        String selection = String.format(Locale.US, "%s=%d", FlashCardsContract.Note.MID, modelId);
+        String[] projection = new String[] { FlashCardsContract.Note._ID, FlashCardsContract.Note.FLDS };
+        Cursor notesTableCursor = mResolver.query(FlashCardsContract.Note.CONTENT_URI_V2, projection, selection, null, null);
+
+        if (notesTableCursor == null) {
+            // nothing found
+            return result;
+        }
+
+        String[] fieldNames = getFieldList(modelId);
+
+        try {
+            while (notesTableCursor.moveToNext()) {
+                int fldsIndex = notesTableCursor.getColumnIndexOrThrow(FlashCardsContract.Note.FLDS);
+                String flds = notesTableCursor.getString(fldsIndex);
+
+                if (flds != null) {
+                    String[] fields = flds.split("\\x1f", -1);
+                    if (fields.length != fieldNames.length) {
+                        continue; // @todo Probably throw exception ?
+                    }
+
+                    Map<String, String> item = new HashMap<>();
+                    for (int i = 0; i < fieldNames.length; ++i) {
+                        item.put(fieldNames[i], fields[i]);
+                    }
+
+                    result.add(item);
+                }
+            }
+        }
+        finally {
+            notesTableCursor.close();
+        }
+
+        return result;
     }
 }
-
