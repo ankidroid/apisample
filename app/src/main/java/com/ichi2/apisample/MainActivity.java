@@ -68,14 +68,15 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     mAnkiDroid.requestPermission(MainActivity.this, AD_PERM_REQUEST);
                     return;
                 }
+                final MusInterval musInterval = getMusInterval();
                 try {
-                    if (getMusInterval().addToAnki()){
+                    if (musInterval.addToAnki()){
                         Toast.makeText(MainActivity.this, getResources().getString(R.string.item_added), Toast.LENGTH_LONG).show();
                     } else {
                         Toast.makeText(MainActivity.this, getResources().getString(R.string.card_add_fail), Toast.LENGTH_LONG).show();
                     }
                 } catch (MusInterval.NoSuchModelException e) {
-                    Toast.makeText(MainActivity.this, getResources().getString(R.string.model_not_found, MusInterval.DEFAULT_MODEL_NAME), Toast.LENGTH_LONG).show();
+                    Toast.makeText(MainActivity.this, getResources().getString(R.string.model_not_found, musInterval.getModelName()), Toast.LENGTH_LONG).show();
                 }
             }
         });

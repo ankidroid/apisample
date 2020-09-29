@@ -7,12 +7,13 @@ import java.util.Map;
 
 public class MusInterval {
     // Name of deck which will be created in AnkiDroid
-    public static final String DEFAULT_DECK_NAME = "Music intervals";
+    private static final String DEFAULT_DECK_NAME = "Music intervals";
     // Name of model which will be created in AnkiDroid
-    public static final String DEFAULT_MODEL_NAME = "Music.interval";
+    private static final String DEFAULT_MODEL_NAME = "Music.interval";
 
     private final AnkiDroidHelper mHelper;
 
+    private String mModelName;
     private Long mModelId;
     private final String mDeckName;
     private Long mDeckId;
@@ -28,6 +29,7 @@ public class MusInterval {
     public MusInterval(AnkiDroidHelper helper, String sound, String startNote, String modelName, String deckName) {
         mHelper = helper;
 
+        mModelName = modelName;
         mModelId = mHelper.findModelIdByName(modelName);
         mDeckName = deckName;
         mDeckId = mHelper.findDeckIdByName(deckName);
@@ -88,6 +90,10 @@ public class MusInterval {
         // @todo Throw exception on adding failure
         Long noteId = mHelper.addNote(mModelId, mDeckId, data, null);
         return noteId != null;
+    }
+
+    public String getModelName() {
+        return mModelName;
     }
 
     public class NoSuchModelException extends Throwable {
