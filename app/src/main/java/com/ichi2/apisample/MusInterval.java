@@ -102,8 +102,7 @@ public class MusInterval {
         LinkedList<Map<String, String>> notes = mHelper.getNotes(mModelId);
 
         for (Map<String, String> note : notes) {
-            if ((mSound.isEmpty() || mSound.equals(note.get("sound")))
-                && (mStartNote.isEmpty() || mStartNote.equals(note.get("start_note"))))
+            if (mStartNote.isEmpty() || mStartNote.equals(note.get("start_note")))
             {
                 return true;
             }

@@ -82,10 +82,11 @@ public class MusIntervalTest {
         final long deckId = new Random().nextLong();
         final String model = "Music.intervals";
         final long modelId = new Random().nextLong();
+        final String startNote = "C#3";
 
         LinkedList<Map<String, String>> existingNotesData = new LinkedList<>();
         Map<String, String> item1 = new HashMap<>();
-        item1.put("start_note", "C#3");
+        item1.put("start_note", startNote);
         existingNotesData.add(item1);
 
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
@@ -93,7 +94,30 @@ public class MusIntervalTest {
         doReturn(deckId).when(helper).findDeckIdByName(deck);
         doReturn(existingNotesData).when(helper).getNotes(modelId);
 
-        MusInterval mi = new MusInterval(helper, "", "C#3", model, deck);
+        MusInterval mi = new MusInterval(helper, "", startNote, model, deck);
+        assertTrue(mi.isExistsInAnki());
+    }
+
+    @Test
+    public void checkExistenceStartingNoteExistsRegardlessOfSound() {
+        final String deck = "Music intervals";
+        final long deckId = new Random().nextLong();
+        final String model = "Music.intervals";
+        final long modelId = new Random().nextLong();
+        final String startNote = "C#3";
+
+        LinkedList<Map<String, String>> existingNotesData = new LinkedList<>();
+        Map<String, String> item1 = new HashMap<>();
+        item1.put("start_note", startNote);
+        item1.put("sound", "/test1");
+        existingNotesData.add(item1);
+
+        AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
+        doReturn(modelId).when(helper).findModelIdByName(model);
+        doReturn(deckId).when(helper).findDeckIdByName(deck);
+        doReturn(existingNotesData).when(helper).getNotes(modelId);
+
+        MusInterval mi = new MusInterval(helper, "/test2", startNote, model, deck);
         assertTrue(mi.isExistsInAnki());
     }
 
