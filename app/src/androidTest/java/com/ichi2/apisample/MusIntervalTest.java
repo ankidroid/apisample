@@ -20,7 +20,7 @@ import static org.mockito.Mockito.*;
 public class MusIntervalTest {
 
     @Test
-    public void checkExistenceNoSuchModel() {
+    public void checkExistence_NoSuchModel() {
         final String deck = "Music intervals";
         final long deckId = new Random().nextLong();
         final String model = "Music.intervals";
@@ -30,11 +30,11 @@ public class MusIntervalTest {
         doReturn(deckId).when(helper).findDeckIdByName(deck);
 
         MusInterval mi = new MusInterval(helper, "", "C#3", model, deck);
-        assertFalse(mi.isExistsInAnki());
+        assertFalse(mi.existsInAnki());
     }
 
     @Test
-    public void checkExistenceNoStartingNotes() {
+    public void checkExistence_NoStartingNotes() {
         final String deck = "Music intervals";
         final long deckId = new Random().nextLong();
         final String model = "Music.intervals";
@@ -48,11 +48,11 @@ public class MusIntervalTest {
         doReturn(existingNotesData).when(helper).getNotes(modelId);
 
         MusInterval mi = new MusInterval(helper, "", "C#3", model, deck);
-        assertFalse(mi.isExistsInAnki());
+        assertFalse(mi.existsInAnki());
     }
 
     @Test
-    public void checkExistenceNoSuchStartingNote() {
+    public void checkExistence_NoSuchStartingNote() {
         final String deck = "Music intervals";
         final long deckId = new Random().nextLong();
         final String model = "Music.intervals";
@@ -73,11 +73,11 @@ public class MusIntervalTest {
         doReturn(existingNotesData).when(helper).getNotes(modelId);
 
         MusInterval mi = new MusInterval(helper, "", "C#3", model, deck);
-        assertFalse(mi.isExistsInAnki());
+        assertFalse(mi.existsInAnki());
     }
 
     @Test
-    public void checkExistenceStartingNoteExists() {
+    public void checkExistence_StartingNoteExists() {
         final String deck = "Music intervals";
         final long deckId = new Random().nextLong();
         final String model = "Music.intervals";
@@ -95,11 +95,11 @@ public class MusIntervalTest {
         doReturn(existingNotesData).when(helper).getNotes(modelId);
 
         MusInterval mi = new MusInterval(helper, "", startNote, model, deck);
-        assertTrue(mi.isExistsInAnki());
+        assertTrue(mi.existsInAnki());
     }
 
     @Test
-    public void checkExistenceStartingNoteExistsRegardlessOfSound() {
+    public void checkExistence_StartingNoteExistsRegardlessOfSound() {
         final String deck = "Music intervals";
         final long deckId = new Random().nextLong();
         final String model = "Music.intervals";
@@ -118,11 +118,11 @@ public class MusIntervalTest {
         doReturn(existingNotesData).when(helper).getNotes(modelId);
 
         MusInterval mi = new MusInterval(helper, "/test2", startNote, model, deck);
-        assertTrue(mi.isExistsInAnki());
+        assertTrue(mi.existsInAnki());
     }
 
     @Test
-    public void saveMiNoSuchModelCantCreate() {
+    public void add_NoSuchModelCantCreate() {
         final String deck = "Music intervals";
         final long deckId = new Random().nextLong();
         final String model = "Music.intervals";
@@ -139,7 +139,7 @@ public class MusIntervalTest {
     }
 
     @Test
-    public void saveMiNoSuchDeckCantCreate() {
+    public void add_NoSuchDeckCantCreate() {
         final String deck = "Music intervals";
         final String model = "Music.intervals";
         final long modelId = new Random().nextLong();
@@ -156,7 +156,7 @@ public class MusIntervalTest {
     }
 
     @Test
-    public void saveMiNoSuchModelAndDeckNotCreated() {
+    public void add_NoSuchModelAndDeckNotCreated() {
         final String deck = "Music intervals";
         final long deckId = new Random().nextLong();
         final String model = "Music.intervals";
@@ -180,7 +180,7 @@ public class MusIntervalTest {
     }
 
     @Test
-    public void saveMiNoSuchModelAndDeckCreated() {
+    public void add_NoSuchModelAndDeckCreated() {
         final String deck = "Music intervals";
         final long deckId = new Random().nextLong();
         final String model = "Music.intervals";
@@ -205,7 +205,7 @@ public class MusIntervalTest {
     }
 
     @Test
-    public void saveMiExistingModelAndDeckCreated() {
+    public void add_ExistingModelAndDeckCreated() {
         final String deck = "Music intervals";
         final long deckId = new Random().nextLong();
         final String model = "Music.intervals";

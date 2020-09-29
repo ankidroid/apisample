@@ -52,7 +52,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 if (inputStartNote.getText().toString().isEmpty()) {
                     Toast.makeText(MainActivity.this, "Nothing to check", Toast.LENGTH_LONG).show();
                 }
-                if (getMusInterval().isExistsInAnki()) {
+                if (getMusInterval().existsInAnki()) {
                     Toast.makeText(MainActivity.this, getResources().getString(R.string.card_exists), Toast.LENGTH_LONG).show();
                 } else {
                     Toast.makeText(MainActivity.this, getResources().getString(R.string.card_not_exists), Toast.LENGTH_LONG).show();

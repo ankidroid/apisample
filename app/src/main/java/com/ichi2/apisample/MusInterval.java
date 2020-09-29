@@ -94,7 +94,7 @@ public class MusInterval {
      *
      * @return
      */
-    public boolean isExistsInAnki() {
+    public boolean existsInAnki() {
         if (mModelId == null) {
             return false;
         }
