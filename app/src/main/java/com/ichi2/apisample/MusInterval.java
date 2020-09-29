@@ -2,10 +2,13 @@ package com.ichi2.apisample;
 
 import java.util.LinkedList;
 import java.util.Map;
-import java.util.Objects;
 
 
 public class MusInterval {
+    // Name of deck which will be created in AnkiDroid
+    public static final String DECK_NAME = "Music intervals";
+    // Name of model which will be created in AnkiDroid
+    public static final String MODEL_NAME = "Music.interval";
     // List of field names that will be used in AnkiDroid model
     public static final String[] FIELDS = {"sound", "start_note"};
     // List of card names that will be used in AnkiDroid (one for each direction of learning)
@@ -80,6 +83,10 @@ public class MusInterval {
         mDeckId = mHelper.findDeckIdByName(deckName);
 
         mData = data;
+    }
+
+    public MusInterval(AnkiDroidHelper mAnkiDroid, Map<String, String> data) {
+        this(mAnkiDroid, MODEL_NAME, DECK_NAME, data);
     }
 
     /**

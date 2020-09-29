@@ -110,12 +110,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         data.put("sound", inputFilename.getText().toString());
         data.put("start_note", inputStartNote.getText().toString());
 
-        return new MusInterval(
-                mAnkiDroid,
-                AnkiDroidConfig.MODEL_NAME,
-                AnkiDroidConfig.DECK_NAME,
-                data
-        );
+        return new MusInterval(mAnkiDroid, data);
     }
 
 }
