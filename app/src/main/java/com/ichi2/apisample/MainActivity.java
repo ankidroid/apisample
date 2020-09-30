@@ -22,6 +22,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private EditText inputScale;
     private EditText inputInterval;
     private EditText inputTempo;
+    private EditText inputInstrument;
 
     private AnkiDroidHelper mAnkiDroid;
 
@@ -36,6 +37,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         inputScale = findViewById(R.id.inputScale);
         inputInterval = findViewById(R.id.inputInterval);
         inputTempo = findViewById(R.id.inputTempo);
+        inputInstrument = findViewById(R.id.inputInstrument);
 
         final Button actionSelectFile = findViewById(R.id.actionSelectFile);
         actionSelectFile.setOnClickListener(new View.OnClickListener() {
@@ -121,13 +123,14 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 && inputDirection.getText().toString().isEmpty()
                 && inputScale.getText().toString().isEmpty()
                 && inputInterval.getText().toString().isEmpty()
-                && inputTempo.getText().toString().isEmpty();
+                && inputTempo.getText().toString().isEmpty()
+                && inputInstrument.getText().toString().isEmpty();
     }
 
     private MusInterval getMusInterval() {
         return new MusInterval(mAnkiDroid, inputFilename.getText().toString(), inputStartNote.getText().toString(),
                 inputDirection.getText().toString(), inputScale.getText().toString(), inputInterval.getText().toString(),
-                inputTempo.getText().toString());
+                inputTempo.getText().toString(), inputInstrument.getText().toString());
     }
 
 }

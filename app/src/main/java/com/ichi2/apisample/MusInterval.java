@@ -14,6 +14,7 @@ public class MusInterval {
         public static final String SCALE = "melodic_harmonic";
         public static final String INTERVAL = "interval";
         public static final String TEMPO = "tempo";
+        public static final String INSTRUMENT = "instrument";
 
         public static class Direction {
             public static final String ASC = "ascending";
@@ -47,13 +48,15 @@ public class MusInterval {
     private final String mScale;
     private final String mInterval;
     private final String mTempo;
+    private final String mInstrument;
 
     /**
      * Construct MusInterval instance with specified model and deck names.
      */
     public MusInterval(final AnkiDroidHelper helper, final String sound, final String startNote,
                        final String direction, final String scale, final String interval,
-                       final String tempo, final String modelName, final String deckName) {
+                       final String tempo, final String instrument, final String modelName,
+                       final String deckName) {
         mHelper = helper;
 
         mModelName = modelName;
@@ -67,6 +70,7 @@ public class MusInterval {
         mScale = scale;
         mInterval = interval;
         mTempo = tempo;
+        mInstrument = instrument;
     }
 
     /**
@@ -74,8 +78,8 @@ public class MusInterval {
      */
     public MusInterval(final AnkiDroidHelper helper, final String sound, final String startNote,
                        final String direction, final String scale, final String interval,
-                       final String tempo) {
-        this(helper, sound, startNote, direction, scale, interval, tempo,
+                       final String tempo, final String instrument) {
+        this(helper, sound, startNote, direction, scale, interval, tempo, instrument,
                 DEFAULT_MODEL_NAME, DEFAULT_DECK_NAME);
     }
 
@@ -104,7 +108,8 @@ public class MusInterval {
                 && (mDirection.isEmpty() || mDirection.equals(note.get(Fields.DIRECTION)))
                 && (mScale.isEmpty() || mScale.equals(note.get(Fields.SCALE)))
                 && (mInterval.isEmpty() || mInterval.equals(note.get(Fields.INTERVAL)))
-                && (mTempo.isEmpty() || mTempo.equals(note.get(Fields.TEMPO)))) {
+                && (mTempo.isEmpty() || mTempo.equals(note.get(Fields.TEMPO)))
+                && (mInstrument.isEmpty() || mInstrument.equals(note.get(Fields.INSTRUMENT)))) {
                 return true;
             }
         }
@@ -136,6 +141,7 @@ public class MusInterval {
         data.put(Fields.SCALE, mScale);
         data.put(Fields.INTERVAL, mInterval);
         data.put(Fields.TEMPO, mTempo);
+        data.put(Fields.INSTRUMENT, mInstrument);
 
         Long noteId = mHelper.addNote(mModelId, mDeckId, data, null);
 
