@@ -18,8 +18,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
     private EditText inputFilename;
     private EditText inputStartNote;
-    private EditText inputAscDesc;
-    private EditText inputMelHar;
+    private EditText inputDirection;
+    private EditText inputScale;
     private EditText inputInterval;
     private EditText inputTempo;
 
@@ -32,8 +32,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
         inputFilename = findViewById(R.id.inputFilename);
         inputStartNote = findViewById(R.id.inputStartNote);
-        inputAscDesc = findViewById(R.id.inputAscDesc);
-        inputMelHar = findViewById(R.id.inputMelHar);
+        inputDirection = findViewById(R.id.inputDirection);
+        inputScale = findViewById(R.id.inputScale);
         inputInterval = findViewById(R.id.inputInterval);
         inputTempo = findViewById(R.id.inputTempo);
 
@@ -118,15 +118,15 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
     private boolean allFieldsEmpty() {
         return inputStartNote.getText().toString().isEmpty()
-                && inputAscDesc.getText().toString().isEmpty()
-                && inputMelHar.getText().toString().isEmpty()
+                && inputDirection.getText().toString().isEmpty()
+                && inputScale.getText().toString().isEmpty()
                 && inputInterval.getText().toString().isEmpty()
                 && inputTempo.getText().toString().isEmpty();
     }
 
     private MusInterval getMusInterval() {
         return new MusInterval(mAnkiDroid, inputFilename.getText().toString(), inputStartNote.getText().toString(),
-                inputAscDesc.getText().toString(), inputMelHar.getText().toString(), inputInterval.getText().toString(),
+                inputDirection.getText().toString(), inputScale.getText().toString(), inputInterval.getText().toString(),
                 inputTempo.getText().toString());
     }
 

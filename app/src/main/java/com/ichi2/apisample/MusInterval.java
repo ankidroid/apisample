@@ -10,19 +10,19 @@ public class MusInterval {
     public static class Fields {
         public static final String SOUND = "sound";
         public static final String START_NOTE = "start_note";
-        public static final String ASC_DESC = "ascending_descending";
-        public static final String MEL_HAR = "melodic_harmonic";
+        public static final String DIRECTION = "ascending_descending";
+        public static final String SCALE = "melodic_harmonic";
         public static final String INTERVAL = "interval";
         public static final String TEMPO = "tempo";
 
-        public static class AscDesc {
+        public static class Direction {
             public static final String ASC = "ascending";
             public static final String DESC = "descending";
         }
 
-        public static class MelHar {
-            public static final String MEL = "melodic";
-            public static final String HAR = "harmonic";
+        public static class Scale {
+            public static final String MELODIC = "melodic";
+            public static final String HARMONIC = "harmonic";
         }
     }
 
@@ -43,8 +43,8 @@ public class MusInterval {
     // Data of model's fields
     private final String mSound;
     private final String mStartNote;
-    private final String mAscDesc;
-    private final String mMelHar;
+    private final String mDirection;
+    private final String mScale;
     private final String mInterval;
     private final String mTempo;
 
@@ -52,7 +52,7 @@ public class MusInterval {
      * Construct MusInterval instance with specified model and deck names.
      */
     public MusInterval(final AnkiDroidHelper helper, final String sound, final String startNote,
-                       final String ascDesc, final String melHar, final String interval,
+                       final String direction, final String scale, final String interval,
                        final String tempo, final String modelName, final String deckName) {
         mHelper = helper;
 
@@ -63,8 +63,8 @@ public class MusInterval {
 
         mSound = sound;
         mStartNote = startNote;
-        mAscDesc = ascDesc;
-        mMelHar = melHar;
+        mDirection = direction;
+        mScale = scale;
         mInterval = interval;
         mTempo = tempo;
     }
@@ -73,9 +73,10 @@ public class MusInterval {
      * Construct MusInterval instance with default model and deck names.
      */
     public MusInterval(final AnkiDroidHelper helper, final String sound, final String startNote,
-                       final String ascDesc, final String melHar, final String interval,
+                       final String direction, final String scale, final String interval,
                        final String tempo) {
-        this(helper, sound, startNote, ascDesc, melHar, interval, tempo, DEFAULT_MODEL_NAME, DEFAULT_DECK_NAME);
+        this(helper, sound, startNote, direction, scale, interval, tempo,
+                DEFAULT_MODEL_NAME, DEFAULT_DECK_NAME);
     }
 
     public String getModelName() {
@@ -100,8 +101,8 @@ public class MusInterval {
 
         for (Map<String, String> note : notes) {
             if ((mStartNote.isEmpty() || mStartNote.equals(note.get(Fields.START_NOTE)))
-                && (mAscDesc.isEmpty() || mAscDesc.equals(note.get(Fields.ASC_DESC)))
-                && (mMelHar.isEmpty() || mMelHar.equals(note.get(Fields.MEL_HAR)))
+                && (mDirection.isEmpty() || mDirection.equals(note.get(Fields.DIRECTION)))
+                && (mScale.isEmpty() || mScale.equals(note.get(Fields.SCALE)))
                 && (mInterval.isEmpty() || mInterval.equals(note.get(Fields.INTERVAL)))
                 && (mTempo.isEmpty() || mTempo.equals(note.get(Fields.TEMPO)))) {
                 return true;
@@ -131,8 +132,8 @@ public class MusInterval {
         Map<String, String> data = new HashMap<>();
         data.put(Fields.SOUND, mSound);
         data.put(Fields.START_NOTE, mStartNote);
-        data.put(Fields.ASC_DESC, mAscDesc);
-        data.put(Fields.MEL_HAR, mMelHar);
+        data.put(Fields.DIRECTION, mDirection);
+        data.put(Fields.SCALE, mScale);
         data.put(Fields.INTERVAL, mInterval);
         data.put(Fields.TEMPO, mTempo);
 

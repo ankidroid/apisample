@@ -55,26 +55,26 @@
             android:inputType="textPersonName" />
 
         <TextView
-            android:id="@+id/labelAscDesc"
+            android:id="@+id/labelDirection"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/ascending_descending" />
+            android:text="@string/direction" />
 
         <EditText
-            android:id="@+id/inputAscDesc"
+            android:id="@+id/inputDirection"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:ems="10"
             android:inputType="textPersonName" />
 
         <TextView
-            android:id="@+id/labelMelHar"
+            android:id="@+id/labelScale"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/melodic_harmonic" />
+            android:text="@string/scale" />
 
         <EditText
-            android:id="@+id/inputMelHar"
+            android:id="@+id/inputScale"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:ems="10"
