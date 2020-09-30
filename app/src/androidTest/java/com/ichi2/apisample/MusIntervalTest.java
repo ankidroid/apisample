@@ -5,6 +5,8 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.internal.stubbing.answers.ThrowsExceptionClass;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -232,7 +234,7 @@ public class MusIntervalTest {
         MusInterval mi = new MusInterval(helper, "", "C#3", MusInterval.Fields.Direction.ASC,
                 MusInterval.Fields.Scale.MELODIC, "min2", "80", "guitar", model, deck);
 
-        mi.addToAnki(); // should not throw any exception
+        mi.addToAnki();
     }
 
     @Test(expected = MusInterval.CreateDeckException.class)
@@ -251,7 +253,7 @@ public class MusIntervalTest {
         MusInterval mi = new MusInterval(helper, "", "C#3", MusInterval.Fields.Direction.ASC,
                 MusInterval.Fields.Scale.MELODIC, "min2", "80", "guitar", model, deck);
 
-        mi.addToAnki(); // should not throw any exception
+        mi.addToAnki();
     }
 
     @Test(expected = MusInterval.AddToAnkiException.class)
@@ -261,6 +263,14 @@ public class MusIntervalTest {
         final String model = "Music.intervals";
         final long modelId = new Random().nextLong();
 
+        final String sound = "";
+        final String startNote = "C#3";
+        final String direction = MusInterval.Fields.Direction.ASC;
+        final String scale = MusInterval.Fields.Scale.MELODIC;
+        final String interval = "min2";
+        final String tempo = "80";
+        final String instrument = "guitar";
+
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         // model ok
         doReturn(modelId).when(helper).findModelIdByName(model);
@@ -269,13 +279,39 @@ public class MusIntervalTest {
         doReturn(deckId).when(helper).addNewDeck(deck);
         doNothing().when(helper).storeDeckReference(deck, deckId);
 
-        // can't create note for some reason
-        doReturn(null).when(helper).addNote(eq(modelId), eq(deckId), any(Map.class), nullable(Set.class));
+        doAnswer(new Answer<Long>() {
+            @Override
+            public Long answer(InvocationOnMock invocation) throws Throwable {
+                // Check passed arguments
+                Map<String, String> data = invocation.getArgument(2);
+                assertTrue(data.containsKey(MusInterval.Fields.SOUND));
+                assertEquals(sound, data.get(MusInterval.Fields.SOUND));
+                assertTrue(data.containsKey(MusInterval.Fields.START_NOTE));
+                assertEquals(startNote, data.get(MusInterval.Fields.START_NOTE));
+                assertTrue(data.containsKey(MusInterval.Fields.DIRECTION));
+                assertEquals(direction, data.get(MusInterval.Fields.DIRECTION));
+                assertTrue(data.containsKey(MusInterval.Fields.SCALE));
+                assertEquals(scale, data.get(MusInterval.Fields.SCALE));
+                assertTrue(data.containsKey(MusInterval.Fields.INTERVAL));
+                assertEquals(interval, data.get(MusInterval.Fields.INTERVAL));
+                assertTrue(data.containsKey(MusInterval.Fields.TEMPO));
+                assertEquals(tempo, data.get(MusInterval.Fields.TEMPO));
+                assertTrue(data.containsKey(MusInterval.Fields.INSTRUMENT));
+                assertEquals(instrument, data.get(MusInterval.Fields.INSTRUMENT));
+
+                Set<String> tags = invocation.getArgument(3);
+                assertNull(tags);
+
+                // can't create note for some reason
+                return null;
+            }
+
+        }).when(helper).addNote(eq(modelId), eq(deckId), any(Map.class), nullable(Set.class));
 
         MusInterval mi = new MusInterval(helper, "", "C#3", MusInterval.Fields.Direction.ASC,
                 MusInterval.Fields.Scale.MELODIC, "min2", "80", "guitar", model, deck);
 
-        mi.addToAnki(); // should not throw any exception
+        mi.addToAnki();
     }
 
     @Test
@@ -286,6 +322,14 @@ public class MusIntervalTest {
         final long modelId = new Random().nextLong();
         final long noteId = new Random().nextLong();
 
+        final String sound = "";
+        final String startNote = "C#3";
+        final String direction = MusInterval.Fields.Direction.ASC;
+        final String scale = MusInterval.Fields.Scale.MELODIC;
+        final String interval = "min2";
+        final String tempo = "80";
+        final String instrument = "guitar";
+
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         // model ok
         doReturn(modelId).when(helper).findModelIdByName(model);
@@ -294,11 +338,37 @@ public class MusIntervalTest {
         doReturn(deckId).when(helper).addNewDeck(deck);
         doNothing().when(helper).storeDeckReference(deck, deckId);
 
-        // successful note creation
-        doReturn(noteId).when(helper).addNote(eq(modelId), eq(deckId), any(Map.class), nullable(Set.class));
+        doAnswer(new Answer<Long>() {
+            @Override
+            public Long answer(InvocationOnMock invocation) throws Throwable {
+                // Check passed arguments
+                Map<String, String> data = invocation.getArgument(2);
+                assertTrue(data.containsKey(MusInterval.Fields.SOUND));
+                assertEquals(sound, data.get(MusInterval.Fields.SOUND));
+                assertTrue(data.containsKey(MusInterval.Fields.START_NOTE));
+                assertEquals(startNote, data.get(MusInterval.Fields.START_NOTE));
+                assertTrue(data.containsKey(MusInterval.Fields.DIRECTION));
+                assertEquals(direction, data.get(MusInterval.Fields.DIRECTION));
+                assertTrue(data.containsKey(MusInterval.Fields.SCALE));
+                assertEquals(scale, data.get(MusInterval.Fields.SCALE));
+                assertTrue(data.containsKey(MusInterval.Fields.INTERVAL));
+                assertEquals(interval, data.get(MusInterval.Fields.INTERVAL));
+                assertTrue(data.containsKey(MusInterval.Fields.TEMPO));
+                assertEquals(tempo, data.get(MusInterval.Fields.TEMPO));
+                assertTrue(data.containsKey(MusInterval.Fields.INSTRUMENT));
+                assertEquals(instrument, data.get(MusInterval.Fields.INSTRUMENT));
 
-        MusInterval mi = new MusInterval(helper, "", "C#3", MusInterval.Fields.Direction.ASC,
-                MusInterval.Fields.Scale.MELODIC, "min2", "80", "guitar", model, deck);
+                Set<String> tags = invocation.getArgument(3);
+                assertNull(tags);
+
+                // successful note creation
+                return noteId;
+            }
+
+        }).when(helper).addNote(eq(modelId), eq(deckId), any(Map.class), nullable(Set.class));
+
+        MusInterval mi = new MusInterval(helper, sound, startNote, direction, scale, interval,
+                tempo, instrument, model, deck);
 
         mi.addToAnki(); // should not throw any exception
     }
@@ -311,17 +381,51 @@ public class MusIntervalTest {
         final long modelId = new Random().nextLong();
         final long noteId = new Random().nextLong();
 
+        final String sound = "";
+        final String startNote = "C#2";
+        final String direction = MusInterval.Fields.Direction.ASC;
+        final String scale = MusInterval.Fields.Scale.MELODIC;
+        final String interval = "min3";
+        final String tempo = "90";
+        final String instrument = "violin";
+
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         // existing model
         doReturn(modelId).when(helper).findModelIdByName(model);
         // existing deck
         doReturn(deckId).when(helper).findDeckIdByName(deck);
 
-        // successful note creation
-        doReturn(noteId).when(helper).addNote(eq(modelId), eq(deckId), any(Map.class), nullable(Set.class));
+        doAnswer(new Answer<Long>() {
+            @Override
+            public Long answer(InvocationOnMock invocation) throws Throwable {
+                // Check passed arguments
+                Map<String, String> data = invocation.getArgument(2);
+                assertTrue(data.containsKey(MusInterval.Fields.SOUND));
+                assertEquals(sound, data.get(MusInterval.Fields.SOUND));
+                assertTrue(data.containsKey(MusInterval.Fields.START_NOTE));
+                assertEquals(startNote, data.get(MusInterval.Fields.START_NOTE));
+                assertTrue(data.containsKey(MusInterval.Fields.DIRECTION));
+                assertEquals(direction, data.get(MusInterval.Fields.DIRECTION));
+                assertTrue(data.containsKey(MusInterval.Fields.SCALE));
+                assertEquals(scale, data.get(MusInterval.Fields.SCALE));
+                assertTrue(data.containsKey(MusInterval.Fields.INTERVAL));
+                assertEquals(interval, data.get(MusInterval.Fields.INTERVAL));
+                assertTrue(data.containsKey(MusInterval.Fields.TEMPO));
+                assertEquals(tempo, data.get(MusInterval.Fields.TEMPO));
+                assertTrue(data.containsKey(MusInterval.Fields.INSTRUMENT));
+                assertEquals(instrument, data.get(MusInterval.Fields.INSTRUMENT));
 
-        MusInterval mi = new MusInterval(helper, "", "C#3", MusInterval.Fields.Direction.ASC,
-                MusInterval.Fields.Scale.MELODIC, "min2", "80", "guitar", model, deck);
+                Set<String> tags = invocation.getArgument(3);
+                assertNull(tags);
+
+                // successful note creation
+                return noteId;
+            }
+
+        }).when(helper).addNote(eq(modelId), eq(deckId), any(Map.class), nullable(Set.class));
+
+        MusInterval mi = new MusInterval(helper, sound, startNote, direction, scale, interval,
+                tempo, instrument, model, deck);
 
         mi.addToAnki(); // should not throw any exception
     }

@@ -134,6 +134,14 @@ public class MusInterval {
             mHelper.storeDeckReference(mDeckName, mDeckId);
         }
 
+        Long noteId = mHelper.addNote(mModelId, mDeckId, getCollectedData(), null);
+
+        if (noteId == null) {
+            throw new AddToAnkiException();
+        }
+    }
+
+    public Map<String, String> getCollectedData() {
         Map<String, String> data = new HashMap<>();
         data.put(Fields.SOUND, mSound);
         data.put(Fields.START_NOTE, mStartNote);
@@ -142,11 +150,6 @@ public class MusInterval {
         data.put(Fields.INTERVAL, mInterval);
         data.put(Fields.TEMPO, mTempo);
         data.put(Fields.INSTRUMENT, mInstrument);
-
-        Long noteId = mHelper.addNote(mModelId, mDeckId, data, null);
-
-        if (noteId == null) {
-            throw new AddToAnkiException();
-        }
+        return data;
     }
 }
