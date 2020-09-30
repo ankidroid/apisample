@@ -130,7 +130,7 @@ public class MusIntervalTest {
     }
 
     @Test(expected = MusInterval.NoSuchModelException.class)
-    public void add_NoSuchModel() throws MusInterval.NoSuchModelException {
+    public void add_NoSuchModel() throws MusInterval.NoSuchModelException, MusInterval.CreateDeckException, MusInterval.AddToAnkiException {
         final String deck = "Music intervals";
         final long deckId = new Random().nextLong();
         final String model = "Music.intervals";
@@ -145,8 +145,8 @@ public class MusIntervalTest {
         mi.addToAnki();
     }
 
-    @Test
-    public void add_NoSuchDeckCantCreate() throws MusInterval.NoSuchModelException {
+    @Test(expected = MusInterval.CreateDeckException.class)
+    public void add_NoSuchDeckCantCreate() throws MusInterval.NoSuchModelException, MusInterval.CreateDeckException, MusInterval.AddToAnkiException {
         final String deck = "Music intervals";
         final String model = "Music.intervals";
         final long modelId = new Random().nextLong();
@@ -159,11 +159,11 @@ public class MusIntervalTest {
         doReturn(null).when(helper).addNewDeck(deck);
 
         MusInterval mi = new MusInterval(helper, "", "C#3", MusInterval.Fields.AscDesc.ASC, model, deck);
-        assertFalse(mi.addToAnki());
+        mi.addToAnki();
     }
 
-    @Test
-    public void add_NoSuchDeckNotCreated() throws MusInterval.NoSuchModelException {
+    @Test(expected = MusInterval.AddToAnkiException.class)
+    public void add_NoSuchDeckNotCreated() throws MusInterval.NoSuchModelException, MusInterval.CreateDeckException, MusInterval.AddToAnkiException {
         final String deck = "Music intervals";
         final long deckId = new Random().nextLong();
         final String model = "Music.intervals";
@@ -181,11 +181,11 @@ public class MusIntervalTest {
         doReturn(null).when(helper).addNote(eq(modelId), eq(deckId), any(Map.class), nullable(Set.class));
 
         MusInterval mi = new MusInterval(helper, "", "C#3", MusInterval.Fields.AscDesc.ASC, model, deck);
-        assertFalse(mi.addToAnki());
+        mi.addToAnki();
     }
 
     @Test
-    public void add_NoSuchDeckCreated() throws MusInterval.NoSuchModelException {
+    public void add_NoSuchDeckCreated() throws MusInterval.NoSuchModelException, MusInterval.CreateDeckException, MusInterval.AddToAnkiException {
         final String deck = "Music intervals";
         final long deckId = new Random().nextLong();
         final String model = "Music.intervals";
@@ -204,11 +204,11 @@ public class MusIntervalTest {
         doReturn(noteId).when(helper).addNote(eq(modelId), eq(deckId), any(Map.class), nullable(Set.class));
 
         MusInterval mi = new MusInterval(helper, "", "C#3", MusInterval.Fields.AscDesc.ASC, model, deck);
-        assertTrue(mi.addToAnki());
+        mi.addToAnki();
     }
 
     @Test
-    public void add_ExistingModelAndDeckCreated() throws MusInterval.NoSuchModelException {
+    public void add_ExistingModelAndDeckCreated() throws MusInterval.NoSuchModelException, MusInterval.CreateDeckException, MusInterval.AddToAnkiException {
         final String deck = "Music intervals";
         final long deckId = new Random().nextLong();
         final String model = "Music.intervals";
@@ -225,6 +225,6 @@ public class MusIntervalTest {
         doReturn(noteId).when(helper).addNote(eq(modelId), eq(deckId), any(Map.class), nullable(Set.class));
 
         MusInterval mi = new MusInterval(helper, "", "C#3", MusInterval.Fields.AscDesc.ASC, model, deck);
-        assertTrue(mi.addToAnki());
+        mi.addToAnki();
     }
 }

@@ -18,7 +18,9 @@ public class MusInterval {
         }
     }
 
-    public static class NoSuchModelException extends Throwable { }
+    public static class NoSuchModelException extends Throwable {}
+    public static class CreateDeckException extends Throwable {}
+    public static class AddToAnkiException extends Throwable {}
 
     private static final String DEFAULT_DECK_NAME = "Music intervals";
     private static final String DEFAULT_MODEL_NAME = "Music.interval";
@@ -55,6 +57,14 @@ public class MusInterval {
         this(mAnkiDroid, sound, startNote, ascDesc, DEFAULT_MODEL_NAME, DEFAULT_DECK_NAME);
     }
 
+    public String getModelName() {
+        return mModelName;
+    }
+
+    public String getDeckName() {
+        return mDeckName;
+    }
+
     /**
      * Check if such a data already exists in the AnkiDroid.
      *
@@ -80,10 +90,8 @@ public class MusInterval {
     /**
      * Insert the data into AnkiDroid via API.
      * Also created a model and a deck if not yet created.
-     *
-     * @return True in case of successful action
      */
-    public boolean addToAnki() throws NoSuchModelException {
+    public void addToAnki() throws NoSuchModelException, CreateDeckException, AddToAnkiException {
         if (mModelId == null) {
             throw new NoSuchModelException();
         }
@@ -91,7 +99,7 @@ public class MusInterval {
         if (mDeckId == null) {
             mDeckId = mHelper.addNewDeck(mDeckName);
             if (mDeckId == null) {
-                return false;  // @todo Probably throw exception ?
+                throw new CreateDeckException();
             }
             mHelper.storeDeckReference(mDeckName, mDeckId);
         }
@@ -101,12 +109,10 @@ public class MusInterval {
         data.put(Fields.START_NOTE, mStartNote);
         data.put(Fields.ASC_DESC, mAscDesc);
 
-        // @todo Throw exception on adding failure
         Long noteId = mHelper.addNote(mModelId, mDeckId, data, null);
-        return noteId != null;
-    }
 
-    public String getModelName() {
-        return mModelName;
+        if (noteId == null) {
+            throw new AddToAnkiException();
+        }
     }
 }

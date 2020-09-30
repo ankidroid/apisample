@@ -17,6 +17,7 @@ import android.widget.Toast;
 
 
 public class MainActivity extends AppCompatActivity implements ActivityCompat.OnRequestPermissionsResultCallback {
+
     private static final int AD_PERM_REQUEST = 0;
     private static final int PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 1;
 
@@ -51,14 +52,18 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     mAnkiDroid.requestPermission(MainActivity.this, AD_PERM_REQUEST);
                     return;
                 }
-                if (inputStartNote.getText().toString().isEmpty()) {
-                    Toast.makeText(MainActivity.this, "Nothing to check", Toast.LENGTH_LONG).show();
-                }
-                if (getMusInterval().existsInAnki()) {
-                    Toast.makeText(MainActivity.this, getResources().getString(R.string.card_exists), Toast.LENGTH_LONG).show();
+
+                String message;
+
+                if (inputStartNote.getText().toString().isEmpty() && inputAscDesc.getText().toString().isEmpty()) {
+                    message = getResources().getString(R.string.nothing_to_check);
+                } else  if (getMusInterval().existsInAnki()) {
+                    message = getResources().getString(R.string.card_exists);
                 } else {
-                    Toast.makeText(MainActivity.this, getResources().getString(R.string.card_not_exists), Toast.LENGTH_LONG).show();
+                    message = getResources().getString(R.string.card_not_exists);
                 }
+
+                Toast.makeText(MainActivity.this, message, Toast.LENGTH_LONG).show();
             }
         });
 
@@ -70,16 +75,21 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     mAnkiDroid.requestPermission(MainActivity.this, AD_PERM_REQUEST);
                     return;
                 }
+
                 final MusInterval musInterval = getMusInterval();
+                String message = getResources().getString(R.string.item_added);
+
                 try {
-                    if (musInterval.addToAnki()){
-                        Toast.makeText(MainActivity.this, getResources().getString(R.string.item_added), Toast.LENGTH_LONG).show();
-                    } else {
-                        Toast.makeText(MainActivity.this, getResources().getString(R.string.card_add_fail), Toast.LENGTH_LONG).show();
-                    }
+                    musInterval.addToAnki();
                 } catch (MusInterval.NoSuchModelException e) {
-                    Toast.makeText(MainActivity.this, getResources().getString(R.string.model_not_found, musInterval.getModelName()), Toast.LENGTH_LONG).show();
+                    message = getResources().getString(R.string.model_not_found, musInterval.getModelName());
+                } catch (MusInterval.CreateDeckException e) {
+                    message = getResources().getString(R.string.create_deck_error, musInterval.getDeckName());
+                } catch (MusInterval.AddToAnkiException e) {
+                    message = getResources().getString(R.string.add_card_error);
                 }
+
+                Toast.makeText(MainActivity.this, message, Toast.LENGTH_LONG).show();
             }
         });
 
