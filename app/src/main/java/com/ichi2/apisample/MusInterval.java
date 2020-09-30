@@ -6,9 +6,21 @@ import java.util.Map;
 
 
 public class MusInterval {
-    // Name of deck which will be created in AnkiDroid
+
+    public static class Fields {
+        public static final String SOUND = "sound";
+        public static final String START_NOTE = "start_note";
+        public static final String ASC_DESC = "ascending_descending";
+
+        public static class AscDesc {
+            public static final String ASC = "ascending";
+            public static final String DESC = "descending";
+        }
+    }
+
+    public static class NoSuchModelException extends Throwable { }
+
     private static final String DEFAULT_DECK_NAME = "Music intervals";
-    // Name of model which will be created in AnkiDroid
     private static final String DEFAULT_MODEL_NAME = "Music.interval";
 
     private final AnkiDroidHelper mHelper;
@@ -25,7 +37,8 @@ public class MusInterval {
     /**
      * Construct MusInterval instance.
      */
-    public MusInterval(AnkiDroidHelper helper, String sound, String startNote, String ascDesc, String modelName, String deckName) {
+    public MusInterval(final AnkiDroidHelper helper, final String sound, final String startNote,
+                       final String ascDesc, final String modelName, final String deckName) {
         mHelper = helper;
 
         mModelName = modelName;
@@ -45,7 +58,7 @@ public class MusInterval {
     /**
      * Check if such a data already exists in the AnkiDroid.
      *
-     * @return
+     * @return True or false depending on a result
      */
     public boolean existsInAnki() {
         if (mModelId == null) {
@@ -55,8 +68,8 @@ public class MusInterval {
         LinkedList<Map<String, String>> notes = mHelper.getNotes(mModelId);
 
         for (Map<String, String> note : notes) {
-            if ((mStartNote.isEmpty() || mStartNote.equals(note.get("start_note")))
-                && (mAscDesc.isEmpty() || mAscDesc.equals(note.get("ascending_descending")))) {
+            if ((mStartNote.isEmpty() || mStartNote.equals(note.get(MusInterval.Fields.START_NOTE)))
+                && (mAscDesc.isEmpty() || mAscDesc.equals(note.get(MusInterval.Fields.ASC_DESC)))) {
                 return true;
             }
         }
@@ -84,9 +97,9 @@ public class MusInterval {
         }
 
         Map<String, String> data = new HashMap<>();
-        data.put("sound", mSound);
-        data.put("start_note", mStartNote);
-        data.put("ascending_descending", mAscDesc);
+        data.put(Fields.SOUND, mSound);
+        data.put(Fields.START_NOTE, mStartNote);
+        data.put(Fields.ASC_DESC, mAscDesc);
 
         // @todo Throw exception on adding failure
         Long noteId = mHelper.addNote(mModelId, mDeckId, data, null);
@@ -95,8 +108,5 @@ public class MusInterval {
 
     public String getModelName() {
         return mModelName;
-    }
-
-    public class NoSuchModelException extends Throwable {
     }
 }
