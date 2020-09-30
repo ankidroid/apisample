@@ -30,7 +30,7 @@ public class MusIntervalTest {
         doReturn(deckId).when(helper).findDeckIdByName(deck);
 
         MusInterval mi = new MusInterval(helper, "", "C#3", MusInterval.Fields.AscDesc.ASC,
-                MusInterval.Fields.MelHar.MEL, model, deck);
+                MusInterval.Fields.MelHar.MEL, "min2", model, deck);
 
         assertFalse(mi.existsInAnki());
     }
@@ -50,7 +50,7 @@ public class MusIntervalTest {
         doReturn(existingNotesData).when(helper).getNotes(modelId);
 
         MusInterval mi = new MusInterval(helper, "", "C#3", MusInterval.Fields.AscDesc.ASC,
-                MusInterval.Fields.MelHar.MEL, model, deck);
+                MusInterval.Fields.MelHar.MEL, "min2", model, deck);
 
         assertFalse(mi.existsInAnki());
     }
@@ -64,10 +64,8 @@ public class MusIntervalTest {
 
         Map<String, String> item1 = new HashMap<>();
         item1.put(MusInterval.Fields.START_NOTE, "C1");
-        item1.put(MusInterval.Fields.ASC_DESC, MusInterval.Fields.AscDesc.ASC);
         Map<String, String> item2 = new HashMap<>();
         item2.put(MusInterval.Fields.START_NOTE, "C2");
-        item2.put(MusInterval.Fields.ASC_DESC, MusInterval.Fields.AscDesc.DESC);
 
         LinkedList<Map<String, String>> existingNotesData = new LinkedList<>();
         existingNotesData.add(item1);
@@ -79,7 +77,7 @@ public class MusIntervalTest {
         doReturn(existingNotesData).when(helper).getNotes(modelId);
 
         MusInterval mi = new MusInterval(helper, "", "C#3", MusInterval.Fields.AscDesc.ASC,
-                MusInterval.Fields.MelHar.MEL, model, deck);
+                MusInterval.Fields.MelHar.MEL, "min2", model, deck);
 
         assertFalse(mi.existsInAnki());
     }
@@ -90,18 +88,19 @@ public class MusIntervalTest {
         final long deckId = new Random().nextLong();
         final String model = "Music.intervals";
         final long modelId = new Random().nextLong();
+
         final String startNote = "C#3";
+        final String interval = "min2";
 
         LinkedList<Map<String, String>> existingNotesData = new LinkedList<>();
         Map<String, String> item1 = new HashMap<>();
         item1.put(MusInterval.Fields.START_NOTE, startNote);
         item1.put(MusInterval.Fields.ASC_DESC, MusInterval.Fields.AscDesc.ASC);
         item1.put(MusInterval.Fields.MEL_HAR, MusInterval.Fields.MelHar.MEL);
+        item1.put(MusInterval.Fields.INTERVAL, interval);
         existingNotesData.add(item1);
         Map<String, String> item2 = new HashMap<>();
         item2.put(MusInterval.Fields.START_NOTE, "C2");
-        item2.put(MusInterval.Fields.ASC_DESC, MusInterval.Fields.AscDesc.DESC);
-        item2.put(MusInterval.Fields.MEL_HAR, MusInterval.Fields.MelHar.MEL);
         existingNotesData.add(item2);
 
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
@@ -110,7 +109,7 @@ public class MusIntervalTest {
         doReturn(existingNotesData).when(helper).getNotes(modelId);
 
         MusInterval mi = new MusInterval(helper, "", startNote, MusInterval.Fields.AscDesc.ASC,
-                MusInterval.Fields.MelHar.MEL, model, deck);
+                MusInterval.Fields.MelHar.MEL, interval, model, deck);
 
         assertTrue(mi.existsInAnki());
     }
@@ -121,19 +120,29 @@ public class MusIntervalTest {
         final long deckId = new Random().nextLong();
         final String model = "Music.intervals";
         final long modelId = new Random().nextLong();
+
         final String startNote = "C#3";
+        final String interval = "min2";
 
         LinkedList<Map<String, String>> existingNotesData = new LinkedList<>();
         Map<String, String> item1 = new HashMap<>();
-        item1.put(MusInterval.Fields.START_NOTE, startNote); // same StartingNote
-        item1.put(MusInterval.Fields.MEL_HAR, MusInterval.Fields.MelHar.MEL); // same MelHar
-        item1.put(MusInterval.Fields.ASC_DESC, MusInterval.Fields.AscDesc.DESC); // another AscDesc
+        item1.put(MusInterval.Fields.START_NOTE, startNote);                        // same StartingNote
+        item1.put(MusInterval.Fields.ASC_DESC, MusInterval.Fields.AscDesc.DESC);    // another AscDesc
+        item1.put(MusInterval.Fields.MEL_HAR, MusInterval.Fields.MelHar.MEL);       // same MelHar
+        item1.put(MusInterval.Fields.INTERVAL, interval);                           // same interval
         existingNotesData.add(item1);
         Map<String, String> item2 = new HashMap<>();
-        item2.put(MusInterval.Fields.START_NOTE, startNote); // same StartingNote
-        item2.put(MusInterval.Fields.ASC_DESC, MusInterval.Fields.AscDesc.ASC); // same AscDesc
-        item2.put(MusInterval.Fields.MEL_HAR, MusInterval.Fields.MelHar.HAR); // anotherAscDesc
+        item2.put(MusInterval.Fields.START_NOTE, startNote);                        // same StartingNote
+        item2.put(MusInterval.Fields.ASC_DESC, MusInterval.Fields.AscDesc.ASC);     // same AscDesc
+        item2.put(MusInterval.Fields.MEL_HAR, MusInterval.Fields.MelHar.HAR);       // another MelHar
+        item2.put(MusInterval.Fields.INTERVAL, interval);                           // same interval
         existingNotesData.add(item2);
+        Map<String, String> item3 = new HashMap<>();
+        item3.put(MusInterval.Fields.START_NOTE, startNote);                        // same StartingNote
+        item3.put(MusInterval.Fields.ASC_DESC, MusInterval.Fields.AscDesc.ASC);     // same AscDesc
+        item1.put(MusInterval.Fields.MEL_HAR, MusInterval.Fields.MelHar.MEL);       // same MelHar
+        item3.put(MusInterval.Fields.INTERVAL, "min3");                             // another interval
+        existingNotesData.add(item3);
 
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         doReturn(modelId).when(helper).findModelIdByName(model);
@@ -141,7 +150,7 @@ public class MusIntervalTest {
         doReturn(existingNotesData).when(helper).getNotes(modelId);
 
         MusInterval mi = new MusInterval(helper, "", startNote, MusInterval.Fields.AscDesc.ASC,
-                MusInterval.Fields.MelHar.MEL, model, deck);
+                MusInterval.Fields.MelHar.MEL, interval, model, deck);
 
         assertFalse(mi.existsInAnki());
     }
@@ -152,14 +161,17 @@ public class MusIntervalTest {
         final long deckId = new Random().nextLong();
         final String model = "Music.intervals";
         final long modelId = new Random().nextLong();
+
         final String startNote = "C#3";
+        final String interval = "min2";
 
         LinkedList<Map<String, String>> existingNotesData = new LinkedList<>();
         Map<String, String> item1 = new HashMap<>();
         item1.put(MusInterval.Fields.START_NOTE, startNote);
-        item1.put(MusInterval.Fields.SOUND, "/test1");
+        item1.put(MusInterval.Fields.SOUND, "/test1");  // sound field does not matter
         item1.put(MusInterval.Fields.ASC_DESC, MusInterval.Fields.AscDesc.ASC);
         item1.put(MusInterval.Fields.MEL_HAR, MusInterval.Fields.MelHar.MEL);
+        item1.put(MusInterval.Fields.INTERVAL, interval);
         existingNotesData.add(item1);
 
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
@@ -168,7 +180,7 @@ public class MusIntervalTest {
         doReturn(existingNotesData).when(helper).getNotes(modelId);
 
         MusInterval mi = new MusInterval(helper, "/test2", startNote, MusInterval.Fields.AscDesc.ASC,
-                MusInterval.Fields.MelHar.MEL, model, deck);
+                MusInterval.Fields.MelHar.MEL, interval, model, deck);
 
         assertTrue(mi.existsInAnki());
     }
@@ -186,7 +198,7 @@ public class MusIntervalTest {
         doReturn(deckId).when(helper).findDeckIdByName(deck);
 
         MusInterval mi = new MusInterval(helper, "", "C#3", MusInterval.Fields.AscDesc.ASC,
-                MusInterval.Fields.MelHar.MEL, model, deck);
+                MusInterval.Fields.MelHar.MEL, "min2", model, deck);
 
         mi.addToAnki(); // should not throw any exception
     }
@@ -205,7 +217,7 @@ public class MusIntervalTest {
         doReturn(null).when(helper).addNewDeck(deck);
 
         MusInterval mi = new MusInterval(helper, "", "C#3", MusInterval.Fields.AscDesc.ASC,
-                MusInterval.Fields.MelHar.MEL, model, deck);
+                MusInterval.Fields.MelHar.MEL, "min2", model, deck);
 
         mi.addToAnki(); // should not throw any exception
     }
@@ -229,7 +241,7 @@ public class MusIntervalTest {
         doReturn(null).when(helper).addNote(eq(modelId), eq(deckId), any(Map.class), nullable(Set.class));
 
         MusInterval mi = new MusInterval(helper, "", "C#3", MusInterval.Fields.AscDesc.ASC,
-                MusInterval.Fields.MelHar.MEL, model, deck);
+                MusInterval.Fields.MelHar.MEL, "min2", model, deck);
 
         mi.addToAnki(); // should not throw any exception
     }
@@ -254,7 +266,7 @@ public class MusIntervalTest {
         doReturn(noteId).when(helper).addNote(eq(modelId), eq(deckId), any(Map.class), nullable(Set.class));
 
         MusInterval mi = new MusInterval(helper, "", "C#3", MusInterval.Fields.AscDesc.ASC,
-                MusInterval.Fields.MelHar.MEL, model, deck);
+                MusInterval.Fields.MelHar.MEL, "min2", model, deck);
 
         mi.addToAnki(); // should not throw any exception
     }
@@ -277,7 +289,7 @@ public class MusIntervalTest {
         doReturn(noteId).when(helper).addNote(eq(modelId), eq(deckId), any(Map.class), nullable(Set.class));
 
         MusInterval mi = new MusInterval(helper, "", "C#3", MusInterval.Fields.AscDesc.ASC,
-                MusInterval.Fields.MelHar.MEL, model, deck);
+                MusInterval.Fields.MelHar.MEL, "min2", model, deck);
 
         mi.addToAnki(); // should not throw any exception
     }
