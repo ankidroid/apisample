@@ -20,13 +20,12 @@ public class MusInterval {
 
     private final String mSound;
     private final String mStartNote;
+    private final String mAscDesc;
 
     /**
      * Construct MusInterval instance.
-     *
-     *
      */
-    public MusInterval(AnkiDroidHelper helper, String sound, String startNote, String modelName, String deckName) {
+    public MusInterval(AnkiDroidHelper helper, String sound, String startNote, String ascDesc, String modelName, String deckName) {
         mHelper = helper;
 
         mModelName = modelName;
@@ -36,10 +35,11 @@ public class MusInterval {
 
         mSound = sound;
         mStartNote = startNote;
+        mAscDesc = ascDesc;
     }
 
-    public MusInterval(AnkiDroidHelper mAnkiDroid, String sound, String startNote) {
-        this(mAnkiDroid, sound, startNote, DEFAULT_MODEL_NAME, DEFAULT_DECK_NAME);
+    public MusInterval(AnkiDroidHelper mAnkiDroid, String sound, String startNote, String ascDesc) {
+        this(mAnkiDroid, sound, startNote, ascDesc, DEFAULT_MODEL_NAME, DEFAULT_DECK_NAME);
     }
 
     /**
@@ -55,8 +55,8 @@ public class MusInterval {
         LinkedList<Map<String, String>> notes = mHelper.getNotes(mModelId);
 
         for (Map<String, String> note : notes) {
-            if (mStartNote.isEmpty() || mStartNote.equals(note.get("start_note")))
-            {
+            if ((mStartNote.isEmpty() || mStartNote.equals(note.get("start_note")))
+                && (mAscDesc.isEmpty() || mAscDesc.equals(note.get("ascending_descending")))) {
                 return true;
             }
         }
@@ -86,6 +86,7 @@ public class MusInterval {
         Map<String, String> data = new HashMap<>();
         data.put("sound", mSound);
         data.put("start_note", mStartNote);
+        data.put("ascending_descending", mAscDesc);
 
         // @todo Throw exception on adding failure
         Long noteId = mHelper.addNote(mModelId, mDeckId, data, null);

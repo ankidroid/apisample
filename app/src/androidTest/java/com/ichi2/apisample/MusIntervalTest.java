@@ -29,7 +29,7 @@ public class MusIntervalTest {
         doReturn(null).when(helper).findModelIdByName(model);
         doReturn(deckId).when(helper).findDeckIdByName(deck);
 
-        MusInterval mi = new MusInterval(helper, "", "C#3", model, deck);
+        MusInterval mi = new MusInterval(helper, "", "C#3", "ascending", model, deck);
         assertFalse(mi.existsInAnki());
     }
 
@@ -47,7 +47,7 @@ public class MusIntervalTest {
         doReturn(deckId).when(helper).findDeckIdByName(deck);
         doReturn(existingNotesData).when(helper).getNotes(modelId);
 
-        MusInterval mi = new MusInterval(helper, "", "C#3", model, deck);
+        MusInterval mi = new MusInterval(helper, "", "C#3", "ascending", model, deck);
         assertFalse(mi.existsInAnki());
     }
 
@@ -60,8 +60,10 @@ public class MusIntervalTest {
 
         Map<String, String> item1 = new HashMap<>();
         item1.put("start_note", "C1");
+        item1.put("ascending_descending", "ascending");
         Map<String, String> item2 = new HashMap<>();
         item2.put("start_note", "C2");
+        item2.put("ascending_descending", "descending");
 
         LinkedList<Map<String, String>> existingNotesData = new LinkedList<>();
         existingNotesData.add(item1);
@@ -72,7 +74,7 @@ public class MusIntervalTest {
         doReturn(deckId).when(helper).findDeckIdByName(deck);
         doReturn(existingNotesData).when(helper).getNotes(modelId);
 
-        MusInterval mi = new MusInterval(helper, "", "C#3", model, deck);
+        MusInterval mi = new MusInterval(helper, "", "C#3", "ascending", model, deck);
         assertFalse(mi.existsInAnki());
     }
 
@@ -87,14 +89,19 @@ public class MusIntervalTest {
         LinkedList<Map<String, String>> existingNotesData = new LinkedList<>();
         Map<String, String> item1 = new HashMap<>();
         item1.put("start_note", startNote);
+        item1.put("ascending_descending", "ascending");
         existingNotesData.add(item1);
+        Map<String, String> item2 = new HashMap<>();
+        item2.put("start_note", "C2");
+        item2.put("ascending_descending", "descending");
+        existingNotesData.add(item2);
 
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         doReturn(modelId).when(helper).findModelIdByName(model);
         doReturn(deckId).when(helper).findDeckIdByName(deck);
         doReturn(existingNotesData).when(helper).getNotes(modelId);
 
-        MusInterval mi = new MusInterval(helper, "", startNote, model, deck);
+        MusInterval mi = new MusInterval(helper, "", startNote, "ascending", model, deck);
         assertTrue(mi.existsInAnki());
     }
 
@@ -110,6 +117,7 @@ public class MusIntervalTest {
         Map<String, String> item1 = new HashMap<>();
         item1.put("start_note", startNote);
         item1.put("sound", "/test1");
+        item1.put("ascending_descending", "ascending");
         existingNotesData.add(item1);
 
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
@@ -117,7 +125,7 @@ public class MusIntervalTest {
         doReturn(deckId).when(helper).findDeckIdByName(deck);
         doReturn(existingNotesData).when(helper).getNotes(modelId);
 
-        MusInterval mi = new MusInterval(helper, "/test2", startNote, model, deck);
+        MusInterval mi = new MusInterval(helper, "/test2", startNote, "ascending", model, deck);
         assertTrue(mi.existsInAnki());
     }
 
@@ -133,7 +141,7 @@ public class MusIntervalTest {
         // deck ok
         doReturn(deckId).when(helper).findDeckIdByName(deck);
 
-        MusInterval mi = new MusInterval(helper, "", "C#3", model, deck);
+        MusInterval mi = new MusInterval(helper, "", "C#3", "ascending", model, deck);
         mi.addToAnki();
     }
 
@@ -150,7 +158,7 @@ public class MusIntervalTest {
         doReturn(null).when(helper).findDeckIdByName(deck);
         doReturn(null).when(helper).addNewDeck(deck);
 
-        MusInterval mi = new MusInterval(helper, "", "C#3", model, deck);
+        MusInterval mi = new MusInterval(helper, "", "C#3", "ascending", model, deck);
         assertFalse(mi.addToAnki());
     }
 
@@ -172,7 +180,7 @@ public class MusIntervalTest {
         // can't create note for some reason
         doReturn(null).when(helper).addNote(eq(modelId), eq(deckId), any(Map.class), nullable(Set.class));
 
-        MusInterval mi = new MusInterval(helper, "", "C#3", model, deck);
+        MusInterval mi = new MusInterval(helper, "", "C#3", "ascending", model, deck);
         assertFalse(mi.addToAnki());
     }
 
@@ -195,7 +203,7 @@ public class MusIntervalTest {
         // successful note creation
         doReturn(noteId).when(helper).addNote(eq(modelId), eq(deckId), any(Map.class), nullable(Set.class));
 
-        MusInterval mi = new MusInterval(helper, "", "C#3", model, deck);
+        MusInterval mi = new MusInterval(helper, "", "C#3", "ascending", model, deck);
         assertTrue(mi.addToAnki());
     }
 
@@ -216,7 +224,7 @@ public class MusIntervalTest {
         // successful note creation
         doReturn(noteId).when(helper).addNote(eq(modelId), eq(deckId), any(Map.class), nullable(Set.class));
 
-        MusInterval mi = new MusInterval(helper, "", "C#3", model, deck);
+        MusInterval mi = new MusInterval(helper, "", "C#3", "ascending", model, deck);
         assertTrue(mi.addToAnki());
     }
 }

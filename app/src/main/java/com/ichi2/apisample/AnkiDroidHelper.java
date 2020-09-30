@@ -211,6 +211,8 @@ public class AnkiDroidHelper {
      *
      * @param modelId Needed model
      * @return List of note ids
+     *
+     * @todo Check performance and rewrite
      */
     public LinkedList<Map<String, String>> getNotes(long modelId) {
         LinkedList<Map<String, String>> result = new LinkedList<>();
