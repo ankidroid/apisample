@@ -11,10 +11,16 @@ public class MusInterval {
         public static final String SOUND = "sound";
         public static final String START_NOTE = "start_note";
         public static final String ASC_DESC = "ascending_descending";
+        public static final String MEL_HAR = "melodic_harmonic";
 
         public static class AscDesc {
             public static final String ASC = "ascending";
             public static final String DESC = "descending";
+        }
+
+        public static class MelHar {
+            public static final String MEL = "melodic";
+            public static final String HAR = "harmonic";
         }
     }
 
@@ -35,12 +41,14 @@ public class MusInterval {
     private final String mSound;
     private final String mStartNote;
     private final String mAscDesc;
+    private final String mMelHar;
 
     /**
      * Construct MusInterval instance.
      */
     public MusInterval(final AnkiDroidHelper helper, final String sound, final String startNote,
-                       final String ascDesc, final String modelName, final String deckName) {
+                       final String ascDesc, final String melHar, final String modelName,
+                       final String deckName) {
         mHelper = helper;
 
         mModelName = modelName;
@@ -51,10 +59,11 @@ public class MusInterval {
         mSound = sound;
         mStartNote = startNote;
         mAscDesc = ascDesc;
+        mMelHar = melHar;
     }
 
-    public MusInterval(AnkiDroidHelper mAnkiDroid, String sound, String startNote, String ascDesc) {
-        this(mAnkiDroid, sound, startNote, ascDesc, DEFAULT_MODEL_NAME, DEFAULT_DECK_NAME);
+    public MusInterval(AnkiDroidHelper mAnkiDroid, String sound, String startNote, String ascDesc, String melHar) {
+        this(mAnkiDroid, sound, startNote, ascDesc, melHar, DEFAULT_MODEL_NAME, DEFAULT_DECK_NAME);
     }
 
     public String getModelName() {
@@ -78,8 +87,9 @@ public class MusInterval {
         LinkedList<Map<String, String>> notes = mHelper.getNotes(mModelId);
 
         for (Map<String, String> note : notes) {
-            if ((mStartNote.isEmpty() || mStartNote.equals(note.get(MusInterval.Fields.START_NOTE)))
-                && (mAscDesc.isEmpty() || mAscDesc.equals(note.get(MusInterval.Fields.ASC_DESC)))) {
+            if ((mStartNote.isEmpty() || mStartNote.equals(note.get(Fields.START_NOTE)))
+                && (mAscDesc.isEmpty() || mAscDesc.equals(note.get(Fields.ASC_DESC)))
+                && (mMelHar.isEmpty() || mMelHar.equals(note.get(Fields.MEL_HAR)))) {
                 return true;
             }
         }
@@ -108,6 +118,7 @@ public class MusInterval {
         data.put(Fields.SOUND, mSound);
         data.put(Fields.START_NOTE, mStartNote);
         data.put(Fields.ASC_DESC, mAscDesc);
+        data.put(Fields.MEL_HAR, mMelHar);
 
         Long noteId = mHelper.addNote(mModelId, mDeckId, data, null);
 
