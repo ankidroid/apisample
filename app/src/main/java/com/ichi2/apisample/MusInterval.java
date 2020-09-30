@@ -33,8 +33,8 @@ public class MusInterval {
 
     private final AnkiDroidHelper mHelper;
 
-    private String mModelName;
-    private Long mModelId;
+    private final String mModelName;
+    private final Long mModelId;
     private final String mDeckName;
     private Long mDeckId;
 

@@ -29,7 +29,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:editable="false"
                 android:ems="10"
                 android:enabled="false"
                 android:inputType="textPersonName" />
@@ -88,14 +87,14 @@
 
             <Button
                 android:id="@+id/actionCheckExistence"
-                android:layout_width="100dp"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/action_check_existence" />
 
             <Button
                 android:id="@+id/actionAddToAnki"
-                android:layout_width="186dp"
+                android:layout_width="190dp"
                 android:layout_height="wrap_content"
                 android:text="@string/action_add_to_anki" />
 

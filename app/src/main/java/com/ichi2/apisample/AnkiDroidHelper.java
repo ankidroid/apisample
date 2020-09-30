@@ -28,9 +28,9 @@ public class AnkiDroidHelper {
     private static final String DECK_REF_DB = "com.ichi2.anki.api.decks";
     private static final String MODEL_REF_DB = "com.ichi2.anki.api.models";
 
-    private Context mContext;
-    ContentResolver mResolver;
-    private AddContentApi mApi;
+    private final Context mContext;
+    final ContentResolver mResolver;
+    private final AddContentApi mApi;
 
     public AnkiDroidHelper(Context context) {
         mContext = context.getApplicationContext();
@@ -76,14 +76,6 @@ public class AnkiDroidHelper {
     public void storeDeckReference(String deckName, long deckId) {
         final SharedPreferences decksDb = mContext.getSharedPreferences(DECK_REF_DB, Context.MODE_PRIVATE);
         decksDb.edit().putLong(deckName, deckId).apply();
-    }
-
-    /**
-     * Save a mapping from modelName to modelId in the SharedPreferences
-     */
-    public void storeModelReference(String modelName, long modelId) {
-        final SharedPreferences modelsDb = mContext.getSharedPreferences(MODEL_REF_DB, Context.MODE_PRIVATE);
-        modelsDb.edit().putLong(modelName, modelId).apply();
     }
 
     /**
@@ -172,10 +164,6 @@ public class AnkiDroidHelper {
         return getApi().addNewDeck(deckName);
     }
 
-    public Long addNewCustomModel(String name, String[] fields, String[] cards, String[] qfmt, String[] afmt, String css) {
-        return getApi().addNewCustomModel(name, fields, cards, qfmt, afmt, css, null, null);
-    }
-
     public String[] getFieldList(long modelId) {
         return getApi().getFieldList(modelId);
     }
@@ -184,12 +172,6 @@ public class AnkiDroidHelper {
      * Add note to Anki.
      *
      * Transforms Map into simple array of strings.
-     *
-     * @param modelId
-     * @param deckId
-     * @param data
-     * @param tags
-     * @return
      */
     public Long addNote(long modelId, long deckId, Map<String, String> data, Set<String> tags) {
         String[] fieldNames = getFieldList(modelId);
@@ -211,10 +193,9 @@ public class AnkiDroidHelper {
      *
      * @param modelId Needed model
      * @return List of note ids
-     *
-     * @todo Check performance and rewrite
      */
     public LinkedList<Map<String, String>> getNotes(long modelId) {
+        // @todo Check performance and rewrite
         LinkedList<Map<String, String>> result = new LinkedList<>();
 
         String selection = String.format(Locale.US, "%s=%d", FlashCardsContract.Note.MID, modelId);
