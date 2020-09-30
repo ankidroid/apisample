@@ -1,9 +1,5 @@
 package com.ichi2.apisample;
 
-import android.app.AlarmManager;
-import android.app.PendingIntent;
-import android.content.Context;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
@@ -19,7 +15,6 @@ import android.widget.Toast;
 public class MainActivity extends AppCompatActivity implements ActivityCompat.OnRequestPermissionsResultCallback {
 
     private static final int AD_PERM_REQUEST = 0;
-    private static final int PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 1;
 
     private EditText inputFilename;
     private EditText inputStartNote;
@@ -44,7 +39,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         actionSelectFile.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                inputFilename.setText("/path/to/file.m4a");
+                // @fixme Dummy
+                inputFilename.setText("/path/to/dummy-file.m4a");
             }
         });
 
@@ -57,14 +53,17 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     return;
                 }
 
+                final MusInterval musInterval = getMusInterval();
                 String message;
 
-                if (inputStartNote.getText().toString().isEmpty() && inputAscDesc.getText().toString().isEmpty()) {
-                    message = getResources().getString(R.string.nothing_to_check);
-                } else  if (getMusInterval().existsInAnki()) {
-                    message = getResources().getString(R.string.card_exists);
+                if (allFieldsEmpty()) {
+                    message = getResources().getString(R.string.all_fields_empty);
                 } else {
-                    message = getResources().getString(R.string.card_not_exists);
+                    if (musInterval.existsInAnki()) {
+                        message = getResources().getString(R.string.mi_exists);
+                    } else {
+                        message = getResources().getString(R.string.mi_not_exists);
+                    }
                 }
 
                 Toast.makeText(MainActivity.this, message, Toast.LENGTH_LONG).show();
@@ -81,16 +80,21 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 }
 
                 final MusInterval musInterval = getMusInterval();
-                String message = getResources().getString(R.string.item_added);
+                String message;
 
-                try {
-                    musInterval.addToAnki();
-                } catch (MusInterval.NoSuchModelException e) {
-                    message = getResources().getString(R.string.model_not_found, musInterval.getModelName());
-                } catch (MusInterval.CreateDeckException e) {
-                    message = getResources().getString(R.string.create_deck_error, musInterval.getDeckName());
-                } catch (MusInterval.AddToAnkiException e) {
-                    message = getResources().getString(R.string.add_card_error);
+                if (allFieldsEmpty()) {
+                    message = getResources().getString(R.string.all_fields_empty);
+                } else {
+                    try {
+                        musInterval.addToAnki();
+                        message = getResources().getString(R.string.item_added);
+                    } catch (MusInterval.NoSuchModelException e) {
+                        message = getResources().getString(R.string.model_not_found, musInterval.getModelName());
+                    } catch (MusInterval.CreateDeckException e) {
+                        message = getResources().getString(R.string.create_deck_error, musInterval.getDeckName());
+                    } catch (MusInterval.AddToAnkiException e) {
+                        message = getResources().getString(R.string.add_card_error);
+                    }
                 }
 
                 Toast.makeText(MainActivity.this, message, Toast.LENGTH_LONG).show();
@@ -107,21 +111,17 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     Toast.makeText(MainActivity.this, R.string.anki_permission_denied, Toast.LENGTH_LONG).show();
                 }
             }
-            case PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE: {
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    Intent intent = getIntent();
-                    PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
-                    AlarmManager am = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
-                    am.set(AlarmManager.RTC, System.currentTimeMillis() + 100, pendingIntent);
-                    System.exit(0);
-                } else {
-                    Toast.makeText(MainActivity.this, R.string.fs_permission_denied, Toast.LENGTH_LONG).show();
-                }
-            }
         }
     }
 
-    public MusInterval getMusInterval() {
+    private boolean allFieldsEmpty() {
+        return inputStartNote.getText().toString().isEmpty()
+                && inputAscDesc.getText().toString().isEmpty()
+                && inputMelHar.getText().toString().isEmpty()
+                && inputInterval.getText().toString().isEmpty();
+    }
+
+    private MusInterval getMusInterval() {
         return new MusInterval(mAnkiDroid, inputFilename.getText().toString(), inputStartNote.getText().toString(),
                 inputAscDesc.getText().toString(), inputMelHar.getText().toString(), inputInterval.getText().toString());
     }

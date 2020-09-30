@@ -39,6 +39,7 @@ public class MusInterval {
     private final String mDeckName;
     private Long mDeckId;
 
+    // Data of model's fields
     private final String mSound;
     private final String mStartNote;
     private final String mAscDesc;
@@ -46,7 +47,7 @@ public class MusInterval {
     private final String mInterval;
 
     /**
-     * Construct MusInterval instance.
+     * Construct MusInterval instance with specified model and deck names.
      */
     public MusInterval(final AnkiDroidHelper helper, final String sound, final String startNote,
                        final String ascDesc, final String melHar, final String interval,
@@ -65,8 +66,12 @@ public class MusInterval {
         mInterval = interval;
     }
 
-    public MusInterval(AnkiDroidHelper mAnkiDroid, String sound, String startNote, String ascDesc, String melHar, String interval) {
-        this(mAnkiDroid, sound, startNote, ascDesc, melHar, interval, DEFAULT_MODEL_NAME, DEFAULT_DECK_NAME);
+    /**
+     * Construct MusInterval instance with default model and deck names.
+     */
+    public MusInterval(final AnkiDroidHelper helper, final String sound, final String startNote,
+                       final String ascDesc, final String melHar, final String interval) {
+        this(helper, sound, startNote, ascDesc, melHar, interval, DEFAULT_MODEL_NAME, DEFAULT_DECK_NAME);
     }
 
     public String getModelName() {
