@@ -250,6 +250,53 @@ public class MusIntervalTest {
         assertTrue(mi.existsInAnki());
     }
 
+    @Test
+    public void checkExistence_withOnlyHelperAndEmptyModel_shouldFail() throws AnkiDroidHelper.InvalidAnkiDatabaseException {
+        final String deck = "Music intervals";
+        final long deckId = new Random().nextLong();
+        final String model = "Music.intervals";
+        final long modelId = new Random().nextLong();
+
+        LinkedList<Map<String, String>> existingNotesData = new LinkedList<>(); // no notes at all
+
+        AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
+        doReturn(modelId).when(helper).findModelIdByName(model);
+        doReturn(deckId).when(helper).findDeckIdByName(deck);
+        doReturn(existingNotesData).when(helper).getNotes(modelId);
+
+        MusInterval mi = new MusInterval.Builder(helper)
+                .model(model)
+                .deck(deck)
+                .build();
+
+        assertFalse(mi.existsInAnki());
+    }
+
+    @Test
+    public void checkExistence_withOnlyHelperAndNonEmptyModel_shouldSucceed() throws AnkiDroidHelper.InvalidAnkiDatabaseException {
+        final String deck = "Music intervals";
+        final long deckId = new Random().nextLong();
+        final String model = "Music.intervals";
+        final long modelId = new Random().nextLong();
+
+        LinkedList<Map<String, String>> existingNotesData = new LinkedList<>(); // at least one note
+        Map<String, String> item1 = new HashMap<>();
+        item1.put(MusInterval.Fields.START_NOTE, "C#3");
+        existingNotesData.add(item1);
+
+        AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
+        doReturn(modelId).when(helper).findModelIdByName(model);
+        doReturn(deckId).when(helper).findDeckIdByName(deck);
+        doReturn(existingNotesData).when(helper).getNotes(modelId);
+
+        MusInterval mi = new MusInterval.Builder(helper)
+                .model(model)
+                .deck(deck)
+                .build();
+
+        assertTrue(mi.existsInAnki());
+    }
+
     @Test(expected = MusInterval.NoSuchModelException.class)
     public void add_NoSuchModel() throws MusInterval.NoSuchModelException, MusInterval.CreateDeckException, MusInterval.AddToAnkiException {
         final String deck = "Music intervals";
@@ -750,7 +797,4 @@ public class MusIntervalTest {
         assertEquals(startNote1, mi1.startNote);
         assertEquals(startNote2, mi2.startNote);
     }
-
-
-    // @todo: checkExistence_withOnlyHelperAndModel (false if no notes, true if at least one note)
 }

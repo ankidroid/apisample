@@ -159,7 +159,7 @@ public class MusInterval {
         return getExistingNote() != null;
     }
 
-    public Map<String, String> getExistingNote() throws AnkiDroidHelper.InvalidAnkiDatabaseException {
+    private Map<String, String> getExistingNote() throws AnkiDroidHelper.InvalidAnkiDatabaseException {
         if (modelId != null) {
             LinkedList<Map<String, String>> notes = helper.getNotes(modelId);
 
