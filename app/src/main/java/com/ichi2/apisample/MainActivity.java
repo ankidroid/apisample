@@ -57,9 +57,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                         try {
                             getMusInterval().markExistingNote();
                         } catch (MusInterval.NoteNotExistsException e) {
-                            Toast.makeText(MainActivity.this, getResources().getString(R.string.mi_not_exists), Toast.LENGTH_LONG).show();
+                            showMsg(R.string.mi_not_exists);
                         } catch (MusInterval.AddTagException e) {
-                            Toast.makeText(MainActivity.this, getResources().getString(R.string.mark_note_error), Toast.LENGTH_LONG).show();
+                            showMsg(R.string.mark_note_error);
                         } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
                             processInvalidAnkiDatabase(e);
                         }
@@ -81,14 +81,13 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 }
 
                 if (allFieldsEmpty()) {
-                    Toast.makeText(MainActivity.this, getResources().getString(R.string.all_fields_empty), Toast.LENGTH_LONG).show();
+                    showMsg(R.string.all_fields_empty);
                 } else {
                     try {
                         if (getMusInterval().existsInAnki()) {
                             markNoteDialog.show();
                         } else {
-                            // @todo: Move to separate method
-                            Toast.makeText(MainActivity.this, getResources().getString(R.string.mi_not_exists), Toast.LENGTH_LONG).show();
+                            showMsg(R.string.mi_not_exists);
                         }
                     } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
                         processInvalidAnkiDatabase(e);
@@ -166,10 +165,14 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         try {
             throw invalidAnkiDatabaseException;
         } catch (AnkiDroidHelper.InvalidAnkiDatabase_fieldAndFieldNameCountMismatchException e) {
-            Toast.makeText(MainActivity.this, getResources().getString(R.string.InvalidAnkiDatabase_unknownError), Toast.LENGTH_LONG).show();
+            showMsg(R.string.InvalidAnkiDatabase_unknownError);
         } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
-            Toast.makeText(MainActivity.this, getResources().getString(R.string.InvalidAnkiDatabase_fieldAndFieldNameCountMismatch), Toast.LENGTH_LONG).show();
+            showMsg(R.string.InvalidAnkiDatabase_fieldAndFieldNameCountMismatch);
         }
+    }
+
+    private void showMsg(int msgResId) {
+        Toast.makeText(MainActivity.this, getResources().getString(msgResId), Toast.LENGTH_LONG).show();
     }
 
 }
