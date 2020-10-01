@@ -686,7 +686,7 @@ public class MusIntervalTest {
         item1.put(MusInterval.Fields.INTERVAL, interval);
         item1.put(MusInterval.Fields.TEMPO, tempo);
         item1.put(MusInterval.Fields.INSTRUMENT, instrument);
-        item1.put("tags", " some tags benchmarked ");
+        item1.put("tags", " some tags benchmarked marked_as_red ");
         existingNotesData.add(item1);
 
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
@@ -695,7 +695,7 @@ public class MusIntervalTest {
         doReturn(existingNotesData).when(helper).getNotes(modelId);
 
         // Marked successfully
-        doReturn(1).when(helper).addTagToNote(noteId, " some tags benchmarked marked ");
+        doReturn(1).when(helper).addTagToNote(noteId, " some tags benchmarked marked_as_red marked ");
 
         MusInterval mi = new MusInterval.Builder(helper)
                 .model(model)
