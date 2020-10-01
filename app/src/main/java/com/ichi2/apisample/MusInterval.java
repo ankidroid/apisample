@@ -1,14 +1,7 @@
 package com.ichi2.apisample;
 
-// TODO: avoid importing android packages
-import android.text.TextUtils;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 
 
@@ -185,21 +178,17 @@ public class MusInterval {
             throw new NoteNotExistsException();
         }
 
-        final String tagsStr = note.get("tags");
-        List<String> tags = tagsStr != null
-                ? new ArrayList<>(Arrays.asList(tagsStr.split(" ")))
-                : new ArrayList<String>();
+        String tags = note.get("tags");
 
-        tags.removeAll(Collections.singleton("")); // @todo: replace with trim()
-
-        if (!tags.contains("marked")) {
-            tags.add("marked");
+        if (tags == null) {
+            tags = " ";
         }
 
-        // Tags string should be delimited and surrounded by spaces
-        String newTags = " " + TextUtils.join(" ", tags) + " ";
+        if (!tags.contains(" marked ")) {
+            tags = tags + "marked ";
+        }
 
-        int updated = helper.addTagToNote(Long.parseLong(note.get("id")), newTags);
+        int updated = helper.addTagToNote(Long.parseLong(note.get("id")), tags);
 
         if (updated == 0) {
             throw new AddTagException();
