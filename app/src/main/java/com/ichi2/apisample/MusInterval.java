@@ -1,7 +1,13 @@
 package com.ichi2.apisample;
 
+import android.text.TextUtils;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 
@@ -30,6 +36,8 @@ public class MusInterval {
     public static class NoSuchModelException extends Throwable {}
     public static class CreateDeckException extends Throwable {}
     public static class AddToAnkiException extends Throwable {}
+    public static class NoteNotExistsException extends Throwable {}
+    public static class AddTagException extends Throwable {}
 
     private static final String DEFAULT_DECK_NAME = "Music intervals";
     private static final String DEFAULT_MODEL_NAME = "Music.interval";
@@ -97,24 +105,54 @@ public class MusInterval {
      * @return True or false depending on a result
      */
     public boolean existsInAnki() {
-        if (mModelId == null) {
-            return false;
-        }
+        return getExistingNote() != null;
+    }
 
-        LinkedList<Map<String, String>> notes = mHelper.getNotes(mModelId);
+    public Map<String, String> getExistingNote() {
+        if (mModelId != null) {
+            LinkedList<Map<String, String>> notes = mHelper.getNotes(mModelId);
 
-        for (Map<String, String> note : notes) {
-            if ((mStartNote.isEmpty() || mStartNote.equals(note.get(Fields.START_NOTE)))
-                && (mDirection.isEmpty() || mDirection.equals(note.get(Fields.DIRECTION)))
-                && (mScale.isEmpty() || mScale.equals(note.get(Fields.SCALE)))
-                && (mInterval.isEmpty() || mInterval.equals(note.get(Fields.INTERVAL)))
-                && (mTempo.isEmpty() || mTempo.equals(note.get(Fields.TEMPO)))
-                && (mInstrument.isEmpty() || mInstrument.equals(note.get(Fields.INSTRUMENT)))) {
-                return true;
+            for (Map<String, String> note : notes) {
+                if ((mStartNote.isEmpty() || mStartNote.equals(note.get(Fields.START_NOTE)))
+                        && (mDirection.isEmpty() || mDirection.equals(note.get(Fields.DIRECTION)))
+                        && (mScale.isEmpty() || mScale.equals(note.get(Fields.SCALE)))
+                        && (mInterval.isEmpty() || mInterval.equals(note.get(Fields.INTERVAL)))
+                        && (mTempo.isEmpty() || mTempo.equals(note.get(Fields.TEMPO)))
+                        && (mInstrument.isEmpty() || mInstrument.equals(note.get(Fields.INSTRUMENT)))) {
+                    return note;
+                }
             }
         }
 
-        return false;
+        return null;
+    }
+
+    public void markExistingNote() throws NoteNotExistsException, AddTagException {
+        final Map<String, String> note = getExistingNote();
+
+        if (note == null) {
+            throw new NoteNotExistsException();
+        }
+
+        final String tagsStr = note.get("tags");
+        List<String> tags = tagsStr != null
+                ? new ArrayList<String>(Arrays.asList(tagsStr.split(" ")))
+                : new ArrayList<String>();
+
+        tags.removeAll(Collections.singleton(""));
+
+        if (!tags.contains("marked")) {
+            tags.add("marked");
+        }
+
+        // Tags string should be delimited and surrounded by spaces
+        String newTags = " " + TextUtils.join(" ", tags) + " ";
+
+        int updated = mHelper.addTagToNote(Long.parseLong(note.get("id")), newTags);
+
+        if (updated == 0) {
+            throw new AddTagException();
+        }
     }
 
     /**

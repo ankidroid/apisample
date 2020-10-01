@@ -2,10 +2,12 @@ package com.ichi2.apisample;
 
 import android.app.Activity;
 import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Build;
 
 import androidx.core.app.ActivityCompat;
@@ -199,7 +201,7 @@ public class AnkiDroidHelper {
         LinkedList<Map<String, String>> result = new LinkedList<>();
 
         String selection = String.format(Locale.US, "%s=%d", FlashCardsContract.Note.MID, modelId);
-        String[] projection = new String[] { FlashCardsContract.Note._ID, FlashCardsContract.Note.FLDS };
+        String[] projection = new String[] { FlashCardsContract.Note._ID, FlashCardsContract.Note.FLDS, FlashCardsContract.Note.TAGS };
         Cursor notesTableCursor = mResolver.query(FlashCardsContract.Note.CONTENT_URI_V2, projection, selection, null, null);
 
         if (notesTableCursor == null) {
@@ -211,7 +213,10 @@ public class AnkiDroidHelper {
 
         try {
             while (notesTableCursor.moveToNext()) {
+                int idIndex = notesTableCursor.getColumnIndexOrThrow(FlashCardsContract.Note._ID);
                 int fldsIndex = notesTableCursor.getColumnIndexOrThrow(FlashCardsContract.Note.FLDS);
+                int tagsIndex = notesTableCursor.getColumnIndexOrThrow(FlashCardsContract.Note.TAGS);
+
                 String flds = notesTableCursor.getString(fldsIndex);
 
                 if (flds != null) {
@@ -221,6 +226,9 @@ public class AnkiDroidHelper {
                     }
 
                     Map<String, String> item = new HashMap<>();
+                    item.put("id", Long.toString(notesTableCursor.getLong(idIndex)));
+                    item.put("tags", notesTableCursor.getString(tagsIndex));
+
                     for (int i = 0; i < fieldNames.length; ++i) {
                         item.put(fieldNames[i], fields[i]);
                     }
@@ -234,5 +242,13 @@ public class AnkiDroidHelper {
         }
 
         return result;
+    }
+
+    public int addTagToNote(long noteId, String tags) {
+        ContentValues values = new ContentValues();
+        values.put(FlashCardsContract.Note.TAGS, tags);
+
+        Uri cardUri = Uri.withAppendedPath(FlashCardsContract.Note.CONTENT_URI, Long.toString(noteId));
+        return mResolver.update(cardUri, values, null, null);
     }
 }

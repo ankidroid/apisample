@@ -1,5 +1,7 @@
 package com.ichi2.apisample;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
@@ -48,6 +50,25 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             }
         });
 
+        final AlertDialog.Builder markNoteDialog = new AlertDialog.Builder(MainActivity.this);
+        markNoteDialog.setMessage(R.string.mi_exists_ask_mark)
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        try {
+                            getMusInterval().markExistingNote();
+                        } catch (MusInterval.NoteNotExistsException e) {
+                            Toast.makeText(MainActivity.this, getResources().getString(R.string.mi_not_exists), Toast.LENGTH_LONG).show();
+                        } catch (MusInterval.AddTagException e) {
+                            Toast.makeText(MainActivity.this, getResources().getString(R.string.mark_note_error), Toast.LENGTH_LONG).show();
+                        }
+                    }
+                })
+                .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.cancel();
+                    }
+                });
+
         final Button actionCheckExistence = findViewById(R.id.actionCheckExistence);
         actionCheckExistence.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -57,20 +78,13 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     return;
                 }
 
-                final MusInterval musInterval = getMusInterval();
-                String message;
-
                 if (allFieldsEmpty()) {
-                    message = getResources().getString(R.string.all_fields_empty);
+                    Toast.makeText(MainActivity.this, getResources().getString(R.string.all_fields_empty), Toast.LENGTH_LONG).show();
+                } else if (getMusInterval().existsInAnki()) {
+                    markNoteDialog.show();
                 } else {
-                    if (musInterval.existsInAnki()) {
-                        message = getResources().getString(R.string.mi_exists);
-                    } else {
-                        message = getResources().getString(R.string.mi_not_exists);
-                    }
+                    Toast.makeText(MainActivity.this, getResources().getString(R.string.mi_not_exists), Toast.LENGTH_LONG).show();
                 }
-
-                Toast.makeText(MainActivity.this, message, Toast.LENGTH_LONG).show();
             }
         });
 
