@@ -80,18 +80,14 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     return;
                 }
 
-                if (allFieldsEmpty()) {
-                    showMsg(R.string.all_fields_empty);
-                } else {
-                    try {
-                        if (getMusInterval().existsInAnki()) {
-                            markNoteDialog.show();
-                        } else {
-                            showMsg(R.string.mi_not_exists);
-                        }
-                    } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
-                        processInvalidAnkiDatabase(e);
+                try {
+                    if (getMusInterval().existsInAnki()) {
+                        markNoteDialog.show();
+                    } else {
+                        showMsg(R.string.mi_not_exists);
                     }
+                } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
+                    processInvalidAnkiDatabase(e);
                 }
             }
         });
