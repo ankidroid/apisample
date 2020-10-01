@@ -196,7 +196,7 @@ public class AnkiDroidHelper {
      * @param modelId Needed model
      * @return List of note ids
      */
-    public LinkedList<Map<String, String>> getNotes(long modelId) {
+    public LinkedList<Map<String, String>> getNotes(long modelId) throws InvalidAnkiDatabase {
         // @todo Check performance and rewrite
         LinkedList<Map<String, String>> result = new LinkedList<>();
 
@@ -222,7 +222,7 @@ public class AnkiDroidHelper {
                 if (flds != null) {
                     String[] fields = flds.split("\\x1f", -1);
                     if (fields.length != fieldNames.length) {
-                        continue; // @todo Probably throw exception ?
+                        throw new InvalidAnkiDatabase_fieldAndFieldNameCountMismatch();
                     }
 
                     Map<String, String> item = new HashMap<>();
@@ -250,5 +250,11 @@ public class AnkiDroidHelper {
 
         Uri cardUri = Uri.withAppendedPath(FlashCardsContract.Note.CONTENT_URI, Long.toString(noteId));
         return mResolver.update(cardUri, values, null, null);
+    }
+
+    abstract class InvalidAnkiDatabase extends Throwable {
+    }
+
+    class InvalidAnkiDatabase_fieldAndFieldNameCountMismatch extends InvalidAnkiDatabase {
     }
 }

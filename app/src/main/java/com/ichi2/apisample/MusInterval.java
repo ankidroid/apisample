@@ -1,5 +1,6 @@
 package com.ichi2.apisample;
 
+// TODO: avoid importing android packages
 import android.text.TextUtils;
 
 import java.util.ArrayList;
@@ -154,11 +155,11 @@ public class MusInterval {
      *
      * @return True or false depending on a result
      */
-    public boolean existsInAnki() {
+    public boolean existsInAnki() throws AnkiDroidHelper.InvalidAnkiDatabase {
         return getExistingNote() != null;
     }
 
-    public Map<String, String> getExistingNote() {
+    public Map<String, String> getExistingNote() throws AnkiDroidHelper.InvalidAnkiDatabase {
         if (modelId != null) {
             LinkedList<Map<String, String>> notes = helper.getNotes(modelId);
 
@@ -177,7 +178,7 @@ public class MusInterval {
         return null;
     }
 
-    public void markExistingNote() throws NoteNotExistsException, AddTagException {
+    public void markExistingNote() throws NoteNotExistsException, AddTagException, AnkiDroidHelper.InvalidAnkiDatabase {
         final Map<String, String> note = getExistingNote();
 
         if (note == null) {
@@ -186,10 +187,10 @@ public class MusInterval {
 
         final String tagsStr = note.get("tags");
         List<String> tags = tagsStr != null
-                ? new ArrayList<String>(Arrays.asList(tagsStr.split(" ")))
+                ? new ArrayList<>(Arrays.asList(tagsStr.split(" ")))
                 : new ArrayList<String>();
 
-        tags.removeAll(Collections.singleton(""));
+        tags.removeAll(Collections.singleton("")); // @todo: replace with trim()
 
         if (!tags.contains("marked")) {
             tags.add("marked");

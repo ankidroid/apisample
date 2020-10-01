@@ -22,7 +22,7 @@ import static org.mockito.Mockito.*;
 public class MusIntervalTest {
 
     @Test
-    public void checkExistence_NoSuchModel() {
+    public void checkExistence_NoSuchModel() throws AnkiDroidHelper.InvalidAnkiDatabase {
         final String deck = "Music intervals";
         final long deckId = new Random().nextLong();
         String model = "Music.intervals";
@@ -39,7 +39,7 @@ public class MusIntervalTest {
     }
 
     @Test
-    public void checkExistence_NoStartingNotes() {
+    public void checkExistence_NoStartingNotes() throws AnkiDroidHelper.InvalidAnkiDatabase {
         final String deck = "Music intervals";
         final long deckId = new Random().nextLong();
         final String model = "Music.intervals";
@@ -61,7 +61,7 @@ public class MusIntervalTest {
     }
 
     @Test
-    public void checkExistence_NoSuchStartingNote() {
+    public void checkExistence_NoSuchStartingNote() throws AnkiDroidHelper.InvalidAnkiDatabase {
         final String deck = "Music intervals";
         final long deckId = new Random().nextLong();
         final String model = "Music.intervals";
@@ -91,7 +91,7 @@ public class MusIntervalTest {
     }
 
     @Test
-    public void checkExistence_StartingNoteExists() {
+    public void checkExistence_StartingNoteExists() throws AnkiDroidHelper.InvalidAnkiDatabase {
         final String deck = "Music intervals";
         final long deckId = new Random().nextLong();
         final String model = "Music.intervals";
@@ -135,7 +135,7 @@ public class MusIntervalTest {
     }
 
     @Test
-    public void checkExistence_StartingNoteExistsWithDifferentOtherFields() {
+    public void checkExistence_StartingNoteExistsWithDifferentOtherFields() throws AnkiDroidHelper.InvalidAnkiDatabase {
         final String deck = "Music intervals";
         final long deckId = new Random().nextLong();
         final String model = "Music.intervals";
@@ -208,7 +208,7 @@ public class MusIntervalTest {
     }
 
     @Test
-    public void checkExistence_StartingNoteExistsRegardlessOfSound() {
+    public void checkExistence_StartingNoteExistsRegardlessOfSound() throws AnkiDroidHelper.InvalidAnkiDatabase {
         final String deck = "Music intervals";
         final long deckId = new Random().nextLong();
         final String model = "Music.intervals";
@@ -493,7 +493,7 @@ public class MusIntervalTest {
     }
 
     @Test(expected = MusInterval.NoteNotExistsException.class)
-    public void markExistingNote_NoteNotExists() throws MusInterval.NoteNotExistsException, MusInterval.AddTagException {
+    public void markExistingNote_NoteNotExists() throws MusInterval.NoteNotExistsException, MusInterval.AddTagException, AnkiDroidHelper.InvalidAnkiDatabase {
         final String deck = "Music intervals";
         final long deckId = new Random().nextLong();
         final String model = "Music.intervals";
@@ -516,7 +516,7 @@ public class MusIntervalTest {
     }
 
     @Test(expected = MusInterval.AddTagException.class)
-    public void markExistingNote_MarkNoteFailure() throws MusInterval.NoteNotExistsException, MusInterval.AddTagException {
+    public void markExistingNote_MarkNoteFailure() throws MusInterval.NoteNotExistsException, MusInterval.AddTagException, AnkiDroidHelper.InvalidAnkiDatabase {
         final String deck = "Music intervals";
         final long deckId = new Random().nextLong();
         final String model = "Music.intervals";
@@ -566,7 +566,7 @@ public class MusIntervalTest {
     }
 
     @Test
-    public void markExistingNote_MarkNoteSuccess() throws MusInterval.NoteNotExistsException, MusInterval.AddTagException {
+    public void markExistingNote_MarkNoteSuccess() throws MusInterval.NoteNotExistsException, MusInterval.AddTagException, AnkiDroidHelper.InvalidAnkiDatabase {
         final String deck = "Music intervals";
         final long deckId = new Random().nextLong();
         final String model = "Music.intervals";
