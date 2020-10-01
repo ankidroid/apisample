@@ -729,8 +729,28 @@ public class MusIntervalTest {
         assertEquals(instrument, mi.instrument);
     }
 
+    @Test
+    public void create_MultipleBuilders_shouldNotAffectEachOther() {
+        final String startNote1 = "C2";
+        final String startNote2 = "C3";
+
+        AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
+        doReturn(null).when(helper).findModelIdByName(any(String.class));
+        doReturn(null).when(helper).findDeckIdByName(any(String.class));
+
+        MusInterval.Builder builder1 = new MusInterval.Builder(helper)
+                .start_note(startNote1);
+
+        MusInterval.Builder builder2 = new MusInterval.Builder(helper)
+                .start_note(startNote2);
+
+        MusInterval mi1 = builder1.build();
+        MusInterval mi2 = builder2.build();
+
+        assertEquals(startNote1, mi1.startNote);
+        assertEquals(startNote2, mi2.startNote);
+    }
+
 
     // @todo: checkExistence_withOnlyHelperAndModel (false if no notes, true if at least one note)
-
-    // @todo: Check if static builder is ok (multithread and so on)
 }
