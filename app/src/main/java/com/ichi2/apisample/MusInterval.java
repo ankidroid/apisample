@@ -17,7 +17,7 @@ public class MusInterval {
         public static final String SOUND = "sound";
         public static final String START_NOTE = "start_note";
         public static final String DIRECTION = "ascending_descending";
-        public static final String SCALE = "melodic_harmonic";
+        public static final String TIMING = "melodic_harmonic";
         public static final String INTERVAL = "interval";
         public static final String TEMPO = "tempo";
         public static final String INSTRUMENT = "instrument";
@@ -27,7 +27,7 @@ public class MusInterval {
             public static final String DESC = "descending";
         }
 
-        public static class Scale {
+        public static class Timing {
             public static final String MELODIC = "melodic";
             public static final String HARMONIC = "harmonic";
         }
@@ -115,7 +115,7 @@ public class MusInterval {
             for (Map<String, String> note : notes) {
                 if ((mStartNote.isEmpty() || mStartNote.equals(note.get(Fields.START_NOTE)))
                         && (mDirection.isEmpty() || mDirection.equals(note.get(Fields.DIRECTION)))
-                        && (mScale.isEmpty() || mScale.equals(note.get(Fields.SCALE)))
+                        && (mScale.isEmpty() || mScale.equals(note.get(Fields.TIMING)))
                         && (mInterval.isEmpty() || mInterval.equals(note.get(Fields.INTERVAL)))
                         && (mTempo.isEmpty() || mTempo.equals(note.get(Fields.TEMPO)))
                         && (mInstrument.isEmpty() || mInstrument.equals(note.get(Fields.INSTRUMENT)))) {
@@ -184,7 +184,7 @@ public class MusInterval {
         data.put(Fields.SOUND, mSound);
         data.put(Fields.START_NOTE, mStartNote);
         data.put(Fields.DIRECTION, mDirection);
-        data.put(Fields.SCALE, mScale);
+        data.put(Fields.TIMING, mScale);
         data.put(Fields.INTERVAL, mInterval);
         data.put(Fields.TEMPO, mTempo);
         data.put(Fields.INSTRUMENT, mInstrument);

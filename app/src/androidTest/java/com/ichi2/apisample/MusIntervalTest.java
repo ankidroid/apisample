@@ -32,7 +32,7 @@ public class MusIntervalTest {
         doReturn(deckId).when(helper).findDeckIdByName(deck);
 
         MusInterval mi = new MusInterval(helper, "", "C#3", MusInterval.Fields.Direction.ASC,
-                MusInterval.Fields.Scale.MELODIC, "min2", "80", "guitar", model, deck);
+                MusInterval.Fields.Timing.MELODIC, "min2", "80", "guitar", model, deck);
 
         assertFalse(mi.existsInAnki());
     }
@@ -52,7 +52,7 @@ public class MusIntervalTest {
         doReturn(existingNotesData).when(helper).getNotes(modelId);
 
         MusInterval mi = new MusInterval(helper, "", "C#3", MusInterval.Fields.Direction.ASC,
-                MusInterval.Fields.Scale.MELODIC, "min2", "80", "guitar", model, deck);
+                MusInterval.Fields.Timing.MELODIC, "min2", "80", "guitar", model, deck);
 
         assertFalse(mi.existsInAnki());
     }
@@ -79,7 +79,7 @@ public class MusIntervalTest {
         doReturn(existingNotesData).when(helper).getNotes(modelId);
 
         MusInterval mi = new MusInterval(helper, "", "C#3", MusInterval.Fields.Direction.ASC,
-                MusInterval.Fields.Scale.MELODIC, "min2", "80", "guitar", model, deck);
+                MusInterval.Fields.Timing.MELODIC, "min2", "80", "guitar", model, deck);
 
         assertFalse(mi.existsInAnki());
     }
@@ -100,7 +100,7 @@ public class MusIntervalTest {
         Map<String, String> item1 = new HashMap<>();
         item1.put(MusInterval.Fields.START_NOTE, startNote);
         item1.put(MusInterval.Fields.DIRECTION, MusInterval.Fields.Direction.ASC);
-        item1.put(MusInterval.Fields.SCALE, MusInterval.Fields.Scale.MELODIC);
+        item1.put(MusInterval.Fields.TIMING, MusInterval.Fields.Timing.MELODIC);
         item1.put(MusInterval.Fields.INTERVAL, interval);
         item1.put(MusInterval.Fields.TEMPO, tempo);
         item1.put(MusInterval.Fields.INSTRUMENT, instrument);
@@ -115,7 +115,7 @@ public class MusIntervalTest {
         doReturn(existingNotesData).when(helper).getNotes(modelId);
 
         MusInterval mi = new MusInterval(helper, "", startNote, MusInterval.Fields.Direction.ASC,
-                MusInterval.Fields.Scale.MELODIC, interval, tempo, instrument, model, deck);
+                MusInterval.Fields.Timing.MELODIC, interval, tempo, instrument, model, deck);
 
         assertTrue(mi.existsInAnki());
     }
@@ -136,7 +136,7 @@ public class MusIntervalTest {
         Map<String, String> item1 = new HashMap<>();
         item1.put(MusInterval.Fields.START_NOTE, startNote);                        // same StartingNote
         item1.put(MusInterval.Fields.DIRECTION, MusInterval.Fields.Direction.DESC); // another AscDesc
-        item1.put(MusInterval.Fields.SCALE, MusInterval.Fields.Scale.MELODIC);      // same MelHar
+        item1.put(MusInterval.Fields.TIMING, MusInterval.Fields.Timing.MELODIC);      // same MelHar
         item1.put(MusInterval.Fields.INTERVAL, interval);                           // same interval
         item1.put(MusInterval.Fields.TEMPO, tempo);                                 // same tempo
         item1.put(MusInterval.Fields.INSTRUMENT, instrument);                       // same instrument
@@ -144,7 +144,7 @@ public class MusIntervalTest {
         Map<String, String> item2 = new HashMap<>();
         item2.put(MusInterval.Fields.START_NOTE, startNote);                        // same StartingNote
         item2.put(MusInterval.Fields.DIRECTION, MusInterval.Fields.Direction.ASC);  // same AscDesc
-        item2.put(MusInterval.Fields.SCALE, MusInterval.Fields.Scale.HARMONIC);     // another MelHar
+        item2.put(MusInterval.Fields.TIMING, MusInterval.Fields.Timing.HARMONIC);     // another MelHar
         item2.put(MusInterval.Fields.INTERVAL, interval);                           // same interval
         item2.put(MusInterval.Fields.TEMPO, tempo);                                 // same tempo
         item2.put(MusInterval.Fields.INSTRUMENT, instrument);                       // same instrument
@@ -152,7 +152,7 @@ public class MusIntervalTest {
         Map<String, String> item3 = new HashMap<>();
         item3.put(MusInterval.Fields.START_NOTE, startNote);                        // same StartingNote
         item3.put(MusInterval.Fields.DIRECTION, MusInterval.Fields.Direction.ASC);  // same AscDesc
-        item3.put(MusInterval.Fields.SCALE, MusInterval.Fields.Scale.MELODIC);      // same MelHar
+        item3.put(MusInterval.Fields.TIMING, MusInterval.Fields.Timing.MELODIC);      // same MelHar
         item3.put(MusInterval.Fields.INTERVAL, "min3");                             // another interval
         item3.put(MusInterval.Fields.TEMPO, tempo);                                 // same tempo
         item3.put(MusInterval.Fields.INSTRUMENT, instrument);                       // same instrument
@@ -160,7 +160,7 @@ public class MusIntervalTest {
         Map<String, String> item4 = new HashMap<>();
         item4.put(MusInterval.Fields.START_NOTE, startNote);                        // same StartingNote
         item4.put(MusInterval.Fields.DIRECTION, MusInterval.Fields.Direction.ASC);  // same AscDesc
-        item4.put(MusInterval.Fields.SCALE, MusInterval.Fields.Scale.MELODIC);      // same MelHar
+        item4.put(MusInterval.Fields.TIMING, MusInterval.Fields.Timing.MELODIC);      // same MelHar
         item4.put(MusInterval.Fields.INTERVAL, interval);                           // same interval
         item4.put(MusInterval.Fields.TEMPO, "90");                                  // another tempo
         item4.put(MusInterval.Fields.INSTRUMENT, instrument);                       // same instrument
@@ -168,7 +168,7 @@ public class MusIntervalTest {
         Map<String, String> item5 = new HashMap<>();
         item5.put(MusInterval.Fields.START_NOTE, startNote);                        // same StartingNote
         item5.put(MusInterval.Fields.DIRECTION, MusInterval.Fields.Direction.ASC);  // same AscDesc
-        item5.put(MusInterval.Fields.SCALE, MusInterval.Fields.Scale.MELODIC);      // same MelHar
+        item5.put(MusInterval.Fields.TIMING, MusInterval.Fields.Timing.MELODIC);      // same MelHar
         item5.put(MusInterval.Fields.INTERVAL, interval);                           // same interval
         item5.put(MusInterval.Fields.TEMPO, tempo);                                 // same tempo
         item5.put(MusInterval.Fields.INSTRUMENT, "violin");                         // another instrument
@@ -180,7 +180,7 @@ public class MusIntervalTest {
         doReturn(existingNotesData).when(helper).getNotes(modelId);
 
         MusInterval mi = new MusInterval(helper, "", startNote, MusInterval.Fields.Direction.ASC,
-                MusInterval.Fields.Scale.MELODIC, interval, tempo, instrument, model, deck);
+                MusInterval.Fields.Timing.MELODIC, interval, tempo, instrument, model, deck);
 
         assertFalse(mi.existsInAnki());
     }
@@ -202,7 +202,7 @@ public class MusIntervalTest {
         item1.put(MusInterval.Fields.START_NOTE, startNote);
         item1.put(MusInterval.Fields.SOUND, "/test1");  // sound field does not matter
         item1.put(MusInterval.Fields.DIRECTION, MusInterval.Fields.Direction.ASC);
-        item1.put(MusInterval.Fields.SCALE, MusInterval.Fields.Scale.MELODIC);
+        item1.put(MusInterval.Fields.TIMING, MusInterval.Fields.Timing.MELODIC);
         item1.put(MusInterval.Fields.INTERVAL, interval);
         item1.put(MusInterval.Fields.TEMPO, tempo);
         item1.put(MusInterval.Fields.INSTRUMENT, instrument);
@@ -214,7 +214,7 @@ public class MusIntervalTest {
         doReturn(existingNotesData).when(helper).getNotes(modelId);
 
         MusInterval mi = new MusInterval(helper, "/test2", startNote, MusInterval.Fields.Direction.ASC,
-                MusInterval.Fields.Scale.MELODIC, interval, tempo, instrument, model, deck);
+                MusInterval.Fields.Timing.MELODIC, interval, tempo, instrument, model, deck);
 
         assertTrue(mi.existsInAnki());
     }
@@ -232,7 +232,7 @@ public class MusIntervalTest {
         doReturn(deckId).when(helper).findDeckIdByName(deck);
 
         MusInterval mi = new MusInterval(helper, "", "C#3", MusInterval.Fields.Direction.ASC,
-                MusInterval.Fields.Scale.MELODIC, "min2", "80", "guitar", model, deck);
+                MusInterval.Fields.Timing.MELODIC, "min2", "80", "guitar", model, deck);
 
         mi.addToAnki();
     }
@@ -251,7 +251,7 @@ public class MusIntervalTest {
         doReturn(null).when(helper).addNewDeck(deck);
 
         MusInterval mi = new MusInterval(helper, "", "C#3", MusInterval.Fields.Direction.ASC,
-                MusInterval.Fields.Scale.MELODIC, "min2", "80", "guitar", model, deck);
+                MusInterval.Fields.Timing.MELODIC, "min2", "80", "guitar", model, deck);
 
         mi.addToAnki();
     }
@@ -266,7 +266,7 @@ public class MusIntervalTest {
         final String sound = "";
         final String startNote = "C#3";
         final String direction = MusInterval.Fields.Direction.ASC;
-        final String scale = MusInterval.Fields.Scale.MELODIC;
+        final String timing = MusInterval.Fields.Timing.MELODIC;
         final String interval = "min2";
         final String tempo = "80";
         final String instrument = "guitar";
@@ -290,8 +290,8 @@ public class MusIntervalTest {
                 assertEquals(startNote, data.get(MusInterval.Fields.START_NOTE));
                 assertTrue(data.containsKey(MusInterval.Fields.DIRECTION));
                 assertEquals(direction, data.get(MusInterval.Fields.DIRECTION));
-                assertTrue(data.containsKey(MusInterval.Fields.SCALE));
-                assertEquals(scale, data.get(MusInterval.Fields.SCALE));
+                assertTrue(data.containsKey(MusInterval.Fields.TIMING));
+                assertEquals(timing, data.get(MusInterval.Fields.TIMING));
                 assertTrue(data.containsKey(MusInterval.Fields.INTERVAL));
                 assertEquals(interval, data.get(MusInterval.Fields.INTERVAL));
                 assertTrue(data.containsKey(MusInterval.Fields.TEMPO));
@@ -309,7 +309,7 @@ public class MusIntervalTest {
         }).when(helper).addNote(eq(modelId), eq(deckId), any(Map.class), nullable(Set.class));
 
         MusInterval mi = new MusInterval(helper, "", "C#3", MusInterval.Fields.Direction.ASC,
-                MusInterval.Fields.Scale.MELODIC, "min2", "80", "guitar", model, deck);
+                MusInterval.Fields.Timing.MELODIC, "min2", "80", "guitar", model, deck);
 
         mi.addToAnki();
     }
@@ -325,7 +325,7 @@ public class MusIntervalTest {
         final String sound = "";
         final String startNote = "C#3";
         final String direction = MusInterval.Fields.Direction.ASC;
-        final String scale = MusInterval.Fields.Scale.MELODIC;
+        final String timing = MusInterval.Fields.Timing.MELODIC;
         final String interval = "min2";
         final String tempo = "80";
         final String instrument = "guitar";
@@ -349,8 +349,8 @@ public class MusIntervalTest {
                 assertEquals(startNote, data.get(MusInterval.Fields.START_NOTE));
                 assertTrue(data.containsKey(MusInterval.Fields.DIRECTION));
                 assertEquals(direction, data.get(MusInterval.Fields.DIRECTION));
-                assertTrue(data.containsKey(MusInterval.Fields.SCALE));
-                assertEquals(scale, data.get(MusInterval.Fields.SCALE));
+                assertTrue(data.containsKey(MusInterval.Fields.TIMING));
+                assertEquals(timing, data.get(MusInterval.Fields.TIMING));
                 assertTrue(data.containsKey(MusInterval.Fields.INTERVAL));
                 assertEquals(interval, data.get(MusInterval.Fields.INTERVAL));
                 assertTrue(data.containsKey(MusInterval.Fields.TEMPO));
@@ -367,7 +367,7 @@ public class MusIntervalTest {
 
         }).when(helper).addNote(eq(modelId), eq(deckId), any(Map.class), nullable(Set.class));
 
-        MusInterval mi = new MusInterval(helper, sound, startNote, direction, scale, interval,
+        MusInterval mi = new MusInterval(helper, sound, startNote, direction, timing, interval,
                 tempo, instrument, model, deck);
 
         mi.addToAnki(); // should not throw any exception
@@ -384,7 +384,7 @@ public class MusIntervalTest {
         final String sound = "";
         final String startNote = "C#2";
         final String direction = MusInterval.Fields.Direction.ASC;
-        final String scale = MusInterval.Fields.Scale.MELODIC;
+        final String timing = MusInterval.Fields.Timing.MELODIC;
         final String interval = "min3";
         final String tempo = "90";
         final String instrument = "violin";
@@ -406,8 +406,8 @@ public class MusIntervalTest {
                 assertEquals(startNote, data.get(MusInterval.Fields.START_NOTE));
                 assertTrue(data.containsKey(MusInterval.Fields.DIRECTION));
                 assertEquals(direction, data.get(MusInterval.Fields.DIRECTION));
-                assertTrue(data.containsKey(MusInterval.Fields.SCALE));
-                assertEquals(scale, data.get(MusInterval.Fields.SCALE));
+                assertTrue(data.containsKey(MusInterval.Fields.TIMING));
+                assertEquals(timing, data.get(MusInterval.Fields.TIMING));
                 assertTrue(data.containsKey(MusInterval.Fields.INTERVAL));
                 assertEquals(interval, data.get(MusInterval.Fields.INTERVAL));
                 assertTrue(data.containsKey(MusInterval.Fields.TEMPO));
@@ -424,7 +424,7 @@ public class MusIntervalTest {
 
         }).when(helper).addNote(eq(modelId), eq(deckId), any(Map.class), nullable(Set.class));
 
-        MusInterval mi = new MusInterval(helper, sound, startNote, direction, scale, interval,
+        MusInterval mi = new MusInterval(helper, sound, startNote, direction, timing, interval,
                 tempo, instrument, model, deck);
 
         mi.addToAnki(); // should not throw any exception
@@ -445,7 +445,7 @@ public class MusIntervalTest {
         doReturn(existingNotesData).when(helper).getNotes(modelId);
 
         MusInterval mi = new MusInterval(helper, "", "C#3", MusInterval.Fields.Direction.ASC,
-                MusInterval.Fields.Scale.MELODIC, "min2", "80", "guitar", model, deck);
+                MusInterval.Fields.Timing.MELODIC, "min2", "80", "guitar", model, deck);
 
         mi.markExistingNote();
     }
@@ -461,7 +461,7 @@ public class MusIntervalTest {
         final String sound = "";
         final String startNote = "C#3";
         final String direction = MusInterval.Fields.Direction.ASC;
-        final String scale = MusInterval.Fields.Scale.MELODIC;
+        final String timing = MusInterval.Fields.Timing.MELODIC;
         final String interval = "min2";
         final String tempo = "80";
         final String instrument = "guitar";
@@ -472,7 +472,7 @@ public class MusIntervalTest {
         item1.put(MusInterval.Fields.START_NOTE, startNote);
         item1.put(MusInterval.Fields.SOUND, "/test1");  // sound field does not matter
         item1.put(MusInterval.Fields.DIRECTION, MusInterval.Fields.Direction.ASC);
-        item1.put(MusInterval.Fields.SCALE, MusInterval.Fields.Scale.MELODIC);
+        item1.put(MusInterval.Fields.TIMING, MusInterval.Fields.Timing.MELODIC);
         item1.put(MusInterval.Fields.INTERVAL, interval);
         item1.put(MusInterval.Fields.TEMPO, tempo);
         item1.put(MusInterval.Fields.INSTRUMENT, instrument);
@@ -484,9 +484,9 @@ public class MusIntervalTest {
         doReturn(existingNotesData).when(helper).getNotes(modelId);
 
         // Marking failure
-        doReturn(0).when(helper).addTagToNote(noteId, "marked");
+        doReturn(0).when(helper).addTagToNote(noteId, " marked ");
 
-        MusInterval mi = new MusInterval(helper, sound, startNote, direction, scale, interval,
+        MusInterval mi = new MusInterval(helper, sound, startNote, direction, timing, interval,
                 tempo, instrument, model, deck);
 
         mi.markExistingNote();
@@ -503,7 +503,7 @@ public class MusIntervalTest {
         final String sound = "";
         final String startNote = "C#3";
         final String direction = MusInterval.Fields.Direction.ASC;
-        final String scale = MusInterval.Fields.Scale.MELODIC;
+        final String timing = MusInterval.Fields.Timing.MELODIC;
         final String interval = "min2";
         final String tempo = "80";
         final String instrument = "guitar";
@@ -514,7 +514,7 @@ public class MusIntervalTest {
         item1.put(MusInterval.Fields.START_NOTE, startNote);
         item1.put(MusInterval.Fields.SOUND, "/test1");  // sound field does not matter
         item1.put(MusInterval.Fields.DIRECTION, MusInterval.Fields.Direction.ASC);
-        item1.put(MusInterval.Fields.SCALE, MusInterval.Fields.Scale.MELODIC);
+        item1.put(MusInterval.Fields.TIMING, MusInterval.Fields.Timing.MELODIC);
         item1.put(MusInterval.Fields.INTERVAL, interval);
         item1.put(MusInterval.Fields.TEMPO, tempo);
         item1.put(MusInterval.Fields.INSTRUMENT, instrument);
@@ -526,9 +526,9 @@ public class MusIntervalTest {
         doReturn(existingNotesData).when(helper).getNotes(modelId);
 
         // Marked successfully
-        doReturn(1).when(helper).addTagToNote(noteId, "marked");
+        doReturn(1).when(helper).addTagToNote(noteId, " marked ");
 
-        MusInterval mi = new MusInterval(helper, sound, startNote, direction, scale, interval,
+        MusInterval mi = new MusInterval(helper, sound, startNote, direction, timing, interval,
                 tempo, instrument, model, deck);
 
         mi.markExistingNote();

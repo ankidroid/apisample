@@ -21,7 +21,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private EditText inputFilename;
     private EditText inputStartNote;
     private EditText inputDirection;
-    private EditText inputScale;
+    private EditText inputTiming;
     private EditText inputInterval;
     private EditText inputTempo;
     private EditText inputInstrument;
@@ -36,7 +36,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         inputFilename = findViewById(R.id.inputFilename);
         inputStartNote = findViewById(R.id.inputStartNote);
         inputDirection = findViewById(R.id.inputDirection);
-        inputScale = findViewById(R.id.inputScale);
+        inputTiming = findViewById(R.id.inputTiming);
         inputInterval = findViewById(R.id.inputInterval);
         inputTempo = findViewById(R.id.inputTempo);
         inputInstrument = findViewById(R.id.inputInstrument);
@@ -135,7 +135,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private boolean allFieldsEmpty() {
         return inputStartNote.getText().toString().isEmpty()
                 && inputDirection.getText().toString().isEmpty()
-                && inputScale.getText().toString().isEmpty()
+                && inputTiming.getText().toString().isEmpty()
                 && inputInterval.getText().toString().isEmpty()
                 && inputTempo.getText().toString().isEmpty()
                 && inputInstrument.getText().toString().isEmpty();
@@ -143,7 +143,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
     private MusInterval getMusInterval() {
         return new MusInterval(mAnkiDroid, inputFilename.getText().toString(), inputStartNote.getText().toString(),
-                inputDirection.getText().toString(), inputScale.getText().toString(), inputInterval.getText().toString(),
+                inputDirection.getText().toString(), inputTiming.getText().toString(), inputInterval.getText().toString(),
                 inputTempo.getText().toString(), inputInstrument.getText().toString());
     }
 
