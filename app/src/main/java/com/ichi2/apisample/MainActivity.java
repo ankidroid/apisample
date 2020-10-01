@@ -142,9 +142,15 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     }
 
     private MusInterval getMusInterval() {
-        return new MusInterval(mAnkiDroid, inputFilename.getText().toString(), inputStartNote.getText().toString(),
-                inputDirection.getText().toString(), inputTiming.getText().toString(), inputInterval.getText().toString(),
-                inputTempo.getText().toString(), inputInstrument.getText().toString());
+        return new MusInterval.Builder(mAnkiDroid)
+                .sound(inputFilename.getText().toString())
+                .start_note(inputStartNote.getText().toString())
+                .direction(inputDirection.getText().toString())
+                .timing(inputTiming.getText().toString())
+                .interval(inputInterval.getText().toString())
+                .tempo(inputTempo.getText().toString())
+                .instrument(inputInstrument.getText().toString())
+                .build();
     }
 
 }

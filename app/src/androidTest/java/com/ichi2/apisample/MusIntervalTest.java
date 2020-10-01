@@ -25,14 +25,15 @@ public class MusIntervalTest {
     public void checkExistence_NoSuchModel() {
         final String deck = "Music intervals";
         final long deckId = new Random().nextLong();
-        final String model = "Music.intervals";
+        String model = "Music.intervals";
 
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         doReturn(null).when(helper).findModelIdByName(model);
         doReturn(deckId).when(helper).findDeckIdByName(deck);
 
-        MusInterval mi = new MusInterval(helper, "", "C#3", MusInterval.Fields.Direction.ASC,
-                MusInterval.Fields.Timing.MELODIC, "min2", "80", "guitar", model, deck);
+        MusInterval mi = new MusInterval.Builder(helper)
+                .model(model)
+                .build();
 
         assertFalse(mi.existsInAnki());
     }
@@ -51,8 +52,10 @@ public class MusIntervalTest {
         doReturn(deckId).when(helper).findDeckIdByName(deck);
         doReturn(existingNotesData).when(helper).getNotes(modelId);
 
-        MusInterval mi = new MusInterval(helper, "", "C#3", MusInterval.Fields.Direction.ASC,
-                MusInterval.Fields.Timing.MELODIC, "min2", "80", "guitar", model, deck);
+        MusInterval mi = new MusInterval.Builder(helper)
+                .model(model)
+                .deck(deck)
+                .build();
 
         assertFalse(mi.existsInAnki());
     }
@@ -78,8 +81,11 @@ public class MusIntervalTest {
         doReturn(deckId).when(helper).findDeckIdByName(deck);
         doReturn(existingNotesData).when(helper).getNotes(modelId);
 
-        MusInterval mi = new MusInterval(helper, "", "C#3", MusInterval.Fields.Direction.ASC,
-                MusInterval.Fields.Timing.MELODIC, "min2", "80", "guitar", model, deck);
+        MusInterval mi = new MusInterval.Builder(helper)
+                .model(model)
+                .deck(deck)
+                .start_note("C#3")
+                .build();
 
         assertFalse(mi.existsInAnki());
     }
@@ -114,8 +120,16 @@ public class MusIntervalTest {
         doReturn(deckId).when(helper).findDeckIdByName(deck);
         doReturn(existingNotesData).when(helper).getNotes(modelId);
 
-        MusInterval mi = new MusInterval(helper, "", startNote, MusInterval.Fields.Direction.ASC,
-                MusInterval.Fields.Timing.MELODIC, interval, tempo, instrument, model, deck);
+        MusInterval mi = new MusInterval.Builder(helper)
+                .model(model)
+                .deck(deck)
+                .start_note("C#3")
+                .direction(MusInterval.Fields.Direction.ASC)
+                .timing(MusInterval.Fields.Timing.MELODIC)
+                .interval(interval)
+                .tempo(tempo)
+                .instrument(instrument)
+                .build();
 
         assertTrue(mi.existsInAnki());
     }
@@ -179,8 +193,16 @@ public class MusIntervalTest {
         doReturn(deckId).when(helper).findDeckIdByName(deck);
         doReturn(existingNotesData).when(helper).getNotes(modelId);
 
-        MusInterval mi = new MusInterval(helper, "", startNote, MusInterval.Fields.Direction.ASC,
-                MusInterval.Fields.Timing.MELODIC, interval, tempo, instrument, model, deck);
+        MusInterval mi = new MusInterval.Builder(helper)
+                .model(model)
+                .deck(deck)
+                .start_note(startNote)
+                .direction(MusInterval.Fields.Direction.ASC)
+                .timing(MusInterval.Fields.Timing.MELODIC)
+                .interval(interval)
+                .tempo(tempo)
+                .instrument(instrument)
+                .build();
 
         assertFalse(mi.existsInAnki());
     }
@@ -213,8 +235,17 @@ public class MusIntervalTest {
         doReturn(deckId).when(helper).findDeckIdByName(deck);
         doReturn(existingNotesData).when(helper).getNotes(modelId);
 
-        MusInterval mi = new MusInterval(helper, "/test2", startNote, MusInterval.Fields.Direction.ASC,
-                MusInterval.Fields.Timing.MELODIC, interval, tempo, instrument, model, deck);
+        MusInterval mi = new MusInterval.Builder(helper)
+                .model(model)
+                .deck(deck)
+                .sound("/test2")
+                .start_note(startNote)
+                .direction(MusInterval.Fields.Direction.ASC)
+                .timing(MusInterval.Fields.Timing.MELODIC)
+                .interval(interval)
+                .tempo(tempo)
+                .instrument(instrument)
+                .build();
 
         assertTrue(mi.existsInAnki());
     }
@@ -231,8 +262,10 @@ public class MusIntervalTest {
         // deck ok
         doReturn(deckId).when(helper).findDeckIdByName(deck);
 
-        MusInterval mi = new MusInterval(helper, "", "C#3", MusInterval.Fields.Direction.ASC,
-                MusInterval.Fields.Timing.MELODIC, "min2", "80", "guitar", model, deck);
+        MusInterval mi = new MusInterval.Builder(helper)
+                .model(model)
+                .deck(deck)
+                .build();
 
         mi.addToAnki();
     }
@@ -250,8 +283,10 @@ public class MusIntervalTest {
         doReturn(null).when(helper).findDeckIdByName(deck);
         doReturn(null).when(helper).addNewDeck(deck);
 
-        MusInterval mi = new MusInterval(helper, "", "C#3", MusInterval.Fields.Direction.ASC,
-                MusInterval.Fields.Timing.MELODIC, "min2", "80", "guitar", model, deck);
+        MusInterval mi = new MusInterval.Builder(helper)
+                .model(model)
+                .deck(deck)
+                .build();
 
         mi.addToAnki();
     }
@@ -308,8 +343,17 @@ public class MusIntervalTest {
 
         }).when(helper).addNote(eq(modelId), eq(deckId), any(Map.class), nullable(Set.class));
 
-        MusInterval mi = new MusInterval(helper, "", "C#3", MusInterval.Fields.Direction.ASC,
-                MusInterval.Fields.Timing.MELODIC, "min2", "80", "guitar", model, deck);
+        MusInterval mi = new MusInterval.Builder(helper)
+                .model(model)
+                .deck(deck)
+                .sound(sound)
+                .start_note(startNote)
+                .direction(direction)
+                .timing(timing)
+                .interval(interval)
+                .tempo(tempo)
+                .instrument(instrument)
+                .build();
 
         mi.addToAnki();
     }
@@ -367,8 +411,17 @@ public class MusIntervalTest {
 
         }).when(helper).addNote(eq(modelId), eq(deckId), any(Map.class), nullable(Set.class));
 
-        MusInterval mi = new MusInterval(helper, sound, startNote, direction, timing, interval,
-                tempo, instrument, model, deck);
+        MusInterval mi = new MusInterval.Builder(helper)
+                .model(model)
+                .deck(deck)
+                .sound(sound)
+                .start_note(startNote)
+                .direction(direction)
+                .timing(timing)
+                .interval(interval)
+                .tempo(tempo)
+                .instrument(instrument)
+                .build();
 
         mi.addToAnki(); // should not throw any exception
     }
@@ -424,8 +477,17 @@ public class MusIntervalTest {
 
         }).when(helper).addNote(eq(modelId), eq(deckId), any(Map.class), nullable(Set.class));
 
-        MusInterval mi = new MusInterval(helper, sound, startNote, direction, timing, interval,
-                tempo, instrument, model, deck);
+        MusInterval mi = new MusInterval.Builder(helper)
+                .model(model)
+                .deck(deck)
+                .sound(sound)
+                .start_note(startNote)
+                .direction(direction)
+                .timing(timing)
+                .interval(interval)
+                .tempo(tempo)
+                .instrument(instrument)
+                .build();
 
         mi.addToAnki(); // should not throw any exception
     }
@@ -444,8 +506,11 @@ public class MusIntervalTest {
         doReturn(deckId).when(helper).findDeckIdByName(deck);
         doReturn(existingNotesData).when(helper).getNotes(modelId);
 
-        MusInterval mi = new MusInterval(helper, "", "C#3", MusInterval.Fields.Direction.ASC,
-                MusInterval.Fields.Timing.MELODIC, "min2", "80", "guitar", model, deck);
+        MusInterval mi = new MusInterval.Builder(helper)
+                .model(model)
+                .deck(deck)
+                .start_note("C#3")
+                .build();
 
         mi.markExistingNote();
     }
@@ -486,8 +551,16 @@ public class MusIntervalTest {
         // Marking failure
         doReturn(0).when(helper).addTagToNote(noteId, " marked ");
 
-        MusInterval mi = new MusInterval(helper, sound, startNote, direction, timing, interval,
-                tempo, instrument, model, deck);
+        MusInterval mi = new MusInterval.Builder(helper)
+                .model(model)
+                .deck(deck)
+                .start_note(startNote)
+                .direction(direction)
+                .timing(timing)
+                .interval(interval)
+                .tempo(tempo)
+                .instrument(instrument)
+                .build();
 
         mi.markExistingNote();
     }
@@ -528,9 +601,136 @@ public class MusIntervalTest {
         // Marked successfully
         doReturn(1).when(helper).addTagToNote(noteId, " marked ");
 
-        MusInterval mi = new MusInterval(helper, sound, startNote, direction, timing, interval,
-                tempo, instrument, model, deck);
+        MusInterval mi = new MusInterval.Builder(helper)
+                .model(model)
+                .deck(deck)
+                .start_note(startNote)
+                .direction(direction)
+                .timing(timing)
+                .interval(interval)
+                .tempo(tempo)
+                .instrument(instrument)
+                .build();
 
         mi.markExistingNote();
     }
+
+    @Test(expected = NullPointerException.class)
+    public void create_withNoHelper_shouldCrash() {
+        MusInterval mi = new MusInterval.Builder(null).build();
+    }
+
+    @Test
+    public void create_withOnlyHelper_shouldBeOk() {
+        AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
+        // @TODO: the following lines are repeated elsewhere: refactor
+        doReturn(null).when(helper).findModelIdByName(any(String.class));
+        doReturn(null).when(helper).findDeckIdByName(any(String.class));
+
+        MusInterval mi = new MusInterval.Builder(helper)
+                .build();
+
+        assertNotEquals("", mi.modelName);
+        assertNotEquals("", mi.deckName);
+        assertEquals("", mi.sound);
+        assertEquals("", mi.startNote);
+        assertEquals("", mi.direction);
+        assertEquals("", mi.timing);
+        assertEquals("", mi.interval);
+        assertEquals("", mi.tempo);
+        assertEquals("", mi.instrument);
+    }
+
+    @Test
+    public void create_withOnlyHelperAndModelAndDeck_shouldBeOk() {
+        final String modelName = "Model name";
+        final String deckName = "Deck name";
+
+        AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
+        doReturn(null).when(helper).findModelIdByName(modelName);
+        doReturn(null).when(helper).findDeckIdByName(deckName);
+
+        MusInterval mi = new MusInterval.Builder(helper)
+                .model(modelName)
+                .deck(deckName)
+                .build();
+
+        assertEquals(modelName, mi.modelName);
+        assertEquals(deckName, mi.deckName);
+    }
+
+    @Test
+    public void create_withOnlyHelperAndStartNote_shouldBeOk() {
+        AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
+        doReturn(null).when(helper).findModelIdByName(any(String.class));
+        doReturn(null).when(helper).findDeckIdByName(any(String.class));
+
+        final String startNote = "F4";
+
+        MusInterval mi = new MusInterval.Builder(helper)
+                .start_note(startNote)
+                .build();
+
+        assertEquals(startNote, mi.startNote);
+    }
+
+    @Test
+    public void create_withOnlyHelperAndInterval_shouldBeOk() {
+        AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
+        doReturn(null).when(helper).findModelIdByName(any(String.class));
+        doReturn(null).when(helper).findDeckIdByName(any(String.class));
+
+        final String interval = "min2";
+
+        MusInterval mi = new MusInterval.Builder(helper)
+                .interval(interval)
+                .build();
+
+        assertEquals(interval, mi.interval);
+    }
+
+    @Test
+    public void create_withAllFields_shouldBeOk() {
+        final String modelName = "Model name";
+        final String deckName = "Deck name";
+
+        AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
+        doReturn(null).when(helper).findModelIdByName(modelName);
+        doReturn(null).when(helper).findDeckIdByName(deckName);
+
+        final String sound = "/path/to/file";
+        final String startNote = "C#3";
+        final String direction = MusInterval.Fields.Direction.ASC;
+        final String timing = MusInterval.Fields.Timing.MELODIC;
+        final String interval = "min2";
+        final String tempo = "80";
+        final String instrument = "guitar";
+
+        MusInterval mi = new MusInterval.Builder(helper)
+                .model(modelName)
+                .deck(deckName)
+                .sound(sound)
+                .start_note(startNote)
+                .direction(direction)
+                .timing(timing)
+                .interval(interval)
+                .tempo(tempo)
+                .instrument(instrument)
+                .build();
+
+        assertEquals(modelName, mi.modelName);
+        assertEquals(deckName, mi.deckName);
+        assertEquals(sound, mi.sound);
+        assertEquals(startNote, mi.startNote);
+        assertEquals(direction, mi.direction);
+        assertEquals(timing, mi.timing);
+        assertEquals(interval, mi.interval);
+        assertEquals(tempo, mi.tempo);
+        assertEquals(instrument, mi.instrument);
+    }
+
+
+    // @todo: checkExistence_withOnlyHelperAndModel (false if no notes, true if at least one note)
+
+    // @todo: Check if static builder is ok (multithread and so on)
 }
