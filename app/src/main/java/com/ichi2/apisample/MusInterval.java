@@ -155,11 +155,11 @@ public class MusInterval {
      *
      * @return True or false depending on a result
      */
-    public boolean existsInAnki() throws AnkiDroidHelper.InvalidAnkiDatabase {
+    public boolean existsInAnki() throws AnkiDroidHelper.InvalidAnkiDatabaseException {
         return getExistingNote() != null;
     }
 
-    public Map<String, String> getExistingNote() throws AnkiDroidHelper.InvalidAnkiDatabase {
+    public Map<String, String> getExistingNote() throws AnkiDroidHelper.InvalidAnkiDatabaseException {
         if (modelId != null) {
             LinkedList<Map<String, String>> notes = helper.getNotes(modelId);
 
@@ -178,7 +178,7 @@ public class MusInterval {
         return null;
     }
 
-    public void markExistingNote() throws NoteNotExistsException, AddTagException, AnkiDroidHelper.InvalidAnkiDatabase {
+    public void markExistingNote() throws NoteNotExistsException, AddTagException, AnkiDroidHelper.InvalidAnkiDatabaseException {
         final Map<String, String> note = getExistingNote();
 
         if (note == null) {

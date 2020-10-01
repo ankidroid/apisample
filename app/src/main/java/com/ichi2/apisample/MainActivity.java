@@ -60,7 +60,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                             Toast.makeText(MainActivity.this, getResources().getString(R.string.mi_not_exists), Toast.LENGTH_LONG).show();
                         } catch (MusInterval.AddTagException e) {
                             Toast.makeText(MainActivity.this, getResources().getString(R.string.mark_note_error), Toast.LENGTH_LONG).show();
-                        } catch (AnkiDroidHelper.InvalidAnkiDatabase e) {
+                        } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
                             processInvalidAnkiDatabase(e);
                         }
                     }
@@ -90,7 +90,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                             // @todo: Move to separate method
                             Toast.makeText(MainActivity.this, getResources().getString(R.string.mi_not_exists), Toast.LENGTH_LONG).show();
                         }
-                    } catch (AnkiDroidHelper.InvalidAnkiDatabase e) {
+                    } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
                         processInvalidAnkiDatabase(e);
                     }
                 }
@@ -162,12 +162,12 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 .build();
     }
 
-    private void processInvalidAnkiDatabase(AnkiDroidHelper.InvalidAnkiDatabase invalidAnkiDatabaseException) {
+    private void processInvalidAnkiDatabase(AnkiDroidHelper.InvalidAnkiDatabaseException invalidAnkiDatabaseException) {
         try {
             throw invalidAnkiDatabaseException;
-        } catch (AnkiDroidHelper.InvalidAnkiDatabase_fieldAndFieldNameCountMismatch e) {
+        } catch (AnkiDroidHelper.InvalidAnkiDatabase_fieldAndFieldNameCountMismatchException e) {
             Toast.makeText(MainActivity.this, getResources().getString(R.string.InvalidAnkiDatabase_unknownError), Toast.LENGTH_LONG).show();
-        } catch (AnkiDroidHelper.InvalidAnkiDatabase e) {
+        } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
             Toast.makeText(MainActivity.this, getResources().getString(R.string.InvalidAnkiDatabase_fieldAndFieldNameCountMismatch), Toast.LENGTH_LONG).show();
         }
     }
