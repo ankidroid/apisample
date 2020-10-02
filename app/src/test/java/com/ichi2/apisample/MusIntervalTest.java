@@ -54,7 +54,7 @@ public class MusIntervalTest {
                 .build();
 
         assertFalse(mi.existsInAnki());
-        assertEquals(1, mi.getExistingNotesCount());
+        assertEquals(0, mi.getExistingNotesCount());
     }
 
     @Test
