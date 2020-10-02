@@ -32,7 +32,7 @@ deploy:
   overwrite: true
   target_commitish: $TRAVIS_COMMIT
   on:
-    tags: true
+    #tags: true
     branch: master
 
 after_deploy:
