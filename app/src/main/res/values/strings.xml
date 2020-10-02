@@ -15,6 +15,7 @@
 
     <!-- MainActivity messages-->
     <string name="anki_permission_denied">Could not get permission to access the AnkiDroid database</string>
+    <string name="fs_permission_denied">Could not get permission to access a filesystem</string>
     <string name="all_fields_empty">At least one of the fields must be filled</string>
     <string name="mi_not_exists">Music interval not found</string>
     <plurals name="mi_exists_ask_mark">

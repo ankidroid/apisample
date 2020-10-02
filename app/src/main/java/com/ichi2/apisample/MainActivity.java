@@ -13,10 +13,13 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import de.mxapplications.openfiledialog.OpenFileDialog;
+
 
 public class MainActivity extends AppCompatActivity implements ActivityCompat.OnRequestPermissionsResultCallback {
 
     private static final int AD_PERM_REQUEST = 0;
+    private static final int PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 1;
 
     private EditText inputFilename;
     private EditText inputStartNote;
@@ -49,12 +52,27 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     }
 
     private void configureSelectFileButton() {
+        final OpenFileDialog openFileDialog = new OpenFileDialog(this);
+        openFileDialog.setOnCloseListener(new OpenFileDialog.OnCloseListener(){
+            @Override public void onCancel() {
+                //
+                inputFilename.setText("/path/to/dummy-cancel.m4a");
+            }
+            @Override public void onOk(String selectedFile) {
+                //inputFilename.setText(selectedFile);
+                inputFilename.setText("/path/to/dummy-ok.m4a");
+            }
+        });
+
         final Button actionSelectFile = findViewById(R.id.actionSelectFile);
         actionSelectFile.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // @fixme Dummy
-                inputFilename.setText("/path/to/dummy-file.m4a");
+                if (shouldShowRequestPermissionRationale(android.Manifest.permission.READ_EXTERNAL_STORAGE)) {
+                    requestPermissions(new String[]{android.Manifest.permission.READ_EXTERNAL_STORAGE}, PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE);
+                }
+                openFileDialog.setTitle(R.string.select_filename);
+                openFileDialog.show();
             }
         });
     }
@@ -143,7 +161,12 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         switch (requestCode) {
             case AD_PERM_REQUEST: {
                 if (grantResults.length > 0 && grantResults[0] != PackageManager.PERMISSION_GRANTED) {
-                    Toast.makeText(MainActivity.this, R.string.anki_permission_denied, Toast.LENGTH_LONG).show();
+                    showMsg(R.string.anki_permission_denied);
+                }
+            }
+            case PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE: {
+                if (grantResults.length > 0 && grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                    showMsg(R.string.fs_permission_denied);
                 }
             }
         }
