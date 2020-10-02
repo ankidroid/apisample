@@ -18,7 +18,7 @@
     <string name="all_fields_empty">At least one of the fields must be filled</string>
     <string name="mi_not_exists">Music interval not found</string>
     <plurals name="mi_exists_ask_mark">
-        <item quantity="one">Music interval found. Mark a note?</item>
+        <item quantity="one">One music interval found. Mark a note?</item>
         <item quantity="other">Found %d similar music intervals. Mark them?</item>
     </plurals>
     <plurals name="mi_marked">
