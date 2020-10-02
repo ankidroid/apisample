@@ -252,9 +252,9 @@ public class AnkiDroidHelper {
         return mResolver.update(cardUri, values, null, null);
     }
 
-    abstract class InvalidAnkiDatabaseException extends Throwable {
+    abstract static class InvalidAnkiDatabaseException extends Throwable {
     }
 
-    class InvalidAnkiDatabase_fieldAndFieldNameCountMismatchException extends InvalidAnkiDatabaseException {
+    static class InvalidAnkiDatabase_fieldAndFieldNameCountMismatchException extends InvalidAnkiDatabaseException {
     }
 }

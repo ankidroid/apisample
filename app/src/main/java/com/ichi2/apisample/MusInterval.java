@@ -100,7 +100,6 @@ public class MusInterval {
     public static class CreateDeckException extends Throwable {}
     public static class AddToAnkiException extends Throwable {}
     public static class NoteNotExistsException extends Throwable {}
-    public static class AddTagException extends Throwable {}
 
     private final AnkiDroidHelper helper;
 
@@ -135,18 +134,8 @@ public class MusInterval {
         instrument = builder.mInstrument;
     }
 
-    public String getModelName() {
-        return modelName;
-    }
-
-    public String getDeckName() {
-        return deckName;
-    }
-
     /**
-     * Check if such a data already exists in the AnkiDroid.
-     *
-     * @return True or false depending on a result
+     * Check if such a data already exists in AnkiDroid.
      */
     public boolean existsInAnki() throws AnkiDroidHelper.InvalidAnkiDatabaseException {
         return getExistingNotesCount() > 0;
@@ -183,8 +172,13 @@ public class MusInterval {
         return existingNotes;
     }
 
-    public void markExistingNote() throws NoteNotExistsException, AddTagException, AnkiDroidHelper.InvalidAnkiDatabaseException {
-        final Map<String, String> note = getExistingNote();
+    /**
+     * Add tag "marked" to the existing notes (similar or equal to this one).
+     * Does not add the tag if it already exists in a note.
+     */
+    public int markExistingNotes() throws NoteNotExistsException, AnkiDroidHelper.InvalidAnkiDatabaseException {
+        final LinkedList<Map<String, String>> notes = getExistingNotes();
+        int updated = 0;
 
         if (notes.size() == 0) {
             throw new NoteNotExistsException();
@@ -197,13 +191,13 @@ public class MusInterval {
                 tags = " ";
             }
 
-            if (tags.contains(" marked ")) {
-                continue;
+            if (!tags.contains(" marked ")) {
+                tags = tags + "marked ";
+
+                if (note.get("id") != null) {
+                    updated += helper.addTagToNote(Long.parseLong(note.get("id")), tags);
+                }
             }
-
-            tags = tags + "marked ";
-
-            updated += helper.addTagToNote(Long.parseLong(note.get("id")), tags);
         }
 
         return updated;
@@ -211,7 +205,7 @@ public class MusInterval {
 
     /**
      * Insert the data into AnkiDroid via API.
-     * Also created a model and a deck if not yet created.
+     * Also creates a deck if not yet created, but fails if model not found.
      */
     public void addToAnki() throws NoSuchModelException, CreateDeckException, AddToAnkiException {
         if (modelId == null) {

@@ -114,9 +114,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                         musInterval.addToAnki();
                         message = getResources().getString(R.string.item_added);
                     } catch (MusInterval.NoSuchModelException e) {
-                        message = getResources().getString(R.string.model_not_found, musInterval.getModelName());
+                        message = getResources().getString(R.string.model_not_found, musInterval.modelName);
                     } catch (MusInterval.CreateDeckException e) {
-                        message = getResources().getString(R.string.create_deck_error, musInterval.getDeckName());
+                        message = getResources().getString(R.string.create_deck_error, musInterval.deckName);
                     } catch (MusInterval.AddToAnkiException e) {
                         message = getResources().getString(R.string.add_card_error);
                     }
