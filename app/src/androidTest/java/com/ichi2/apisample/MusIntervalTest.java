@@ -58,6 +58,7 @@ public class MusIntervalTest {
                 .build();
 
         assertFalse(mi.existsInAnki());
+        assertEquals(0, mi.getExistingNotesCount());
     }
 
     @Test
@@ -88,6 +89,7 @@ public class MusIntervalTest {
                 .build();
 
         assertFalse(mi.existsInAnki());
+        assertEquals(0, mi.getExistingNotesCount());
     }
 
     @Test
@@ -132,6 +134,7 @@ public class MusIntervalTest {
                 .build();
 
         assertTrue(mi.existsInAnki());
+        assertEquals(1, mi.getExistingNotesCount());
     }
 
     @Test
@@ -205,6 +208,7 @@ public class MusIntervalTest {
                 .build();
 
         assertFalse(mi.existsInAnki());
+        assertEquals(0, mi.getExistingNotesCount());
     }
 
     @Test
@@ -248,6 +252,7 @@ public class MusIntervalTest {
                 .build();
 
         assertTrue(mi.existsInAnki());
+        assertEquals(1, mi.getExistingNotesCount());
     }
 
     @Test
@@ -270,6 +275,7 @@ public class MusIntervalTest {
                 .build();
 
         assertFalse(mi.existsInAnki());
+        assertEquals(0, mi.getExistingNotesCount());
     }
 
     @Test
@@ -295,6 +301,7 @@ public class MusIntervalTest {
                 .build();
 
         assertTrue(mi.existsInAnki());
+        assertEquals(1, mi.getExistingNotesCount());
     }
 
     @Test(expected = MusInterval.NoSuchModelException.class)
@@ -559,10 +566,11 @@ public class MusIntervalTest {
                 .start_note("C#3")
                 .build();
 
-        mi.markExistingNote();
+        assertEquals(0, mi.getExistingNotesCount());
+        assertEquals(0, mi.markExistingNotes());
     }
 
-    @Test(expected = MusInterval.AddTagException.class)
+    @Test
     public void markExistingNote_MarkNoteFailure() throws MusInterval.NoteNotExistsException, MusInterval.AddTagException, AnkiDroidHelper.InvalidAnkiDatabaseException {
         final String deck = "Music intervals";
         final long deckId = new Random().nextLong();
@@ -608,7 +616,8 @@ public class MusIntervalTest {
                 .instrument(instrument)
                 .build();
 
-        mi.markExistingNote();
+        assertEquals(1, mi.getExistingNotesCount());
+        assertEquals(0, mi.markExistingNotes());
     }
 
     @Test
@@ -619,7 +628,6 @@ public class MusIntervalTest {
         final long modelId = new Random().nextLong();
         final long noteId = new Random().nextLong();
 
-        final String sound = "";
         final String startNote = "C#3";
         final String direction = MusInterval.Fields.Direction.ASC;
         final String timing = MusInterval.Fields.Timing.MELODIC;
@@ -658,11 +666,77 @@ public class MusIntervalTest {
                 .instrument(instrument)
                 .build();
 
-        mi.markExistingNote();
+        assertEquals(1, mi.getExistingNotesCount());
+        assertEquals(1, mi.markExistingNotes());
     }
 
     @Test
-    public void markExistingNote_MarkNoteWithTagsSuccess() throws MusInterval.NoteNotExistsException, MusInterval.AddTagException, AnkiDroidHelper.InvalidAnkiDatabaseException {
+    public void markExistingNote_MarkTwoNoteSuccess() throws MusInterval.NoteNotExistsException, AnkiDroidHelper.InvalidAnkiDatabaseException {
+        final String deck = "Music intervals";
+        final long deckId = new Random().nextLong();
+        final String model = "Music.intervals";
+        final long modelId = new Random().nextLong();
+
+        final long noteId1 = new Random().nextLong();
+        final long noteId2 = new Random().nextLong();
+
+        final String startNote = "C#3";
+        final String direction = MusInterval.Fields.Direction.ASC;
+        final String timing = MusInterval.Fields.Timing.MELODIC;
+        final String interval = "min2";
+        final String tempo = "80";
+        final String instrument = "guitar";
+
+        LinkedList<Map<String, String>> existingNotesData = new LinkedList<>();
+        Map<String, String> item1 = new HashMap<>();
+        item1.put("id", Long.toString(noteId1));
+        item1.put(MusInterval.Fields.SOUND, "/test1");  // sound field does not matter
+        item1.put(MusInterval.Fields.START_NOTE, startNote);
+        item1.put(MusInterval.Fields.DIRECTION, direction);
+        item1.put(MusInterval.Fields.TIMING, timing);
+        item1.put(MusInterval.Fields.INTERVAL, interval);
+        item1.put(MusInterval.Fields.TEMPO, tempo);
+        item1.put(MusInterval.Fields.INSTRUMENT, instrument);
+        existingNotesData.add(item1);
+        Map<String, String> item2 = new HashMap<>();
+        item2.put("id", Long.toString(noteId2));
+        item2.put(MusInterval.Fields.SOUND, "/test2");  // sound field does not matter
+        item2.put(MusInterval.Fields.START_NOTE, startNote);
+        item2.put(MusInterval.Fields.DIRECTION, direction);
+        item2.put(MusInterval.Fields.TIMING, timing);
+        item2.put(MusInterval.Fields.INTERVAL, interval);
+        item2.put(MusInterval.Fields.TEMPO, tempo);
+        item2.put(MusInterval.Fields.INSTRUMENT, instrument);
+        item2.put("tags", " tag1 ");
+        existingNotesData.add(item2);
+
+        AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
+        doReturn(modelId).when(helper).findModelIdByName(model);
+        doReturn(deckId).when(helper).findDeckIdByName(deck);
+        doReturn(existingNotesData).when(helper).getNotes(modelId);
+
+        // Marked successfully
+        doReturn(1).when(helper).addTagToNote(noteId1, " marked ");
+        doReturn(1).when(helper).addTagToNote(noteId2, " tag1 marked ");
+
+        MusInterval mi = new MusInterval.Builder(helper)
+                .model(model)
+                .deck(deck)
+                .sound("")
+                .start_note(startNote)
+                .direction(direction)
+                .timing(timing)
+                .interval(interval)
+                .tempo(tempo)
+                .instrument(instrument)
+                .build();
+
+        assertEquals(2, mi.getExistingNotesCount());
+        assertEquals(2, mi.markExistingNotes());
+    }
+
+    @Test
+    public void markExistingNote_MarkNoteWithTagsSuccess() throws MusInterval.NoteNotExistsException, AnkiDroidHelper.InvalidAnkiDatabaseException {
         final String deck = "Music intervals";
         final long deckId = new Random().nextLong();
         final String model = "Music.intervals";
@@ -708,11 +782,12 @@ public class MusIntervalTest {
                 .instrument(instrument)
                 .build();
 
-        mi.markExistingNote();
+        assertEquals(1, mi.getExistingNotesCount());
+        assertEquals(1, mi.markExistingNotes());
     }
 
     @Test
-    public void markExistingNote_MarkAlreadyMarkedNoteSuccess() throws MusInterval.NoteNotExistsException, MusInterval.AddTagException, AnkiDroidHelper.InvalidAnkiDatabaseException {
+    public void markExistingNote_MarkAlreadyMarkedNoteSuccess() throws MusInterval.NoteNotExistsException, AnkiDroidHelper.InvalidAnkiDatabaseException {
         final String deck = "Music intervals";
         final long deckId = new Random().nextLong();
         final String model = "Music.intervals";
@@ -758,7 +833,8 @@ public class MusIntervalTest {
                 .instrument(instrument)
                 .build();
 
-        mi.markExistingNote();
+        assertEquals(1, mi.getExistingNotesCount());
+        assertEquals(0, mi.markExistingNotes());
     }
 
     @Test(expected = NullPointerException.class)

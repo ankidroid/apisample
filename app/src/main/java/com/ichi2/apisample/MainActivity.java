@@ -51,15 +51,14 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         });
 
         final AlertDialog.Builder markNoteDialog = new AlertDialog.Builder(MainActivity.this);
-        markNoteDialog.setMessage(R.string.mi_exists_ask_mark)
+        markNoteDialog
                 .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
                         try {
-                            getMusInterval().markExistingNote();
+                            int count = getMusInterval().markExistingNotes();
+                            showMsg(getResources().getQuantityString(R.plurals.mi_marked, count, count));
                         } catch (MusInterval.NoteNotExistsException e) {
                             showMsg(R.string.mi_not_exists);
-                        } catch (MusInterval.AddTagException e) {
-                            showMsg(R.string.mark_note_error);
                         } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
                             processInvalidAnkiDatabase(e);
                         }
@@ -81,8 +80,11 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 }
 
                 try {
-                    if (getMusInterval().existsInAnki()) {
-                        markNoteDialog.show();
+                    int count = getMusInterval().getExistingNotesCount();
+
+                    if (count > 0) {
+                        markNoteDialog.setMessage(getResources().getQuantityString(R.plurals.mi_exists_ask_mark, count, count))
+                                .show();
                     } else {
                         showMsg(R.string.mi_not_exists);
                     }
@@ -104,6 +106,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 final MusInterval musInterval = getMusInterval();
                 String message;
 
+                // @todo Make all fields mandatory on adding
                 if (allFieldsEmpty()) {
                     message = getResources().getString(R.string.all_fields_empty);
                 } else {
@@ -169,6 +172,10 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
     private void showMsg(int msgResId) {
         Toast.makeText(MainActivity.this, getResources().getString(msgResId), Toast.LENGTH_LONG).show();
+    }
+
+    private void showMsg(final String message) {
+        Toast.makeText(MainActivity.this, message, Toast.LENGTH_LONG).show();
     }
 
 }

@@ -149,12 +149,24 @@ public class MusInterval {
      * @return True or false depending on a result
      */
     public boolean existsInAnki() throws AnkiDroidHelper.InvalidAnkiDatabaseException {
-        return getExistingNote() != null;
+        return getExistingNotesCount() > 0;
     }
 
-    private Map<String, String> getExistingNote() throws AnkiDroidHelper.InvalidAnkiDatabaseException {
+    /**
+     * Count, how many similar or equal notes exists in AnkiDroid.
+     */
+    public int getExistingNotesCount() throws AnkiDroidHelper.InvalidAnkiDatabaseException {
+        return getExistingNotes().size();
+    }
+
+    /**
+     * Get list of existing notes. Each note consists of main fields, id field and tags.
+     */
+    private LinkedList<Map<String, String>> getExistingNotes() throws AnkiDroidHelper.InvalidAnkiDatabaseException {
+        LinkedList<Map<String, String>> existingNotes = new LinkedList<>();
+
         if (modelId != null) {
-            LinkedList<Map<String, String>> notes = helper.getNotes(modelId);
+            final LinkedList<Map<String, String>> notes = helper.getNotes(modelId);
 
             for (Map<String, String> note : notes) {
                 if ((startNote.isEmpty() || startNote.equals(note.get(Fields.START_NOTE)))
@@ -163,36 +175,38 @@ public class MusInterval {
                         && (interval.isEmpty() || interval.equals(note.get(Fields.INTERVAL)))
                         && (tempo.isEmpty() || tempo.equals(note.get(Fields.TEMPO)))
                         && (instrument.isEmpty() || instrument.equals(note.get(Fields.INSTRUMENT)))) {
-                    return note;
+                    existingNotes.add(note);
                 }
             }
         }
 
-        return null;
+        return existingNotes;
     }
 
     public void markExistingNote() throws NoteNotExistsException, AddTagException, AnkiDroidHelper.InvalidAnkiDatabaseException {
         final Map<String, String> note = getExistingNote();
 
-        if (note == null) {
+        if (notes.size() == 0) {
             throw new NoteNotExistsException();
         }
 
-        String tags = note.get("tags");
+        for (Map<String, String> note : notes) {
+            String tags = note.get("tags");
 
-        if (tags == null) {
-            tags = " ";
-        }
+            if (tags == null) {
+                tags = " ";
+            }
 
-        if (!tags.contains(" marked ")) {
+            if (tags.contains(" marked ")) {
+                continue;
+            }
+
             tags = tags + "marked ";
+
+            updated += helper.addTagToNote(Long.parseLong(note.get("id")), tags);
         }
 
-        int updated = helper.addTagToNote(Long.parseLong(note.get("id")), tags);
-
-        if (updated == 0) {
-            throw new AddTagException();
-        }
+        return updated;
     }
 
     /**
