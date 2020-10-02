@@ -20,4 +20,6 @@ before_install:
   - yes | sdkmanager "platforms;android-28"
 
 script:
+  - ./gradlew test
+  - ./gradlew connectedAndroidTest
   - ./gradlew assembleDebug
