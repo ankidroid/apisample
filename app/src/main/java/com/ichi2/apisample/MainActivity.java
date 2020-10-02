@@ -13,6 +13,9 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+// @todo Radiobuttons for direction/timing instead of input field
+// @todo Save last entered values on close and restore next time
+// @todo Save instruments, tempos ... and supply in input field
 
 public class MainActivity extends AppCompatActivity implements ActivityCompat.OnRequestPermissionsResultCallback {
 
