@@ -41,6 +41,14 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         inputTempo = findViewById(R.id.inputTempo);
         inputInstrument = findViewById(R.id.inputInstrument);
 
+        configureSelectFileButton();
+        configureCheckExistenceButton();
+        configureAddToAnkiButton();
+
+        mAnkiDroid = new AnkiDroidHelper(this);
+    }
+
+    private void configureSelectFileButton() {
         final Button actionSelectFile = findViewById(R.id.actionSelectFile);
         actionSelectFile.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -49,7 +57,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 inputFilename.setText("/path/to/dummy-file.m4a");
             }
         });
+    }
 
+    private void configureCheckExistenceButton() {
         final AlertDialog.Builder markNoteDialog = new AlertDialog.Builder(MainActivity.this);
         markNoteDialog
                 .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
@@ -93,7 +103,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 }
             }
         });
+    }
 
+    private void configureAddToAnkiButton() {
         final Button actionAddToAnki = findViewById(R.id.actionAddToAnki);
         actionAddToAnki.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -125,8 +137,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 Toast.makeText(MainActivity.this, message, Toast.LENGTH_LONG).show();
             }
         });
-
-        mAnkiDroid = new AnkiDroidHelper(this);
     }
 
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
