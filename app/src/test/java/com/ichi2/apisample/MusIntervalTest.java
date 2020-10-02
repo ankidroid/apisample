@@ -1,9 +1,6 @@
 package com.ichi2.apisample;
 
-import androidx.test.ext.junit.runners.AndroidJUnit4;
-
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.internal.stubbing.answers.ThrowsExceptionClass;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -18,7 +15,6 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 
-@RunWith(AndroidJUnit4.class)
 public class MusIntervalTest {
 
     @Test
