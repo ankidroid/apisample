@@ -26,7 +26,7 @@ deploy:
   api-key: $GITHUB_API_KEY # should be configured as variable in Travis
   file: $TRAVIS_BUILD_DIR/app/build/outputs/apk/debug/app-debug.apk
   skip_cleanup: true
-  name: dev-build-$TRAVIS_COMMIT
+  name: dev-build-$TRAVIS_BUILD_NUMBER
   body: Automatic build of $TRAVIS_BRANCH ($TRAVIS_COMMIT) built by Travis CI on $(date +'%F %T %Z').
   overwrite: true
   target_commitish: $TRAVIS_COMMIT
