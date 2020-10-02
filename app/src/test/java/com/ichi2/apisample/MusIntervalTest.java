@@ -342,6 +342,7 @@ public class MusIntervalTest {
     }
 
     @Test(expected = MusInterval.AddToAnkiException.class)
+    @SuppressWarnings("unchecked")
     public void add_NoSuchDeckNotCreated() throws MusInterval.NoSuchModelException, MusInterval.CreateDeckException, MusInterval.AddToAnkiException {
         final String deck = "Music intervals";
         final long deckId = new Random().nextLong();
@@ -409,6 +410,7 @@ public class MusIntervalTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void add_NoSuchDeckCreated() throws MusInterval.NoSuchModelException, MusInterval.CreateDeckException, MusInterval.AddToAnkiException {
         final String deck = "Music intervals";
         final long deckId = new Random().nextLong();
@@ -477,6 +479,7 @@ public class MusIntervalTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void add_ExistingModelAndDeckCreated() throws MusInterval.NoSuchModelException, MusInterval.CreateDeckException, MusInterval.AddToAnkiException {
         final String deck = "Music intervals";
         final long deckId = new Random().nextLong();
