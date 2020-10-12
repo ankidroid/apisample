@@ -58,7 +58,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             @Override
             public void onClick(View v) {
                 // @fixme Dummy
-                inputFilename.setText("/path/to/dummy-file.m4a");
+                inputFilename.setText("/path/to/dummy/file.m4a");
             }
         });
     }
