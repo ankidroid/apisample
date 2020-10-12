@@ -1,9 +1,6 @@
 package com.ichi2.apisample;
 
-import androidx.test.ext.junit.runners.AndroidJUnit4;
-
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.internal.stubbing.answers.ThrowsExceptionClass;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -18,7 +15,6 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 
-@RunWith(AndroidJUnit4.class)
 public class MusIntervalTest {
 
     @Test
@@ -346,6 +342,7 @@ public class MusIntervalTest {
     }
 
     @Test(expected = MusInterval.AddToAnkiException.class)
+    @SuppressWarnings("unchecked")
     public void add_NoSuchDeckNotCreated() throws MusInterval.NoSuchModelException, MusInterval.CreateDeckException, MusInterval.AddToAnkiException {
         final String deck = "Music intervals";
         final long deckId = new Random().nextLong();
@@ -413,6 +410,7 @@ public class MusIntervalTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void add_NoSuchDeckCreated() throws MusInterval.NoSuchModelException, MusInterval.CreateDeckException, MusInterval.AddToAnkiException {
         final String deck = "Music intervals";
         final long deckId = new Random().nextLong();
@@ -481,6 +479,7 @@ public class MusIntervalTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void add_ExistingModelAndDeckCreated() throws MusInterval.NoSuchModelException, MusInterval.CreateDeckException, MusInterval.AddToAnkiException {
         final String deck = "Music intervals";
         final long deckId = new Random().nextLong();
@@ -845,7 +844,6 @@ public class MusIntervalTest {
     @Test
     public void create_withOnlyHelper_shouldBeOk() {
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
-        // @TODO: the following lines are repeated elsewhere: refactor
         doReturn(null).when(helper).findModelIdByName(any(String.class));
         doReturn(null).when(helper).findDeckIdByName(any(String.class));
 

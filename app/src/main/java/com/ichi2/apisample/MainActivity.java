@@ -136,7 +136,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 final MusInterval musInterval = getMusInterval();
                 String message;
 
-                // @todo Make all fields mandatory on adding
                 if (allFieldsEmpty()) {
                     message = getResources().getString(R.string.all_fields_empty);
                 } else {
