@@ -844,7 +844,6 @@ public class MusIntervalTest {
     @Test
     public void create_withOnlyHelper_shouldBeOk() {
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
-        // @TODO: the following lines are repeated elsewhere: refactor
         doReturn(null).when(helper).findModelIdByName(any(String.class));
         doReturn(null).when(helper).findDeckIdByName(any(String.class));
 

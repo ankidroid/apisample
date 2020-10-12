@@ -197,7 +197,6 @@ public class AnkiDroidHelper {
      * @return List of note ids
      */
     public LinkedList<Map<String, String>> getNotes(long modelId) throws InvalidAnkiDatabaseException {
-        // @todo Check performance and rewrite
         LinkedList<Map<String, String>> result = new LinkedList<>();
 
         String selection = String.format(Locale.US, "%s=%d", FlashCardsContract.Note.MID, modelId);

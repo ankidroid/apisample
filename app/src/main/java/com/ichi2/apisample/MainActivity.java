@@ -13,10 +13,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-// @todo Radiobuttons for direction/timing instead of input field
-// @todo Save last entered values on close and restore next time
-// @todo Save instruments, tempos ... and supply in input field
-// @todo Implement "select file" function (see feature/select-file-dialog branch)
 
 public class MainActivity extends AppCompatActivity implements ActivityCompat.OnRequestPermissionsResultCallback {
 
@@ -57,7 +53,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         actionSelectFile.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // @fixme Dummy
                 inputFilename.setText("/path/to/dummy/file.m4a");
             }
         });
@@ -122,7 +117,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 final MusInterval musInterval = getMusInterval();
                 String message;
 
-                // @todo Make all fields mandatory on adding
                 if (allFieldsEmpty()) {
                     message = getResources().getString(R.string.all_fields_empty);
                 } else {
