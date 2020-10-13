@@ -144,7 +144,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     message = getResources().getString(R.string.all_fields_empty);
                 } else {
                     try {
-                        musInterval.addToAnki();
+                        MusInterval newMi = musInterval.addToAnki();
+                        inputFilename.setText(newMi.sound);
                         message = getResources().getString(R.string.item_added);
                     } catch (MusInterval.NoSuchModelException e) {
                         message = getResources().getString(R.string.model_not_found, musInterval.modelName);
@@ -152,6 +153,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                         message = getResources().getString(R.string.create_deck_error, musInterval.deckName);
                     } catch (MusInterval.AddToAnkiException e) {
                         message = getResources().getString(R.string.add_card_error);
+                    } catch (MusInterval.MandatoryFieldEmptyException e) {
+                        message = getResources().getString(R.string.mandatory_field_empty);
                     }
                 }
 

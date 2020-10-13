@@ -96,10 +96,13 @@ public class MusInterval {
         }
     }
 
-    public static class NoSuchModelException extends Throwable {}
-    public static class CreateDeckException extends Throwable {}
-    public static class AddToAnkiException extends Throwable {}
-    public static class NoteNotExistsException extends Throwable {}
+    abstract static class Exception extends Throwable {}
+    public static class NoSuchModelException extends Exception {}
+    public static class CreateDeckException extends Exception {}
+    public static class AddToAnkiException extends Exception {}
+    public static class NoteNotExistsException extends Exception {}
+    public static class MandatoryFieldEmptyException extends Exception {}
+    public static class SoundAlreadyAddedException extends Exception {}
 
     private final AnkiDroidHelper helper;
 
@@ -206,8 +209,9 @@ public class MusInterval {
     /**
      * Insert the data into AnkiDroid via API.
      * Also creates a deck if not yet created, but fails if model not found.
+     * @return New MusInterval instance with updated "sound" field
      */
-    public void addToAnki() throws NoSuchModelException, CreateDeckException, AddToAnkiException {
+    public MusInterval addToAnki() throws NoSuchModelException, CreateDeckException, AddToAnkiException, MandatoryFieldEmptyException {
         if (modelId == null) {
             throw new NoSuchModelException();
         }
@@ -220,11 +224,25 @@ public class MusInterval {
             helper.storeDeckReference(deckName, deckId);
         }
 
+        if (sound.isEmpty()) {
+            throw new MandatoryFieldEmptyException();
+        }
+
         Long noteId = helper.addNote(modelId, deckId, getCollectedData(), null);
 
         if (noteId == null) {
             throw new AddToAnkiException();
         }
+
+        return new Builder(helper)
+                .sound("[sound:" + sound + "]")
+                .start_note(startNote)
+                .direction(direction)
+                .timing(timing)
+                .interval(interval)
+                .tempo(tempo)
+                .instrument(instrument)
+                .build();
     }
 
     public Map<String, String> getCollectedData() {

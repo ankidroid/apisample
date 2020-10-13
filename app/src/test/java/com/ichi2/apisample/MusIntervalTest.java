@@ -301,7 +301,7 @@ public class MusIntervalTest {
     }
 
     @Test(expected = MusInterval.NoSuchModelException.class)
-    public void add_NoSuchModel() throws MusInterval.NoSuchModelException, MusInterval.CreateDeckException, MusInterval.AddToAnkiException {
+    public void add_NoSuchModel() throws MusInterval.Exception {
         final String deck = "Music intervals";
         final long deckId = new Random().nextLong();
         final String model = "Music.intervals";
@@ -321,7 +321,7 @@ public class MusIntervalTest {
     }
 
     @Test(expected = MusInterval.CreateDeckException.class)
-    public void add_NoSuchDeckCantCreate() throws MusInterval.NoSuchModelException, MusInterval.CreateDeckException, MusInterval.AddToAnkiException {
+    public void add_NoSuchDeckCantCreate() throws MusInterval.Exception {
         final String deck = "Music intervals";
         final String model = "Music.intervals";
         final long modelId = new Random().nextLong();
@@ -343,13 +343,13 @@ public class MusIntervalTest {
 
     @Test(expected = MusInterval.AddToAnkiException.class)
     @SuppressWarnings("unchecked")
-    public void add_NoSuchDeckNotCreated() throws MusInterval.NoSuchModelException, MusInterval.CreateDeckException, MusInterval.AddToAnkiException {
+    public void add_NoSuchDeck_CardShouldNotBeCreated() throws MusInterval.Exception {
         final String deck = "Music intervals";
         final long deckId = new Random().nextLong();
         final String model = "Music.intervals";
         final long modelId = new Random().nextLong();
 
-        final String sound = "";
+        final String sound = "/path/to/file.m4a";
         final String startNote = "C#3";
         final String direction = MusInterval.Fields.Direction.ASC;
         final String timing = MusInterval.Fields.Timing.MELODIC;
@@ -411,14 +411,14 @@ public class MusIntervalTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void add_NoSuchDeckCreated() throws MusInterval.NoSuchModelException, MusInterval.CreateDeckException, MusInterval.AddToAnkiException {
+    public void add_NoSuchDeck_DeckShouldBeCreated() throws MusInterval.Exception {
         final String deck = "Music intervals";
         final long deckId = new Random().nextLong();
         final String model = "Music.intervals";
         final long modelId = new Random().nextLong();
         final long noteId = new Random().nextLong();
 
-        final String sound = "";
+        final String sound = "/path/to/file.m4a";
         final String startNote = "C#3";
         final String direction = MusInterval.Fields.Direction.ASC;
         final String timing = MusInterval.Fields.Timing.MELODIC;
@@ -426,7 +426,7 @@ public class MusIntervalTest {
         final String tempo = "80";
         final String instrument = "guitar";
 
-        AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
+        AnkiDroidHelper helper = mock(AnkiDroidHelper.class);
         // model ok
         doReturn(modelId).when(helper).findModelIdByName(model);
         // create deck
@@ -480,14 +480,14 @@ public class MusIntervalTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void add_ExistingModelAndDeckCreated() throws MusInterval.NoSuchModelException, MusInterval.CreateDeckException, MusInterval.AddToAnkiException {
+    public void add_AllFieldsAreSet_NoteShouldBeCreated() throws MusInterval.Exception {
         final String deck = "Music intervals";
         final long deckId = new Random().nextLong();
         final String model = "Music.intervals";
         final long modelId = new Random().nextLong();
         final long noteId = new Random().nextLong();
 
-        final String sound = "";
+        final String sound = "/path/to/file.m4a";
         final String startNote = "C#2";
         final String direction = MusInterval.Fields.Direction.ASC;
         final String timing = MusInterval.Fields.Timing.MELODIC;
@@ -495,7 +495,7 @@ public class MusIntervalTest {
         final String tempo = "90";
         final String instrument = "violin";
 
-        AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
+        AnkiDroidHelper helper = mock(AnkiDroidHelper.class);
         // existing model
         doReturn(modelId).when(helper).findModelIdByName(model);
         // existing deck
@@ -543,6 +543,221 @@ public class MusIntervalTest {
                 .build();
 
         mi.addToAnki(); // should not throw any exception
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void add_AllFieldsAreSet_NewMusicIntervalShouldBeCreated() throws MusInterval.Exception {
+        final String deck = "Music intervals";
+        final long deckId = new Random().nextLong();
+        final String model = "Music.intervals";
+        final long modelId = new Random().nextLong();
+        final long noteId = new Random().nextLong();
+
+        final String sound = "/path/to/file.m4a";
+        final String startNote = "C#2";
+        final String direction = MusInterval.Fields.Direction.ASC;
+        final String timing = MusInterval.Fields.Timing.MELODIC;
+        final String interval = "min3";
+        final String tempo = "90";
+        final String instrument = "violin";
+
+        AnkiDroidHelper helper = mock(AnkiDroidHelper.class);
+        doReturn(modelId).when(helper).findModelIdByName(model);
+        doReturn(deckId).when(helper).findDeckIdByName(deck);
+        doReturn(noteId).when(helper).addNote(eq(modelId), eq(deckId), any(Map.class), nullable(Set.class));
+
+        MusInterval mi = new MusInterval.Builder(helper)
+                .model(model)
+                .deck(deck)
+                .sound(sound)
+                .start_note(startNote)
+                .direction(direction)
+                .timing(timing)
+                .interval(interval)
+                .tempo(tempo)
+                .instrument(instrument)
+                .build();
+
+        MusInterval mi2 = mi.addToAnki(); // should not throw any exception
+
+        // everything should be the same, except "sound" field
+        assertNotEquals(mi.sound, mi2.sound);
+        assertEquals(mi.startNote, mi2.startNote);
+        assertEquals(mi.direction, mi2.direction);
+        assertEquals(mi.timing, mi2.timing);
+        assertEquals(mi.interval, mi2.interval);
+        assertEquals(mi.tempo, mi2.tempo);
+        assertEquals(mi.instrument, mi2.instrument);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void add_AllFieldsAreSet_SoundFieldShouldBeProper() throws MusInterval.Exception {
+        final String deck = "Music intervals";
+        final long deckId = new Random().nextLong();
+        final String model = "Music.intervals";
+        final long modelId = new Random().nextLong();
+        final long noteId = new Random().nextLong();
+
+        final String sound = "/path/to/file.m4a";
+
+        AnkiDroidHelper helper = mock(AnkiDroidHelper.class);
+        doReturn(modelId).when(helper).findModelIdByName(model);
+        doReturn(deckId).when(helper).findDeckIdByName(deck);
+        doReturn(noteId).when(helper).addNote(eq(modelId), eq(deckId), any(Map.class), nullable(Set.class));
+
+        MusInterval mi = new MusInterval.Builder(helper)
+                .model(model)
+                .deck(deck)
+                .sound(sound)
+                .start_note("C#2")
+                .direction(MusInterval.Fields.Direction.ASC)
+                .timing(MusInterval.Fields.Timing.MELODIC)
+                .interval("min3")
+                .tempo("90")
+                .instrument("violin")
+                .build();
+
+        MusInterval mi2 = mi.addToAnki(); // should not throw any exception
+
+        assertFalse(mi2.sound.isEmpty());
+        assertNotEquals(sound, mi2.sound);
+        assertTrue(mi2.sound.startsWith("[sound:"));
+        assertTrue(mi2.sound.endsWith(".m4a]"));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void add_AllFieldsAreSet_SoundFieldShouldBeProper2() throws MusInterval.Exception {
+        final String deck = "Music intervals";
+        final long deckId = new Random().nextLong();
+        final String model = "Music.intervals";
+        final long modelId = new Random().nextLong();
+        final long noteId = new Random().nextLong();
+
+        final String sound = "/path/to/file.mp3";
+
+        AnkiDroidHelper helper = mock(AnkiDroidHelper.class);
+        doReturn(modelId).when(helper).findModelIdByName(model);
+        doReturn(deckId).when(helper).findDeckIdByName(deck);
+        doReturn(noteId).when(helper).addNote(eq(modelId), eq(deckId), any(Map.class), nullable(Set.class));
+
+        MusInterval mi = new MusInterval.Builder(helper)
+                .model(model)
+                .deck(deck)
+                .sound(sound)
+                .start_note("C#2")
+                .direction(MusInterval.Fields.Direction.ASC)
+                .timing(MusInterval.Fields.Timing.MELODIC)
+                .interval("min3")
+                .tempo("90")
+                .instrument("violin")
+                .build();
+
+        MusInterval mi2 = mi.addToAnki(); // should not throw any exception
+
+        assertFalse(mi2.sound.isEmpty());
+        assertNotEquals(sound, mi2.sound);
+        assertTrue(mi2.sound.startsWith("[sound:"));
+        assertTrue(mi2.sound.endsWith(".mp3]"));
+    }
+
+    @Test(expected = MusInterval.MandatoryFieldEmptyException.class)
+    public void add_NoSoundSpecified_ShouldFail() throws MusInterval.Exception {
+        final String deck = "Music intervals";
+        final long deckId = new Random().nextLong();
+        final String model = "Music.intervals";
+        final long modelId = new Random().nextLong();
+
+        AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
+        doReturn(modelId).when(helper).findModelIdByName(model);
+        doReturn(deckId).when(helper).findDeckIdByName(deck);
+
+        MusInterval mi = new MusInterval.Builder(helper)
+                .model(model)
+                .deck(deck)
+                .sound("") // should not be empty on adding
+                .build();
+
+        mi.addToAnki(); // should throw exception
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void add_TheSameSoundFileName2Times_shouldCreate2DifferentSoundFilesInAnki() throws MusInterval.Exception {
+        final String deck = "Music intervals";
+        final long deckId = new Random().nextLong();
+        final String model = "Music.intervals";
+        final long modelId = new Random().nextLong();
+        final long noteId = new Random().nextLong();
+
+        final String sound = "/path/to/file.mp3";
+
+        AnkiDroidHelper helper = mock(AnkiDroidHelper.class);
+        doReturn(modelId).when(helper).findModelIdByName(model);
+        doReturn(deckId).when(helper).findDeckIdByName(deck);
+        doReturn(noteId).when(helper).addNote(eq(modelId), eq(deckId), any(Map.class), nullable(Set.class));
+
+        MusInterval mi1 = new MusInterval.Builder(helper)
+                .model(model)
+                .deck(deck)
+                .sound(sound)
+                .start_note("C#2")
+                .direction(MusInterval.Fields.Direction.ASC)
+                .timing(MusInterval.Fields.Timing.MELODIC)
+                .interval("min3")
+                .tempo("90")
+                .instrument("violin")
+                .build();
+
+        MusInterval mi2 = new MusInterval.Builder(helper)
+                .model(model)
+                .deck(deck)
+                .sound(sound)
+                .start_note("C#2")
+                .direction(MusInterval.Fields.Direction.ASC)
+                .timing(MusInterval.Fields.Timing.MELODIC)
+                .interval("min3")
+                .tempo("90")
+                .instrument("violin")
+                .build();
+
+        MusInterval mi1_2 = mi1.addToAnki();
+        MusInterval mi2_2 = mi2.addToAnki();
+
+        assertNotEquals(mi1_2.sound, mi2_2.sound);
+    }
+
+    @Test(expected = MusInterval.SoundAlreadyAddedException.class)
+    @SuppressWarnings("unchecked")
+    public void add_SoundFieldContainsBrackets_shouldFail() throws MusInterval.Exception {
+        final String deck = "Music intervals";
+        final long deckId = new Random().nextLong();
+        final String model = "Music.intervals";
+        final long modelId = new Random().nextLong();
+        final long noteId = new Random().nextLong();
+
+        final String sound = "[sound:/path/to/file.mp3]";
+
+        AnkiDroidHelper helper = mock(AnkiDroidHelper.class);
+        doReturn(modelId).when(helper).findModelIdByName(model);
+        doReturn(deckId).when(helper).findDeckIdByName(deck);
+        doReturn(noteId).when(helper).addNote(eq(modelId), eq(deckId), any(Map.class), nullable(Set.class));
+
+        MusInterval mi = new MusInterval.Builder(helper)
+                .model(model)
+                .deck(deck)
+                .sound(sound)
+                .start_note("C#2")
+                .direction(MusInterval.Fields.Direction.ASC)
+                .timing(MusInterval.Fields.Timing.MELODIC)
+                .interval("min3")
+                .tempo("90")
+                .instrument("violin")
+                .build();
+
+        mi.addToAnki(); // should throw exception
     }
 
     @Test(expected = MusInterval.NoteNotExistsException.class)
