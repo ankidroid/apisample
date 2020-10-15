@@ -224,7 +224,7 @@ public class MusInterval {
             helper.storeDeckReference(deckName, deckId);
         }
 
-        if (sound.isEmpty()) {
+        if (!areMandatoryFieldsFilled()) {
             throw new MandatoryFieldEmptyException();
         }
 
@@ -245,7 +245,17 @@ public class MusInterval {
                 .build();
     }
 
-    public Map<String, String> getCollectedData() {
+    protected boolean areMandatoryFieldsFilled() {
+        return !sound.isEmpty()
+                && !startNote.isEmpty()
+                && !direction.isEmpty()
+                && !timing.isEmpty()
+                && !interval.isEmpty()
+                && !tempo.isEmpty()
+                && !instrument.isEmpty();
+    }
+
+    public Map<String, String> getCollectedData(String sound) {
         Map<String, String> data = new HashMap<>();
         data.put(Fields.SOUND, sound);
         data.put(Fields.START_NOTE, startNote);

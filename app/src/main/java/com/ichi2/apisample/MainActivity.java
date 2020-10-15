@@ -136,29 +136,13 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     mAnkiDroid.requestPermission(MainActivity.this, AD_PERM_REQUEST);
                     return;
                 }
-
-                final MusInterval musInterval = getMusInterval();
-                String message;
-
-                if (allFieldsEmpty()) {
-                    message = getResources().getString(R.string.all_fields_empty);
-                } else {
-                    try {
-                        MusInterval newMi = musInterval.addToAnki();
-                        inputFilename.setText(newMi.sound);
-                        message = getResources().getString(R.string.item_added);
-                    } catch (MusInterval.NoSuchModelException e) {
-                        message = getResources().getString(R.string.model_not_found, musInterval.modelName);
-                    } catch (MusInterval.CreateDeckException e) {
-                        message = getResources().getString(R.string.create_deck_error, musInterval.deckName);
-                    } catch (MusInterval.AddToAnkiException e) {
-                        message = getResources().getString(R.string.add_card_error);
-                    } catch (MusInterval.MandatoryFieldEmptyException e) {
-                        message = getResources().getString(R.string.mandatory_field_empty);
-                    }
+                try {
+                    MusInterval newMi = getMusInterval().addToAnki();
+                    inputFilename.setText(newMi.sound);
+                    showMsg(R.string.item_added);
+                } catch (MusInterval.Exception e) {
+                    processMusIntervalException(e);
                 }
-
-                Toast.makeText(MainActivity.this, message, Toast.LENGTH_LONG).show();
             }
         });
     }
@@ -197,6 +181,24 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 .tempo(inputTempo.getText().toString())
                 .instrument(inputInstrument.getText().toString())
                 .build();
+    }
+
+    private void processMusIntervalException(MusInterval.Exception miException) {
+        try {
+            throw miException;
+        } catch (MusInterval.NoSuchModelException e) {
+            showMsg(R.string.model_not_found);
+        } catch (MusInterval.CreateDeckException e) {
+            showMsg(R.string.create_deck_error);
+        } catch (MusInterval.AddToAnkiException e) {
+            showMsg(R.string.add_card_error);
+        } catch (MusInterval.MandatoryFieldEmptyException e) {
+            showMsg(R.string.mandatory_field_empty);
+        } catch (MusInterval.SoundAlreadyAddedException e) {
+            showMsg(R.string.already_added);
+        } catch (MusInterval.Exception e) {
+            showMsg(R.string.unknown_adding_error);
+        }
     }
 
     private void processInvalidAnkiDatabase(AnkiDroidHelper.InvalidAnkiDatabaseException invalidAnkiDatabaseException) {

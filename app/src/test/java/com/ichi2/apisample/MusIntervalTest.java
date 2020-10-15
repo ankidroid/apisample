@@ -683,6 +683,49 @@ public class MusIntervalTest {
         mi.addToAnki(); // should throw exception
     }
 
+    @Test(expected = MusInterval.MandatoryFieldEmptyException.class)
+    public void add_NoStartNoteSpecified_ShouldFail() throws MusInterval.Exception {
+        final String deck = "Music intervals";
+        final long deckId = new Random().nextLong();
+        final String model = "Music.intervals";
+        final long modelId = new Random().nextLong();
+
+        AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
+        doReturn(modelId).when(helper).findModelIdByName(model);
+        doReturn(deckId).when(helper).findDeckIdByName(deck);
+
+        MusInterval mi = new MusInterval.Builder(helper)
+                .model(model)
+                .deck(deck)
+                .sound("/path/to/file")
+                .start_note("")// should not be empty on adding
+                .build();
+
+        mi.addToAnki(); // should throw exception
+    }
+
+    @Test(expected = MusInterval.MandatoryFieldEmptyException.class)
+    public void add_NoIntervalSpecified_ShouldFail() throws MusInterval.Exception {
+        final String deck = "Music intervals";
+        final long deckId = new Random().nextLong();
+        final String model = "Music.intervals";
+        final long modelId = new Random().nextLong();
+
+        AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
+        doReturn(modelId).when(helper).findModelIdByName(model);
+        doReturn(deckId).when(helper).findDeckIdByName(deck);
+
+        MusInterval mi = new MusInterval.Builder(helper)
+                .model(model)
+                .deck(deck)
+                .sound("/path/to/file")
+                .start_note("C#3")
+                .interval("") // should not be empty on adding
+                .build();
+
+        mi.addToAnki(); // should throw exception
+    }
+
     @Test
     @SuppressWarnings("unchecked")
     public void add_TheSameSoundFileName2Times_shouldCreate2DifferentSoundFilesInAnki() throws MusInterval.Exception {
