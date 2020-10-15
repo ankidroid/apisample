@@ -252,6 +252,9 @@ public class MusInterval {
                 .build();
     }
 
+    /**
+     * Check if all the fields are not empty (needed for adding to AnkiDroid)
+     */
     protected boolean areMandatoryFieldsFilled() {
         return !sound.isEmpty()
                 && !startNote.isEmpty()

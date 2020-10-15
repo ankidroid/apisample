@@ -9,6 +9,7 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
+import android.webkit.MimeTypeMap;
 
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -16,6 +17,8 @@ import androidx.core.content.ContextCompat;
 import com.ichi2.anki.FlashCardsContract;
 import com.ichi2.anki.api.AddContentApi;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -173,14 +176,40 @@ public class AnkiDroidHelper {
     public String addFileToAnkiMedia(String soundFilename) {
         String uniqueSoundFilename = "music_interval_" + (System.currentTimeMillis() / 1000L);
 
-        ContentValues values = new ContentValues();
-        values.put("file_uri", soundFilename);
-        values.put("preferred_name", uniqueSoundFilename);
+// @todo AnkiDroid v2.14 supports adding media files through the API, so should be used later
+//        ContentValues values = new ContentValues();
+//        values.put("file_uri", soundFilename);
+//        values.put("preferred_name", uniqueSoundFilename);
+//
+//        final Uri mediaUri = Uri.withAppendedPath(FlashCardsContract.AUTHORITY_URI, "media");
+//        final Uri result = mResolver.insert(mediaUri, values);
+//
+//        return result.getPath();
 
-        final Uri mediaUri = Uri.withAppendedPath(FlashCardsContract.AUTHORITY_URI, "media");
-        final Uri result = mResolver.insert(mediaUri, values);
+        try {
+            String fileMimeType = MimeTypeMap.getSingleton().getExtensionFromMimeType(mResolver.getType(soundFilename));
 
-        return result.getPath();
+            File externalCacheDir = mContext.getExternalCacheDir();
+            if (externalCacheDir == null) {
+                return null;
+            }
+
+            File tempMediaDir = new File(externalCacheDir.getAbsolutePath() + "/temp-media");
+            if (!tempMediaDir.exists() && !tempMediaDir.mkdir()) {
+                return null;
+            }
+
+            File tempFile = File.createTempFile(
+                    uniqueSoundFilename + "_", // the beginning of the filename.
+                    "." + fileMimeType, // this is the extension, if null, '.tmp' is used, need to get the extension from MIME type?
+                    tempMediaDir
+            );
+            tempFile.deleteOnExit();
+
+            return uniqueSoundFilename;
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     /**
