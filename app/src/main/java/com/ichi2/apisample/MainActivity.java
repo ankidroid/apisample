@@ -162,15 +162,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
     }
 
-    private boolean allFieldsEmpty() {
-        return inputStartNote.getText().toString().isEmpty()
-                && inputDirection.getText().toString().isEmpty()
-                && inputTiming.getText().toString().isEmpty()
-                && inputInterval.getText().toString().isEmpty()
-                && inputTempo.getText().toString().isEmpty()
-                && inputInstrument.getText().toString().isEmpty();
-    }
-
     private MusInterval getMusInterval() {
         return new MusInterval.Builder(mAnkiDroid)
                 .sound(inputFilename.getText().toString())

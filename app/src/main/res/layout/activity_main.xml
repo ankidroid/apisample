@@ -68,10 +68,10 @@
             android:inputType="textPersonName" />
 
         <TextView
-            android:id="@+id/labelScale"
+            android:id="@+id/labelTiming"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/scale" />
+            android:text="@string/timing" />
 
         <EditText
             android:id="@+id/inputTiming"
