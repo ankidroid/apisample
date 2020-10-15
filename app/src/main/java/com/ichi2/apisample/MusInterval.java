@@ -128,13 +128,13 @@ public class MusInterval {
         deckName = builder.mDeckName;
         deckId = helper.findDeckIdByName(builder.mDeckName);
 
-        sound = builder.mSound;
-        startNote = builder.mStartNote;
-        direction = builder.mDirection;
-        timing = builder.mTiming;
-        interval = builder.mInterval;
-        tempo = builder.mTempo;
-        instrument = builder.mInstrument;
+        sound = builder.mSound.trim();
+        startNote = builder.mStartNote.trim();
+        direction = builder.mDirection.trim();
+        timing = builder.mTiming.trim();
+        interval = builder.mInterval.trim();
+        tempo = builder.mTempo.trim();
+        instrument = builder.mInstrument.trim();
     }
 
     /**
