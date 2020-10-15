@@ -161,12 +161,12 @@ public class MusInterval {
             final LinkedList<Map<String, String>> notes = helper.getNotes(modelId);
 
             for (Map<String, String> note : notes) {
-                if ((startNote.isEmpty() || startNote.equals(note.get(Fields.START_NOTE)))
-                        && (direction.isEmpty() || direction.equals(note.get(Fields.DIRECTION)))
-                        && (timing.isEmpty() || timing.equals(note.get(Fields.TIMING)))
-                        && (interval.isEmpty() || interval.equals(note.get(Fields.INTERVAL)))
-                        && (tempo.isEmpty() || tempo.equals(note.get(Fields.TEMPO)))
-                        && (instrument.isEmpty() || instrument.equals(note.get(Fields.INSTRUMENT)))) {
+                if ((startNote.isEmpty() || startNote.equalsIgnoreCase(note.get(Fields.START_NOTE)))
+                        && (direction.isEmpty() || direction.equalsIgnoreCase(note.get(Fields.DIRECTION)))
+                        && (timing.isEmpty() || timing.equalsIgnoreCase(note.get(Fields.TIMING)))
+                        && (interval.isEmpty() || interval.equalsIgnoreCase(note.get(Fields.INTERVAL)))
+                        && (tempo.isEmpty() || tempo.equalsIgnoreCase(note.get(Fields.TEMPO)))
+                        && (instrument.isEmpty() || instrument.equalsIgnoreCase(note.get(Fields.INSTRUMENT)))) {
                     existingNotes.add(note);
                 }
             }
@@ -257,8 +257,8 @@ public class MusInterval {
 
     public Map<String, String> getCollectedData(String sound) {
         Map<String, String> data = new HashMap<>();
-        data.put(Fields.SOUND, sound);
-        data.put(Fields.START_NOTE, startNote);
+        data.put(Fields.SOUND, "[sound:" + sound + "]");
+        data.put(Fields.START_NOTE, startNote.toUpperCase());
         data.put(Fields.DIRECTION, direction);
         data.put(Fields.TIMING, timing);
         data.put(Fields.INTERVAL, interval);
