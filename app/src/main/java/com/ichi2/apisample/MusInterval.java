@@ -211,7 +211,7 @@ public class MusInterval {
      * Also creates a deck if not yet created, but fails if model not found.
      * @return New MusInterval instance with updated "sound" field
      */
-    public MusInterval addToAnki() throws NoSuchModelException, CreateDeckException, AddToAnkiException, MandatoryFieldEmptyException {
+    public MusInterval addToAnki() throws NoSuchModelException, CreateDeckException, AddToAnkiException, MandatoryFieldEmptyException, SoundAlreadyAddedException {
         if (modelId == null) {
             throw new NoSuchModelException();
         }
@@ -228,20 +228,27 @@ public class MusInterval {
             throw new MandatoryFieldEmptyException();
         }
 
-        Long noteId = helper.addNote(modelId, deckId, getCollectedData(), null);
+        if (sound.startsWith("[sound:")) {
+            throw new SoundAlreadyAddedException();
+        }
+
+        String newSound = helper.addFileToAnkiMedia(sound);
+        Map<String, String> data = getCollectedData(newSound);
+
+        Long noteId = helper.addNote(modelId, deckId, data, null);
 
         if (noteId == null) {
             throw new AddToAnkiException();
         }
 
         return new Builder(helper)
-                .sound("[sound:" + sound + "]")
-                .start_note(startNote)
-                .direction(direction)
-                .timing(timing)
-                .interval(interval)
-                .tempo(tempo)
-                .instrument(instrument)
+                .sound(data.get(Fields.SOUND))
+                .start_note(data.get(Fields.START_NOTE))
+                .direction(data.get(Fields.DIRECTION))
+                .timing(data.get(Fields.TIMING))
+                .interval(data.get(Fields.INTERVAL))
+                .tempo(data.get(Fields.TEMPO))
+                .instrument(data.get(Fields.INSTRUMENT))
                 .build();
     }
 

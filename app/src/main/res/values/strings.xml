@@ -32,6 +32,7 @@
     <string name="mandatory_field_empty">Mandatory field is empty</string>
     <string name="already_added">Music interval seems to be already added to AnkiDroid</string>
     <string name="item_added">Music interval successfully added to AnkiDroid</string>
+    <string name="unknown_adding_error">Failed to add music interval to AnkiDroid</string>
 
     <string name="InvalidAnkiDatabase_fieldAndFieldNameCountMismatch">Invalid Anki Database: field and field name count mismatches</string>
     <string name="InvalidAnkiDatabase_unknownError">Invalid Anki Database: unknown error</string>

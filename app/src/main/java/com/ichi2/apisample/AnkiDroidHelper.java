@@ -170,6 +170,19 @@ public class AnkiDroidHelper {
         return getApi().getFieldList(modelId);
     }
 
+    public String addFileToAnkiMedia(String soundFilename) {
+        String uniqueSoundFilename = "music_interval_" + (System.currentTimeMillis() / 1000L);
+
+        ContentValues values = new ContentValues();
+        values.put("file_uri", soundFilename);
+        values.put("preferred_name", uniqueSoundFilename);
+
+        final Uri mediaUri = Uri.withAppendedPath(FlashCardsContract.AUTHORITY_URI, "media");
+        final Uri result = mResolver.insert(mediaUri, values);
+
+        return result.getPath();
+    }
+
     /**
      * Add note to Anki.
      *
@@ -247,7 +260,7 @@ public class AnkiDroidHelper {
         ContentValues values = new ContentValues();
         values.put(FlashCardsContract.Note.TAGS, tags);
 
-        Uri cardUri = Uri.withAppendedPath(FlashCardsContract.Note.CONTENT_URI, Long.toString(noteId));
+        final Uri cardUri = Uri.withAppendedPath(FlashCardsContract.Note.CONTENT_URI, Long.toString(noteId));
         return mResolver.update(cardUri, values, null, null);
     }
 
