@@ -11,10 +11,12 @@ import androidx.core.app.ActivityCompat;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 
@@ -29,7 +31,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private EditText inputStartNote;
     private RadioGroup radioGroupDirection;
     private RadioGroup radioGroupTiming;
-    private EditText inputInterval;
+    private Spinner selectInterval;
     private EditText inputTempo;
     private EditText inputInstrument;
 
@@ -44,9 +46,13 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         inputStartNote = findViewById(R.id.inputStartNote);
         radioGroupDirection = findViewById(R.id.radioGroupDirection);
         radioGroupTiming = findViewById(R.id.radioGroupTiming);
-        inputInterval = findViewById(R.id.inputInterval);
+        selectInterval = findViewById(R.id.selectInterval);
         inputTempo = findViewById(R.id.inputTempo);
         inputInstrument = findViewById(R.id.inputInstrument);
+
+        String[] items = new String[] { "min2", "Maj2", "min3", "Maj3" };
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, items);
+        selectInterval.setAdapter(adapter);
 
         configureSelectFileButton();
         configureCheckExistenceButton();
@@ -176,9 +182,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         return new MusInterval.Builder(mAnkiDroid)
                 .sound(inputFilename.getText().toString())
                 .start_note(inputStartNote.getText().toString())
-                .direction(!directionStr.equals(noneStr) ? directionStr : null)
-                .timing(!timingStr.equals(noneStr) ? timingStr : null)
-                .interval(inputInterval.getText().toString())
+                .direction(!directionStr.equals(noneStr) ? directionStr : "")
+                .timing(!timingStr.equals(noneStr) ? timingStr : "")
+                .interval(selectInterval.getSelectedItem().toString())
                 .tempo(inputTempo.getText().toString())
                 .instrument(inputInstrument.getText().toString())
                 .build();

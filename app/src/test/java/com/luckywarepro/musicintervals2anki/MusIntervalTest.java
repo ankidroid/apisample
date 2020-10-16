@@ -166,10 +166,10 @@ public class MusIntervalTest {
         MusInterval mi = new MusInterval.Builder(helper)
                 .model(model)
                 .deck(deck)
-                .start_note(startNote.toLowerCase())
+                .start_note(startNote.toLowerCase()) // case should be ignored
                 .direction(MusInterval.Fields.Direction.ASC)
                 .timing(MusInterval.Fields.Timing.MELODIC)
-                .interval(interval)
+                .interval(interval.toUpperCase()) // case should be ignored
                 .tempo(tempo)
                 .instrument(instrument)
                 .build();
