@@ -1,4 +1,4 @@
-package com.ichi2.apisample;
+package com.luckywarepro.musicintervals2anki;
 
 import org.junit.Test;
 import org.mockito.internal.stubbing.answers.ThrowsExceptionClass;

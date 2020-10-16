@@ -5,7 +5,7 @@ android {
     compileSdkVersion 30
 
     defaultConfig {
-        applicationId "com.ichi2.apisample"
+        applicationId "com.luckywarepro.musicintervals2anki"
         minSdkVersion 24
         targetSdkVersion 30
         versionCode 3

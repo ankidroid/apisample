@@ -1,4 +1,4 @@
-package com.ichi2.apisample;
+package com.luckywarepro.musicintervals2anki;
 
 import android.app.Activity;
 import android.content.ContentResolver;
@@ -18,7 +18,6 @@ import com.ichi2.anki.FlashCardsContract;
 import com.ichi2.anki.api.AddContentApi;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;

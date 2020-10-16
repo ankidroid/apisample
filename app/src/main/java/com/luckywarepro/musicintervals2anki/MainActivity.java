@@ -1,4 +1,4 @@
-package com.ichi2.apisample;
+package com.luckywarepro.musicintervals2anki;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
