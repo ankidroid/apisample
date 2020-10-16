@@ -440,6 +440,7 @@ public class MusIntervalTest {
         final long modelId = new Random().nextLong();
 
         final String sound = "/path/to/file.m4a";
+        final String newSound = "music_interval_12345.m4a";
         final String startNote = "C#3";
         final String direction = MusInterval.Fields.Direction.ASC;
         final String timing = MusInterval.Fields.Timing.MELODIC;
@@ -455,13 +456,15 @@ public class MusIntervalTest {
         doReturn(deckId).when(helper).addNewDeck(deck);
         doNothing().when(helper).storeDeckReference(deck, deckId);
 
+        doReturn(newSound).when(helper).addFileToAnkiMedia(sound);
+
         doAnswer(new Answer<Long>() {
             @Override
             public Long answer(InvocationOnMock invocation) {
                 // Check passed arguments
                 Map<String, String> data = invocation.getArgument(2);
                 assertTrue(data.containsKey(MusInterval.Fields.SOUND));
-                assertEquals(sound, data.get(MusInterval.Fields.SOUND));
+                assertEquals("[sound:" + newSound + "]", data.get(MusInterval.Fields.SOUND));
                 assertTrue(data.containsKey(MusInterval.Fields.START_NOTE));
                 assertEquals(startNote, data.get(MusInterval.Fields.START_NOTE));
                 assertTrue(data.containsKey(MusInterval.Fields.DIRECTION));
@@ -509,6 +512,7 @@ public class MusIntervalTest {
         final long noteId = new Random().nextLong();
 
         final String sound = "/path/to/file.m4a";
+        final String newSound = "music_interval_12345.m4a";
         final String startNote = "C#3";
         final String direction = MusInterval.Fields.Direction.ASC;
         final String timing = MusInterval.Fields.Timing.MELODIC;
@@ -524,13 +528,15 @@ public class MusIntervalTest {
         doReturn(deckId).when(helper).addNewDeck(deck);
         doNothing().when(helper).storeDeckReference(deck, deckId);
 
+        doReturn(newSound).when(helper).addFileToAnkiMedia(sound);
+
         doAnswer(new Answer<Long>() {
             @Override
             public Long answer(InvocationOnMock invocation) {
                 // Check passed arguments
                 Map<String, String> data = invocation.getArgument(2);
                 assertTrue(data.containsKey(MusInterval.Fields.SOUND));
-                assertEquals(sound, data.get(MusInterval.Fields.SOUND));
+                assertEquals("[sound:" + newSound + "]", data.get(MusInterval.Fields.SOUND));
                 assertTrue(data.containsKey(MusInterval.Fields.START_NOTE));
                 assertEquals(startNote, data.get(MusInterval.Fields.START_NOTE));
                 assertTrue(data.containsKey(MusInterval.Fields.DIRECTION));
@@ -578,6 +584,7 @@ public class MusIntervalTest {
         final long noteId = new Random().nextLong();
 
         final String sound = "/path/to/file.m4a";
+        final String newSound = "music_interval_12345.m4a";
         final String startNote = "C#2";
         final String direction = MusInterval.Fields.Direction.ASC;
         final String timing = MusInterval.Fields.Timing.MELODIC;
@@ -591,13 +598,15 @@ public class MusIntervalTest {
         // existing deck
         doReturn(deckId).when(helper).findDeckIdByName(deck);
 
+        doReturn(newSound).when(helper).addFileToAnkiMedia(sound);
+
         doAnswer(new Answer<Long>() {
             @Override
             public Long answer(InvocationOnMock invocation) {
                 // Check passed arguments
                 Map<String, String> data = invocation.getArgument(2);
                 assertTrue(data.containsKey(MusInterval.Fields.SOUND));
-                assertEquals(sound, data.get(MusInterval.Fields.SOUND));
+                assertEquals("[sound:" + newSound + "]", data.get(MusInterval.Fields.SOUND));
                 assertTrue(data.containsKey(MusInterval.Fields.START_NOTE));
                 assertEquals(startNote, data.get(MusInterval.Fields.START_NOTE));
                 assertTrue(data.containsKey(MusInterval.Fields.DIRECTION));
@@ -645,6 +654,7 @@ public class MusIntervalTest {
         final long noteId = new Random().nextLong();
 
         final String sound = "/path/to/file.m4a";
+        final String newSound = "music_interval_12345.m4a";
         final String startNote = "C#2";
         final String direction = MusInterval.Fields.Direction.ASC;
         final String timing = MusInterval.Fields.Timing.MELODIC;
@@ -655,6 +665,7 @@ public class MusIntervalTest {
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class);
         doReturn(modelId).when(helper).findModelIdByName(model);
         doReturn(deckId).when(helper).findDeckIdByName(deck);
+        doReturn(newSound).when(helper).addFileToAnkiMedia(sound);
         doReturn(noteId).when(helper).addNote(eq(modelId), eq(deckId), any(Map.class), nullable(Set.class));
 
         MusInterval mi = new MusInterval.Builder(helper)
@@ -690,17 +701,20 @@ public class MusIntervalTest {
         final long modelId = new Random().nextLong();
         final long noteId = new Random().nextLong();
 
+        final String sound = "/path/to/file.m4a";
+        final String newSound = "music_interval_12345.m4a";
         final String startNote = "c#2";
 
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class);
         doReturn(modelId).when(helper).findModelIdByName(model);
         doReturn(deckId).when(helper).findDeckIdByName(deck);
+        doReturn(newSound).when(helper).addFileToAnkiMedia(sound);
         doReturn(noteId).when(helper).addNote(eq(modelId), eq(deckId), any(Map.class), nullable(Set.class));
 
         MusInterval mi = new MusInterval.Builder(helper)
                 .model(model)
                 .deck(deck)
-                .sound("/path/to/file.m4a")
+                .sound(sound)
                 .start_note(startNote)
                 .direction(MusInterval.Fields.Direction.ASC)
                 .timing(MusInterval.Fields.Timing.MELODIC)
@@ -725,10 +739,12 @@ public class MusIntervalTest {
         final long noteId = new Random().nextLong();
 
         final String sound = "/path/to/file.m4a";
+        final String newSound = "music_interval_12345.m4a";
 
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class);
         doReturn(modelId).when(helper).findModelIdByName(model);
         doReturn(deckId).when(helper).findDeckIdByName(deck);
+        doReturn(newSound).when(helper).addFileToAnkiMedia(sound);
         doReturn(noteId).when(helper).addNote(eq(modelId), eq(deckId), any(Map.class), nullable(Set.class));
 
         MusInterval mi = new MusInterval.Builder(helper)
@@ -749,6 +765,7 @@ public class MusIntervalTest {
         assertNotEquals(sound, mi2.sound);
         assertTrue(mi2.sound.startsWith("[sound:"));
         assertTrue(mi2.sound.endsWith(".m4a]"));
+        assertEquals("[sound:" + newSound + "]", mi2.sound);
     }
 
     @Test
@@ -761,10 +778,12 @@ public class MusIntervalTest {
         final long noteId = new Random().nextLong();
 
         final String sound = "/path/to/file.mp3";
+        final String newSound = "music_interval_12345.mp3";
 
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class);
         doReturn(modelId).when(helper).findModelIdByName(model);
         doReturn(deckId).when(helper).findDeckIdByName(deck);
+        doReturn(newSound).when(helper).addFileToAnkiMedia(sound);
         doReturn(noteId).when(helper).addNote(eq(modelId), eq(deckId), any(Map.class), nullable(Set.class));
 
         MusInterval mi = new MusInterval.Builder(helper)
@@ -785,6 +804,7 @@ public class MusIntervalTest {
         assertNotEquals(sound, mi2.sound);
         assertTrue(mi2.sound.startsWith("[sound:"));
         assertTrue(mi2.sound.endsWith(".mp3]"));
+        assertEquals("[sound:" + newSound + "]", mi2.sound);
     }
 
     @Test(expected = MusInterval.MandatoryFieldEmptyException.class)
@@ -860,10 +880,25 @@ public class MusIntervalTest {
         final long noteId = new Random().nextLong();
 
         final String sound = "/path/to/file.mp3";
+        final String newSound1 = "music_interval_12345.mp3";
+        final String newSound2 = "music_interval_23456.mp3";
 
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class);
         doReturn(modelId).when(helper).findModelIdByName(model);
         doReturn(deckId).when(helper).findDeckIdByName(deck);
+
+        doAnswer(new Answer<String>() {
+            private int count = 0;
+
+            @Override
+            public String answer(InvocationOnMock invocation) {
+                if (count++ == 1)
+                    return newSound1;
+
+                return newSound2;
+            }
+        }).when(helper).addFileToAnkiMedia(sound);
+
         doReturn(noteId).when(helper).addNote(eq(modelId), eq(deckId), any(Map.class), nullable(Set.class));
 
         MusInterval mi1 = new MusInterval.Builder(helper)

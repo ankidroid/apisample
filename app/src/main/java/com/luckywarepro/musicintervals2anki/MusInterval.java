@@ -103,6 +103,7 @@ public class MusInterval {
     public static class NoteNotExistsException extends Exception {}
     public static class MandatoryFieldEmptyException extends Exception {}
     public static class SoundAlreadyAddedException extends Exception {}
+    public static class AddSoundFileException extends Exception {}
 
     private final AnkiDroidHelper helper;
 
@@ -211,7 +212,10 @@ public class MusInterval {
      * Also creates a deck if not yet created, but fails if model not found.
      * @return New MusInterval instance with updated "sound" field
      */
-    public MusInterval addToAnki() throws NoSuchModelException, CreateDeckException, AddToAnkiException, MandatoryFieldEmptyException, SoundAlreadyAddedException {
+    public MusInterval addToAnki()
+            throws NoSuchModelException, CreateDeckException, AddToAnkiException,
+            MandatoryFieldEmptyException, SoundAlreadyAddedException, AddSoundFileException {
+
         if (modelId == null) {
             throw new NoSuchModelException();
         }
@@ -233,8 +237,12 @@ public class MusInterval {
         }
 
         String newSound = helper.addFileToAnkiMedia(sound);
-        Map<String, String> data = getCollectedData(newSound);
 
+        if (newSound == null || newSound.isEmpty()) {
+            throw new AddSoundFileException();
+        }
+
+        Map<String, String> data = getCollectedData(newSound);
         Long noteId = helper.addNote(modelId, deckId, data, null);
 
         if (noteId == null) {
