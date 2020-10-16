@@ -8,14 +8,14 @@ android:
     - platform-tools
 
     - build-tools-29.0.2
-    - android-28
+    - android-30
 
     - extra-google-google_play_services
     - extra-google-m2repository
     - extra-android-m2repository
 
 before_install:
-  - yes | sdkmanager "platforms;android-28"
+  - yes | sdkmanager "platforms;android-30"
 
 script:
   - ./gradlew test
