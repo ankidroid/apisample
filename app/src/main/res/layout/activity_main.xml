@@ -60,12 +60,32 @@
             android:layout_height="wrap_content"
             android:text="@string/direction" />
 
-        <EditText
-            android:id="@+id/inputDirection"
-            android:layout_width="match_parent"
+        <RadioGroup
+            android:id="@+id/radioGroupDirection"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:ems="10"
-            android:inputType="textPersonName" />
+            android:orientation="horizontal">
+
+            <RadioButton
+                android:id="@+id/radioDirectionNone"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/radio_none"
+                android:checked="true" />
+
+            <RadioButton
+                android:id="@+id/radioDirectionAsc"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/direction_asc" />
+
+            <RadioButton
+                android:id="@+id/radioDirectionDesc"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/direction_desc" />
+
+        </RadioGroup>
 
         <TextView
             android:id="@+id/labelTiming"
@@ -73,12 +93,32 @@
             android:layout_height="wrap_content"
             android:text="@string/timing" />
 
-        <EditText
-            android:id="@+id/inputTiming"
-            android:layout_width="match_parent"
+        <RadioGroup
+            android:id="@+id/radioGroupTiming"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:ems="10"
-            android:inputType="textPersonName" />
+            android:orientation="horizontal">
+
+            <RadioButton
+                android:id="@+id/radioTimingNone"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/radio_none"
+                android:checked="true" />
+
+            <RadioButton
+                android:id="@+id/radioTimingMelodic"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/timing_melodic" />
+
+            <RadioButton
+                android:id="@+id/radioTimingHarmonic"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/timing_harmonic" />
+
+        </RadioGroup>
 
         <TextView
             android:id="@+id/labelInterval"

@@ -130,8 +130,8 @@ public class MusInterval {
 
         sound = builder.mSound.trim();
         startNote = builder.mStartNote.trim();
-        direction = builder.mDirection.trim();
-        timing = builder.mTiming.trim();
+        direction = builder.mDirection.trim().toLowerCase();
+        timing = builder.mTiming.trim().toLowerCase();
         interval = builder.mInterval.trim();
         tempo = builder.mTempo.trim();
         instrument = builder.mInstrument.trim();

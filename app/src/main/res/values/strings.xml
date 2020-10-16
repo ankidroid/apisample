@@ -5,8 +5,13 @@
     <string name="label_filename">Filename</string>
     <string name="select_filename">Select file</string>
     <string name="start_note">Start note</string>
-    <string name="direction">Ascending/descending</string>
-    <string name="timing">Melodic/harmonic</string>
+    <string name="radio_none">None</string>
+    <string name="direction">Direction</string>
+    <string name="direction_asc">Ascending</string>
+    <string name="direction_desc">Descending</string>
+    <string name="timing">Timing</string>
+    <string name="timing_melodic">Melodic</string>
+    <string name="timing_harmonic">Harmonic</string>
     <string name="interval">Interval</string>
     <string name="tempo">Tempo</string>
     <string name="instrument">Instrument</string>

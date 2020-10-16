@@ -13,6 +13,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.Toast;
 
 
@@ -25,8 +27,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
     private EditText inputFilename;
     private EditText inputStartNote;
-    private EditText inputDirection;
-    private EditText inputTiming;
+    private RadioGroup radioGroupDirection;
+    private RadioGroup radioGroupTiming;
     private EditText inputInterval;
     private EditText inputTempo;
     private EditText inputInstrument;
@@ -40,8 +42,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
         inputFilename = findViewById(R.id.inputFilename);
         inputStartNote = findViewById(R.id.inputStartNote);
-        inputDirection = findViewById(R.id.inputDirection);
-        inputTiming = findViewById(R.id.inputTiming);
+        radioGroupDirection = findViewById(R.id.radioGroupDirection);
+        radioGroupTiming = findViewById(R.id.radioGroupTiming);
         inputInterval = findViewById(R.id.inputInterval);
         inputTempo = findViewById(R.id.inputTempo);
         inputInstrument = findViewById(R.id.inputInstrument);
@@ -163,11 +165,19 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     }
 
     private MusInterval getMusInterval() {
+        final String noneStr = getResources().getString(R.string.radio_none);
+
+        final RadioButton radioDirection = findViewById(radioGroupDirection.getCheckedRadioButtonId());
+        final String directionStr = radioDirection.getText().toString();
+
+        final RadioButton radioTiming = findViewById(radioGroupTiming.getCheckedRadioButtonId());
+        final String timingStr = radioTiming.getText().toString();
+
         return new MusInterval.Builder(mAnkiDroid)
                 .sound(inputFilename.getText().toString())
                 .start_note(inputStartNote.getText().toString())
-                .direction(inputDirection.getText().toString())
-                .timing(inputTiming.getText().toString())
+                .direction(!directionStr.equals(noneStr) ? directionStr : null)
+                .timing(!timingStr.equals(noneStr) ? timingStr : null)
                 .interval(inputInterval.getText().toString())
                 .tempo(inputTempo.getText().toString())
                 .instrument(inputInstrument.getText().toString())
