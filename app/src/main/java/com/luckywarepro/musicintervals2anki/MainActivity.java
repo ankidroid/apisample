@@ -6,10 +6,10 @@ import android.content.ContentUris;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
@@ -35,6 +35,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
     private static final int ACTION_SELECT_FILE = 10;
 
+    private static final String STATE_REF_DB = "com.luckywarepro.musicintervals2anki.uistate";
+
     private EditText inputFilename;
     private EditText inputStartNote;
     private RadioGroup radioGroupDirection;
@@ -58,7 +60,13 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         inputTempo = findViewById(R.id.inputTempo);
         inputInstrument = findViewById(R.id.inputInstrument);
 
-        String[] items = new String[] { "min2", "Maj2", "min3", "Maj3" };
+        final SharedPreferences uiDb = getSharedPreferences(STATE_REF_DB, Context.MODE_PRIVATE);
+        inputFilename.setText(uiDb.getString("inputFilename", ""));
+        inputStartNote.setText(uiDb.getString("inputStartNote", ""));
+        inputTempo.setText(uiDb.getString("inputTempo", ""));
+        inputInstrument.setText(uiDb.getString("inputInstrument", ""));
+
+        String[] items = new String[] { "min2", "Maj2", "min3", "Maj3" }; // @todo: Make full list of intervals
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, items);
         selectInterval.setAdapter(adapter);
 

@@ -1387,4 +1387,5 @@ public class MusIntervalTest {
         assertEquals(startNote1, mi1.startNote);
         assertEquals(startNote2, mi2.startNote);
     }
+
 }
