@@ -79,7 +79,10 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             @Override
             public void onClick(View v) {
                 if (shouldShowRequestPermissionRationale(android.Manifest.permission.READ_EXTERNAL_STORAGE)) {
-                    requestPermissions(new String[]{android.Manifest.permission.READ_EXTERNAL_STORAGE}, PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE);
+                    requestPermissions(new String[] {
+                            android.Manifest.permission.READ_EXTERNAL_STORAGE},
+                            PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE
+                    );
                 }
 
                 Intent intent = new Intent()
@@ -100,15 +103,14 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
         if (requestCode == ACTION_SELECT_FILE && resultCode == RESULT_OK) {
             Uri selectedFile = data.getData();
-            String filePath = getFilePath(this, selectedFile);
-            inputFilename.setText(filePath);
+            inputFilename.setText(getFilePath(this, selectedFile));
         }
     }
 
     private void configureCheckExistenceButton() {
         final AlertDialog.Builder markNoteDialog = new AlertDialog.Builder(MainActivity.this);
         markNoteDialog
-                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                .setPositiveButton(R.string.str_yes, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
                         try {
                             int count = getMusInterval().markExistingNotes();
@@ -120,7 +122,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                         }
                     }
                 })
-                .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                .setNegativeButton(R.string.str_no, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
                         dialog.cancel();
                     }
@@ -285,7 +287,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             } else if (isDownloadsDocument(uri)) {
                 final String id = DocumentsContract.getDocumentId(uri);
                 uri = ContentUris.withAppendedId(
-                        Uri.parse("content://downloads/public_downloads"), Long.valueOf(id));
+                        Uri.parse("content://downloads/public_downloads"), Long.parseLong(id));
             } else if (isMediaDocument(uri)) {
                 final String docId = DocumentsContract.getDocumentId(uri);
                 final String[] split = docId.split(":");
@@ -310,14 +312,20 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             String[] projection = {
                     MediaStore.Images.Media.DATA
             };
-            Cursor cursor;
+            Cursor cursor = null;
             try {
                 cursor = context.getContentResolver().query(uri, projection, selection, selectionArgs, null);
-                int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+                final int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
                 if (cursor.moveToFirst()) {
                     return cursor.getString(column_index);
                 }
-            } catch (Exception e) { }
+            } catch (Exception e) {
+                //
+            } finally {
+                if (cursor != null) {
+                    cursor.close();
+                }
+            }
         } else if ("file".equalsIgnoreCase(uri.getScheme())) {
             return uri.getPath();
         }

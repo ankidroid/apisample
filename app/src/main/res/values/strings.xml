@@ -1,6 +1,9 @@
 <resources>
     <string name="app_name">MusicIntervals2Anki</string>
 
+    <string name="str_yes">Yes</string>
+    <string name="str_no">No</string>
+
     <!-- MainActivity labels, fields and buttons -->
     <string name="label_filename">Filename</string>
     <string name="select_filename">Select file</string>
