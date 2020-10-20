@@ -153,6 +153,21 @@ public class MusInterval {
     }
 
     /**
+     * Count, how many similar or equal notes exists in AnkiDroid.
+     */
+    public int getExistingMarkedNotesCount() throws AnkiDroidHelper.InvalidAnkiDatabaseException {
+        int result = 0;
+
+        for (Map<String, String> note : getExistingNotes()) {
+            if (note.get("tags") != null && note.get("tags").contains(" marked ")) {
+                ++result;
+            }
+        }
+
+        return result;
+    }
+
+    /**
      * Get list of existing notes. Each note consists of main fields, id field and tags.
      */
     private LinkedList<Map<String, String>> getExistingNotes() throws AnkiDroidHelper.InvalidAnkiDatabaseException {

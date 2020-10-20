@@ -29,6 +29,10 @@
         <item quantity="one">One music interval found. Mark a note?</item>
         <item quantity="other">Found %d similar music intervals. Mark them?</item>
     </plurals>
+    <plurals name="mi_exists_marked">
+        <item quantity="one">One music interval found and it is already marked</item>
+        <item quantity="other">Found %d similar music intervals, all of them are already marked</item>
+    </plurals>
     <plurals name="mi_marked">
         <item quantity="zero">Nothing was marked</item>
         <item quantity="one">One music interval successfully marked</item>

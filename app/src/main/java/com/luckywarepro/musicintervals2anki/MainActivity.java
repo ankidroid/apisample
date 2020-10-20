@@ -60,8 +60,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         inputTempo = findViewById(R.id.inputTempo);
         inputInstrument = findViewById(R.id.inputInstrument);
 
-        String[] items = new String[] { "min2", "Maj2", "min3", "Maj3" }; // @todo: Make full list of intervals
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, items);
+        final String[] items = new String[] { "", "min2", "Maj2", "min3", "Maj3" }; // @todo: Make full list of intervals
+        final ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, items);
         selectInterval.setAdapter(adapter);
 
         configureSelectFileButton();
@@ -102,7 +102,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         super.onActivityResult(requestCode, resultCode, data);
 
         if (requestCode == ACTION_SELECT_FILE && resultCode == RESULT_OK) {
-            Uri selectedFile = data.getData();
+            final Uri selectedFile = data.getData();
             inputFilename.setText(getFilePath(this, selectedFile));
         }
     }
@@ -113,7 +113,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 .setPositiveButton(R.string.str_yes, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
                         try {
-                            int count = getMusInterval().markExistingNotes();
+                            final int count = getMusInterval().markExistingNotes();
                             showMsg(getResources().getQuantityString(R.plurals.mi_marked, count, count));
                         } catch (MusInterval.NoteNotExistsException e) {
                             showMsg(R.string.mi_not_exists);
@@ -138,11 +138,18 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 }
 
                 try {
-                    int count = getMusInterval().getExistingNotesCount();
+                    final MusInterval mi = getMusInterval();
+                    final int count = mi.getExistingNotesCount();
 
                     if (count > 0) {
-                        markNoteDialog.setMessage(getResources().getQuantityString(R.plurals.mi_exists_ask_mark, count, count))
-                                .show();
+                        final int marked = mi.getExistingMarkedNotesCount();
+
+                        if (count > marked) {
+                            markNoteDialog.setMessage(getResources().getQuantityString(R.plurals.mi_exists_ask_mark, count, count))
+                                    .show();
+                        } else {
+                            showMsg(getResources().getQuantityString(R.plurals.mi_exists_marked, count, count));
+                        }
                     } else {
                         showMsg(R.string.mi_not_exists);
                     }
