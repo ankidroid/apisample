@@ -144,11 +144,14 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     if (count > 0) {
                         final int marked = mi.getExistingMarkedNotesCount();
 
-                        if (count > marked) {
+                        if (count == marked) {
+                            showMsg(getResources().getQuantityString(R.plurals.mi_exists_marked, count, count));
+                        } else if (marked == 0) {
                             markNoteDialog.setMessage(getResources().getQuantityString(R.plurals.mi_exists_ask_mark, count, count))
                                     .show();
                         } else {
-                            showMsg(getResources().getQuantityString(R.plurals.mi_exists_marked, count, count));
+                            markNoteDialog.setMessage(getResources().getQuantityString(R.plurals.mi_exists_partially_marked_ask_mark, marked, count, marked))
+                                    .show();
                         }
                     } else {
                         showMsg(R.string.mi_not_exists);
