@@ -60,12 +60,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         inputTempo = findViewById(R.id.inputTempo);
         inputInstrument = findViewById(R.id.inputInstrument);
 
-        final SharedPreferences uiDb = getSharedPreferences(STATE_REF_DB, Context.MODE_PRIVATE);
-        inputFilename.setText(uiDb.getString("inputFilename", ""));
-        inputStartNote.setText(uiDb.getString("inputStartNote", ""));
-        inputTempo.setText(uiDb.getString("inputTempo", ""));
-        inputInstrument.setText(uiDb.getString("inputInstrument", ""));
-
         String[] items = new String[] { "min2", "Maj2", "min3", "Maj3" }; // @todo: Make full list of intervals
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, items);
         selectInterval.setAdapter(adapter);
@@ -74,20 +68,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         configureCheckExistenceButton();
         configureAddToAnkiButton();
 
+        restoreUiState();
+
         mAnkiDroid = new AnkiDroidHelper(this);
-    }
-
-    @Override
-    protected void onPause() {
-        final SharedPreferences uiDb = getSharedPreferences(STATE_REF_DB, Context.MODE_PRIVATE);
-        uiDb.edit()
-                .putString("inputFilename", inputFilename.getText().toString())
-                .putString("inputStartNote", inputStartNote.getText().toString())
-                .putString("inputTempo", inputTempo.getText().toString())
-                .putString("inputInstrument", inputInstrument.getText().toString())
-                .apply();
-
-        super.onPause();
     }
 
     private void configureSelectFileButton() {
@@ -186,6 +169,33 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 }
             }
         });
+    }
+
+    @Override
+    protected void onPause() {
+        final SharedPreferences uiDb = getSharedPreferences(STATE_REF_DB, Context.MODE_PRIVATE);
+        uiDb.edit()
+                .putString("inputFilename", inputFilename.getText().toString())
+                .putString("inputStartNote", inputStartNote.getText().toString())
+                .putInt("radioGroupDirection", radioGroupDirection.getCheckedRadioButtonId())
+                .putInt("radioGroupTiming", radioGroupTiming.getCheckedRadioButtonId())
+                .putInt("selectInterval", selectInterval.getSelectedItemPosition())
+                .putString("inputTempo", inputTempo.getText().toString())
+                .putString("inputInstrument", inputInstrument.getText().toString())
+                .apply();
+
+        super.onPause();
+    }
+
+    protected void restoreUiState() {
+        final SharedPreferences uiDb = getSharedPreferences(STATE_REF_DB, Context.MODE_PRIVATE);
+        inputFilename.setText(uiDb.getString("inputFilename", ""));
+        inputStartNote.setText(uiDb.getString("inputStartNote", ""));
+        radioGroupDirection.check(uiDb.getInt("radioGroupDirection", 0));
+        radioGroupTiming.check(uiDb.getInt("radioGroupTiming", 0));
+        selectInterval.setSelection(uiDb.getInt("selectInterval", 0));
+        inputTempo.setText(uiDb.getString("inputTempo", ""));
+        inputInstrument.setText(uiDb.getString("inputInstrument", ""));
     }
 
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
