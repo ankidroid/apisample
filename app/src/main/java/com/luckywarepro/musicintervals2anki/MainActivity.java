@@ -69,11 +69,28 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         mAnkiDroid = new AnkiDroidHelper(this);
     }
 
+    @Override
+    protected void onPause() {
+        final SharedPreferences uiDb = getSharedPreferences(STATE_REF_DB, Context.MODE_PRIVATE);
+        uiDb.edit()
+                .putString("inputFilename", inputFilename.getText().toString())
+                .putString("inputStartNote", inputStartNote.getText().toString())
+                .putString("inputTempo", inputTempo.getText().toString())
+                .putString("inputInstrument", inputInstrument.getText().toString())
+                .apply();
+
+        super.onPause();
+    }
+
     private void configureSelectFileButton() {
         final Button actionSelectFile = findViewById(R.id.actionSelectFile);
         actionSelectFile.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (shouldShowRequestPermissionRationale(android.Manifest.permission.READ_EXTERNAL_STORAGE)) {
+                    requestPermissions(new String[]{android.Manifest.permission.READ_EXTERNAL_STORAGE}, PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE);
+                }
+
                 Intent intent = new Intent()
                         .setAction(Intent.ACTION_GET_CONTENT)
                         .setType("audio/*")
