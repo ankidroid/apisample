@@ -115,10 +115,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                         try {
                             final int count = getMusInterval().markExistingNotes();
                             showMsg(getResources().getQuantityString(R.plurals.mi_marked, count, count));
-                        } catch (MusInterval.NoteNotExistsException e) {
-                            showMsg(R.string.mi_not_exists);
-                        } catch (MusInterval.StartNoteSyntaxException e) {
-                            showMsg(R.string.invalid_start_note);
+                        } catch (MusInterval.Exception e) {
+                            processMusIntervalException(e);
                         } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
                             processInvalidAnkiDatabase(e);
                         }
@@ -158,8 +156,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     } else {
                         showMsg(R.string.mi_not_exists);
                     }
-                } catch (MusInterval.StartNoteSyntaxException e) {
-                    showMsg(R.string.invalid_start_note);
+                } catch (MusInterval.Exception e) {
+                    processMusIntervalException(e);
                 } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
                     processInvalidAnkiDatabase(e);
                 }
@@ -252,6 +250,10 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private void processMusIntervalException(MusInterval.Exception miException) {
         try {
             throw miException;
+        } catch (MusInterval.NoteNotExistsException e) {
+            showMsg(R.string.mi_not_exists);
+        } catch (MusInterval.StartNoteSyntaxException e) {
+            showMsg(R.string.invalid_start_note);
         } catch (MusInterval.NoSuchModelException e) {
             showMsg(R.string.model_not_found);
         } catch (MusInterval.CreateDeckException e) {
