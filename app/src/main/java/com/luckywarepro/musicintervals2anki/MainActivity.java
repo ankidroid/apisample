@@ -117,6 +117,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                             showMsg(getResources().getQuantityString(R.plurals.mi_marked, count, count));
                         } catch (MusInterval.NoteNotExistsException e) {
                             showMsg(R.string.mi_not_exists);
+                        } catch (MusInterval.StartNoteSyntaxException e) {
+                            showMsg(R.string.invalid_start_note);
                         } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
                             processInvalidAnkiDatabase(e);
                         }
@@ -156,6 +158,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     } else {
                         showMsg(R.string.mi_not_exists);
                     }
+                } catch (MusInterval.StartNoteSyntaxException e) {
+                    showMsg(R.string.invalid_start_note);
                 } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
                     processInvalidAnkiDatabase(e);
                 }
@@ -225,7 +229,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
     }
 
-    private MusInterval getMusInterval() {
+    private MusInterval getMusInterval() throws MusInterval.StartNoteSyntaxException {
         final String noneStr = getResources().getString(R.string.radio_none);
 
         final RadioButton radioDirection = findViewById(radioGroupDirection.getCheckedRadioButtonId());

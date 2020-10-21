@@ -46,7 +46,7 @@ public class MusInterval {
             mHelper = helper;
         }
 
-        public MusInterval build() {
+        public MusInterval build() throws StartNoteSyntaxException {
             return new MusInterval(this);
         }
 
@@ -97,6 +97,7 @@ public class MusInterval {
     }
 
     abstract static class Exception extends Throwable {}
+    public static class StartNoteSyntaxException extends Exception {}
     public static class NoSuchModelException extends Exception {}
     public static class CreateDeckException extends Exception {}
     public static class AddToAnkiException extends Exception {}
@@ -121,7 +122,7 @@ public class MusInterval {
     public final String tempo;
     public final String instrument;
 
-    public MusInterval(Builder builder) {
+    public MusInterval(Builder builder) throws StartNoteSyntaxException {
         helper = builder.mHelper;
 
         modelName = builder.mModelName;
@@ -136,6 +137,14 @@ public class MusInterval {
         interval = builder.mInterval.trim();
         tempo = builder.mTempo.trim();
         instrument = builder.mInstrument.trim();
+
+        validateStartNote();
+    }
+
+    protected void validateStartNote() throws StartNoteSyntaxException {
+        if (!startNote.isEmpty() && !startNote.matches("[A-Ga-g]#?[0-8]")) {
+            throw new StartNoteSyntaxException();
+        }
     }
 
     /**
@@ -229,7 +238,7 @@ public class MusInterval {
      */
     public MusInterval addToAnki()
             throws NoSuchModelException, CreateDeckException, AddToAnkiException,
-            MandatoryFieldEmptyException, SoundAlreadyAddedException, AddSoundFileException {
+            MandatoryFieldEmptyException, SoundAlreadyAddedException, AddSoundFileException, StartNoteSyntaxException {
 
         if (modelId == null) {
             throw new NoSuchModelException();

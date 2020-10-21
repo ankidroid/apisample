@@ -52,4 +52,6 @@
 
     <string name="InvalidAnkiDatabase_fieldAndFieldNameCountMismatch">Invalid Anki Database: field and field name count mismatches</string>
     <string name="InvalidAnkiDatabase_unknownError">Invalid Anki Database: unknown error</string>
+
+    <string name="invalid_start_note">Invalid syntax of start note</string>
 </resources>
