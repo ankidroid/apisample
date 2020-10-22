@@ -51,7 +51,7 @@ public class MusInterval {
             mHelper = helper;
         }
 
-        public MusInterval build() throws StartNoteSyntaxException, TempoValueException {
+        public MusInterval build() throws ValidationException {
             return new MusInterval(this);
         }
 
@@ -102,8 +102,6 @@ public class MusInterval {
     }
 
     abstract static class Exception extends Throwable {}
-    public static class StartNoteSyntaxException extends Exception {}
-    public static class TempoValueException extends Exception {}
     public static class NoSuchModelException extends Exception {}
     public static class CreateDeckException extends Exception {}
     public static class AddToAnkiException extends Exception {}
@@ -111,6 +109,10 @@ public class MusInterval {
     public static class MandatoryFieldEmptyException extends Exception {}
     public static class SoundAlreadyAddedException extends Exception {}
     public static class AddSoundFileException extends Exception {}
+
+    public static class ValidationException extends Exception {}
+    public static class StartNoteSyntaxException extends ValidationException {}
+    public static class TempoValueException extends ValidationException {}
 
     private final AnkiDroidHelper helper;
 
@@ -128,7 +130,7 @@ public class MusInterval {
     public final String tempo;
     public final String instrument;
 
-    public MusInterval(Builder builder) throws StartNoteSyntaxException, TempoValueException {
+    public MusInterval(Builder builder) throws ValidationException {
         helper = builder.mHelper;
 
         modelName = builder.mModelName;
@@ -147,7 +149,7 @@ public class MusInterval {
         validateFields();
     }
 
-    protected void validateFields() throws StartNoteSyntaxException, TempoValueException {
+    protected void validateFields() throws ValidationException {
         if (!startNote.isEmpty() && !startNote.matches("[A-Ga-g]#?[0-8]")) {
             throw new StartNoteSyntaxException();
         }
@@ -250,7 +252,8 @@ public class MusInterval {
      */
     public MusInterval addToAnki()
             throws NoSuchModelException, CreateDeckException, AddToAnkiException,
-            MandatoryFieldEmptyException, SoundAlreadyAddedException, AddSoundFileException, StartNoteSyntaxException, TempoValueException {
+            MandatoryFieldEmptyException, SoundAlreadyAddedException, AddSoundFileException,
+            ValidationException {
 
         if (modelId == null) {
             throw new NoSuchModelException();

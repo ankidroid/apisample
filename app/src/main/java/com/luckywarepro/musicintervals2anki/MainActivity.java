@@ -223,8 +223,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         radioGroupTiming.check(uiDb.getInt("radioGroupTiming", 0));
         selectInterval.setSelection(uiDb.getInt("selectInterval", 0));
         seekTempo.setProgress(Integer.parseInt(uiDb.getString("inputTempo", "0")));
-//        TextView label = findViewById(R.id.labelTempoValue);
-//        label.setText(Integer.toString(uiDb.getString("inputTempo", "0")));
         inputInstrument.setText(uiDb.getString("inputInstrument", ""));
     }
 
@@ -243,7 +241,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
     }
 
-    private MusInterval getMusInterval() throws MusInterval.StartNoteSyntaxException, MusInterval.TempoValueException {
+    private MusInterval getMusInterval() throws MusInterval.ValidationException {
         final String noneStr = getResources().getString(R.string.radio_none);
 
         final RadioButton radioDirection = findViewById(radioGroupDirection.getCheckedRadioButtonId());
