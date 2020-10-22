@@ -18,7 +18,7 @@ import static org.mockito.Mockito.*;
 public class MusIntervalTest {
 
     @Test
-    public void checkExistence_NoSuchModel() throws AnkiDroidHelper.InvalidAnkiDatabaseException, MusInterval.StartNoteSyntaxException {
+    public void checkExistence_NoSuchModel() throws AnkiDroidHelper.InvalidAnkiDatabaseException, MusInterval.StartNoteSyntaxException, MusInterval.TempoValueException {
         final String deck = "Music intervals";
         final long deckId = new Random().nextLong();
         String model = "Music.intervals";
@@ -35,7 +35,7 @@ public class MusIntervalTest {
     }
 
     @Test
-    public void checkExistence_NoStartingNotes() throws AnkiDroidHelper.InvalidAnkiDatabaseException, MusInterval.StartNoteSyntaxException {
+    public void checkExistence_NoStartingNotes() throws AnkiDroidHelper.InvalidAnkiDatabaseException, MusInterval.StartNoteSyntaxException, MusInterval.TempoValueException {
         final String deck = "Music intervals";
         final long deckId = new Random().nextLong();
         final String model = "Music.intervals";
@@ -59,7 +59,7 @@ public class MusIntervalTest {
     }
 
     @Test
-    public void checkExistence_NoSuchStartingNote() throws AnkiDroidHelper.InvalidAnkiDatabaseException, MusInterval.StartNoteSyntaxException {
+    public void checkExistence_NoSuchStartingNote() throws AnkiDroidHelper.InvalidAnkiDatabaseException, MusInterval.StartNoteSyntaxException, MusInterval.TempoValueException {
         final String deck = "Music intervals";
         final long deckId = new Random().nextLong();
         final String model = "Music.intervals";
@@ -91,7 +91,7 @@ public class MusIntervalTest {
     }
 
     @Test
-    public void checkExistence_StartingNoteExists() throws AnkiDroidHelper.InvalidAnkiDatabaseException, MusInterval.StartNoteSyntaxException {
+    public void checkExistence_StartingNoteExists() throws AnkiDroidHelper.InvalidAnkiDatabaseException, MusInterval.StartNoteSyntaxException, MusInterval.TempoValueException {
         final String deck = "Music intervals";
         final long deckId = new Random().nextLong();
         final String model = "Music.intervals";
@@ -137,7 +137,7 @@ public class MusIntervalTest {
     }
 
     @Test
-    public void checkExistence_StartingNoteExistsAlreadyMarked() throws AnkiDroidHelper.InvalidAnkiDatabaseException, MusInterval.StartNoteSyntaxException {
+    public void checkExistence_StartingNoteExistsAlreadyMarked() throws AnkiDroidHelper.InvalidAnkiDatabaseException, MusInterval.StartNoteSyntaxException, MusInterval.TempoValueException {
         final String deck = "Music intervals";
         final long deckId = new Random().nextLong();
         final String model = "Music.intervals";
@@ -184,7 +184,7 @@ public class MusIntervalTest {
     }
 
     @Test
-    public void checkExistence_StartingNoteExistsIgnoreCase() throws AnkiDroidHelper.InvalidAnkiDatabaseException, MusInterval.StartNoteSyntaxException {
+    public void checkExistence_StartingNoteExistsIgnoreCase() throws AnkiDroidHelper.InvalidAnkiDatabaseException, MusInterval.StartNoteSyntaxException, MusInterval.TempoValueException {
         final String deck = "Music intervals";
         final long deckId = new Random().nextLong();
         final String model = "Music.intervals";
@@ -230,7 +230,7 @@ public class MusIntervalTest {
     }
 
     @Test
-    public void checkExistence_StartingNoteExistsIgnoreSpaces() throws AnkiDroidHelper.InvalidAnkiDatabaseException, MusInterval.StartNoteSyntaxException {
+    public void checkExistence_StartingNoteExistsIgnoreSpaces() throws AnkiDroidHelper.InvalidAnkiDatabaseException, MusInterval.StartNoteSyntaxException, MusInterval.TempoValueException {
         final String deck = "Music intervals";
         final long deckId = new Random().nextLong();
         final String model = "Music.intervals";
@@ -276,7 +276,7 @@ public class MusIntervalTest {
     }
 
     @Test
-    public void checkExistence_StartingNoteExistsWithDifferentOtherFields() throws AnkiDroidHelper.InvalidAnkiDatabaseException, MusInterval.StartNoteSyntaxException {
+    public void checkExistence_StartingNoteExistsWithDifferentOtherFields() throws AnkiDroidHelper.InvalidAnkiDatabaseException, MusInterval.StartNoteSyntaxException, MusInterval.TempoValueException {
         final String deck = "Music intervals";
         final long deckId = new Random().nextLong();
         final String model = "Music.intervals";
@@ -351,7 +351,7 @@ public class MusIntervalTest {
     }
 
     @Test
-    public void checkExistence_StartingNoteExistsRegardlessOfSound() throws AnkiDroidHelper.InvalidAnkiDatabaseException, MusInterval.StartNoteSyntaxException {
+    public void checkExistence_StartingNoteExistsRegardlessOfSound() throws AnkiDroidHelper.InvalidAnkiDatabaseException, MusInterval.StartNoteSyntaxException, MusInterval.TempoValueException {
         final String deck = "Music intervals";
         final long deckId = new Random().nextLong();
         final String model = "Music.intervals";
@@ -396,7 +396,7 @@ public class MusIntervalTest {
     }
 
     @Test
-    public void checkExistence_withOnlyHelperAndEmptyModel_shouldFail() throws AnkiDroidHelper.InvalidAnkiDatabaseException, MusInterval.StartNoteSyntaxException {
+    public void checkExistence_withOnlyHelperAndEmptyModel_shouldFail() throws AnkiDroidHelper.InvalidAnkiDatabaseException, MusInterval.StartNoteSyntaxException, MusInterval.TempoValueException {
         final String deck = "Music intervals";
         final long deckId = new Random().nextLong();
         final String model = "Music.intervals";
@@ -420,7 +420,7 @@ public class MusIntervalTest {
     }
 
     @Test
-    public void checkExistence_withOnlyHelperAndNonEmptyModel_shouldSucceed() throws AnkiDroidHelper.InvalidAnkiDatabaseException, MusInterval.StartNoteSyntaxException {
+    public void checkExistence_withOnlyHelperAndNonEmptyModel_shouldSucceed() throws AnkiDroidHelper.InvalidAnkiDatabaseException, MusInterval.StartNoteSyntaxException, MusInterval.TempoValueException {
         final String deck = "Music intervals";
         final long deckId = new Random().nextLong();
         final String model = "Music.intervals";
@@ -1019,7 +1019,7 @@ public class MusIntervalTest {
     }
 
     @Test(expected = MusInterval.NoteNotExistsException.class)
-    public void markExistingNote_NoteNotExists() throws MusInterval.NoteNotExistsException, AnkiDroidHelper.InvalidAnkiDatabaseException, MusInterval.StartNoteSyntaxException {
+    public void markExistingNote_NoteNotExists() throws MusInterval.NoteNotExistsException, AnkiDroidHelper.InvalidAnkiDatabaseException, MusInterval.StartNoteSyntaxException, MusInterval.TempoValueException {
         final String deck = "Music intervals";
         final long deckId = new Random().nextLong();
         final String model = "Music.intervals";
@@ -1043,7 +1043,7 @@ public class MusIntervalTest {
     }
 
     @Test
-    public void markExistingNote_MarkNoteFailure() throws MusInterval.NoteNotExistsException, AnkiDroidHelper.InvalidAnkiDatabaseException, MusInterval.StartNoteSyntaxException {
+    public void markExistingNote_MarkNoteFailure() throws MusInterval.NoteNotExistsException, AnkiDroidHelper.InvalidAnkiDatabaseException, MusInterval.StartNoteSyntaxException, MusInterval.TempoValueException {
         final String deck = "Music intervals";
         final long deckId = new Random().nextLong();
         final String model = "Music.intervals";
@@ -1093,7 +1093,7 @@ public class MusIntervalTest {
     }
 
     @Test
-    public void markExistingNote_MarkNoteSuccess() throws MusInterval.NoteNotExistsException, AnkiDroidHelper.InvalidAnkiDatabaseException, MusInterval.StartNoteSyntaxException {
+    public void markExistingNote_MarkNoteSuccess() throws MusInterval.NoteNotExistsException, AnkiDroidHelper.InvalidAnkiDatabaseException, MusInterval.StartNoteSyntaxException, MusInterval.TempoValueException {
         final String deck = "Music intervals";
         final long deckId = new Random().nextLong();
         final String model = "Music.intervals";
@@ -1143,7 +1143,7 @@ public class MusIntervalTest {
     }
 
     @Test
-    public void markExistingNote_MarkTwoNoteSuccess() throws MusInterval.NoteNotExistsException, AnkiDroidHelper.InvalidAnkiDatabaseException, MusInterval.StartNoteSyntaxException {
+    public void markExistingNote_MarkTwoNoteSuccess() throws MusInterval.NoteNotExistsException, AnkiDroidHelper.InvalidAnkiDatabaseException, MusInterval.StartNoteSyntaxException, MusInterval.TempoValueException {
         final String deck = "Music intervals";
         final long deckId = new Random().nextLong();
         final String model = "Music.intervals";
@@ -1208,7 +1208,7 @@ public class MusIntervalTest {
     }
 
     @Test
-    public void markExistingNote_MarkNoteWithTagsSuccess() throws MusInterval.NoteNotExistsException, AnkiDroidHelper.InvalidAnkiDatabaseException, MusInterval.StartNoteSyntaxException {
+    public void markExistingNote_MarkNoteWithTagsSuccess() throws MusInterval.NoteNotExistsException, AnkiDroidHelper.InvalidAnkiDatabaseException, MusInterval.StartNoteSyntaxException, MusInterval.TempoValueException {
         final String deck = "Music intervals";
         final long deckId = new Random().nextLong();
         final String model = "Music.intervals";
@@ -1259,7 +1259,7 @@ public class MusIntervalTest {
     }
 
     @Test
-    public void markExistingNote_MarkAlreadyMarkedNoteSuccess() throws MusInterval.NoteNotExistsException, AnkiDroidHelper.InvalidAnkiDatabaseException, MusInterval.StartNoteSyntaxException {
+    public void markExistingNote_MarkAlreadyMarkedNoteSuccess() throws MusInterval.NoteNotExistsException, AnkiDroidHelper.InvalidAnkiDatabaseException, MusInterval.StartNoteSyntaxException, MusInterval.TempoValueException {
         final String deck = "Music intervals";
         final long deckId = new Random().nextLong();
         final String model = "Music.intervals";
@@ -1310,12 +1310,12 @@ public class MusIntervalTest {
     }
 
     @Test(expected = NullPointerException.class)
-    public void create_withNoHelper_shouldThrowException() throws MusInterval.StartNoteSyntaxException {
+    public void create_withNoHelper_shouldThrowException() throws MusInterval.StartNoteSyntaxException, MusInterval.TempoValueException {
         new MusInterval.Builder(null).build();
     }
 
     @Test
-    public void create_withOnlyHelper_shouldBeOk() throws MusInterval.StartNoteSyntaxException {
+    public void create_withOnlyHelper_shouldBeOk() throws MusInterval.StartNoteSyntaxException, MusInterval.TempoValueException {
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         doReturn(null).when(helper).findModelIdByName(any(String.class));
         doReturn(null).when(helper).findDeckIdByName(any(String.class));
@@ -1335,7 +1335,7 @@ public class MusIntervalTest {
     }
 
     @Test
-    public void create_withOnlyHelperAndModelAndDeck_shouldBeOk() throws MusInterval.StartNoteSyntaxException {
+    public void create_withOnlyHelperAndModelAndDeck_shouldBeOk() throws MusInterval.StartNoteSyntaxException, MusInterval.TempoValueException {
         final String modelName = "Model name";
         final String deckName = "Deck name";
 
@@ -1353,7 +1353,7 @@ public class MusIntervalTest {
     }
 
     @Test
-    public void create_withOnlyHelperAndStartNote_shouldBeOk() throws MusInterval.StartNoteSyntaxException {
+    public void create_withOnlyHelperAndStartNote_shouldBeOk() throws MusInterval.StartNoteSyntaxException, MusInterval.TempoValueException {
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         doReturn(null).when(helper).findModelIdByName(any(String.class));
         doReturn(null).when(helper).findDeckIdByName(any(String.class));
@@ -1368,7 +1368,7 @@ public class MusIntervalTest {
     }
 
     @Test
-    public void create_withOnlyHelperAndInterval_shouldBeOk() throws MusInterval.StartNoteSyntaxException {
+    public void create_withOnlyHelperAndInterval_shouldBeOk() throws MusInterval.StartNoteSyntaxException, MusInterval.TempoValueException {
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         doReturn(null).when(helper).findModelIdByName(any(String.class));
         doReturn(null).when(helper).findDeckIdByName(any(String.class));
@@ -1383,7 +1383,7 @@ public class MusIntervalTest {
     }
 
     @Test
-    public void create_withAllFields_shouldBeOk() throws MusInterval.StartNoteSyntaxException {
+    public void create_withAllFields_shouldBeOk() throws MusInterval.StartNoteSyntaxException, MusInterval.TempoValueException {
         final String modelName = "Model name";
         final String deckName = "Deck name";
 
@@ -1423,7 +1423,7 @@ public class MusIntervalTest {
     }
 
     @Test
-    public void create_MultipleBuilders_shouldNotAffectEachOther() throws MusInterval.StartNoteSyntaxException {
+    public void create_MultipleBuilders_shouldNotAffectEachOther() throws MusInterval.StartNoteSyntaxException, MusInterval.TempoValueException {
         final String startNote1 = "C2";
         final String startNote2 = "C3";
 
@@ -1445,7 +1445,7 @@ public class MusIntervalTest {
     }
 
     @Test(expected = MusInterval.StartNoteSyntaxException.class)
-    public void create_InvalidNoteValue_shouldFail() throws MusInterval.StartNoteSyntaxException {
+    public void create_InvalidNoteValue_shouldFail() throws MusInterval.StartNoteSyntaxException, MusInterval.TempoValueException {
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         doReturn(null).when(helper).findModelIdByName(any(String.class));
         doReturn(null).when(helper).findDeckIdByName(any(String.class));
@@ -1458,7 +1458,7 @@ public class MusIntervalTest {
     }
 
     @Test
-    public void create_ValidNoteValue_shouldBeOk() throws MusInterval.StartNoteSyntaxException {
+    public void create_ValidNoteValue_shouldBeOk() throws MusInterval.StartNoteSyntaxException, MusInterval.TempoValueException {
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         doReturn(null).when(helper).findModelIdByName(any(String.class));
         doReturn(null).when(helper).findDeckIdByName(any(String.class));
@@ -1467,6 +1467,51 @@ public class MusIntervalTest {
 
         new MusInterval.Builder(helper)
                 .start_note(startNote)
+                .build();
+    }
+
+    @Test(expected = MusInterval.TempoValueException.class)
+    public void create_InvalidTempo_shouldFail() throws MusInterval.StartNoteSyntaxException, MusInterval.TempoValueException {
+        AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
+        doReturn(null).when(helper).findModelIdByName(any(String.class));
+        doReturn(null).when(helper).findDeckIdByName(any(String.class));
+
+        final String tempo = "999999"; // incorrect
+
+        new MusInterval.Builder(helper)
+                .tempo(tempo)
+                .build();
+    }
+
+    @Test(expected = NumberFormatException.class)
+    public void create_NotNumericTempo_shouldFail() throws MusInterval.StartNoteSyntaxException, MusInterval.TempoValueException {
+        AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
+        doReturn(null).when(helper).findModelIdByName(any(String.class));
+        doReturn(null).when(helper).findDeckIdByName(any(String.class));
+
+        final String tempo = "asdf"; // incorrect
+
+        new MusInterval.Builder(helper)
+                .tempo(tempo)
+                .build();
+    }
+
+    @Test
+    public void create_CorrectTempo_shouldBeOk() throws MusInterval.StartNoteSyntaxException, MusInterval.TempoValueException {
+        AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
+        doReturn(null).when(helper).findModelIdByName(any(String.class));
+        doReturn(null).when(helper).findDeckIdByName(any(String.class));
+
+        String tempo = "80"; // correct
+
+        new MusInterval.Builder(helper)
+                .tempo(tempo)
+                .build();
+
+        tempo = "     90    "; // also should be correct
+
+        new MusInterval.Builder(helper)
+                .tempo(tempo)
                 .build();
     }
 

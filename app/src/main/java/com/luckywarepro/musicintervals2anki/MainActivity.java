@@ -24,7 +24,9 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.SeekBar;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 
@@ -42,7 +44,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private RadioGroup radioGroupDirection;
     private RadioGroup radioGroupTiming;
     private Spinner selectInterval;
-    private EditText inputTempo;
+    private SeekBar seekTempo;
     private EditText inputInstrument;
 
     private AnkiDroidHelper mAnkiDroid;
@@ -57,8 +59,20 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         radioGroupDirection = findViewById(R.id.radioGroupDirection);
         radioGroupTiming = findViewById(R.id.radioGroupTiming);
         selectInterval = findViewById(R.id.selectInterval);
-        inputTempo = findViewById(R.id.inputTempo);
+        seekTempo = findViewById(R.id.seekTempo);
         inputInstrument = findViewById(R.id.inputInstrument);
+
+        seekTempo.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @SuppressLint("SetTextI18n")
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                TextView label = findViewById(R.id.labelTempoValue);
+                label.setText(Integer.toString(seekBar.getProgress()));
+            }
+
+            @Override public void onStartTrackingTouch(SeekBar seekBar) { }
+            @Override public void onStopTrackingTouch(SeekBar seekBar) { }
+        });
 
         final String[] items = new String[] { "", "min2", "Maj2", "min3", "Maj3" }; // @todo: Make full list of intervals
         final ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, items);
@@ -194,7 +208,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 .putInt("radioGroupDirection", radioGroupDirection.getCheckedRadioButtonId())
                 .putInt("radioGroupTiming", radioGroupTiming.getCheckedRadioButtonId())
                 .putInt("selectInterval", selectInterval.getSelectedItemPosition())
-                .putString("inputTempo", inputTempo.getText().toString())
+                .putString("inputTempo", Integer.toString(seekTempo.getProgress()))
                 .putString("inputInstrument", inputInstrument.getText().toString())
                 .apply();
 
@@ -208,7 +222,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         radioGroupDirection.check(uiDb.getInt("radioGroupDirection", 0));
         radioGroupTiming.check(uiDb.getInt("radioGroupTiming", 0));
         selectInterval.setSelection(uiDb.getInt("selectInterval", 0));
-        inputTempo.setText(uiDb.getString("inputTempo", ""));
+        seekTempo.setProgress(Integer.parseInt(uiDb.getString("inputTempo", "0")));
+//        TextView label = findViewById(R.id.labelTempoValue);
+//        label.setText(Integer.toString(uiDb.getString("inputTempo", "0")));
         inputInstrument.setText(uiDb.getString("inputInstrument", ""));
     }
 
@@ -227,7 +243,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
     }
 
-    private MusInterval getMusInterval() throws MusInterval.StartNoteSyntaxException {
+    private MusInterval getMusInterval() throws MusInterval.StartNoteSyntaxException, MusInterval.TempoValueException {
         final String noneStr = getResources().getString(R.string.radio_none);
 
         final RadioButton radioDirection = findViewById(radioGroupDirection.getCheckedRadioButtonId());
@@ -242,7 +258,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 .direction(!directionStr.equals(noneStr) ? directionStr : "")
                 .timing(!timingStr.equals(noneStr) ? timingStr : "")
                 .interval(selectInterval.getSelectedItem().toString())
-                .tempo(inputTempo.getText().toString())
+                .tempo(Integer.toString(seekTempo.getProgress()))
                 .instrument(inputInstrument.getText().toString())
                 .build();
     }

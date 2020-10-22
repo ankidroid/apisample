@@ -139,12 +139,26 @@
             android:layout_height="wrap_content"
             android:text="@string/tempo" />
 
-        <EditText
-            android:id="@+id/inputTempo"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:ems="10"
-            android:inputType="textPersonName" />
+            android:layout_height="32dp"
+            android:orientation="horizontal">
+
+            <SeekBar
+                android:id="@+id/seekTempo"
+                android:layout_width="315dp"
+                android:layout_height="wrap_content"
+                android:max="200"
+                android:progress="1"
+                android:textAlignment="textEnd" />
+
+            <TextView
+                android:id="@+id/labelTempoValue"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="0" />
+        </LinearLayout>
 
         <TextView
             android:id="@+id/labelInstrument"

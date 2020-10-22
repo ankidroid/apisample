@@ -25,6 +25,11 @@ public class MusInterval {
             public static final String MELODIC = "melodic";
             public static final String HARMONIC = "harmonic";
         }
+
+        public static class Tempo {
+            public static final int MIN_VALUE = 0;
+            public static final int MAX_VALUE = 200;
+        }
     }
 
     public static class Builder {
@@ -46,7 +51,7 @@ public class MusInterval {
             mHelper = helper;
         }
 
-        public MusInterval build() throws StartNoteSyntaxException {
+        public MusInterval build() throws StartNoteSyntaxException, TempoValueException {
             return new MusInterval(this);
         }
 
@@ -98,6 +103,7 @@ public class MusInterval {
 
     abstract static class Exception extends Throwable {}
     public static class StartNoteSyntaxException extends Exception {}
+    public static class TempoValueException extends Exception {}
     public static class NoSuchModelException extends Exception {}
     public static class CreateDeckException extends Exception {}
     public static class AddToAnkiException extends Exception {}
@@ -122,7 +128,7 @@ public class MusInterval {
     public final String tempo;
     public final String instrument;
 
-    public MusInterval(Builder builder) throws StartNoteSyntaxException {
+    public MusInterval(Builder builder) throws StartNoteSyntaxException, TempoValueException {
         helper = builder.mHelper;
 
         modelName = builder.mModelName;
@@ -138,12 +144,18 @@ public class MusInterval {
         tempo = builder.mTempo.trim();
         instrument = builder.mInstrument.trim();
 
-        validateStartNote();
+        validateFields();
     }
 
-    protected void validateStartNote() throws StartNoteSyntaxException {
+    protected void validateFields() throws StartNoteSyntaxException, TempoValueException {
         if (!startNote.isEmpty() && !startNote.matches("[A-Ga-g]#?[0-8]")) {
             throw new StartNoteSyntaxException();
+        }
+        if (!tempo.isEmpty()) {
+            int tempoInt = Integer.parseInt(tempo);
+            if (tempoInt < Fields.Tempo.MIN_VALUE || tempoInt > Fields.Tempo.MAX_VALUE) {
+                throw new TempoValueException();
+            }
         }
     }
 
@@ -238,7 +250,7 @@ public class MusInterval {
      */
     public MusInterval addToAnki()
             throws NoSuchModelException, CreateDeckException, AddToAnkiException,
-            MandatoryFieldEmptyException, SoundAlreadyAddedException, AddSoundFileException, StartNoteSyntaxException {
+            MandatoryFieldEmptyException, SoundAlreadyAddedException, AddSoundFileException, StartNoteSyntaxException, TempoValueException {
 
         if (modelId == null) {
             throw new NoSuchModelException();
