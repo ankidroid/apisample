@@ -296,59 +296,6 @@ public class AnkiDroidHelper {
         return result;
     }
 
-    /**
-     * Get all the notes, related to the passed model id.
-     *
-     * @param modelId Needed model
-     * @return List of note ids
-     */
-    public LinkedList<Map<String, String>> getNotes(long modelId) throws InvalidAnkiDatabaseException {
-        LinkedList<Map<String, String>> result = new LinkedList<>();
-
-        String selection = String.format(Locale.US, "%s=%d", FlashCardsContract.Note.MID, modelId);
-        String[] projection = new String[] { FlashCardsContract.Note._ID, FlashCardsContract.Note.FLDS, FlashCardsContract.Note.TAGS };
-        Cursor notesTableCursor = mResolver.query(FlashCardsContract.Note.CONTENT_URI_V2, projection, selection, null, null);
-
-        if (notesTableCursor == null) {
-            // nothing found
-            return result;
-        }
-
-        String[] fieldNames = getFieldList(modelId);
-
-        try {
-            while (notesTableCursor.moveToNext()) {
-                int idIndex = notesTableCursor.getColumnIndexOrThrow(FlashCardsContract.Note._ID);
-                int fldsIndex = notesTableCursor.getColumnIndexOrThrow(FlashCardsContract.Note.FLDS);
-                int tagsIndex = notesTableCursor.getColumnIndexOrThrow(FlashCardsContract.Note.TAGS);
-
-                String flds = notesTableCursor.getString(fldsIndex);
-
-                if (flds != null) {
-                    String[] fields = flds.split("\\x1f", -1);
-                    if (fields.length != fieldNames.length) {
-                        throw new InvalidAnkiDatabase_fieldAndFieldNameCountMismatchException();
-                    }
-
-                    Map<String, String> item = new HashMap<>();
-                    item.put("id", Long.toString(notesTableCursor.getLong(idIndex)));
-                    item.put("tags", notesTableCursor.getString(tagsIndex));
-
-                    for (int i = 0; i < fieldNames.length; ++i) {
-                        item.put(fieldNames[i], fields[i]);
-                    }
-
-                    result.add(item);
-                }
-            }
-        }
-        finally {
-            notesTableCursor.close();
-        }
-
-        return result;
-    }
-
     public int addTagToNote(long noteId, String tags) {
         ContentValues values = new ContentValues();
         values.put(FlashCardsContract.Note.TAGS, tags);
@@ -357,9 +304,6 @@ public class AnkiDroidHelper {
         return mResolver.update(cardUri, values, null, null);
     }
 
-    abstract static class InvalidAnkiDatabaseException extends Throwable {
-    }
-
-    static class InvalidAnkiDatabase_fieldAndFieldNameCountMismatchException extends InvalidAnkiDatabaseException {
-    }
+    abstract static class InvalidAnkiDatabaseException extends Throwable {}
+    static class InvalidAnkiDatabase_fieldAndFieldNameCountMismatchException extends InvalidAnkiDatabaseException {}
 }
