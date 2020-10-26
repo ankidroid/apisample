@@ -34,6 +34,7 @@ import static com.ichi2.anki.api.AddContentApi.READ_WRITE_PERMISSION;
 public class AnkiDroidHelper {
     private static final String DECK_REF_DB = "com.ichi2.anki.api.decks";
     private static final String MODEL_REF_DB = "com.ichi2.anki.api.models";
+    private static final String FLDS_SEPARATOR = "\u001f";
 
     private final Context mContext;
     final ContentResolver mResolver;
@@ -228,6 +229,71 @@ public class AnkiDroidHelper {
         fields.toArray(result);
 
         return getApi().addNote(modelId, deckId, result, tags);
+    }
+
+    public LinkedList<Map<String, String>> findNotes(long modelId, Map<String, String> data)
+            throws InvalidAnkiDatabase_fieldAndFieldNameCountMismatchException {
+        String[] fieldNames = getFieldList(modelId);
+        StringBuilder fieldsAggregated = new StringBuilder();
+
+        for (String fieldName : fieldNames) {
+            if (fieldsAggregated.length() > 0) {
+                fieldsAggregated.append(FLDS_SEPARATOR);
+            }
+            final String value = data.containsKey(fieldName) && !data.get(fieldName).isEmpty()
+                    ? data.get(fieldName)
+                    : "%";
+            fieldsAggregated.append(value);
+        }
+
+        String selection = String.format(Locale.US, "%s=%d and %s like \"%s\"",
+                FlashCardsContract.Note.MID, modelId, FlashCardsContract.Note.FLDS, fieldsAggregated.toString());
+
+        String[] projection = new String[] {
+                FlashCardsContract.Note._ID,
+                FlashCardsContract.Note.FLDS,
+                FlashCardsContract.Note.TAGS
+        };
+
+        LinkedList<Map<String, String>> result = new LinkedList<>();
+        Cursor notesTableCursor = mResolver.query(FlashCardsContract.Note.CONTENT_URI_V2, projection, selection, null, null);
+
+        if (notesTableCursor == null) {
+            // nothing found
+            return result;
+        }
+
+        try {
+            while (notesTableCursor.moveToNext()) {
+                int idIndex = notesTableCursor.getColumnIndexOrThrow(FlashCardsContract.Note._ID);
+                int fldsIndex = notesTableCursor.getColumnIndexOrThrow(FlashCardsContract.Note.FLDS);
+                int tagsIndex = notesTableCursor.getColumnIndexOrThrow(FlashCardsContract.Note.TAGS);
+
+                String flds = notesTableCursor.getString(fldsIndex);
+
+                if (flds != null) {
+                    String[] fields = flds.split(FLDS_SEPARATOR, -1);
+                    if (fields.length != fieldNames.length) {
+                        throw new InvalidAnkiDatabase_fieldAndFieldNameCountMismatchException();
+                    }
+
+                    Map<String, String> item = new HashMap<>();
+                    item.put("id", Long.toString(notesTableCursor.getLong(idIndex)));
+                    item.put("tags", notesTableCursor.getString(tagsIndex));
+
+                    for (int i = 0; i < fieldNames.length; ++i) {
+                        item.put(fieldNames[i], fields[i]);
+                    }
+
+                    result.add(item);
+                }
+            }
+        }
+        finally {
+            notesTableCursor.close();
+        }
+
+        return result;
     }
 
     /**

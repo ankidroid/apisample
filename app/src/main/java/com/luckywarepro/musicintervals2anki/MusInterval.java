@@ -194,24 +194,14 @@ public class MusInterval {
      * Get list of existing notes. Each note consists of main fields, id field and tags.
      */
     private LinkedList<Map<String, String>> getExistingNotes() throws AnkiDroidHelper.InvalidAnkiDatabaseException {
-        LinkedList<Map<String, String>> existingNotes = new LinkedList<>();
-
         if (modelId != null) {
-            final LinkedList<Map<String, String>> notes = helper.getNotes(modelId);
+            Map<String, String>data = getCollectedData();
+            data.remove(Fields.SOUND); // sound filed should not be compared in existing data
 
-            for (Map<String, String> note : notes) {
-                if ((startNote.isEmpty() || startNote.equalsIgnoreCase(note.get(Fields.START_NOTE)))
-                        && (direction.isEmpty() || direction.equalsIgnoreCase(note.get(Fields.DIRECTION)))
-                        && (timing.isEmpty() || timing.equalsIgnoreCase(note.get(Fields.TIMING)))
-                        && (interval.isEmpty() || interval.equalsIgnoreCase(note.get(Fields.INTERVAL)))
-                        && (tempo.isEmpty() || tempo.equalsIgnoreCase(note.get(Fields.TEMPO)))
-                        && (instrument.isEmpty() || instrument.equalsIgnoreCase(note.get(Fields.INSTRUMENT)))) {
-                    existingNotes.add(note);
-                }
-            }
+            return helper.findNotes(modelId, data);
+        } else {
+            return new LinkedList<>();
         }
-
-        return existingNotes;
     }
 
     /**
@@ -310,6 +300,10 @@ public class MusInterval {
                 && !interval.isEmpty()
                 && !tempo.isEmpty()
                 && !instrument.isEmpty();
+    }
+
+    public Map<String, String> getCollectedData() {
+        return getCollectedData(this.sound);
     }
 
     public Map<String, String> getCollectedData(String sound) {

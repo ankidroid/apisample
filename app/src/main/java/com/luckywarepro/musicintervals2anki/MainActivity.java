@@ -256,7 +256,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 .direction(!directionStr.equals(noneStr) ? directionStr : "")
                 .timing(!timingStr.equals(noneStr) ? timingStr : "")
                 .interval(selectInterval.getSelectedItem().toString())
-                .tempo(Integer.toString(seekTempo.getProgress()))
+                .tempo(seekTempo.getProgress() > 0 ? Integer.toString(seekTempo.getProgress()) : "")
                 .instrument(inputInstrument.getText().toString())
                 .build();
     }
