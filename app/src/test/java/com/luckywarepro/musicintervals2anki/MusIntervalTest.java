@@ -46,7 +46,7 @@ public class MusIntervalTest {
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         doReturn(modelId).when(helper).findModelIdByName(model);
         doReturn(deckId).when(helper).findDeckIdByName(deck);
-        doReturn(existingNotesData).when(helper).getNotes(modelId);
+        doReturn(existingNotesData).when(helper).findNotes(eq(modelId), any(Map.class));
 
         MusInterval mi = new MusInterval.Builder(helper)
                 .model(model)
@@ -65,19 +65,12 @@ public class MusIntervalTest {
         final String model = "Music.intervals";
         final long modelId = new Random().nextLong();
 
-        Map<String, String> item1 = new HashMap<>();
-        item1.put(MusInterval.Fields.START_NOTE, "C1");
-        Map<String, String> item2 = new HashMap<>();
-        item2.put(MusInterval.Fields.START_NOTE, "C2");
-
         LinkedList<Map<String, String>> existingNotesData = new LinkedList<>();
-        existingNotesData.add(item1);
-        existingNotesData.add(item2);
 
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         doReturn(modelId).when(helper).findModelIdByName(model);
         doReturn(deckId).when(helper).findDeckIdByName(deck);
-        doReturn(existingNotesData).when(helper).getNotes(modelId);
+        doReturn(existingNotesData).when(helper).findNotes(eq(modelId), any(Map.class));
 
         MusInterval mi = new MusInterval.Builder(helper)
                 .model(model)
@@ -111,14 +104,11 @@ public class MusIntervalTest {
         item1.put(MusInterval.Fields.TEMPO, tempo);
         item1.put(MusInterval.Fields.INSTRUMENT, instrument);
         existingNotesData.add(item1);
-        Map<String, String> item2 = new HashMap<>();
-        item2.put(MusInterval.Fields.START_NOTE, "C2");
-        existingNotesData.add(item2);
 
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         doReturn(modelId).when(helper).findModelIdByName(model);
         doReturn(deckId).when(helper).findDeckIdByName(deck);
-        doReturn(existingNotesData).when(helper).getNotes(modelId);
+        doReturn(existingNotesData).when(helper).findNotes(eq(modelId), any(Map.class));
 
         MusInterval mi = new MusInterval.Builder(helper)
                 .model(model)
@@ -158,14 +148,11 @@ public class MusIntervalTest {
         item1.put(MusInterval.Fields.INSTRUMENT, instrument);
         item1.put("tags", " marked ");
         existingNotesData.add(item1);
-        Map<String, String> item2 = new HashMap<>();
-        item2.put(MusInterval.Fields.START_NOTE, "C2");
-        existingNotesData.add(item2);
 
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         doReturn(modelId).when(helper).findModelIdByName(model);
         doReturn(deckId).when(helper).findDeckIdByName(deck);
-        doReturn(existingNotesData).when(helper).getNotes(modelId);
+        doReturn(existingNotesData).when(helper).findNotes(eq(modelId), any(Map.class));
 
         MusInterval mi = new MusInterval.Builder(helper)
                 .model(model)
@@ -204,14 +191,11 @@ public class MusIntervalTest {
         item1.put(MusInterval.Fields.TEMPO, tempo);
         item1.put(MusInterval.Fields.INSTRUMENT, instrument);
         existingNotesData.add(item1);
-        Map<String, String> item2 = new HashMap<>();
-        item2.put(MusInterval.Fields.START_NOTE, "C2");
-        existingNotesData.add(item2);
 
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         doReturn(modelId).when(helper).findModelIdByName(model);
         doReturn(deckId).when(helper).findDeckIdByName(deck);
-        doReturn(existingNotesData).when(helper).getNotes(modelId);
+        doReturn(existingNotesData).when(helper).findNotes(eq(modelId), any(Map.class));
 
         MusInterval mi = new MusInterval.Builder(helper)
                 .model(model)
@@ -250,14 +234,11 @@ public class MusIntervalTest {
         item1.put(MusInterval.Fields.TEMPO, tempo);
         item1.put(MusInterval.Fields.INSTRUMENT, instrument);
         existingNotesData.add(item1);
-        Map<String, String> item2 = new HashMap<>();
-        item2.put(MusInterval.Fields.START_NOTE, "C2");
-        existingNotesData.add(item2);
 
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         doReturn(modelId).when(helper).findModelIdByName(model);
         doReturn(deckId).when(helper).findDeckIdByName(deck);
-        doReturn(existingNotesData).when(helper).getNotes(modelId);
+        doReturn(existingNotesData).when(helper).findNotes(eq(modelId), any(Map.class));
 
         MusInterval mi = new MusInterval.Builder(helper)
                 .model(model)
@@ -288,51 +269,11 @@ public class MusIntervalTest {
         final String instrument = "guitar";
 
         LinkedList<Map<String, String>> existingNotesData = new LinkedList<>();
-        Map<String, String> item1 = new HashMap<>();
-        item1.put(MusInterval.Fields.START_NOTE, startNote);                        // same StartingNote
-        item1.put(MusInterval.Fields.DIRECTION, MusInterval.Fields.Direction.DESC); // another AscDesc
-        item1.put(MusInterval.Fields.TIMING, MusInterval.Fields.Timing.MELODIC);      // same MelHar
-        item1.put(MusInterval.Fields.INTERVAL, interval);                           // same interval
-        item1.put(MusInterval.Fields.TEMPO, tempo);                                 // same tempo
-        item1.put(MusInterval.Fields.INSTRUMENT, instrument);                       // same instrument
-        existingNotesData.add(item1);
-        Map<String, String> item2 = new HashMap<>();
-        item2.put(MusInterval.Fields.START_NOTE, startNote);                        // same StartingNote
-        item2.put(MusInterval.Fields.DIRECTION, MusInterval.Fields.Direction.ASC);  // same AscDesc
-        item2.put(MusInterval.Fields.TIMING, MusInterval.Fields.Timing.HARMONIC);     // another MelHar
-        item2.put(MusInterval.Fields.INTERVAL, interval);                           // same interval
-        item2.put(MusInterval.Fields.TEMPO, tempo);                                 // same tempo
-        item2.put(MusInterval.Fields.INSTRUMENT, instrument);                       // same instrument
-        existingNotesData.add(item2);
-        Map<String, String> item3 = new HashMap<>();
-        item3.put(MusInterval.Fields.START_NOTE, startNote);                        // same StartingNote
-        item3.put(MusInterval.Fields.DIRECTION, MusInterval.Fields.Direction.ASC);  // same AscDesc
-        item3.put(MusInterval.Fields.TIMING, MusInterval.Fields.Timing.MELODIC);      // same MelHar
-        item3.put(MusInterval.Fields.INTERVAL, "min3");                             // another interval
-        item3.put(MusInterval.Fields.TEMPO, tempo);                                 // same tempo
-        item3.put(MusInterval.Fields.INSTRUMENT, instrument);                       // same instrument
-        existingNotesData.add(item3);
-        Map<String, String> item4 = new HashMap<>();
-        item4.put(MusInterval.Fields.START_NOTE, startNote);                        // same StartingNote
-        item4.put(MusInterval.Fields.DIRECTION, MusInterval.Fields.Direction.ASC);  // same AscDesc
-        item4.put(MusInterval.Fields.TIMING, MusInterval.Fields.Timing.MELODIC);      // same MelHar
-        item4.put(MusInterval.Fields.INTERVAL, interval);                           // same interval
-        item4.put(MusInterval.Fields.TEMPO, "90");                                  // another tempo
-        item4.put(MusInterval.Fields.INSTRUMENT, instrument);                       // same instrument
-        existingNotesData.add(item4);
-        Map<String, String> item5 = new HashMap<>();
-        item5.put(MusInterval.Fields.START_NOTE, startNote);                        // same StartingNote
-        item5.put(MusInterval.Fields.DIRECTION, MusInterval.Fields.Direction.ASC);  // same AscDesc
-        item5.put(MusInterval.Fields.TIMING, MusInterval.Fields.Timing.MELODIC);      // same MelHar
-        item5.put(MusInterval.Fields.INTERVAL, interval);                           // same interval
-        item5.put(MusInterval.Fields.TEMPO, tempo);                                 // same tempo
-        item5.put(MusInterval.Fields.INSTRUMENT, "violin");                         // another instrument
-        existingNotesData.add(item5);
 
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         doReturn(modelId).when(helper).findModelIdByName(model);
         doReturn(deckId).when(helper).findDeckIdByName(deck);
-        doReturn(existingNotesData).when(helper).getNotes(modelId);
+        doReturn(existingNotesData).when(helper).findNotes(eq(modelId), any(Map.class));
 
         MusInterval mi = new MusInterval.Builder(helper)
                 .model(model)
@@ -376,7 +317,7 @@ public class MusIntervalTest {
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         doReturn(modelId).when(helper).findModelIdByName(model);
         doReturn(deckId).when(helper).findDeckIdByName(deck);
-        doReturn(existingNotesData).when(helper).getNotes(modelId);
+        doReturn(existingNotesData).when(helper).findNotes(eq(modelId), any(Map.class));
 
         MusInterval mi = new MusInterval.Builder(helper)
                 .model(model)
@@ -407,7 +348,7 @@ public class MusIntervalTest {
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         doReturn(modelId).when(helper).findModelIdByName(model);
         doReturn(deckId).when(helper).findDeckIdByName(deck);
-        doReturn(existingNotesData).when(helper).getNotes(modelId);
+        doReturn(existingNotesData).when(helper).findNotes(eq(modelId), any(Map.class));
 
         MusInterval mi = new MusInterval.Builder(helper)
                 .model(model)
@@ -434,7 +375,7 @@ public class MusIntervalTest {
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         doReturn(modelId).when(helper).findModelIdByName(model);
         doReturn(deckId).when(helper).findDeckIdByName(deck);
-        doReturn(existingNotesData).when(helper).getNotes(modelId);
+        doReturn(existingNotesData).when(helper).findNotes(eq(modelId), any(Map.class));
 
         MusInterval mi = new MusInterval.Builder(helper)
                 .model(model)
@@ -1030,7 +971,7 @@ public class MusIntervalTest {
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         doReturn(modelId).when(helper).findModelIdByName(model);
         doReturn(deckId).when(helper).findDeckIdByName(deck);
-        doReturn(existingNotesData).when(helper).getNotes(modelId);
+        doReturn(existingNotesData).when(helper).findNotes(eq(modelId), any(Map.class));
 
         MusInterval mi = new MusInterval.Builder(helper)
                 .model(model)
@@ -1072,7 +1013,7 @@ public class MusIntervalTest {
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         doReturn(modelId).when(helper).findModelIdByName(model);
         doReturn(deckId).when(helper).findDeckIdByName(deck);
-        doReturn(existingNotesData).when(helper).getNotes(modelId);
+        doReturn(existingNotesData).when(helper).findNotes(eq(modelId), any(Map.class));
 
         // Marking failure
         doReturn(0).when(helper).addTagToNote(noteId, " marked ");
@@ -1122,7 +1063,7 @@ public class MusIntervalTest {
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         doReturn(modelId).when(helper).findModelIdByName(model);
         doReturn(deckId).when(helper).findDeckIdByName(deck);
-        doReturn(existingNotesData).when(helper).getNotes(modelId);
+        doReturn(existingNotesData).when(helper).findNotes(eq(modelId), any(Map.class));
 
         // Marked successfully
         doReturn(1).when(helper).addTagToNote(noteId, " marked ");
@@ -1185,7 +1126,7 @@ public class MusIntervalTest {
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         doReturn(modelId).when(helper).findModelIdByName(model);
         doReturn(deckId).when(helper).findDeckIdByName(deck);
-        doReturn(existingNotesData).when(helper).getNotes(modelId);
+        doReturn(existingNotesData).when(helper).findNotes(eq(modelId), any(Map.class));
 
         // Marked successfully
         doReturn(1).when(helper).addTagToNote(noteId1, " marked ");
@@ -1238,7 +1179,7 @@ public class MusIntervalTest {
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         doReturn(modelId).when(helper).findModelIdByName(model);
         doReturn(deckId).when(helper).findDeckIdByName(deck);
-        doReturn(existingNotesData).when(helper).getNotes(modelId);
+        doReturn(existingNotesData).when(helper).findNotes(eq(modelId), any(Map.class));
 
         // Marked successfully
         doReturn(1).when(helper).addTagToNote(noteId, " some tags benchmarked marked_as_red marked ");
@@ -1289,7 +1230,7 @@ public class MusIntervalTest {
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         doReturn(modelId).when(helper).findModelIdByName(model);
         doReturn(deckId).when(helper).findDeckIdByName(deck);
-        doReturn(existingNotesData).when(helper).getNotes(modelId);
+        doReturn(existingNotesData).when(helper).findNotes(eq(modelId), any(Map.class));
 
         // Marked successfully
         doReturn(1).when(helper).addTagToNote(noteId, " marked ");
