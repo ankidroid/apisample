@@ -20,6 +20,7 @@ import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RadioButton;
@@ -29,11 +30,13 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.HashSet;
+
 
 public class MainActivity extends AppCompatActivity implements ActivityCompat.OnRequestPermissionsResultCallback {
 
     private static final int AD_PERM_REQUEST = 0;
-    private static final int PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 1;
+    private static final int PERMISSIONS_REQUEST_EXTERNAL_STORAGE = 1;
 
     private static final int ACTION_SELECT_FILE = 10;
 
@@ -45,7 +48,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private RadioGroup radioGroupTiming;
     private Spinner selectInterval;
     private SeekBar seekTempo;
-    private EditText inputInstrument;
+    private AutoCompleteTextView inputInstrument;
+
+    private HashSet<String> savedInstruments = new HashSet<>();
 
     private AnkiDroidHelper mAnkiDroid;
 
@@ -92,12 +97,10 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         actionSelectFile.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (shouldShowRequestPermissionRationale(android.Manifest.permission.READ_EXTERNAL_STORAGE)) {
-                    requestPermissions(new String[] {
-                            android.Manifest.permission.READ_EXTERNAL_STORAGE},
-                            PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE
-                    );
-                }
+                requestPermissions(new String[] {
+                        android.Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                        PERMISSIONS_REQUEST_EXTERNAL_STORAGE
+                );
 
                 Intent intent = new Intent()
                         .setAction(Intent.ACTION_GET_CONTENT)
@@ -191,6 +194,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 try {
                     MusInterval newMi = getMusInterval().addToAnki();
                     inputFilename.setText(newMi.sound);
+                    savedInstruments.add(newMi.instrument);
                     showMsg(R.string.item_added);
                 } catch (MusInterval.Exception e) {
                     processMusIntervalException(e);
@@ -210,6 +214,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 .putInt("selectInterval", selectInterval.getSelectedItemPosition())
                 .putString("inputTempo", Integer.toString(seekTempo.getProgress()))
                 .putString("inputInstrument", inputInstrument.getText().toString())
+                .putStringSet("savedInstruments", savedInstruments)
                 .apply();
 
         super.onPause();
@@ -224,6 +229,10 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         selectInterval.setSelection(uiDb.getInt("selectInterval", 0));
         seekTempo.setProgress(Integer.parseInt(uiDb.getString("inputTempo", "0")));
         inputInstrument.setText(uiDb.getString("inputInstrument", ""));
+
+        savedInstruments = (HashSet<String>) uiDb.getStringSet("savedInstruments", new HashSet<String>());
+        inputInstrument.setAdapter(new ArrayAdapter<>(this,
+                android.R.layout.simple_dropdown_item_1line, savedInstruments.toArray(new String[0])));
     }
 
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -233,7 +242,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     showMsg(R.string.anki_permission_denied);
                 }
             }
-            case PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE: {
+            case PERMISSIONS_REQUEST_EXTERNAL_STORAGE: {
                 if (grantResults.length > 0 && grantResults[0] != PackageManager.PERMISSION_GRANTED) {
                     showMsg(R.string.fs_permission_denied);
                 }
