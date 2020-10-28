@@ -43,13 +43,14 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private static final String STATE_REF_DB = "com.luckywarepro.musicintervals2anki.uistate";
 
     private EditText inputFilename;
-    private EditText inputStartNote;
+    private AutoCompleteTextView inputStartNote;
     private RadioGroup radioGroupDirection;
     private RadioGroup radioGroupTiming;
     private Spinner selectInterval;
     private SeekBar seekTempo;
     private AutoCompleteTextView inputInstrument;
 
+    private HashSet<String> savedStartNotes = new HashSet<>();
     private HashSet<String> savedInstruments = new HashSet<>();
 
     private AnkiDroidHelper mAnkiDroid;
@@ -194,7 +195,11 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 try {
                     MusInterval newMi = getMusInterval().addToAnki();
                     inputFilename.setText(newMi.sound);
+                    inputStartNote.setText(newMi.startNote);
+
+                    savedStartNotes.add(newMi.startNote);
                     savedInstruments.add(newMi.instrument);
+
                     showMsg(R.string.item_added);
                 } catch (MusInterval.Exception e) {
                     processMusIntervalException(e);
@@ -214,6 +219,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 .putInt("selectInterval", selectInterval.getSelectedItemPosition())
                 .putString("inputTempo", Integer.toString(seekTempo.getProgress()))
                 .putString("inputInstrument", inputInstrument.getText().toString())
+                .putStringSet("savedStartNotes", savedStartNotes)
                 .putStringSet("savedInstruments", savedInstruments)
                 .apply();
 
@@ -229,6 +235,10 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         selectInterval.setSelection(uiDb.getInt("selectInterval", 0));
         seekTempo.setProgress(Integer.parseInt(uiDb.getString("inputTempo", "0")));
         inputInstrument.setText(uiDb.getString("inputInstrument", ""));
+
+        savedStartNotes = (HashSet<String>) uiDb.getStringSet("savedStartNotes", new HashSet<String>());
+        inputStartNote.setAdapter(new ArrayAdapter<>(this,
+                android.R.layout.simple_dropdown_item_1line, savedStartNotes.toArray(new String[0])));
 
         savedInstruments = (HashSet<String>) uiDb.getStringSet("savedInstruments", new HashSet<String>());
         inputInstrument.setAdapter(new ArrayAdapter<>(this,
