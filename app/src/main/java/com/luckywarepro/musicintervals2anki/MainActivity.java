@@ -154,7 +154,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     mAnkiDroid.requestPermission(MainActivity.this, AD_PERM_REQUEST);
                     return;
                 }
-
                 try {
                     final MusInterval mi = getMusInterval();
                     final int count = mi.getExistingNotesCount();

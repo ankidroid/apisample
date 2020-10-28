@@ -7,6 +7,9 @@ import java.util.Map;
 
 public class MusInterval {
 
+    /**
+     * Pre-defined field names and values, used in the target AnkiDroid model.
+     */
     public static class Fields {
         public static final String SOUND = "sound";
         public static final String START_NOTE = "start_note";
@@ -130,6 +133,9 @@ public class MusInterval {
     public final String tempo;
     public final String instrument;
 
+    /**
+     * Construct an object using builder class.
+     */
     public MusInterval(Builder builder) throws ValidationException {
         helper = builder.mHelper;
 
@@ -153,6 +159,7 @@ public class MusInterval {
         if (!startNote.isEmpty() && !startNote.matches("[A-Ga-g]#?[0-8]")) {
             throw new StartNoteSyntaxException();
         }
+
         if (!tempo.isEmpty()) {
             int tempoInt = Integer.parseInt(tempo);
             if (tempoInt < Fields.Tempo.MIN_VALUE || tempoInt > Fields.Tempo.MAX_VALUE) {
@@ -191,7 +198,7 @@ public class MusInterval {
     }
 
     /**
-     * Get list of existing notes. Each note consists of main fields, id field and tags.
+     * Get list of existing (similar or equal) notes. Each note consists of main model fields, id field and tags.
      */
     private LinkedList<Map<String, String>> getExistingNotes() throws AnkiDroidHelper.InvalidAnkiDatabaseException {
         if (modelId != null) {
@@ -238,7 +245,7 @@ public class MusInterval {
     /**
      * Insert the data into AnkiDroid via API.
      * Also creates a deck if not yet created, but fails if model not found.
-     * @return New MusInterval instance with updated "sound" field
+     * @return New MusInterval instance (with some of the fields updated)
      */
     public MusInterval addToAnki()
             throws NoSuchModelException, CreateDeckException, AddToAnkiException,
@@ -290,7 +297,7 @@ public class MusInterval {
     }
 
     /**
-     * Check if all the fields are not empty (needed for adding to AnkiDroid)
+     * Check if all the fields are not empty (needed for adding to AnkiDroid).
      */
     protected boolean areMandatoryFieldsFilled() {
         return !sound.isEmpty()
@@ -302,6 +309,9 @@ public class MusInterval {
                 && !instrument.isEmpty();
     }
 
+    /**
+     * Get the music interval data in one map.
+     */
     public Map<String, String> getCollectedData() {
         return getCollectedData(this.sound);
     }
