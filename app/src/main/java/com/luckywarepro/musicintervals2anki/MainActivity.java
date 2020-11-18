@@ -84,6 +84,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         final ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, items);
         selectInterval.setAdapter(adapter);
 
+        configureClearAllButton();
         configureSelectFileButton();
         configureCheckExistenceButton();
         configureAddToAnkiButton();
@@ -91,6 +92,22 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         restoreUiState();
 
         mAnkiDroid = new AnkiDroidHelper(this);
+    }
+
+    private void configureClearAllButton() {
+        final Button actionClearAll = findViewById(R.id.actionClearAll);
+        actionClearAll.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                inputFilename.setText("");
+                inputStartNote.setText("");
+                radioGroupDirection.check(0);
+                radioGroupTiming.check(0);
+                selectInterval.setSelection(0);
+                seekTempo.setProgress(0);
+                inputInstrument.setText("");
+            }
+        });
     }
 
     private void configureSelectFileButton() {

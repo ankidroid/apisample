@@ -18,6 +18,7 @@
     <string name="interval">Interval</string>
     <string name="tempo">Tempo</string>
     <string name="instrument">Instrument</string>
+    <string name="action_clear_all">Clear all fields</string>
     <string name="action_check_existence">Check existence</string>
     <string name="action_add_to_anki">Add to AnkiDroid</string>
 
