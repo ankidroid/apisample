@@ -1,4 +1,4 @@
-package com.luckywarepro.musicintervals2anki;
+package com.ichi2.apisample;
 
 import java.util.HashMap;
 import java.util.LinkedList;

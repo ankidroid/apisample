@@ -1,4 +1,4 @@
-package com.luckywarepro.musicintervals2anki;
+package com.ichi2.apisample;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
@@ -40,7 +40,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
     private static final int ACTION_SELECT_FILE = 10;
 
-    private static final String STATE_REF_DB = "com.luckywarepro.musicintervals2anki.uistate";
+    private static final String STATE_REF_DB = "com.ichi2.apisample.uistate";
 
     private EditText inputFilename;
     private AutoCompleteTextView inputStartNote;

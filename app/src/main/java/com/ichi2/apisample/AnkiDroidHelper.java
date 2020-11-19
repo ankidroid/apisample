@@ -1,4 +1,4 @@
-package com.luckywarepro.musicintervals2anki;
+package com.ichi2.apisample;
 
 import android.app.Activity;
 import android.content.ContentResolver;
