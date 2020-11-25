@@ -101,8 +101,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             public void onClick(View v) {
                 inputFilename.setText("");
                 inputStartNote.setText("");
-                radioGroupDirection.check(0);
-                radioGroupTiming.check(0);
+                radioGroupDirection.check(findViewById(R.id.radioDirectionAny).getId());
+                radioGroupTiming.check(findViewById(R.id.radioTimingAny).getId());
                 selectInterval.setSelection(0);
                 seekTempo.setProgress(0);
                 inputInstrument.setText("");
@@ -181,11 +181,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                         if (count == marked) {
                             showMsg(getResources().getQuantityString(R.plurals.mi_exists_marked, count, count));
                         } else if (marked == 0) {
-                            markNoteDialog.setMessage(getResources().getQuantityString(R.plurals.mi_exists_ask_mark, count, count))
-                                    .show();
+                            markNoteDialog.setMessage(getResources().getQuantityString(R.plurals.mi_exists_ask_mark, count, count)).show();
                         } else {
-                            markNoteDialog.setMessage(getResources().getQuantityString(R.plurals.mi_exists_partially_marked_ask_mark, marked, count, marked))
-                                    .show();
+                            markNoteDialog.setMessage(getResources().getQuantityString(R.plurals.mi_exists_partially_marked_ask_mark, marked, count, marked)).show();
                         }
                     } else {
                         showMsg(R.string.mi_not_exists);
@@ -246,8 +244,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         final SharedPreferences uiDb = getSharedPreferences(STATE_REF_DB, Context.MODE_PRIVATE);
         inputFilename.setText(uiDb.getString("inputFilename", ""));
         inputStartNote.setText(uiDb.getString("inputStartNote", ""));
-        radioGroupDirection.check(uiDb.getInt("radioGroupDirection", 0));
-        radioGroupTiming.check(uiDb.getInt("radioGroupTiming", 0));
+        radioGroupDirection.check(uiDb.getInt("radioGroupDirection", findViewById(R.id.radioDirectionAny).getId()));
+        radioGroupTiming.check(uiDb.getInt("radioGroupTiming", findViewById(R.id.radioTimingAny).getId()));
         selectInterval.setSelection(uiDb.getInt("selectInterval", 0));
         seekTempo.setProgress(Integer.parseInt(uiDb.getString("inputTempo", "0")));
         inputInstrument.setText(uiDb.getString("inputInstrument", ""));
