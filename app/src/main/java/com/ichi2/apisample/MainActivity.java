@@ -19,6 +19,7 @@ import android.os.Environment;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
@@ -84,6 +85,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         final ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, items);
         selectInterval.setAdapter(adapter);
 
+        configureTempoButtons();
         configureClearAllButton();
         configureSelectFileButton();
         configureCheckExistenceButton();
@@ -92,6 +94,30 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         restoreUiState();
 
         mAnkiDroid = new AnkiDroidHelper(this);
+    }
+
+    private void configureTempoButtons() {
+        final Button actionTempoMinus = findViewById(R.id.actionTempoMinus);
+        actionTempoMinus.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                final int progress = seekTempo.getProgress();
+                if (progress > 0) {
+                    seekTempo.setProgress(progress - 1);
+                }
+            }
+        });
+
+        final Button actionTempoPlus = findViewById(R.id.actionTempoPlus);
+        actionTempoPlus.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                final int progress = seekTempo.getProgress();
+                if (progress < 200) { // @fixme Use some constant probably
+                    seekTempo.setProgress(progress + 1);
+                }
+            }
+        });
     }
 
     private void configureClearAllButton() {
@@ -257,6 +283,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         savedInstruments = (HashSet<String>) uiDb.getStringSet("savedInstruments", new HashSet<String>());
         inputInstrument.setAdapter(new ArrayAdapter<>(this,
                 android.R.layout.simple_dropdown_item_1line, savedInstruments.toArray(new String[0])));
+
+        this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
     }
 
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {

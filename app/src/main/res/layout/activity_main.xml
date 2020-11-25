@@ -1,4 +1,4 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
                 xmlns:tools="http://schemas.android.com/tools"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
@@ -6,12 +6,16 @@
                 android:paddingRight="@dimen/activity_horizontal_margin"
                 android:paddingTop="@dimen/activity_vertical_margin"
                 android:paddingBottom="@dimen/activity_vertical_margin"
+                android:focusable="false"
+                android:focusableInTouchMode="false"
                 tools:context="com.luckywarepro.apisample.MainActivity">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:focusable="false"
+        android:focusableInTouchMode="false">
 
         <TextView
             android:id="@+id/labelFilename"
@@ -139,23 +143,38 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="32dp"
+            android:layout_height="wrap_content"
             android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/actionTempoMinus"
+                android:layout_width="25dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="-" />
 
             <SeekBar
                 android:id="@+id/seekTempo"
-                android:layout_width="315dp"
-                android:layout_height="wrap_content"
+                android:layout_width="200dp"
+                android:layout_height="match_parent"
                 android:max="200"
                 android:progress="1"
                 android:textAlignment="textEnd" />
+
+            <Button
+                android:id="@+id/actionTempoPlus"
+                android:layout_width="25dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="+" />
 
             <TextView
                 android:id="@+id/labelTempoValue"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="0" />
+                android:text="0"
+                android:textAlignment="center" />
         </LinearLayout>
 
         <TextView
@@ -196,4 +215,4 @@
         </LinearLayout>
 
     </LinearLayout>
-</RelativeLayout>
+</ScrollView>
