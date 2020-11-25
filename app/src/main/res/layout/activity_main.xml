@@ -65,10 +65,10 @@
             android:orientation="horizontal">
 
             <RadioButton
-                android:id="@+id/radioDirectionNone"
+                android:id="@+id/radioDirectionAny"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/radio_none"
+                android:text="@string/radio_any"
                 android:checked="true" />
 
             <RadioButton
@@ -98,10 +98,10 @@
             android:orientation="horizontal">
 
             <RadioButton
-                android:id="@+id/radioTimingNone"
+                android:id="@+id/radioTimingAny"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/radio_none"
+                android:text="@string/radio_any"
                 android:checked="true" />
 
             <RadioButton

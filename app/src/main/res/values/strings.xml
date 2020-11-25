@@ -8,7 +8,7 @@
     <string name="label_filename">Filename</string>
     <string name="select_filename">Select file</string>
     <string name="start_note">Start note</string>
-    <string name="radio_none">None</string>
+    <string name="radio_any">Any</string>
     <string name="direction">Direction</string>
     <string name="direction_asc">Ascending</string>
     <string name="direction_desc">Descending</string>

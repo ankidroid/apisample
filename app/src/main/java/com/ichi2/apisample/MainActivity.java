@@ -277,7 +277,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     }
 
     private MusInterval getMusInterval() throws MusInterval.ValidationException {
-        final String noneStr = getResources().getString(R.string.radio_none);
+        final String anyStr = getResources().getString(R.string.radio_any);
 
         final RadioButton radioDirection = findViewById(radioGroupDirection.getCheckedRadioButtonId());
         final String directionStr = radioDirection.getText().toString();
@@ -288,8 +288,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         return new MusInterval.Builder(mAnkiDroid)
                 .sound(inputFilename.getText().toString())
                 .start_note(inputStartNote.getText().toString())
-                .direction(!directionStr.equals(noneStr) ? directionStr : "")
-                .timing(!timingStr.equals(noneStr) ? timingStr : "")
+                .direction(!directionStr.equals(anyStr) ? directionStr : "")
+                .timing(!timingStr.equals(anyStr) ? timingStr : "")
                 .interval(selectInterval.getSelectedItem().toString())
                 .tempo(seekTempo.getProgress() > 0 ? Integer.toString(seekTempo.getProgress()) : "")
                 .instrument(inputInstrument.getText().toString())
