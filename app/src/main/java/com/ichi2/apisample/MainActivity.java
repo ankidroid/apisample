@@ -339,6 +339,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             showMsg(R.string.mandatory_field_empty);
         } catch (MusInterval.SoundAlreadyAddedException e) {
             showMsg(R.string.already_added);
+        } catch (MusInterval.AddSoundFileException e) {
+            showMsg(R.string.add_file_error);
         } catch (MusInterval.Exception e) {
             showMsg(R.string.unknown_adding_error);
         }
@@ -374,7 +376,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             if (isExternalStorageDocument(uri)) {
                 final String docId = DocumentsContract.getDocumentId(uri);
                 final String[] split = docId.split(":");
-                return Environment.getExternalStorageDirectory() + "/" + split[1];
+                return "/storage/" + split[0] + "/" + split[1];
             } else if (isDownloadsDocument(uri)) {
                 final String id = DocumentsContract.getDocumentId(uri);
                 uri = ContentUris.withAppendedId(
