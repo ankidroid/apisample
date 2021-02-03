@@ -167,6 +167,33 @@ public class MusInterval {
                 throw new TempoValueException();
             }
         }
+
+        if (!isModelValid()) {
+            throw new InvalidModelException();
+        }
+    }
+
+    private boolean isModelValid() {
+        final String[] validFields = new String[] {
+                MusInterval.Fields.SOUND,
+                MusInterval.Fields.START_NOTE,
+                MusInterval.Fields.DIRECTION,
+                MusInterval.Fields.TIMING,
+                MusInterval.Fields.INTERVAL,
+                MusInterval.Fields.TEMPO,
+                MusInterval.Fields.INSTRUMENT
+        };
+        final String[] currentFields = helper.getFieldList(modelId);
+
+        if (currentFields.length < validFields.length) {
+            return false;
+        }
+        for (int i = 0; i < validFields.length; i++) {
+            if (!validFields[i].equals(currentFields[i])) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
