@@ -376,7 +376,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             if (isExternalStorageDocument(uri)) {
                 final String docId = DocumentsContract.getDocumentId(uri);
                 final String[] split = docId.split(":");
-                return Environment.getExternalStorageDirectory() + "/" + split[1];
+                return "/storage/" + String.join("/", split);
             } else if (isDownloadsDocument(uri)) {
                 final String id = DocumentsContract.getDocumentId(uri);
                 uri = ContentUris.withAppendedId(
