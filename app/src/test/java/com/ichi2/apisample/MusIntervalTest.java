@@ -1398,4 +1398,32 @@ public class MusIntervalTest {
                 .build();
     }
 
+    @Test(expected = MusInterval.InvalidModelException.class)
+    public void create_InvalidModel_shouldFail() throws MusInterval.ValidationException {
+        AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
+        doReturn(new Random().nextLong()).when(helper).findModelIdByName(any(String.class));
+        doReturn(null).when(helper).findDeckIdByName(any(String.class));
+        doReturn(new String[] {"field1", "field2", "field3"}).when(helper).getFieldList(any(Long.class));
+
+        new MusInterval.Builder(helper).build();
+    }
+
+    @Test
+    public void create_ValidModel_shouldBeOk() throws MusInterval.ValidationException {
+        AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
+        doReturn(new Random().nextLong()).when(helper).findModelIdByName(any(String.class));
+        doReturn(null).when(helper).findDeckIdByName(any(String.class));
+        doReturn(new String[] {
+                MusInterval.Fields.SOUND,
+                MusInterval.Fields.START_NOTE,
+                MusInterval.Fields.DIRECTION,
+                MusInterval.Fields.TIMING,
+                MusInterval.Fields.INTERVAL,
+                MusInterval.Fields.TEMPO,
+                MusInterval.Fields.INSTRUMENT
+        }).when(helper).getFieldList(any(Long.class));
+
+        new MusInterval.Builder(helper).build();
+    }
+
 }
