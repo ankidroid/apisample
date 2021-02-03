@@ -116,6 +116,7 @@ public class MusInterval {
     public static class ValidationException extends Exception {}
     public static class StartNoteSyntaxException extends ValidationException {}
     public static class TempoValueException extends ValidationException {}
+    public static class InvalidModelException extends ValidationException {}
 
     private final AnkiDroidHelper helper;
 
