@@ -105,7 +105,6 @@ public class MusInterval {
     }
 
     abstract static class Exception extends Throwable {}
-    public static class NoSuchModelException extends Exception {}
     public static class CreateDeckException extends Exception {}
     public static class AddToAnkiException extends Exception {}
     public static class NoteNotExistsException extends Exception {}
@@ -116,6 +115,7 @@ public class MusInterval {
     public static class ValidationException extends Exception {}
     public static class StartNoteSyntaxException extends ValidationException {}
     public static class TempoValueException extends ValidationException {}
+    public static class NoSuchModelException extends ValidationException {}
     public static class InvalidModelException extends ValidationException {}
 
     private final AnkiDroidHelper helper;
@@ -168,7 +168,10 @@ public class MusInterval {
             }
         }
 
-        if (!isModelValid()) {
+        if (modelId == null) {
+            throw new NoSuchModelException();
+        }
+        if (!helper.isModelValid(modelId, Fields.SIGNATURE)) {
             throw new InvalidModelException();
         }
     }
@@ -276,13 +279,8 @@ public class MusInterval {
      * @return New MusInterval instance (with some of the fields updated)
      */
     public MusInterval addToAnki()
-            throws NoSuchModelException, CreateDeckException, AddToAnkiException,
-            MandatoryFieldEmptyException, SoundAlreadyAddedException, AddSoundFileException,
-            ValidationException {
-
-        if (modelId == null) {
-            throw new NoSuchModelException();
-        }
+            throws  CreateDeckException, AddToAnkiException, MandatoryFieldEmptyException,
+            SoundAlreadyAddedException, AddSoundFileException, ValidationException {
 
         if (deckId == null) {
             deckId = helper.addNewDeck(deckName);
