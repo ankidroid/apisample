@@ -123,6 +123,20 @@ public class AnkiDroidHelper {
         return findModelIdByName(modelName, 1);
     }
 
+    public boolean isModelValid(long modelId, String[] validFields) {
+        final String[] currentFields = getFieldList(modelId);
+
+        if (currentFields == null || currentFields.length < validFields.length) {
+            return false;
+        }
+        for (int i = 0; i < validFields.length; i++) {
+            if (!validFields[i].equals(currentFields[i])) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     /**
      * Try to find the given deck by name, accounting for potential renaming of the deck by the user as follows:
      * If there's a deck with deckName then return it's ID

@@ -33,6 +33,16 @@ public class MusInterval {
             public static final int MIN_VALUE = 0;
             public static final int MAX_VALUE = 200;
         }
+
+        public static final String[] SIGNATURE = new String[] {
+                MusInterval.Fields.SOUND,
+                MusInterval.Fields.START_NOTE,
+                MusInterval.Fields.DIRECTION,
+                MusInterval.Fields.TIMING,
+                MusInterval.Fields.INTERVAL,
+                MusInterval.Fields.TEMPO,
+                MusInterval.Fields.INSTRUMENT
+        };
     }
 
     public static class Builder {
@@ -174,29 +184,6 @@ public class MusInterval {
         if (!helper.isModelValid(modelId, Fields.SIGNATURE)) {
             throw new InvalidModelException();
         }
-    }
-
-    private boolean isModelValid() {
-        final String[] validFields = new String[] {
-                MusInterval.Fields.SOUND,
-                MusInterval.Fields.START_NOTE,
-                MusInterval.Fields.DIRECTION,
-                MusInterval.Fields.TIMING,
-                MusInterval.Fields.INTERVAL,
-                MusInterval.Fields.TEMPO,
-                MusInterval.Fields.INSTRUMENT
-        };
-        final String[] currentFields = helper.getFieldList(modelId);
-
-        if (currentFields.length < validFields.length) {
-            return false;
-        }
-        for (int i = 0; i < validFields.length; i++) {
-            if (!validFields[i].equals(currentFields[i])) {
-                return false;
-            }
-        }
-        return true;
     }
 
     /**
