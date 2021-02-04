@@ -125,8 +125,26 @@ public class MusInterval {
     public static class ValidationException extends Exception {}
     public static class StartNoteSyntaxException extends ValidationException {}
     public static class TempoValueException extends ValidationException {}
-    public static class NoSuchModelException extends ValidationException {}
-    public static class InvalidModelException extends ValidationException {}
+    abstract static class ModelValidationException extends ValidationException {
+        private String modelName;
+        protected ModelValidationException(String modelName) {
+            super();
+            this.modelName = modelName;
+        }
+        public String getModelName() {
+            return modelName;
+        }
+    }
+    public static class NoSuchModelException extends ModelValidationException {
+        public NoSuchModelException(String modelName) {
+            super(modelName);
+        }
+    }
+    public static class InvalidModelException extends ModelValidationException {
+        public InvalidModelException(String modelName) {
+            super(modelName);
+        }
+    }
 
     private final AnkiDroidHelper helper;
 
@@ -179,10 +197,10 @@ public class MusInterval {
         }
 
         if (modelId == null) {
-            throw new NoSuchModelException();
+            throw new NoSuchModelException(modelName);
         }
         if (!helper.isModelValid(modelId, Fields.SIGNATURE)) {
-            throw new InvalidModelException();
+            throw new InvalidModelException(modelName);
         }
     }
 
