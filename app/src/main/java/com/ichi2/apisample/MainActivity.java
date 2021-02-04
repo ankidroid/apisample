@@ -331,6 +331,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             showMsg(R.string.invalid_start_note);
         } catch (MusInterval.NoSuchModelException e) {
             showMsg(R.string.model_not_found);
+        } catch (MusInterval.InvalidModelException e) {
+            showMsg(R.string.invalid_model);
         } catch (MusInterval.CreateDeckException e) {
             showMsg(R.string.create_deck_error);
         } catch (MusInterval.AddToAnkiException e) {
