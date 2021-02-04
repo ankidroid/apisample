@@ -8,6 +8,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -15,7 +16,6 @@ import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.os.Environment;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.view.View;
@@ -330,7 +330,11 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         } catch (MusInterval.StartNoteSyntaxException e) {
             showMsg(R.string.invalid_start_note);
         } catch (MusInterval.NoSuchModelException e) {
-            showMsg(R.string.model_not_found);
+            Resources res = getResources();
+            showMsg(String.format(res.getString(R.string.model_not_found), e.getModelName()));
+        } catch (MusInterval.InvalidModelException e) {
+            Resources res = getResources();
+            showMsg(String.format(res.getString(R.string.invalid_model), e.getModelName()));
         } catch (MusInterval.CreateDeckException e) {
             showMsg(R.string.create_deck_error);
         } catch (MusInterval.AddToAnkiException e) {

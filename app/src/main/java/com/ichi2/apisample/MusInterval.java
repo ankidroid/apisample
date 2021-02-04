@@ -33,6 +33,16 @@ public class MusInterval {
             public static final int MIN_VALUE = 0;
             public static final int MAX_VALUE = 200;
         }
+
+        public static final String[] SIGNATURE = new String[] {
+                MusInterval.Fields.SOUND,
+                MusInterval.Fields.START_NOTE,
+                MusInterval.Fields.DIRECTION,
+                MusInterval.Fields.TIMING,
+                MusInterval.Fields.INTERVAL,
+                MusInterval.Fields.TEMPO,
+                MusInterval.Fields.INSTRUMENT
+        };
     }
 
     public static class Builder {
@@ -105,7 +115,6 @@ public class MusInterval {
     }
 
     abstract static class Exception extends Throwable {}
-    public static class NoSuchModelException extends Exception {}
     public static class CreateDeckException extends Exception {}
     public static class AddToAnkiException extends Exception {}
     public static class NoteNotExistsException extends Exception {}
@@ -116,6 +125,26 @@ public class MusInterval {
     public static class ValidationException extends Exception {}
     public static class StartNoteSyntaxException extends ValidationException {}
     public static class TempoValueException extends ValidationException {}
+    abstract static class ModelValidationException extends ValidationException {
+        private String modelName;
+        protected ModelValidationException(String modelName) {
+            super();
+            this.modelName = modelName;
+        }
+        public String getModelName() {
+            return modelName;
+        }
+    }
+    public static class NoSuchModelException extends ModelValidationException {
+        public NoSuchModelException(String modelName) {
+            super(modelName);
+        }
+    }
+    public static class InvalidModelException extends ModelValidationException {
+        public InvalidModelException(String modelName) {
+            super(modelName);
+        }
+    }
 
     private final AnkiDroidHelper helper;
 
@@ -165,6 +194,13 @@ public class MusInterval {
             if (tempoInt < Fields.Tempo.MIN_VALUE || tempoInt > Fields.Tempo.MAX_VALUE) {
                 throw new TempoValueException();
             }
+        }
+
+        if (modelId == null) {
+            throw new NoSuchModelException(modelName);
+        }
+        if (!helper.isModelValid(modelId, Fields.SIGNATURE)) {
+            throw new InvalidModelException(modelName);
         }
     }
 
@@ -248,13 +284,8 @@ public class MusInterval {
      * @return New MusInterval instance (with some of the fields updated)
      */
     public MusInterval addToAnki()
-            throws NoSuchModelException, CreateDeckException, AddToAnkiException,
-            MandatoryFieldEmptyException, SoundAlreadyAddedException, AddSoundFileException,
-            ValidationException {
-
-        if (modelId == null) {
-            throw new NoSuchModelException();
-        }
+            throws  CreateDeckException, AddToAnkiException, MandatoryFieldEmptyException,
+            SoundAlreadyAddedException, AddSoundFileException, ValidationException {
 
         if (deckId == null) {
             deckId = helper.addNewDeck(deckName);
