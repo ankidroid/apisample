@@ -22,17 +22,6 @@ public class MusIntervalTest {
     final static String defaultStartNote = "C#3";
     final static String startNote2 = "C#2";
 
-    @Test(expected = MusInterval.NoSuchModelException.class)
-    public void create_NoSuchModel() throws MusInterval.ValidationException {
-        AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
-        doReturn(null).when(helper).findModelIdByName(defaultModelName);
-        doReturn(new Random().nextLong()).when(helper).findDeckIdByName(defaultDeckName);
-
-        MusInterval mi = new MusInterval.Builder(helper)
-                .model(defaultModelName)
-                .build();
-    }
-
     @Test
     @SuppressWarnings("unchecked")
     public void checkExistence_NoStartingNotes() throws AnkiDroidHelper.InvalidAnkiDatabaseException, MusInterval.ValidationException {
@@ -43,7 +32,6 @@ public class MusIntervalTest {
 
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         doReturn(modelId).when(helper).findModelIdByName(defaultModelName);
-        doReturn(true).when(helper).isModelValid(eq(modelId), any(String[].class));
         doReturn(deckId).when(helper).findDeckIdByName(defaultDeckName);
         doReturn(existingNotesData).when(helper).findNotes(eq(modelId), any(Map.class));
 
@@ -67,7 +55,6 @@ public class MusIntervalTest {
 
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         doReturn(modelId).when(helper).findModelIdByName(defaultModelName);
-        doReturn(true).when(helper).isModelValid(eq(modelId), any(String[].class));
         doReturn(deckId).when(helper).findDeckIdByName(defaultDeckName);
         doReturn(existingNotesData).when(helper).findNotes(eq(modelId), any(Map.class));
 
@@ -104,7 +91,6 @@ public class MusIntervalTest {
 
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         doReturn(modelId).when(helper).findModelIdByName(defaultModelName);
-        doReturn(true).when(helper).isModelValid(eq(modelId), any(String[].class));
         doReturn(deckId).when(helper).findDeckIdByName(defaultDeckName);
         doReturn(existingNotesData).when(helper).findNotes(eq(modelId), any(Map.class));
 
@@ -147,7 +133,6 @@ public class MusIntervalTest {
 
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         doReturn(modelId).when(helper).findModelIdByName(defaultModelName);
-        doReturn(true).when(helper).isModelValid(eq(modelId), any(String[].class));
         doReturn(deckId).when(helper).findDeckIdByName(defaultDeckName);
         doReturn(existingNotesData).when(helper).findNotes(eq(modelId), any(Map.class));
 
@@ -189,7 +174,6 @@ public class MusIntervalTest {
 
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         doReturn(modelId).when(helper).findModelIdByName(defaultModelName);
-        doReturn(true).when(helper).isModelValid(eq(modelId), any(String[].class));
         doReturn(deckId).when(helper).findDeckIdByName(defaultDeckName);
         doReturn(existingNotesData).when(helper).findNotes(eq(modelId), any(Map.class));
 
@@ -231,7 +215,6 @@ public class MusIntervalTest {
 
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         doReturn(modelId).when(helper).findModelIdByName(defaultModelName);
-        doReturn(true).when(helper).isModelValid(eq(modelId), any(String[].class));
         doReturn(deckId).when(helper).findDeckIdByName(defaultDeckName);
         doReturn(existingNotesData).when(helper).findNotes(eq(modelId), any(Map.class));
 
@@ -265,7 +248,6 @@ public class MusIntervalTest {
 
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         doReturn(modelId).when(helper).findModelIdByName(defaultModelName);
-        doReturn(true).when(helper).isModelValid(eq(modelId), any(String[].class));
         doReturn(deckId).when(helper).findDeckIdByName(defaultDeckName);
         doReturn(existingNotesData).when(helper).findNotes(eq(modelId), any(Map.class));
 
@@ -308,7 +290,6 @@ public class MusIntervalTest {
 
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         doReturn(modelId).when(helper).findModelIdByName(defaultModelName);
-        doReturn(true).when(helper).isModelValid(eq(modelId), any(String[].class));
         doReturn(deckId).when(helper).findDeckIdByName(defaultDeckName);
         doReturn(existingNotesData).when(helper).findNotes(eq(modelId), any(Map.class));
 
@@ -341,7 +322,6 @@ public class MusIntervalTest {
         doReturn(modelId).when(helper).findModelIdByName(defaultModelName);
         doReturn(deckId).when(helper).findDeckIdByName(defaultDeckName);
         doReturn(existingNotesData).when(helper).findNotes(eq(modelId), any(Map.class));
-        doReturn(true).when(helper).isModelValid(eq(modelId), any(String[].class));
 
         MusInterval mi = new MusInterval.Builder(helper)
                 .model(defaultModelName)
@@ -366,7 +346,6 @@ public class MusIntervalTest {
 
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         doReturn(modelId).when(helper).findModelIdByName(defaultModelName);
-        doReturn(true).when(helper).isModelValid(eq(modelId), any(String[].class));
         doReturn(deckId).when(helper).findDeckIdByName(defaultDeckName);
         doReturn(existingNotesData).when(helper).findNotes(eq(modelId), any(Map.class));
 
@@ -380,24 +359,6 @@ public class MusIntervalTest {
         assertEquals(0, mi.getExistingMarkedNotesCount());
     }
 
-    @Test(expected = MusInterval.NoSuchModelException.class)
-    public void add_NoSuchModel() throws MusInterval.Exception {
-        final long deckId = new Random().nextLong();
-
-        AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
-        // can't create model for some reason
-        doReturn(null).when(helper).findModelIdByName(defaultModelName);
-        // deck ok
-        doReturn(deckId).when(helper).findDeckIdByName(defaultDeckName);
-
-        MusInterval mi = new MusInterval.Builder(helper)
-                .model(defaultModelName)
-                .deck(defaultDeckName)
-                .build();
-
-        mi.addToAnki();
-    }
-
     @Test(expected = MusInterval.CreateDeckException.class)
     public void add_NoSuchDeckCantCreate() throws MusInterval.Exception {
         final long modelId = new Random().nextLong();
@@ -405,7 +366,6 @@ public class MusIntervalTest {
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         // model ok
         doReturn(modelId).when(helper).findModelIdByName(defaultModelName);
-        doReturn(true).when(helper).isModelValid(eq(modelId), any(String[].class));
         // can't create deck for some reason
         doReturn(null).when(helper).findDeckIdByName(defaultDeckName);
         doReturn(null).when(helper).addNewDeck(defaultDeckName);
@@ -435,7 +395,6 @@ public class MusIntervalTest {
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         // model ok
         doReturn(modelId).when(helper).findModelIdByName(defaultModelName);
-        doReturn(true).when(helper).isModelValid(eq(modelId), any(String[].class));
         // create deck
         doReturn(null).when(helper).findDeckIdByName(defaultDeckName);
         doReturn(deckId).when(helper).addNewDeck(defaultDeckName);
@@ -505,7 +464,6 @@ public class MusIntervalTest {
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class);
         // model ok
         doReturn(modelId).when(helper).findModelIdByName(defaultModelName);
-        doReturn(true).when(helper).isModelValid(eq(modelId), any(String[].class));
         // create deck
         doReturn(null).when(helper).findDeckIdByName(defaultDeckName);
         doReturn(deckId).when(helper).addNewDeck(defaultDeckName);
@@ -575,7 +533,6 @@ public class MusIntervalTest {
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class);
         // existing model
         doReturn(modelId).when(helper).findModelIdByName(defaultModelName);
-        doReturn(true).when(helper).isModelValid(eq(modelId), any(String[].class));
         // existing deck
         doReturn(deckId).when(helper).findDeckIdByName(defaultDeckName);
 
@@ -642,7 +599,6 @@ public class MusIntervalTest {
 
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class);
         doReturn(modelId).when(helper).findModelIdByName(defaultModelName);
-        doReturn(true).when(helper).isModelValid(eq(modelId), any(String[].class));
         doReturn(deckId).when(helper).findDeckIdByName(defaultDeckName);
         doReturn(newSound).when(helper).addFileToAnkiMedia(sound);
         doReturn(noteId).when(helper).addNote(eq(modelId), eq(deckId), any(Map.class), nullable(Set.class));
@@ -683,7 +639,6 @@ public class MusIntervalTest {
 
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class);
         doReturn(modelId).when(helper).findModelIdByName(defaultModelName);
-        doReturn(true).when(helper).isModelValid(eq(modelId), any(String[].class));
         doReturn(deckId).when(helper).findDeckIdByName(defaultDeckName);
         doReturn(newSound).when(helper).addFileToAnkiMedia(sound);
         doReturn(noteId).when(helper).addNote(eq(modelId), eq(deckId), any(Map.class), nullable(Set.class));
@@ -718,7 +673,6 @@ public class MusIntervalTest {
 
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class);
         doReturn(modelId).when(helper).findModelIdByName(defaultModelName);
-        doReturn(true).when(helper).isModelValid(eq(modelId), any(String[].class));
         doReturn(deckId).when(helper).findDeckIdByName(defaultDeckName);
         doReturn(newSound).when(helper).addFileToAnkiMedia(sound);
         doReturn(noteId).when(helper).addNote(eq(modelId), eq(deckId), any(Map.class), nullable(Set.class));
@@ -756,7 +710,6 @@ public class MusIntervalTest {
 
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class);
         doReturn(modelId).when(helper).findModelIdByName(defaultModelName);
-        doReturn(true).when(helper).isModelValid(eq(modelId), any(String[].class));
         doReturn(deckId).when(helper).findDeckIdByName(defaultDeckName);
         doReturn(newSound).when(helper).addFileToAnkiMedia(sound);
         doReturn(noteId).when(helper).addNote(eq(modelId), eq(deckId), any(Map.class), nullable(Set.class));
@@ -789,7 +742,6 @@ public class MusIntervalTest {
 
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         doReturn(modelId).when(helper).findModelIdByName(defaultModelName);
-        doReturn(true).when(helper).isModelValid(eq(modelId), any(String[].class));
         doReturn(deckId).when(helper).findDeckIdByName(defaultDeckName);
 
         MusInterval mi = new MusInterval.Builder(helper)
@@ -808,7 +760,6 @@ public class MusIntervalTest {
 
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         doReturn(modelId).when(helper).findModelIdByName(defaultModelName);
-        doReturn(true).when(helper).isModelValid(eq(modelId), any(String[].class));
         doReturn(deckId).when(helper).findDeckIdByName(defaultDeckName);
 
         MusInterval mi = new MusInterval.Builder(helper)
@@ -828,7 +779,6 @@ public class MusIntervalTest {
 
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         doReturn(modelId).when(helper).findModelIdByName(defaultModelName);
-        doReturn(true).when(helper).isModelValid(eq(modelId), any(String[].class));
         doReturn(deckId).when(helper).findDeckIdByName(defaultDeckName);
 
         MusInterval mi = new MusInterval.Builder(helper)
@@ -855,7 +805,6 @@ public class MusIntervalTest {
 
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class);
         doReturn(modelId).when(helper).findModelIdByName(defaultModelName);
-        doReturn(true).when(helper).isModelValid(eq(modelId), any(String[].class));
         doReturn(deckId).when(helper).findDeckIdByName(defaultDeckName);
 
         doAnswer(new Answer<String>() {
@@ -913,7 +862,6 @@ public class MusIntervalTest {
 
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class);
         doReturn(modelId).when(helper).findModelIdByName(defaultModelName);
-        doReturn(true).when(helper).isModelValid(eq(modelId), any(String[].class));
         doReturn(deckId).when(helper).findDeckIdByName(defaultDeckName);
         doReturn(noteId).when(helper).addNote(eq(modelId), eq(deckId), any(Map.class), nullable(Set.class));
 
@@ -942,7 +890,6 @@ public class MusIntervalTest {
 
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         doReturn(modelId).when(helper).findModelIdByName(defaultModelName);
-        doReturn(true).when(helper).isModelValid(eq(modelId), any(String[].class));
         doReturn(deckId).when(helper).findDeckIdByName(defaultDeckName);
         doReturn(existingNotesData).when(helper).findNotes(eq(modelId), any(Map.class));
 
@@ -983,7 +930,6 @@ public class MusIntervalTest {
 
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         doReturn(modelId).when(helper).findModelIdByName(defaultModelName);
-        doReturn(true).when(helper).isModelValid(eq(modelId), any(String[].class));
         doReturn(deckId).when(helper).findDeckIdByName(defaultDeckName);
         doReturn(existingNotesData).when(helper).findNotes(eq(modelId), any(Map.class));
 
@@ -1032,7 +978,6 @@ public class MusIntervalTest {
 
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         doReturn(modelId).when(helper).findModelIdByName(defaultModelName);
-        doReturn(true).when(helper).isModelValid(eq(modelId), any(String[].class));
         doReturn(deckId).when(helper).findDeckIdByName(defaultDeckName);
         doReturn(existingNotesData).when(helper).findNotes(eq(modelId), any(Map.class));
 
@@ -1094,7 +1039,6 @@ public class MusIntervalTest {
 
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         doReturn(modelId).when(helper).findModelIdByName(defaultModelName);
-        doReturn(true).when(helper).isModelValid(eq(modelId), any(String[].class));
         doReturn(deckId).when(helper).findDeckIdByName(defaultDeckName);
         doReturn(existingNotesData).when(helper).findNotes(eq(modelId), any(Map.class));
 
@@ -1146,7 +1090,6 @@ public class MusIntervalTest {
 
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         doReturn(modelId).when(helper).findModelIdByName(defaultModelName);
-        doReturn(true).when(helper).isModelValid(eq(modelId), any(String[].class));
         doReturn(deckId).when(helper).findDeckIdByName(defaultDeckName);
         doReturn(existingNotesData).when(helper).findNotes(eq(modelId), any(Map.class));
 
@@ -1196,7 +1139,6 @@ public class MusIntervalTest {
 
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         doReturn(modelId).when(helper).findModelIdByName(defaultModelName);
-        doReturn(true).when(helper).isModelValid(eq(modelId), any(String[].class));
         doReturn(deckId).when(helper).findDeckIdByName(defaultDeckName);
         doReturn(existingNotesData).when(helper).findNotes(eq(modelId), any(Map.class));
 
@@ -1229,7 +1171,6 @@ public class MusIntervalTest {
 
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         doReturn(modelId).when(helper).findModelIdByName(any(String.class));
-        doReturn(true).when(helper).isModelValid(eq(modelId), any(String[].class));
         doReturn(null).when(helper).findDeckIdByName(any(String.class));
 
         MusInterval mi = new MusInterval.Builder(helper)
@@ -1254,7 +1195,6 @@ public class MusIntervalTest {
 
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         doReturn(modelId).when(helper).findModelIdByName(modelName);
-        doReturn(true).when(helper).isModelValid(eq(modelId), any(String[].class));
         doReturn(null).when(helper).findDeckIdByName(deckName);
 
         MusInterval mi = new MusInterval.Builder(helper)
@@ -1272,7 +1212,6 @@ public class MusIntervalTest {
 
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         doReturn(modelId).when(helper).findModelIdByName(any(String.class));
-        doReturn(true).when(helper).isModelValid(eq(modelId), any(String[].class));
         doReturn(null).when(helper).findDeckIdByName(any(String.class));
 
         final String startNote = "F4";
@@ -1290,7 +1229,6 @@ public class MusIntervalTest {
 
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         doReturn(modelId).when(helper).findModelIdByName(any(String.class));
-        doReturn(true).when(helper).isModelValid(eq(modelId), any(String[].class));
         doReturn(null).when(helper).findDeckIdByName(any(String.class));
 
         final String interval = "min2";
@@ -1310,7 +1248,6 @@ public class MusIntervalTest {
 
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         doReturn(modelId).when(helper).findModelIdByName(modelName);
-        doReturn(true).when(helper).isModelValid(eq(modelId), any(String[].class));
         doReturn(null).when(helper).findDeckIdByName(deckName);
 
         final String sound = "/path/to/file";
@@ -1351,7 +1288,6 @@ public class MusIntervalTest {
 
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         doReturn(modelId).when(helper).findModelIdByName(any(String.class));
-        doReturn(true).when(helper).isModelValid(eq(modelId), any(String[].class));
         doReturn(null).when(helper).findDeckIdByName(any(String.class));
 
         MusInterval.Builder builder1 = new MusInterval.Builder(helper)
@@ -1373,7 +1309,6 @@ public class MusIntervalTest {
 
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         doReturn(modelId).when(helper).findModelIdByName(any(String.class));
-        doReturn(true).when(helper).isModelValid(eq(modelId), any(String[].class));
         doReturn(null).when(helper).findDeckIdByName(any(String.class));
 
         final String startNote = "123"; // incorrect
@@ -1389,7 +1324,6 @@ public class MusIntervalTest {
 
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         doReturn(modelId).when(helper).findModelIdByName(any(String.class));
-        doReturn(true).when(helper).isModelValid(eq(modelId), any(String[].class));
         doReturn(null).when(helper).findDeckIdByName(any(String.class));
 
         final String startNote = " F7 "; // correct
@@ -1405,7 +1339,6 @@ public class MusIntervalTest {
 
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         doReturn(modelId).when(helper).findModelIdByName(any(String.class));
-        doReturn(true).when(helper).isModelValid(eq(modelId), any(String[].class));
         doReturn(null).when(helper).findDeckIdByName(any(String.class));
 
         final String tempo = "999999"; // incorrect
@@ -1421,7 +1354,6 @@ public class MusIntervalTest {
 
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         doReturn(modelId).when(helper).findModelIdByName(any(String.class));
-        doReturn(true).when(helper).isModelValid(eq(modelId), any(String[].class));
         doReturn(null).when(helper).findDeckIdByName(any(String.class));
 
         final String tempo = "asdf"; // incorrect
@@ -1437,7 +1369,6 @@ public class MusIntervalTest {
 
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         doReturn(modelId).when(helper).findModelIdByName(any(String.class));
-        doReturn(true).when(helper).isModelValid(eq(modelId), any(String[].class));
         doReturn(null).when(helper).findDeckIdByName(any(String.class));
 
         String tempo = "80"; // correct
@@ -1452,32 +1383,4 @@ public class MusIntervalTest {
                 .tempo(tempo)
                 .build();
     }
-
-    @Test(expected = MusInterval.InvalidModelException.class)
-    public void create_InvalidModel_shouldFail() throws MusInterval.ValidationException {
-        final long modelId = new Random().nextLong();
-
-        AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
-        doReturn(modelId).when(helper).findModelIdByName(any(String.class));
-        doReturn(false).when(helper).isModelValid(eq(modelId), any(String[].class));
-        doReturn(null).when(helper).findDeckIdByName(any(String.class));
-        new MusInterval.Builder(helper)
-                .model(defaultModelName)
-                .build();
-    }
-
-    @Test
-    public void create_ValidModel_shouldBeOk() throws MusInterval.ValidationException {
-        final long modelId = new Random().nextLong();
-
-        AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
-        doReturn(modelId).when(helper).findModelIdByName(any(String.class));
-        doReturn(true).when(helper).isModelValid(eq(modelId), any(String[].class));
-        doReturn(null).when(helper).findDeckIdByName(any(String.class));
-
-        new MusInterval.Builder(helper)
-                .model(defaultModelName)
-                .build();
-    }
-
 }

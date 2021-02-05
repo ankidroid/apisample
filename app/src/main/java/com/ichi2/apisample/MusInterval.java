@@ -35,22 +35,73 @@ public class MusInterval {
         }
 
         public static final String[] SIGNATURE = new String[] {
-                MusInterval.Fields.SOUND,
-                MusInterval.Fields.START_NOTE,
-                MusInterval.Fields.DIRECTION,
-                MusInterval.Fields.TIMING,
-                MusInterval.Fields.INTERVAL,
-                MusInterval.Fields.TEMPO,
-                MusInterval.Fields.INSTRUMENT
+                SOUND,
+                START_NOTE,
+                DIRECTION,
+                TIMING,
+                INTERVAL,
+                TEMPO,
+                INSTRUMENT
         };
     }
 
     public static class Builder {
-        private static final String DEFAULT_DECK_NAME = "Music intervals";
-        private static final String DEFAULT_MODEL_NAME = "Music.interval";
-
+        public static final String DEFAULT_DECK_NAME = "Music intervals";
+        public static final String DEFAULT_MODEL_NAME = "Music.interval";
+        public static final String[] CARD_NAMES = {"Question > Answer"};
+        // CSS to share between all the cards
+        public static final String CSS = ".card {\n" +
+                "  font-family: arial;\n" +
+                "  font-size: 20px;\n" +
+                "  text-align: center;\n" +
+                "  color: black;\n" +
+                "  background-color: white;\n" +
+                "}\n" +
+                "\n" +
+                ".the_answer {\n" +
+                "  font-size:40px;\n" +
+                "  font-face:bold;\n" +
+                "  color:green;\n" +
+                "}";
+        // Template for the question of each card
+        static final String QFMT1 = "{{sound}}\n" +
+                "Which interval is it?";
+        public static final String[] QFMT = {QFMT1};
+        static final String AFMT1 = "{{FrontSide}}\n" +
+                "\n" +
+                "<hr id=answer>\n" +
+                "\n" +
+                "<img src=\"_wils_{{start_note}}_{{ascending_descending}}_{{melodic_harmonic}}_{{interval}}.jpg\" onerror=\"this.style.display='none'\"/>\n" +
+                "<img src=\"_wila_{{interval}}_.jpg\" onerror=\"this.style.display='none'\"/>\n" +
+                "<div id=\"interval_longer_name\" class=\"the_answer\"></div>\n" +
+                "{{start_note}}, {{ascending_descending}}, {{melodic_harmonic}}, <span id=\"interval_short_name\">{{interval}}</span>; {{tempo}}BPM, {{instrument}}\n" +
+                "\n" +
+                "<script>\n" +
+                "function intervalLongerName(intervalShortName) {\n" +
+                "  var longerName = {\n" +
+                "    'min2': 'minor 2nd',\n" +
+                "    'Maj2': 'Major 2nd'\n" +
+                "  };\n" +
+                "  return longerName[intervalShortName];\n" +
+                "}\n" +
+                "\n" +
+                "document.getElementById(\"interval_longer_name\").innerText =\n" +
+                "    intervalLongerName(document.getElementById(\"interval_short_name\").innerText);\n" +
+                "\n" +
+                "</script>\n" +
+                "\n";
+        public static final String[] AFMT = {AFMT1};
         private final AnkiDroidHelper mHelper;
         private String mModelName = DEFAULT_MODEL_NAME;
+        private Map<String, String> mModelFields = new HashMap<String, String>() {{
+            put(Fields.SOUND, Fields.SOUND);
+            put(Fields.START_NOTE, Fields.START_NOTE);
+            put(Fields.DIRECTION, Fields.DIRECTION);
+            put(Fields.TIMING, Fields.TIMING);
+            put(Fields.INTERVAL, Fields.INTERVAL);
+            put(Fields.TEMPO, Fields.TEMPO);
+            put(Fields.INSTRUMENT, Fields.INSTRUMENT);
+        }};
         private String mDeckName = DEFAULT_DECK_NAME;
         private String mSound = "";
         private String mStartNote = "";
@@ -70,6 +121,11 @@ public class MusInterval {
 
         public Builder model(String mn) {
             mModelName = mn;
+            return this;
+        }
+
+        public Builder model_fields(Map<String, String> mflds) {
+            mModelFields = mflds;
             return this;
         }
 
@@ -125,30 +181,11 @@ public class MusInterval {
     public static class ValidationException extends Exception {}
     public static class StartNoteSyntaxException extends ValidationException {}
     public static class TempoValueException extends ValidationException {}
-    abstract static class ModelValidationException extends ValidationException {
-        private String modelName;
-        protected ModelValidationException(String modelName) {
-            super();
-            this.modelName = modelName;
-        }
-        public String getModelName() {
-            return modelName;
-        }
-    }
-    public static class NoSuchModelException extends ModelValidationException {
-        public NoSuchModelException(String modelName) {
-            super(modelName);
-        }
-    }
-    public static class InvalidModelException extends ModelValidationException {
-        public InvalidModelException(String modelName) {
-            super(modelName);
-        }
-    }
 
     private final AnkiDroidHelper helper;
 
     public final String modelName;
+    private final Map<String, String> modelFields;
     private final Long modelId;
     public final String deckName;
     private Long deckId;
@@ -169,6 +206,7 @@ public class MusInterval {
         helper = builder.mHelper;
 
         modelName = builder.mModelName;
+        modelFields = builder.mModelFields;
         modelId = helper.findModelIdByName(builder.mModelName);
         deckName = builder.mDeckName;
         deckId = helper.findDeckIdByName(builder.mDeckName);
@@ -194,13 +232,6 @@ public class MusInterval {
             if (tempoInt < Fields.Tempo.MIN_VALUE || tempoInt > Fields.Tempo.MAX_VALUE) {
                 throw new TempoValueException();
             }
-        }
-
-        if (modelId == null) {
-            throw new NoSuchModelException(modelName);
-        }
-        if (!helper.isModelValid(modelId, Fields.SIGNATURE)) {
-            throw new InvalidModelException(modelName);
         }
     }
 
@@ -239,7 +270,7 @@ public class MusInterval {
     private LinkedList<Map<String, String>> getExistingNotes() throws AnkiDroidHelper.InvalidAnkiDatabaseException {
         if (modelId != null) {
             Map<String, String> data = getCollectedData();
-            data.remove(Fields.SOUND); // sound filed should not be compared in existing data
+            data.remove(modelFields.get(Fields.SOUND)); // sound filed should not be compared in existing data
 
             return helper.findNotes(modelId, data);
         } else {
@@ -317,13 +348,13 @@ public class MusInterval {
         }
 
         return new Builder(helper)
-                .sound(data.get(Fields.SOUND))
-                .start_note(data.get(Fields.START_NOTE))
-                .direction(data.get(Fields.DIRECTION))
-                .timing(data.get(Fields.TIMING))
-                .interval(data.get(Fields.INTERVAL))
-                .tempo(data.get(Fields.TEMPO))
-                .instrument(data.get(Fields.INSTRUMENT))
+                .sound(data.get(modelFields.get(Fields.SOUND)))
+                .start_note(data.get(modelFields.get(Fields.START_NOTE)))
+                .direction(data.get(modelFields.get(Fields.DIRECTION)))
+                .timing(data.get(modelFields.get(Fields.TIMING)))
+                .interval(data.get(modelFields.get(Fields.INTERVAL)))
+                .tempo(data.get(modelFields.get(Fields.TEMPO)))
+                .instrument(data.get(modelFields.get(Fields.INSTRUMENT)))
                 .build();
     }
 
@@ -349,13 +380,13 @@ public class MusInterval {
 
     public Map<String, String> getCollectedData(String sound) {
         Map<String, String> data = new HashMap<>();
-        data.put(Fields.SOUND, "[sound:" + sound + "]");
-        data.put(Fields.START_NOTE, startNote.toUpperCase());
-        data.put(Fields.DIRECTION, direction);
-        data.put(Fields.TIMING, timing);
-        data.put(Fields.INTERVAL, interval);
-        data.put(Fields.TEMPO, tempo);
-        data.put(Fields.INSTRUMENT, instrument);
+        data.put(modelFields.get(Fields.SOUND), "[sound:" + sound + "]");
+        data.put(modelFields.get(Fields.START_NOTE), startNote.toUpperCase());
+        data.put(modelFields.get(Fields.DIRECTION), direction);
+        data.put(modelFields.get(Fields.TIMING), timing);
+        data.put(modelFields.get(Fields.INTERVAL), interval);
+        data.put(modelFields.get(Fields.TEMPO), tempo);
+        data.put(modelFields.get(Fields.INSTRUMENT), instrument); // REFACTOR
         return data;
     }
 }

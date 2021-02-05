@@ -22,6 +22,7 @@ import org.apache.commons.io.FileUtils;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -100,11 +101,9 @@ public class AnkiDroidHelper {
     public Long findModelIdByName(String modelName, int numFields) {
         SharedPreferences modelsDb = mContext.getSharedPreferences(MODEL_REF_DB, Context.MODE_PRIVATE);
         long prefsModelId = modelsDb.getLong(modelName, -1L);
-        // if we have a reference saved to modelName and it exists and has at least numFields then return it
+        // if we have a reference saved to modelName and it exists then return it
         if ((prefsModelId != -1L)
-                && (mApi.getModelName(prefsModelId) != null)
-                && (mApi.getFieldList(prefsModelId) != null)
-                && (mApi.getFieldList(prefsModelId).length >= numFields)) { // could potentially have been renamed
+                && (mApi.getModelName(prefsModelId) != null)) {
             return prefsModelId;
         }
         Map<Long, String> modelList = mApi.getModelList(numFields);
@@ -115,7 +114,7 @@ public class AnkiDroidHelper {
                 }
             }
         }
-        // model no longer exists (by name nor old id), the number of fields was reduced, or API error
+        // model no longer exists (by name nor old id), or API error
         return null;
     }
 
@@ -123,18 +122,8 @@ public class AnkiDroidHelper {
         return findModelIdByName(modelName, 1);
     }
 
-    public boolean isModelValid(long modelId, String[] validFields) {
-        final String[] currentFields = getFieldList(modelId);
-
-        if (currentFields == null || currentFields.length < validFields.length) {
-            return false;
-        }
-        for (int i = 0; i < validFields.length; i++) {
-            if (!validFields[i].equals(currentFields[i])) {
-                return false;
-            }
-        }
-        return true;
+    public Long addNewCustomModel(String modelName, String[] fields, String[] cards, String[] qfmt, String[] afmt, String css) {
+        return getApi().addNewCustomModel(modelName, fields, cards, qfmt, afmt, css, null, null);
     }
 
     /**
