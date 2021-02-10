@@ -386,7 +386,7 @@ public class MusInterval {
         data.put(modelFields.get(Fields.TIMING), timing);
         data.put(modelFields.get(Fields.INTERVAL), interval);
         data.put(modelFields.get(Fields.TEMPO), tempo);
-        data.put(modelFields.get(Fields.INSTRUMENT), instrument); // REFACTOR
+        data.put(modelFields.get(Fields.INSTRUMENT), instrument);
         return data;
     }
 }
