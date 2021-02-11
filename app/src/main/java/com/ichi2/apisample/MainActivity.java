@@ -388,13 +388,15 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         switch (requestCode) {
             case AD_PERM_REQUEST_VALID:
+                if (grantResults.length > 0 && grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                    showMsg(R.string.anki_permission_denied);
+                } else if (!doesModelExist() || !doesModelHaveEnoughFields() || !doesModelHaveStoredFields()) {
+                    validateModel();
+                }
+                break;
             case AD_PERM_REQUEST: {
                 if (grantResults.length > 0 && grantResults[0] != PackageManager.PERMISSION_GRANTED) {
                     showMsg(R.string.anki_permission_denied);
-                } else if (requestCode == AD_PERM_REQUEST_VALID) {
-                    if (!doesModelExist() || !doesModelHaveEnoughFields() || !doesModelHaveStoredFields()) {
-                        validateModel();
-                    }
                 }
             }
             case PERMISSIONS_REQUEST_EXTERNAL_STORAGE: {
