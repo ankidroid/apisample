@@ -109,8 +109,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
         if (mAnkiDroid.shouldRequestPermission()) {
             mAnkiDroid.requestPermission(this, AD_PERM_REQUEST_VALID);
-        } else if (!this.doesModelExist() || !this.doesModelHaveEnoughFields() || !this.doesModelHaveStoredFields()) {
-            this.validateModel();
+        } else if (!doesModelExist() || !doesModelHaveEnoughFields() || !doesModelHaveStoredFields()) {
+            validateModel();
         }
     }
 
@@ -187,7 +187,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     }
 
     private void configureCheckExistenceButton() {
-        final AlertDialog.Builder markNoteDialog = new AlertDialog.Builder(MainActivity.this);
+        final AlertDialog.Builder markNoteDialog = new AlertDialog.Builder(this);
         markNoteDialog
                 .setPositiveButton(R.string.str_yes, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
@@ -215,10 +215,10 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     mAnkiDroid.requestPermission(MainActivity.this, AD_PERM_REQUEST);
                     return;
                 }
-                if (!MainActivity.this.doesModelExist() ||
-                        !MainActivity.this.doesModelHaveEnoughFields() ||
-                        !MainActivity.this.doesModelHaveStoredFields()) {
-                    MainActivity.this.validateModel();
+                if (!doesModelExist() ||
+                        !doesModelHaveEnoughFields() ||
+                        !doesModelHaveStoredFields()) {
+                    validateModel();
                     return;
                 }
                 try {
@@ -256,10 +256,10 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     mAnkiDroid.requestPermission(MainActivity.this, AD_PERM_REQUEST);
                     return;
                 }
-                if (!MainActivity.this.doesModelExist() ||
-                        !MainActivity.this.doesModelHaveEnoughFields() ||
-                        !MainActivity.this.doesModelHaveStoredFields()) {
-                    MainActivity.this.validateModel();
+                if (!doesModelExist() ||
+                        !doesModelHaveEnoughFields() ||
+                        !doesModelHaveStoredFields()) {
+                    validateModel();
                     return;
                 }
                 try {
@@ -287,21 +287,21 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     mAnkiDroid.requestPermission(MainActivity.this, AD_PERM_REQUEST);
                     return;
                 }
-                if (!MainActivity.this.doesModelExist()) {
+                if (!doesModelExist()) {
                     DialogFragment f = new CreateModelDialogFragment();
                     f.show(getFragmentManager(), "createModelDialog");
                     return;
-                } else if (!MainActivity.this.doesModelHaveEnoughFields()) {
+                } else if (!doesModelHaveEnoughFields()) {
                     showMsg(String.format(getResources().getString(R.string.invalid_model), MusInterval.Builder.DEFAULT_MODEL_NAME));
                     return;
                 }
-                MainActivity.this.openSettings();
+                openSettings();
             }
         });
     }
 
     private void openSettings() {
-        startActivity(new Intent(MainActivity.this, SettingsActivity.class));
+        startActivity(new Intent(this, SettingsActivity.class));
     }
 
     private Long findModel() {
@@ -309,15 +309,15 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     }
 
     private boolean doesModelExist() {
-        return this.findModel() != null;
+        return findModel() != null;
     }
 
     private boolean doesModelHaveEnoughFields() {
-        return mAnkiDroid.getFieldList(this.findModel()).length >= MusInterval.Fields.SIGNATURE.length;
+        return mAnkiDroid.getFieldList(findModel()).length >= MusInterval.Fields.SIGNATURE.length;
     }
 
     private boolean doesModelHaveStoredFields() {
-        final ArrayList<String> existingModelFields = new ArrayList<>(Arrays.asList(mAnkiDroid.getFieldList(this.findModel())));
+        final ArrayList<String> existingModelFields = new ArrayList<>(Arrays.asList(mAnkiDroid.getFieldList(findModel())));
         final String[] storedFields = new String[MusInterval.Fields.SIGNATURE.length];
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         for (int i = 0; i < MusInterval.Fields.SIGNATURE.length; i++) {
@@ -334,7 +334,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     }
 
     private void validateModel() {
-        Long modelId = this.findModel();
+        Long modelId = findModel();
         if(modelId == null) {
             DialogFragment f = new CreateModelDialogFragment();
             f.show(getFragmentManager(), "createModelDialog");
@@ -392,10 +392,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 if (grantResults.length > 0 && grantResults[0] != PackageManager.PERMISSION_GRANTED) {
                     showMsg(R.string.anki_permission_denied);
                 } else if (requestCode == AD_PERM_REQUEST_VALID) {
-                    if (!MainActivity.this.doesModelExist() ||
-                            !MainActivity.this.doesModelHaveEnoughFields() ||
-                            !MainActivity.this.doesModelHaveStoredFields()) {
-                        this.validateModel();
+                    if (!doesModelExist() || !doesModelHaveEnoughFields() || !doesModelHaveStoredFields()) {
+                        validateModel();
                     }
                 }
             }
@@ -606,7 +604,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 MusInterval.Builder.AFMT,
                 MusInterval.Builder.CSS);
         if (newModelId != null) {
-
             showMsg(String.format(
                     getResources().getString(R.string.create_model_success),
                     modelName));
