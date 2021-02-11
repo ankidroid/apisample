@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">MusicIntervals2Anki</string>
+    <string name="settings">Settings</string>
 
     <string name="str_yes">Yes</string>
     <string name="str_no">No</string>
@@ -21,6 +22,7 @@
     <string name="action_clear_all">Clear all fields</string>
     <string name="action_check_existence">Check existence</string>
     <string name="action_add_to_anki">Add to AnkiDroid</string>
+    <string name="open_settings">Settings…</string>
 
     <!-- MainActivity messages-->
     <string name="anki_permission_denied">Could not get permission to access the AnkiDroid database</string>
@@ -43,8 +45,16 @@
         <item quantity="one">One music interval successfully marked</item>
         <item quantity="other">%d music intervals successfully marked</item>
     </plurals>
+    <string name="create_model">Note type "%s" is not found. Create it?</string>
+    <string name="configure_model">The "%s" note type settings are invalid. You need to configure fields to continue using it.</string>
+    <string name="create">Create</string>
+    <string name="configure">Configure</string>
+    <string name="cancel">Cancel</string>
+    <string name="ok">OK</string>
+    <string name="create_model_success">Successfully created note type "%s"</string>
+    <string name="create_model_error">Could not create note type</string>
     <string name="model_not_found">Note type "%s" not found</string>
-    <string name="invalid_model">Note type "%s" is not valid</string>
+    <string name="invalid_model">Too few fields in existing "%s" note type</string>
     <string name="create_deck_error">Could not create deck "%s"</string>
     <string name="add_card_error">Music interval adding to AnkiDroid failed</string>
     <string name="mandatory_field_empty">Mandatory field is empty</string>
@@ -57,4 +67,16 @@
     <string name="InvalidAnkiDatabase_unknownError">Invalid Anki Database: unknown error</string>
 
     <string name="invalid_start_note">Invalid syntax of start note</string>
+
+    <!-- SettingsActivity labels, fields and buttons -->
+    <string name="deck_preference_title">Deck</string>
+    <string name="model_preference_title">Note type</string>
+    <string name="fields_preference_category_title">Fields mapping</string>
+    <string name="sound_field_list_preference_title">Sound</string>
+    <string name="start_note_field_list_preference_title">Start note</string>
+    <string name="direction_field_list_preference_title">Direction</string>
+    <string name="timing_field_list_preference_title">Timing</string>
+    <string name="interval_field_list_preference_title">Interval</string>
+    <string name="tempo_field_list_preference_title">Tempo</string>
+    <string name="instrument_field_list_preference_title">Instrument</string>
 </resources>

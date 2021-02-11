@@ -1,218 +1,240 @@
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-                xmlns:tools="http://schemas.android.com/tools"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:paddingLeft="@dimen/activity_horizontal_margin"
-                android:paddingRight="@dimen/activity_horizontal_margin"
-                android:paddingTop="@dimen/activity_vertical_margin"
-                android:paddingBottom="@dimen/activity_vertical_margin"
-                android:focusable="false"
-                android:focusableInTouchMode="false"
-                tools:context="com.luckywarepro.apisample.MainActivity">
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    tools:context="com.luckywarepro.apisample.MainActivity">
 
-    <LinearLayout
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/main_toolbar"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:focusable="false"
-        android:focusableInTouchMode="false">
-
-        <TextView
-            android:id="@+id/labelFilename"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/label_filename" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <EditText
-                android:id="@+id/inputFilename"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:ems="10"
-                android:enabled="false"
-                android:inputType="textPersonName" />
-
-            <Button
-                android:id="@+id/actionSelectFile"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/select_filename" />
-        </LinearLayout>
-
-        <TextView
-            android:id="@+id/labelStartNote"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/start_note" />
-
-        <AutoCompleteTextView
-            android:id="@+id/inputStartNote"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-
-        <TextView
-            android:id="@+id/labelDirection"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/direction" />
-
-        <RadioGroup
-            android:id="@+id/radioGroupDirection"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <RadioButton
-                android:id="@+id/radioDirectionAny"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/radio_any"
-                android:checked="true" />
-
-            <RadioButton
-                android:id="@+id/radioDirectionAsc"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/direction_asc" />
-
-            <RadioButton
-                android:id="@+id/radioDirectionDesc"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/direction_desc" />
-
-        </RadioGroup>
-
-        <TextView
-            android:id="@+id/labelTiming"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/timing" />
-
-        <RadioGroup
-            android:id="@+id/radioGroupTiming"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <RadioButton
-                android:id="@+id/radioTimingAny"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/radio_any"
-                android:checked="true" />
-
-            <RadioButton
-                android:id="@+id/radioTimingMelodic"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/timing_melodic" />
-
-            <RadioButton
-                android:id="@+id/radioTimingHarmonic"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/timing_harmonic" />
-
-        </RadioGroup>
-
-        <TextView
-            android:id="@+id/labelInterval"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/interval" />
-
-        <Spinner
-            android:id="@+id/selectInterval"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@android:drawable/btn_dropdown"
-            android:spinnerMode="dropdown"/>
-
-        <TextView
-            android:id="@+id/labelTempo"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/tempo" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/actionTempoMinus"
-                android:layout_width="25dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="-" />
-
-            <SeekBar
-                android:id="@+id/seekTempo"
-                android:layout_width="200dp"
-                android:layout_height="match_parent"
-                android:max="200"
-                android:progress="1"
-                android:textAlignment="textEnd" />
-
-            <Button
-                android:id="@+id/actionTempoPlus"
-                android:layout_width="25dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="+" />
-
-            <TextView
-                android:id="@+id/labelTempoValue"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="0"
-                android:textAlignment="center" />
-        </LinearLayout>
-
-        <TextView
-            android:id="@+id/labelInstrument"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/instrument" />
-
-        <AutoCompleteTextView
-            android:id="@+id/inputInstrument"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:background="?attr/colorPrimary"
+        android:theme="@style/ThemeOverlay.AppCompat.ActionBar">
 
         <Button
-            android:id="@+id/actionClearAll"
-            android:layout_width="match_parent"
+            android:id="@+id/actionOpenSettings"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/action_clear_all" />
+            android:layout_gravity="end"
+            android:text="@string/open_settings" />
+    </androidx.appcompat.widget.Toolbar>
+
+    <ScrollView
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:focusable="false"
+        android:focusableInTouchMode="false"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin"
+        android:paddingTop="@dimen/activity_vertical_margin"
+        android:paddingBottom="@dimen/activity_vertical_margin">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:focusable="false"
+            android:focusableInTouchMode="false"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/labelFilename"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/label_filename" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <EditText
+                    android:id="@+id/inputFilename"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:ems="10"
+                    android:enabled="false"
+                    android:inputType="textPersonName" />
+
+                <Button
+                    android:id="@+id/actionSelectFile"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/select_filename" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/labelStartNote"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/start_note" />
+
+            <AutoCompleteTextView
+                android:id="@+id/inputStartNote"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+            <TextView
+                android:id="@+id/labelDirection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/direction" />
+
+            <RadioGroup
+                android:id="@+id/radioGroupDirection"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <RadioButton
+                    android:id="@+id/radioDirectionAny"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="true"
+                    android:text="@string/radio_any" />
+
+                <RadioButton
+                    android:id="@+id/radioDirectionAsc"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/direction_asc" />
+
+                <RadioButton
+                    android:id="@+id/radioDirectionDesc"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/direction_desc" />
+
+            </RadioGroup>
+
+            <TextView
+                android:id="@+id/labelTiming"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/timing" />
+
+            <RadioGroup
+                android:id="@+id/radioGroupTiming"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <RadioButton
+                    android:id="@+id/radioTimingAny"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="true"
+                    android:text="@string/radio_any" />
+
+                <RadioButton
+                    android:id="@+id/radioTimingMelodic"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/timing_melodic" />
+
+                <RadioButton
+                    android:id="@+id/radioTimingHarmonic"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/timing_harmonic" />
+
+            </RadioGroup>
+
+            <TextView
+                android:id="@+id/labelInterval"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/interval" />
+
+            <Spinner
+                android:id="@+id/selectInterval"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@android:drawable/btn_dropdown"
+                android:spinnerMode="dropdown" />
+
+            <TextView
+                android:id="@+id/labelTempo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/tempo" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/actionTempoMinus"
+                    android:layout_width="25dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="-" />
+
+                <SeekBar
+                    android:id="@+id/seekTempo"
+                    android:layout_width="200dp"
+                    android:layout_height="match_parent"
+                    android:max="200"
+                    android:progress="1"
+                    android:textAlignment="textEnd" />
+
+                <Button
+                    android:id="@+id/actionTempoPlus"
+                    android:layout_width="25dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="+" />
+
+                <TextView
+                    android:id="@+id/labelTempoValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="0"
+                    android:textAlignment="center" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/labelInstrument"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/instrument" />
+
+            <AutoCompleteTextView
+                android:id="@+id/inputInstrument"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
 
             <Button
-                android:id="@+id/actionCheckExistence"
-                android:layout_width="0dp"
+                android:id="@+id/actionClearAll"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/action_check_existence" />
+                android:text="@string/action_clear_all" />
 
-            <Button
-                android:id="@+id/actionAddToAnki"
-                android:layout_width="190dp"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/action_add_to_anki" />
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/actionCheckExistence"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/action_check_existence" />
+
+                <Button
+                    android:id="@+id/actionAddToAnki"
+                    android:layout_width="190dp"
+                    android:layout_height="wrap_content"
+                    android:text="@string/action_add_to_anki" />
+
+            </LinearLayout>
 
         </LinearLayout>
+    </ScrollView>
 
-    </LinearLayout>
-</ScrollView>
+</LinearLayout>
