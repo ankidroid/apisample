@@ -569,7 +569,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 })
                 .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
-                        // do nothing
+                        dialog.cancel();
                     }
                 })
                 .create();
@@ -591,7 +591,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     })
                     .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
-                            // do nothing
+                            dialog.cancel();
                         }
                     })
                     .create();
