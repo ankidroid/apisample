@@ -410,11 +410,13 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private MusInterval getMusInterval() throws MusInterval.ValidationException {
         final String anyStr = getResources().getString(R.string.radio_any);
 
-        final RadioButton radioDirection = findViewById(radioGroupDirection.getCheckedRadioButtonId());
-        final String directionStr = radioDirection.getText().toString();
+        final int radioDirectionId = radioGroupDirection.getCheckedRadioButtonId();
+        final String directionStr = radioDirectionId != -1 ?
+                ((RadioButton) findViewById(radioDirectionId)).getText().toString() : anyStr;
 
-        final RadioButton radioTiming = findViewById(radioGroupTiming.getCheckedRadioButtonId());
-        final String timingStr = radioTiming.getText().toString();
+        final int radioTimingId = radioGroupTiming.getCheckedRadioButtonId();
+        final String timingStr = radioTimingId != -1 ?
+                ((RadioButton) findViewById(radioTimingId)).getText().toString() : anyStr;
 
         final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         final Map<String, String> storedFields = new HashMap<>();
