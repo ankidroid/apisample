@@ -13,6 +13,7 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
@@ -215,9 +216,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     mAnkiDroid.requestPermission(MainActivity.this, AD_PERM_REQUEST);
                     return;
                 }
-                if (!doesModelExist() ||
-                        !doesModelHaveEnoughFields() ||
-                        !doesModelHaveStoredFields()) {
+                if (!doesModelExist() || !doesModelHaveEnoughFields() || !doesModelHaveStoredFields()) {
                     validateModel();
                     return;
                 }
@@ -256,9 +255,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     mAnkiDroid.requestPermission(MainActivity.this, AD_PERM_REQUEST);
                     return;
                 }
-                if (!doesModelExist() ||
-                        !doesModelHaveEnoughFields() ||
-                        !doesModelHaveStoredFields()) {
+                if (!doesModelExist() || !doesModelHaveEnoughFields() || !doesModelHaveStoredFields()) {
                     validateModel();
                     return;
                 }
@@ -335,7 +332,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
     private void validateModel() {
         Long modelId = findModel();
-        if(modelId == null) {
+        if (modelId == null) {
             DialogFragment f = new CreateModelDialogFragment();
             f.show(getFragmentManager(), "createModelDialog");
         } else if (!doesModelHaveEnoughFields()) {
@@ -443,7 +440,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             showMsg(R.string.mi_not_exists);
         } catch (MusInterval.StartNoteSyntaxException e) {
             showMsg(R.string.invalid_start_note);
-        }  catch (MusInterval.CreateDeckException e) {
+        } catch (MusInterval.CreateDeckException e) {
             showMsg(R.string.create_deck_error);
         } catch (MusInterval.AddToAnkiException e) {
             showMsg(R.string.add_card_error);
@@ -559,20 +556,20 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         public Dialog onCreateDialog(Bundle savedInstanceState) {
             final MainActivity mainActivity = (MainActivity) getActivity();
             return new AlertDialog.Builder(mainActivity)
-                .setMessage(String.format(
-                        getResources().getString(R.string.create_model),
-                        MusInterval.Builder.DEFAULT_MODEL_NAME))
-                .setPositiveButton(R.string.create, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        mainActivity.handleCreateModel();
-                    }
-                })
-                .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        dialog.cancel();
-                    }
-                })
-                .create();
+                    .setMessage(String.format(
+                            getResources().getString(R.string.create_model),
+                            MusInterval.Builder.DEFAULT_MODEL_NAME))
+                    .setPositiveButton(R.string.create, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            mainActivity.handleCreateModel();
+                        }
+                    })
+                    .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            dialog.cancel();
+                        }
+                    })
+                    .create();
         }
     }
 
