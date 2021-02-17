@@ -408,12 +408,14 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         final String anyStr = getResources().getString(R.string.radio_any);
 
         final int radioDirectionId = radioGroupDirection.getCheckedRadioButtonId();
-        final String directionStr = radioDirectionId != -1 ?
-                ((RadioButton) findViewById(radioDirectionId)).getText().toString() : anyStr;
+        final RadioButton radioDirection = findViewById(radioDirectionId);
+        final String directionStr = radioDirectionId != -1  && radioDirection != null ?
+                radioDirection.getText().toString() : anyStr;
 
         final int radioTimingId = radioGroupTiming.getCheckedRadioButtonId();
-        final String timingStr = radioTimingId != -1 ?
-                ((RadioButton) findViewById(radioTimingId)).getText().toString() : anyStr;
+        final RadioButton radioTiming = findViewById(radioTimingId);
+        final String timingStr = radioTimingId != -1 && radioTiming != null ?
+                radioTiming.getText().toString() : anyStr;
 
         final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         final Map<String, String> storedFields = new HashMap<>();
