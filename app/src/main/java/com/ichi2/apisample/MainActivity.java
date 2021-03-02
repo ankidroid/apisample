@@ -447,7 +447,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         } catch (MusInterval.AddToAnkiException e) {
             showMsg(R.string.add_card_error);
         } catch (MusInterval.MandatoryFieldEmptyException e) {
-            showMsg(R.string.mandatory_field_empty);
+            showMsg(String.format(getResources().getString(R.string.mandatory_field_empty), e.getField()));
         } catch (MusInterval.SoundAlreadyAddedException e) {
             showMsg(R.string.already_added);
         } catch (MusInterval.AddSoundFileException e) {
