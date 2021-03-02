@@ -53,7 +53,6 @@
     <string name="ok">OK</string>
     <string name="create_model_success">Successfully created note type "%s"</string>
     <string name="create_model_error">Could not create note type</string>
-    <string name="model_not_found">Note type "%s" not found</string>
     <string name="invalid_model">Too few fields in existing "%s" note type</string>
     <string name="create_deck_error">Could not create deck "%s"</string>
     <string name="add_card_error">Music interval adding to AnkiDroid failed</string>
