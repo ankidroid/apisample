@@ -58,7 +58,7 @@
     <string name="create_deck_error">Could not create deck "%s"</string>
     <string name="add_card_error">Music interval adding to AnkiDroid failed</string>
     <string name="mandatory_field_empty">Mandatory field is empty</string>
-    <string name="already_added">Music interval seems to be already added to AnkiDroid (try to select sound file)</string>
+    <string name="already_added">The sound file is not selected</string>
     <string name="item_added">Music interval successfully added to AnkiDroid</string>
     <string name="add_file_error">Failed to add file to AnkiDroid media</string>
     <string name="unknown_adding_error">Failed to add music interval to AnkiDroid</string>
