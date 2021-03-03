@@ -22,8 +22,11 @@ import androidx.preference.PreferenceManager;
 
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
@@ -81,19 +84,67 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         seekTempo = findViewById(R.id.seekTempo);
         inputInstrument = findViewById(R.id.inputInstrument);
 
+        inputStartNote.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) { }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                clearAddedInputFilename();
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) { }
+        });
+        radioGroupDirection.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup radioGroup, int i) {
+                clearAddedInputFilename();
+            }
+        });
+        radioGroupTiming.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup radioGroup, int i) {
+                clearAddedInputFilename();
+            }
+        });
+        final String[] items = new String[]{"", "min2", "Maj2", "min3", "Maj3"}; // @todo: Make full list of intervals
+        selectInterval.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                if (!selectInterval.getSelectedItem().toString().equals(items[(int) l])) {
+                    clearAddedInputFilename();
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) { }
+        });
         seekTempo.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @SuppressLint("SetTextI18n")
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 TextView label = findViewById(R.id.labelTempoValue);
                 label.setText(Integer.toString(seekBar.getProgress()));
+                clearAddedInputFilename();
             }
 
             @Override public void onStartTrackingTouch(SeekBar seekBar) { }
             @Override public void onStopTrackingTouch(SeekBar seekBar) { }
         });
+        inputInstrument.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) { }
 
-        final String[] items = new String[] { "", "min2", "Maj2", "min3", "Maj3" }; // @todo: Make full list of intervals
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                clearAddedInputFilename();
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) { }
+        });
+
         final ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, items);
         selectInterval.setAdapter(adapter);
 
@@ -112,6 +163,13 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             mAnkiDroid.requestPermission(this, AD_PERM_REQUEST_VALID);
         } else if (!doesModelExist() || !doesModelHaveEnoughFields() || !doesModelHaveStoredFields()) {
             validateModel();
+        }
+    }
+
+    private void clearAddedInputFilename() {
+        String filename = MainActivity.this.inputFilename.getText().toString();
+        if (filename.length() > 0 && filename.startsWith("[sound:")) {
+            inputFilename.setText("");
         }
     }
 
