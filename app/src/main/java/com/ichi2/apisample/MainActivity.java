@@ -52,7 +52,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
     private static final String STATE_REF_DB = "com.ichi2.apisample.uistate";
 
-    private Map<String, String> fieldLabels;
+    private final Map<String, String> fieldLabels = new HashMap<>();
 
     private EditText inputFilename;
     private AutoCompleteTextView inputStartNote;
@@ -69,15 +69,13 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        fieldLabels = new HashMap<String, String>() {{
-            put(MusInterval.Fields.SOUND, getResources().getString(R.string.label_filename));
-            put(MusInterval.Fields.START_NOTE, getResources().getString(R.string.start_note));
-            put(MusInterval.Fields.DIRECTION, getResources().getString(R.string.direction));
-            put(MusInterval.Fields.TIMING, getResources().getString(R.string.timing));
-            put(MusInterval.Fields.INTERVAL, getResources().getString(R.string.interval));
-            put(MusInterval.Fields.TEMPO, getResources().getString(R.string.tempo));
-            put(MusInterval.Fields.INSTRUMENT, getResources().getString(R.string.instrument));
-        }};
+        fieldLabels.put(MusInterval.Fields.SOUND, getResources().getString(R.string.label_filename));
+        fieldLabels.put(MusInterval.Fields.START_NOTE, getResources().getString(R.string.start_note));
+        fieldLabels.put(MusInterval.Fields.DIRECTION, getResources().getString(R.string.direction));
+        fieldLabels.put(MusInterval.Fields.TIMING, getResources().getString(R.string.timing));
+        fieldLabels.put(MusInterval.Fields.INTERVAL, getResources().getString(R.string.interval));
+        fieldLabels.put(MusInterval.Fields.TEMPO, getResources().getString(R.string.tempo));
+        fieldLabels.put(MusInterval.Fields.INSTRUMENT, getResources().getString(R.string.instrument));
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
