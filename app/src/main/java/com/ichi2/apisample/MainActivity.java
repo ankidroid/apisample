@@ -52,6 +52,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
     private static final String STATE_REF_DB = "com.ichi2.apisample.uistate";
 
+    private final Map<String, String> fieldLabels = new HashMap<>();
+
     private EditText inputFilename;
     private AutoCompleteTextView inputStartNote;
     private RadioGroup radioGroupDirection;
@@ -67,6 +69,14 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        fieldLabels.put(MusInterval.Fields.SOUND, getResources().getString(R.string.label_filename));
+        fieldLabels.put(MusInterval.Fields.START_NOTE, getResources().getString(R.string.start_note));
+        fieldLabels.put(MusInterval.Fields.DIRECTION, getResources().getString(R.string.direction));
+        fieldLabels.put(MusInterval.Fields.TIMING, getResources().getString(R.string.timing));
+        fieldLabels.put(MusInterval.Fields.INTERVAL, getResources().getString(R.string.interval));
+        fieldLabels.put(MusInterval.Fields.TEMPO, getResources().getString(R.string.tempo));
+        fieldLabels.put(MusInterval.Fields.INSTRUMENT, getResources().getString(R.string.instrument));
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -447,7 +457,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         } catch (MusInterval.AddToAnkiException e) {
             showMsg(R.string.add_card_error);
         } catch (MusInterval.MandatoryFieldEmptyException e) {
-            showMsg(R.string.mandatory_field_empty);
+            showMsg(String.format(getResources().getString(R.string.mandatory_field_empty), fieldLabels.get(e.getField())));
         } catch (MusInterval.SoundAlreadyAddedException e) {
             showMsg(R.string.already_added);
         } catch (MusInterval.AddSoundFileException e) {
