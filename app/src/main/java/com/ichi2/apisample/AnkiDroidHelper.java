@@ -185,8 +185,10 @@ public class AnkiDroidHelper {
         final Uri fileUri = Uri.parse(uriString);
         mContext.grantUriPermission("com.ichi2.anki", fileUri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
         try {
-            Uri insertedFile = cr.insert(Uri.withAppendedPath(FlashCardsContract.AUTHORITY_URI, "media"), cv);
-            return new File(insertedFile.getPath()).toString().substring(1);
+            Uri uri = cr.insert(Uri.withAppendedPath(FlashCardsContract.AUTHORITY_URI, "media"), cv);
+            File insertedFile = new File(uri.getPath());
+            String filePath =  insertedFile.toString();
+            return filePath.substring(1); // get rid of the "/" at the beginning
         } catch (Exception e) {
             return null;
         } finally {
