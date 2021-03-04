@@ -1383,4 +1383,44 @@ public class MusIntervalTest {
                 .tempo(tempo)
                 .build();
     }
+
+    @Test
+    public void add_SimilarIntervals_shouldCreateLinks() throws MusInterval.ValidationException {
+        final long deckId = new Random().nextLong();
+        final long modelId = new Random().nextLong();
+        final long noteId = new Random().nextLong();
+
+        AnkiDroidHelper helper = mock(AnkiDroidHelper.class);
+        doReturn(modelId).when(helper).findModelIdByName(defaultModelName);
+        doReturn(deckId).when(helper).findDeckIdByName(defaultDeckName);
+        doAnswer(new Answer<String>() {
+            @Override
+            public String answer(InvocationOnMock invocation) {
+                return invocation.getArgument(0);
+            }
+        }).when(helper).addFileToAnkiMedia(any(String.class));
+        doReturn(noteId).when(helper).addNote(eq(modelId), eq(deckId), any(Map.class), nullable(Set.class));
+
+        final MusInterval[] musIntervals = new MusInterval[MusInterval.Fields.Interval.VALUES.length - 1];
+        for (int i = 0; i < musIntervals.length; i++) {
+            String interval = MusInterval.Fields.Interval.VALUES[i];
+            String sound = String.format("%s.mp3", interval);
+            musIntervals[i] = new MusInterval.Builder(helper)
+                    .model(defaultModelName)
+                    .deck(defaultDeckName)
+                    .sound(sound)
+                    .start_note(defaultStartNote)
+                    .direction(MusInterval.Fields.Direction.ASC)
+                    .timing(MusInterval.Fields.Timing.MELODIC)
+                    .interval(interval)
+                    .tempo("90")
+                    .instrument("violin")
+                    .build();
+        }
+
+        for (int i = 1; i < musIntervals.length; i++) {
+            assertEquals(musIntervals[i].sound, musIntervals[i - 1].soundLarger);
+            assertEquals(musIntervals[i].soundSmaller, musIntervals[i - 1].soundSmaller);
+        }
+    }
 }
