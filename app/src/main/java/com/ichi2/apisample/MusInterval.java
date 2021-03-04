@@ -380,7 +380,7 @@ public class MusInterval {
 
     public Map<String, String> getCollectedData(String sound) {
         Map<String, String> data = new HashMap<>();
-        data.put(modelFields.get(Fields.SOUND), "[sound:" + sound + "]");
+        data.put(modelFields.get(Fields.SOUND), sound);
         data.put(modelFields.get(Fields.START_NOTE), startNote.toUpperCase());
         data.put(modelFields.get(Fields.DIRECTION), direction);
         data.put(modelFields.get(Fields.TIMING), timing);
