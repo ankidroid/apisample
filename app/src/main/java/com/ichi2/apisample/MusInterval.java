@@ -110,6 +110,8 @@ public class MusInterval {
         }};
         private String mDeckName = DEFAULT_DECK_NAME;
         private String mSound = "";
+        private String mSoundSmaller = "";
+        private String mSoundLarger = "";
         private String mStartNote = "";
         private String mDirection = "";
         private String mTiming = "";
@@ -142,6 +144,16 @@ public class MusInterval {
 
         public Builder sound(String sd) {
             mSound = sd;
+            return this;
+        }
+
+        public Builder sound_smaller(String sds) {
+            mSoundSmaller = sds;
+            return this;
+        }
+
+        public Builder sound_larger(String sdl) {
+            mSoundLarger = sdl;
             return this;
         }
 
@@ -209,6 +221,8 @@ public class MusInterval {
 
     // Data of model's fields
     public final String sound;
+    public final String soundSmaller;
+    public final String soundLarger;
     public final String startNote;
     public final String direction;
     public final String timing;
@@ -229,6 +243,8 @@ public class MusInterval {
         deckId = helper.findDeckIdByName(builder.mDeckName);
 
         sound = builder.mSound.trim();
+        soundSmaller = builder.mSoundSmaller;
+        soundLarger = builder.mSoundLarger;
         startNote = builder.mStartNote.trim();
         direction = builder.mDirection.trim().toLowerCase();
         timing = builder.mTiming.trim().toLowerCase();
