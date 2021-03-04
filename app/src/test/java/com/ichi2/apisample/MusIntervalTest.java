@@ -360,7 +360,7 @@ public class MusIntervalTest {
     }
 
     @Test(expected = MusInterval.CreateDeckException.class)
-    public void add_NoSuchDeckCantCreate() throws MusInterval.Exception {
+    public void add_NoSuchDeckCantCreate() throws MusInterval.Exception, AnkiDroidHelper.InvalidAnkiDatabaseException {
         final long modelId = new Random().nextLong();
 
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
@@ -380,7 +380,7 @@ public class MusIntervalTest {
 
     @Test(expected = MusInterval.AddToAnkiException.class)
     @SuppressWarnings("unchecked")
-    public void add_NoSuchDeck_CardShouldNotBeCreated() throws MusInterval.Exception {
+    public void add_NoSuchDeck_CardShouldNotBeCreated() throws MusInterval.Exception, AnkiDroidHelper.InvalidAnkiDatabaseException {
         final long deckId = new Random().nextLong();
         final long modelId = new Random().nextLong();
 
@@ -448,7 +448,7 @@ public class MusIntervalTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void add_NoSuchDeck_DeckShouldBeCreated() throws MusInterval.Exception {
+    public void add_NoSuchDeck_DeckShouldBeCreated() throws MusInterval.Exception, AnkiDroidHelper.InvalidAnkiDatabaseException {
         final long deckId = new Random().nextLong();
         final long modelId = new Random().nextLong();
         final long noteId = new Random().nextLong();
@@ -517,7 +517,7 @@ public class MusIntervalTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void add_AllFieldsAreSet_NoteShouldBeCreated() throws MusInterval.Exception {
+    public void add_AllFieldsAreSet_NoteShouldBeCreated() throws MusInterval.Exception, AnkiDroidHelper.InvalidAnkiDatabaseException {
         final long deckId = new Random().nextLong();
         final long modelId = new Random().nextLong();
         final long noteId = new Random().nextLong();
@@ -584,7 +584,7 @@ public class MusIntervalTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void add_AllFieldsAreSet_NewMusicIntervalShouldBeCreated() throws MusInterval.Exception {
+    public void add_AllFieldsAreSet_NewMusicIntervalShouldBeCreated() throws MusInterval.Exception, AnkiDroidHelper.InvalidAnkiDatabaseException {
         final long deckId = new Random().nextLong();
         final long modelId = new Random().nextLong();
         final long noteId = new Random().nextLong();
@@ -629,7 +629,7 @@ public class MusIntervalTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void add_AllFieldsAreSet_startNoteShouldBeFixedToUpperCase() throws MusInterval.Exception {
+    public void add_AllFieldsAreSet_startNoteShouldBeFixedToUpperCase() throws MusInterval.Exception, AnkiDroidHelper.InvalidAnkiDatabaseException {
         final long deckId = new Random().nextLong();
         final long modelId = new Random().nextLong();
         final long noteId = new Random().nextLong();
@@ -663,7 +663,7 @@ public class MusIntervalTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void add_AllFieldsAreSet_SoundFieldShouldBeProper() throws MusInterval.Exception {
+    public void add_AllFieldsAreSet_SoundFieldShouldBeProper() throws MusInterval.Exception, AnkiDroidHelper.InvalidAnkiDatabaseException {
         final long deckId = new Random().nextLong();
         final long modelId = new Random().nextLong();
         final long noteId = new Random().nextLong();
@@ -700,7 +700,7 @@ public class MusIntervalTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void add_AllFieldsAreSet_SoundFieldShouldBeProper2() throws MusInterval.Exception {
+    public void add_AllFieldsAreSet_SoundFieldShouldBeProper2() throws MusInterval.Exception, AnkiDroidHelper.InvalidAnkiDatabaseException {
         final long deckId = new Random().nextLong();
         final long modelId = new Random().nextLong();
         final long noteId = new Random().nextLong();
@@ -736,7 +736,7 @@ public class MusIntervalTest {
     }
 
     @Test(expected = MusInterval.MandatoryFieldEmptyException.class)
-    public void add_NoSoundSpecified_ShouldFail() throws MusInterval.Exception {
+    public void add_NoSoundSpecified_ShouldFail() throws MusInterval.Exception, AnkiDroidHelper.InvalidAnkiDatabaseException {
         final long deckId = new Random().nextLong();
         final long modelId = new Random().nextLong();
 
@@ -754,7 +754,7 @@ public class MusIntervalTest {
     }
 
     @Test(expected = MusInterval.MandatoryFieldEmptyException.class)
-    public void add_NoStartNoteSpecified_ShouldFail() throws MusInterval.Exception {
+    public void add_NoStartNoteSpecified_ShouldFail() throws MusInterval.Exception, AnkiDroidHelper.InvalidAnkiDatabaseException {
         final long deckId = new Random().nextLong();
         final long modelId = new Random().nextLong();
 
@@ -773,7 +773,7 @@ public class MusIntervalTest {
     }
 
     @Test(expected = MusInterval.MandatoryFieldEmptyException.class)
-    public void add_NoIntervalSpecified_ShouldFail() throws MusInterval.Exception {
+    public void add_NoIntervalSpecified_ShouldFail() throws MusInterval.Exception, AnkiDroidHelper.InvalidAnkiDatabaseException {
         final long deckId = new Random().nextLong();
         final long modelId = new Random().nextLong();
 
@@ -794,7 +794,7 @@ public class MusIntervalTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void add_TheSameSoundFileName2Times_shouldCreate2DifferentSoundFilesInAnki() throws MusInterval.Exception {
+    public void add_TheSameSoundFileName2Times_shouldCreate2DifferentSoundFilesInAnki() throws MusInterval.Exception, AnkiDroidHelper.InvalidAnkiDatabaseException {
         final long deckId = new Random().nextLong();
         final long modelId = new Random().nextLong();
         final long noteId = new Random().nextLong();
@@ -853,7 +853,7 @@ public class MusIntervalTest {
 
     @Test(expected = MusInterval.SoundAlreadyAddedException.class)
     @SuppressWarnings("unchecked")
-    public void add_SoundFieldContainsBrackets_shouldFail() throws MusInterval.Exception {
+    public void add_SoundFieldContainsBrackets_shouldFail() throws MusInterval.Exception, AnkiDroidHelper.InvalidAnkiDatabaseException {
         final long deckId = new Random().nextLong();
         final long modelId = new Random().nextLong();
         final long noteId = new Random().nextLong();
@@ -1385,7 +1385,7 @@ public class MusIntervalTest {
     }
 
     @Test
-    public void add_SimilarIntervals_shouldCreateLinks() throws MusInterval.ValidationException {
+    public void add_SimilarIntervals_shouldCreateLinks() throws MusInterval.Exception, AnkiDroidHelper.InvalidAnkiDatabaseException {
         final long deckId = new Random().nextLong();
         final long modelId = new Random().nextLong();
         final long noteId = new Random().nextLong();
@@ -1402,8 +1402,9 @@ public class MusIntervalTest {
         doReturn(noteId).when(helper).addNote(eq(modelId), eq(deckId), any(Map.class), nullable(Set.class));
 
         final MusInterval[] musIntervals = new MusInterval[MusInterval.Fields.Interval.VALUES.length - 1];
+        final LinkedList<Map<String, String>> findMockResult = new LinkedList<>();
         for (int i = 0; i < musIntervals.length; i++) {
-            String interval = MusInterval.Fields.Interval.VALUES[i];
+            String interval = MusInterval.Fields.Interval.VALUES[i + 1];
             String sound = String.format("%s.mp3", interval);
             musIntervals[i] = new MusInterval.Builder(helper)
                     .model(defaultModelName)
@@ -1416,11 +1417,29 @@ public class MusIntervalTest {
                     .tempo("90")
                     .instrument("violin")
                     .build();
+            findMockResult.add(musIntervals[i].getCollectedData());
         }
 
+        doAnswer(new Answer<LinkedList<Map<String, String>>>() {
+            @Override
+            public LinkedList<Map<String, String>> answer(InvocationOnMock invocation) {
+                String interval = ((Map<String, String>) invocation.getArgument(1)).get(MusInterval.Fields.INTERVAL);
+                LinkedList<Map<String, String>> result = new LinkedList<>();
+                for (Map<String, String> data : findMockResult) {
+                    if (data.get(MusInterval.Fields.INTERVAL).equals(interval)) {
+                        result.add(data);
+                        return result;
+                    }
+                }
+                return null;
+            }
+        }).when(helper).findNotes(eq(modelId), any(Map.class));
+
+        musIntervals[0] = musIntervals[0].addToAnki();
         for (int i = 1; i < musIntervals.length; i++) {
+            musIntervals[i] = musIntervals[i].addToAnki();
             assertEquals(musIntervals[i].sound, musIntervals[i - 1].soundLarger);
-            assertEquals(musIntervals[i].soundSmaller, musIntervals[i - 1].soundSmaller);
+            assertEquals(musIntervals[i].soundSmaller, musIntervals[i - 1].sound);
         }
     }
 }

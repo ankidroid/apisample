@@ -277,6 +277,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     showMsg(R.string.item_added);
                 } catch (MusInterval.Exception e) {
                     processMusIntervalException(e);
+                } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
+                    processInvalidAnkiDatabase(e);
                 }
             }
         });
