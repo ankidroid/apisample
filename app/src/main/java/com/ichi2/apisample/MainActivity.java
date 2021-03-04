@@ -84,18 +84,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         seekTempo = findViewById(R.id.seekTempo);
         inputInstrument = findViewById(R.id.inputInstrument);
 
-        inputStartNote.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) { }
-
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                clearAddedInputFilename();
-            }
-
-            @Override
-            public void afterTextChanged(Editable editable) { }
-        });
+        inputStartNote.addTextChangedListener(new FieldInputTextWatcher());
         radioGroupDirection.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup radioGroup, int i) {
@@ -108,13 +97,10 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 clearAddedInputFilename();
             }
         });
-        final String[] items = new String[]{"", "min2", "Maj2", "min3", "Maj3"}; // @todo: Make full list of intervals
         selectInterval.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                if (!selectInterval.getSelectedItem().toString().equals(items[(int) l])) {
-                    clearAddedInputFilename();
-                }
+                clearAddedInputFilename();
             }
 
             @Override
@@ -132,19 +118,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             @Override public void onStartTrackingTouch(SeekBar seekBar) { }
             @Override public void onStopTrackingTouch(SeekBar seekBar) { }
         });
-        inputInstrument.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) { }
+        inputInstrument.addTextChangedListener(new FieldInputTextWatcher());
 
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                clearAddedInputFilename();
-            }
-
-            @Override
-            public void afterTextChanged(Editable editable) { }
-        });
-
+        final String[] items = new String[]{"", "min2", "Maj2", "min3", "Maj3"}; // @todo: Make full list of intervals
         final ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, items);
         selectInterval.setAdapter(adapter);
 
@@ -171,6 +147,26 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         if (filename.length() > 0 && filename.startsWith("[sound:")) {
             inputFilename.setText("");
         }
+    }
+
+    private class FieldInputTextWatcher implements TextWatcher {
+        private String prev;
+
+        @Override
+        public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+            prev = charSequence.toString();
+        }
+
+        @Override
+        public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+            String curr = charSequence.toString();
+            if (!curr.equalsIgnoreCase(prev)) {
+                clearAddedInputFilename();
+            }
+        }
+
+        @Override
+        public void afterTextChanged(Editable editable) { }
     }
 
     private void configureTempoButtons() {
