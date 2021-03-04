@@ -281,7 +281,7 @@ public class MusInterval {
     private LinkedList<Map<String, String>> getExistingNotes() throws AnkiDroidHelper.InvalidAnkiDatabaseException {
         if (modelId != null) {
             Map<String, String> data = getCollectedData();
-            data.remove(modelFields.get(Fields.SOUND)); // sound filed should not be compared in existing data
+            data.remove(modelFields.get(Fields.SOUND)); // sound field should not be compared in existing data
 
             return helper.findNotes(modelId, data);
         } else {
