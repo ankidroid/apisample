@@ -174,7 +174,18 @@ public class MusInterval {
     public static class CreateDeckException extends Exception {}
     public static class AddToAnkiException extends Exception {}
     public static class NoteNotExistsException extends Exception {}
-    public static class MandatoryFieldEmptyException extends Exception {}
+    public static class MandatoryFieldEmptyException extends Exception {
+        private String field;
+
+        public MandatoryFieldEmptyException(String field) {
+            super();
+            this.field = field;
+        }
+
+        public String getField() {
+            return field;
+        }
+    }
     public static class SoundAlreadyAddedException extends Exception {}
     public static class AddSoundFileException extends Exception {}
 
@@ -326,8 +337,19 @@ public class MusInterval {
             helper.storeDeckReference(deckName, deckId);
         }
 
-        if (!areMandatoryFieldsFilled()) {
-            throw new MandatoryFieldEmptyException();
+        final Map<String, String> fields = new HashMap<String, String>() {{
+            put(Fields.SOUND, sound);
+            put(Fields.START_NOTE, startNote);
+            put(Fields.DIRECTION, direction);
+            put(Fields.TIMING, timing);
+            put(Fields.INTERVAL, interval);
+            put(Fields.TEMPO, tempo);
+            put(Fields.INSTRUMENT, instrument);
+        }};
+        for (Map.Entry<String, String> field : fields.entrySet()) {
+            if (field.getValue().isEmpty()) {
+                throw new MandatoryFieldEmptyException(field.getKey());
+            }
         }
 
         if (sound.startsWith("[sound:")) {
@@ -356,19 +378,6 @@ public class MusInterval {
                 .tempo(data.get(modelFields.get(Fields.TEMPO)))
                 .instrument(data.get(modelFields.get(Fields.INSTRUMENT)))
                 .build();
-    }
-
-    /**
-     * Check if all the fields are not empty (needed for adding to AnkiDroid).
-     */
-    protected boolean areMandatoryFieldsFilled() {
-        return !sound.isEmpty()
-                && !startNote.isEmpty()
-                && !direction.isEmpty()
-                && !timing.isEmpty()
-                && !interval.isEmpty()
-                && !tempo.isEmpty()
-                && !instrument.isEmpty();
     }
 
     /**
