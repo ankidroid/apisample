@@ -99,8 +99,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             @Override public void onStopTrackingTouch(SeekBar seekBar) { }
         });
 
-        final String[] items = new String[] { "", "min2", "Maj2", "min3", "Maj3" }; // @todo: Make full list of intervals
-        final ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, items);
+        final ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_dropdown_item,
+                MusInterval.Fields.Interval.VALUES);
         selectInterval.setAdapter(adapter);
 
         configureTempoButtons();

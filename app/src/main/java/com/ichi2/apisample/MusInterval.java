@@ -31,6 +31,11 @@ public class MusInterval {
             public static final String HARMONIC = "harmonic";
         }
 
+        public static class Interval {
+            // @todo: Make full list of intervals
+            public static final String[] VALUES = new String[]{"", "min2", "Maj2", "min3", "Maj3"};
+        }
+
         public static class Tempo {
             public static final int MIN_VALUE = 0;
             public static final int MAX_VALUE = 200;
