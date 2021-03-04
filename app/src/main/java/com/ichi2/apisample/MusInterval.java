@@ -12,6 +12,8 @@ public class MusInterval {
      */
     public static class Fields {
         public static final String SOUND = "sound";
+        public static final String SOUND_SMALLER = "sound_smaller";
+        public static final String SOUND_LARGER = "sound_larger";
         public static final String START_NOTE = "start_note";
         public static final String DIRECTION = "ascending_descending";
         public static final String TIMING = "melodic_harmonic";
@@ -36,6 +38,8 @@ public class MusInterval {
 
         public static final String[] SIGNATURE = new String[] {
                 SOUND,
+                SOUND_LARGER,
+                SOUND_SMALLER,
                 START_NOTE,
                 DIRECTION,
                 TIMING,
@@ -95,6 +99,8 @@ public class MusInterval {
         private String mModelName = DEFAULT_MODEL_NAME;
         private Map<String, String> mModelFields = new HashMap<String, String>() {{
             put(Fields.SOUND, Fields.SOUND);
+            put(Fields.SOUND_SMALLER, Fields.SOUND_SMALLER);
+            put(Fields.SOUND_LARGER, Fields.SOUND_LARGER);
             put(Fields.START_NOTE, Fields.START_NOTE);
             put(Fields.DIRECTION, Fields.DIRECTION);
             put(Fields.TIMING, Fields.TIMING);
