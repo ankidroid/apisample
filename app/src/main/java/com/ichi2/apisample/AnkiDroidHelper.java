@@ -4,12 +4,12 @@ import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
-import android.os.Environment;
 
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -17,10 +17,7 @@ import androidx.core.content.ContextCompat;
 import com.ichi2.anki.FlashCardsContract;
 import com.ichi2.anki.api.AddContentApi;
 
-import org.apache.commons.io.FileUtils;
-
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -178,39 +175,25 @@ public class AnkiDroidHelper {
         return getApi().getFieldList(modelId);
     }
 
-    public String addFileToAnkiMedia(String soundFilename) {
-        final String newFilename = "music_interval_" + (System.currentTimeMillis() / 1000L)
-                + soundFilename.substring(soundFilename.lastIndexOf("."));
-
-        final String destinationPath = Environment.getExternalStorageDirectory().getAbsolutePath()
-                + "/AnkiDroid/collection.media/" + newFilename;
-
-        try
-        {
-            File source = new File(soundFilename);
-            File destination = new File(destinationPath);
-            FileUtils.copyFile(source, destination);
-        }
-        catch (IOException e)
-        {
+    // @todo: refactor once new version release of "com.ichi2.anki.api" is available
+    public String addFileToAnkiMedia(String uriString) {
+        ContentResolver cr = mContext.getContentResolver();
+        ContentValues cv = new ContentValues();
+        cv.put("file_uri", uriString);
+        final String preferredName = "music_interval_" + (System.currentTimeMillis() / 1000L);
+        cv.put("preferred_name", preferredName);
+        final Uri fileUri = Uri.parse(uriString);
+        mContext.grantUriPermission("com.ichi2.anki", fileUri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        try {
+            Uri uri = cr.insert(Uri.withAppendedPath(FlashCardsContract.AUTHORITY_URI, "media"), cv);
+            File insertedFile = new File(uri.getPath());
+            String filePath =  insertedFile.toString();
+            return filePath.substring(1); // get rid of the "/" at the beginning
+        } catch (Exception e) {
             return null;
+        } finally {
+            mContext.revokeUriPermission(fileUri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
         }
-
-        return newFilename;
-
-// @todo AnkiDroid v2.14 supports adding media files through the API, so should be used later
-//
-//        Uri uri = Uri.parse(Uri.decode(soundFilename));
-//        String filePath = getFilePath(mContext, uri);
-//
-//        ContentValues values = new ContentValues();
-//        values.put("file_uri", filePath);
-//        values.put("preferred_name", uniqueSoundFilename);
-//
-//        final Uri mediaUri = Uri.withAppendedPath(FlashCardsContract.AUTHORITY_URI, "media");
-//        final Uri result = mResolver.insert(mediaUri, values);
-//
-//        return result.getPath();
     }
 
     /**
