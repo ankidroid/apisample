@@ -186,8 +186,7 @@ public class AnkiDroidHelper {
         mContext.grantUriPermission("com.ichi2.anki", fileUri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
         try {
             Uri insertedFile = cr.insert(Uri.withAppendedPath(FlashCardsContract.AUTHORITY_URI, "media"), cv);
-            String fname = new File(insertedFile.getPath()).toString();
-            return String.format("[sound:%s]", fname.substring(1));
+            return new File(insertedFile.getPath()).toString().substring(1);
         } catch (Exception e) {
             return null;
         } finally {
