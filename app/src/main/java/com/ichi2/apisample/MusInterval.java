@@ -400,15 +400,15 @@ public class MusInterval {
         int intervalIdx = intervals.indexOf(interval);
         String soundSmaller = "";
         if (intervalIdx > 1) {
-            data.put(intervalField, intervals.get(intervalIdx - 1));
+            data.put(intervalField, Fields.Interval.VALUES[intervalIdx - 1]);
             LinkedList<Map<String, String>> smallerIntervals = helper.findNotes(modelId, data);
             if (smallerIntervals.size() >= 1) {
                 soundSmaller = smallerIntervals.getFirst().get(soundField);
             }
         }
         String soundLarger = "";
-        if (intervalIdx < intervals.size() - 1) {
-            data.put(intervalField, intervals.get(intervalIdx + 1));
+        if (intervalIdx < Fields.Interval.VALUES.length - 1) {
+            data.put(intervalField, Fields.Interval.VALUES[intervalIdx + 1]);
             LinkedList<Map<String, String>> largerIntervals = helper.findNotes(modelId, data);
             if (largerIntervals.size() >= 1) {
                 soundLarger = largerIntervals.getFirst().get(soundField);
@@ -417,7 +417,6 @@ public class MusInterval {
         data.put(intervalField, interval);
         data.put(modelFields.get(Fields.SOUND_SMALLER), soundSmaller);
         data.put(modelFields.get(Fields.SOUND_LARGER), soundLarger);
-        // @todo: refactor prev prev fragment
 
         Long noteId = helper.addNote(modelId, deckId, data, null);
 
@@ -427,8 +426,8 @@ public class MusInterval {
 
         return new Builder(helper)
                 .sound(data.get(modelFields.get(Fields.SOUND)))
-                .sound_smaller(soundSmaller)
-                .sound_larger(soundLarger)
+                .sound_smaller(data.get(modelFields.get(Fields.SOUND_SMALLER)))
+                .sound_larger(data.get(modelFields.get(Fields.SOUND_LARGER)))
                 .start_note(data.get(modelFields.get(Fields.START_NOTE)))
                 .direction(data.get(modelFields.get(Fields.DIRECTION)))
                 .timing(data.get(modelFields.get(Fields.TIMING)))
