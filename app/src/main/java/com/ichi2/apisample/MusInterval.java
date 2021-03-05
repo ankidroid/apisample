@@ -416,6 +416,10 @@ public class MusInterval {
 
     private Map<String, String> fillSimilarIntervals(Map<String, String> data) throws AnkiDroidHelper.InvalidAnkiDatabaseException {
         Map<String, String> newData = new HashMap<>(data);
+        String soundField = modelFields.get(Fields.SOUND);
+        String sound = newData.remove(soundField);
+        newData.remove(Fields.SOUND_SMALLER);
+        newData.remove(Fields.SOUND_LARGER);
         String intervalField = modelFields.get(Fields.INTERVAL);
         String interval = newData.get(intervalField);
         int intervalIdx = 0;
@@ -425,13 +429,21 @@ public class MusInterval {
                 break;
             }
         }
-        String soundField = modelFields.get(Fields.SOUND);
         String soundSmaller = "";
         if (intervalIdx > 1) {
             newData.put(intervalField, Fields.Interval.VALUES[intervalIdx - 1]);
             LinkedList<Map<String, String>> smallerIntervals = helper.findNotes(modelId, newData);
             if (smallerIntervals != null && smallerIntervals.size() >= 1) {
-                soundSmaller = smallerIntervals.getFirst().get(soundField);
+                int maxIdIdx = 0;
+                long maxId = Long.MIN_VALUE;
+                for (int i = 0; i < smallerIntervals.size(); i++) {
+                    long id = Long.parseLong(smallerIntervals.get(i).get("id"));
+                    if (id > maxId) {
+                        maxId = id;
+                        maxIdIdx = i;
+                    }
+                }
+                soundSmaller = smallerIntervals.get(maxIdIdx).get(soundField);
             }
         }
         String soundLarger = "";
@@ -439,9 +451,19 @@ public class MusInterval {
             newData.put(intervalField, Fields.Interval.VALUES[intervalIdx + 1]);
             LinkedList<Map<String, String>> largerIntervals = helper.findNotes(modelId, newData);
             if (largerIntervals != null && largerIntervals.size() >= 1) {
-                soundLarger = largerIntervals.getFirst().get(soundField);
+                int maxIdIdx = 0;
+                long maxId = Long.MIN_VALUE;
+                for (int i = 0; i < largerIntervals.size(); i++) {
+                    long id = Long.parseLong(largerIntervals.get(i).get("id"));
+                    if (id > maxId) {
+                        maxId = id;
+                        maxIdIdx = i;
+                    }
+                }
+                soundLarger = largerIntervals.get(maxIdIdx).get(soundField);
             }
         }
+        newData.put(soundField, sound);
         newData.put(intervalField, interval);
         newData.put(modelFields.get(Fields.SOUND_SMALLER), soundSmaller);
         newData.put(modelFields.get(Fields.SOUND_LARGER), soundLarger);
