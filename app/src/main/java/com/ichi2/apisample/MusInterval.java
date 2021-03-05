@@ -44,8 +44,8 @@ public class MusInterval {
 
         public static final String[] SIGNATURE = new String[] {
                 SOUND,
-                SOUND_LARGER,
                 SOUND_SMALLER,
+                SOUND_LARGER,
                 START_NOTE,
                 DIRECTION,
                 TIMING,
