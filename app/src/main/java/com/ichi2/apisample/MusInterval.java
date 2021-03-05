@@ -437,11 +437,14 @@ public class MusInterval {
                 int maxIdIdx = 0;
                 long maxId = Long.MIN_VALUE;
                 for (int i = 0; i < smallerIntervals.size(); i++) {
-                    long id = Long.parseLong(smallerIntervals.get(i).get("id"));
+                    Map<String, String> smallerIntervalData = smallerIntervals.get(i);
+                    long id = Long.parseLong(smallerIntervalData.get("id"));
                     if (id > maxId) {
                         maxId = id;
                         maxIdIdx = i;
                     }
+                    smallerIntervalData.put(Fields.SOUND_LARGER, sound);
+                    helper.updateNote(modelId, id, smallerIntervalData);
                 }
                 soundSmaller = smallerIntervals.get(maxIdIdx).get(soundField);
             }
@@ -454,11 +457,14 @@ public class MusInterval {
                 int maxIdIdx = 0;
                 long maxId = Long.MIN_VALUE;
                 for (int i = 0; i < largerIntervals.size(); i++) {
-                    long id = Long.parseLong(largerIntervals.get(i).get("id"));
+                    Map<String, String> largerIntervalData = largerIntervals.get(i);
+                    long id = Long.parseLong(largerIntervalData.get("id"));
                     if (id > maxId) {
                         maxId = id;
                         maxIdIdx = i;
                     }
+                    largerIntervalData.put(Fields.SOUND_SMALLER, sound);
+                    helper.updateNote(modelId, id, largerIntervalData);
                 }
                 soundLarger = largerIntervals.get(maxIdIdx).get(soundField);
             }

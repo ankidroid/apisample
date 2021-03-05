@@ -281,6 +281,15 @@ public class AnkiDroidHelper {
         return result;
     }
 
+    public boolean updateNote(long modelId, long noteId, Map<String, String> data) {
+        String[] fieldNames = getFieldList(modelId);
+        String[] fieldValues = new String[fieldNames.length];
+        for (int i = 0; i < fieldNames.length; i++) {
+            fieldValues[i] = data.getOrDefault(fieldNames[i], "");
+        }
+        return mApi.updateNoteFields(noteId, fieldValues);
+    }
+
     public int addTagToNote(long noteId, String tags) {
         ContentValues values = new ContentValues();
         values.put(FlashCardsContract.Note.TAGS, tags);
