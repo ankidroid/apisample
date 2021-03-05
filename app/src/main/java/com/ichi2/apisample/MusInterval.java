@@ -430,7 +430,7 @@ public class MusInterval {
         if (intervalIdx > 1) {
             newData.put(intervalField, Fields.Interval.VALUES[intervalIdx - 1]);
             LinkedList<Map<String, String>> smallerIntervals = helper.findNotes(modelId, newData);
-            if (smallerIntervals.size() >= 1) {
+            if (smallerIntervals != null && smallerIntervals.size() >= 1) {
                 soundSmaller = smallerIntervals.getFirst().get(soundField);
             }
         }
@@ -438,7 +438,7 @@ public class MusInterval {
         if (intervalIdx < Fields.Interval.VALUES.length - 1) {
             newData.put(intervalField, Fields.Interval.VALUES[intervalIdx + 1]);
             LinkedList<Map<String, String>> largerIntervals = helper.findNotes(modelId, newData);
-            if (largerIntervals.size() >= 1) {
+            if (largerIntervals != null && largerIntervals.size() >= 1) {
                 soundLarger = largerIntervals.getFirst().get(soundField);
             }
         }
