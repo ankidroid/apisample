@@ -1450,7 +1450,6 @@ public class MusIntervalTest {
             public Boolean answer(InvocationOnMock invocation) throws Throwable {
                 int idx = (int)(long) invocation.getArgument(1);
                 Map<String, String> data = new HashMap<>((Map<String, String>) invocation.getArgument(2));
-                MusInterval current = musIntervalsAdded.get(idx);
                 MusInterval updated = new MusInterval.Builder(helper)
                         .model(defaultModelName)
                         .deck(defaultDeckName)
@@ -1546,7 +1545,6 @@ public class MusIntervalTest {
             public Boolean answer(InvocationOnMock invocation) throws Throwable {
                 int idx = (int)(long) invocation.getArgument(1);
                 Map<String, String> data = new HashMap<>((Map<String, String>) invocation.getArgument(2));
-                MusInterval current = musIntervalsAdded.get(idx);
                 MusInterval updated = new MusInterval.Builder(helper)
                         .model(defaultModelName)
                         .deck(defaultDeckName)
@@ -1662,7 +1660,6 @@ public class MusIntervalTest {
             public Boolean answer(InvocationOnMock invocation) throws Throwable {
                 int idx = (int)(long) invocation.getArgument(1);
                 Map<String, String> data = new HashMap<>((Map<String, String>) invocation.getArgument(2));
-                MusInterval current = musIntervalsAdded.get(idx);
                 MusInterval updated = new MusInterval.Builder(helper)
                         .model(defaultModelName)
                         .deck(defaultDeckName)
@@ -1743,7 +1740,7 @@ public class MusIntervalTest {
             musIntervalsLarger[i] = new MusInterval.Builder(helper)
                 .model(defaultModelName)
                 .deck(defaultDeckName)
-                .sound("intervalLarger.mp3")
+                .sound(sound)
                 .start_note(defaultStartNote)
                 .direction(MusInterval.Fields.Direction.ASC)
                 .timing(MusInterval.Fields.Timing.MELODIC)
@@ -1783,7 +1780,6 @@ public class MusIntervalTest {
             public Boolean answer(InvocationOnMock invocation) throws Throwable {
                 int idx = (int)(long) invocation.getArgument(1);
                 Map<String, String> data = new HashMap<>((Map<String, String>) invocation.getArgument(2));
-                MusInterval current = musIntervalsAdded.get(idx);
                 MusInterval updated = new MusInterval.Builder(helper)
                         .model(defaultModelName)
                         .deck(defaultDeckName)
