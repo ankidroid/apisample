@@ -393,30 +393,7 @@ public class MusInterval {
 
         Map<String, String> data = getCollectedData(newSound);
 
-        String soundField = modelFields.get(Fields.SOUND);
-        String intervalField = modelFields.get(Fields.INTERVAL);
-        String interval = data.get(intervalField);
-        LinkedList<String> intervals = new LinkedList<>(Arrays.asList(Fields.Interval.VALUES));
-        int intervalIdx = intervals.indexOf(interval);
-        String soundSmaller = "";
-        if (intervalIdx > 1) {
-            data.put(intervalField, Fields.Interval.VALUES[intervalIdx - 1]);
-            LinkedList<Map<String, String>> smallerIntervals = helper.findNotes(modelId, data);
-            if (smallerIntervals.size() >= 1) {
-                soundSmaller = smallerIntervals.getFirst().get(soundField);
-            }
-        }
-        String soundLarger = "";
-        if (intervalIdx < Fields.Interval.VALUES.length - 1) {
-            data.put(intervalField, Fields.Interval.VALUES[intervalIdx + 1]);
-            LinkedList<Map<String, String>> largerIntervals = helper.findNotes(modelId, data);
-            if (largerIntervals.size() >= 1) {
-                soundLarger = largerIntervals.getFirst().get(soundField);
-            }
-        }
-        data.put(intervalField, interval);
-        data.put(modelFields.get(Fields.SOUND_SMALLER), soundSmaller);
-        data.put(modelFields.get(Fields.SOUND_LARGER), soundLarger);
+        data = fillSimilarIntervals(data);
 
         Long noteId = helper.addNote(modelId, deckId, data, null);
 
@@ -435,6 +412,40 @@ public class MusInterval {
                 .tempo(data.get(modelFields.get(Fields.TEMPO)))
                 .instrument(data.get(modelFields.get(Fields.INSTRUMENT)))
                 .build();
+    }
+
+    private Map<String, String> fillSimilarIntervals(Map<String, String> data) throws AnkiDroidHelper.InvalidAnkiDatabaseException {
+        Map<String, String> newData = new HashMap<>(data);
+        String intervalField = modelFields.get(Fields.INTERVAL);
+        String interval = newData.get(intervalField);
+        int intervalIdx = 0;
+        for (int i = 1; i < Fields.Interval.VALUES.length; i++) {
+            if (Fields.Interval.VALUES[i].equals(interval)) {
+                intervalIdx = i;
+                break;
+            }
+        }
+        String soundField = modelFields.get(Fields.SOUND);
+        String soundSmaller = "";
+        if (intervalIdx > 1) {
+            newData.put(intervalField, Fields.Interval.VALUES[intervalIdx - 1]);
+            LinkedList<Map<String, String>> smallerIntervals = helper.findNotes(modelId, newData);
+            if (smallerIntervals.size() >= 1) {
+                soundSmaller = smallerIntervals.getFirst().get(soundField);
+            }
+        }
+        String soundLarger = "";
+        if (intervalIdx < Fields.Interval.VALUES.length - 1) {
+            newData.put(intervalField, Fields.Interval.VALUES[intervalIdx + 1]);
+            LinkedList<Map<String, String>> largerIntervals = helper.findNotes(modelId, newData);
+            if (largerIntervals.size() >= 1) {
+                soundLarger = largerIntervals.getFirst().get(soundField);
+            }
+        }
+        newData.put(intervalField, interval);
+        newData.put(modelFields.get(Fields.SOUND_SMALLER), soundSmaller);
+        newData.put(modelFields.get(Fields.SOUND_LARGER), soundLarger);
+        return newData;
     }
 
     /**
