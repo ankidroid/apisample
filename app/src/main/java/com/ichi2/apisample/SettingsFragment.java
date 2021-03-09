@@ -43,6 +43,8 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         Resources res = getResources();
         String[] titles = new String[]{
                 res.getString(R.string.sound_field_list_preference_title),
+                res.getString(R.string.sound_smaller_field_list_preference_title),
+                res.getString(R.string.sound_larger_field_list_preference_title),
                 res.getString(R.string.start_note_field_list_preference_title),
                 res.getString(R.string.direction_field_list_preference_title),
                 res.getString(R.string.timing_field_list_preference_title),

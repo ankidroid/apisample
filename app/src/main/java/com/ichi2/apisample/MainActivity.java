@@ -4,13 +4,11 @@ import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
-import android.content.ContentUris;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 
@@ -20,8 +18,6 @@ import androidx.core.app.ActivityCompat;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.preference.PreferenceManager;
 
-import android.provider.DocumentsContract;
-import android.provider.MediaStore;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ArrayAdapter;
@@ -103,8 +99,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             @Override public void onStopTrackingTouch(SeekBar seekBar) { }
         });
 
-        final String[] items = new String[] { "", "min2", "Maj2", "min3", "Maj3" }; // @todo: Make full list of intervals
-        final ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, items);
+        final ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_dropdown_item,
+                MusInterval.Fields.Interval.VALUES);
         selectInterval.setAdapter(adapter);
 
         configureTempoButtons();
@@ -280,6 +277,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     showMsg(R.string.item_added);
                 } catch (MusInterval.Exception e) {
                     processMusIntervalException(e);
+                } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
+                    processInvalidAnkiDatabase(e);
                 }
             }
         });

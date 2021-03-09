@@ -5,6 +5,7 @@ import org.mockito.internal.stubbing.answers.ThrowsExceptionClass;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
@@ -360,7 +361,7 @@ public class MusIntervalTest {
     }
 
     @Test(expected = MusInterval.CreateDeckException.class)
-    public void add_NoSuchDeckCantCreate() throws MusInterval.Exception {
+    public void add_NoSuchDeckCantCreate() throws MusInterval.Exception, AnkiDroidHelper.InvalidAnkiDatabaseException {
         final long modelId = new Random().nextLong();
 
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
@@ -380,7 +381,7 @@ public class MusIntervalTest {
 
     @Test(expected = MusInterval.AddToAnkiException.class)
     @SuppressWarnings("unchecked")
-    public void add_NoSuchDeck_CardShouldNotBeCreated() throws MusInterval.Exception {
+    public void add_NoSuchDeck_CardShouldNotBeCreated() throws MusInterval.Exception, AnkiDroidHelper.InvalidAnkiDatabaseException {
         final long deckId = new Random().nextLong();
         final long modelId = new Random().nextLong();
 
@@ -401,7 +402,7 @@ public class MusIntervalTest {
         doNothing().when(helper).storeDeckReference(defaultDeckName, deckId);
 
         doReturn(newSound).when(helper).addFileToAnkiMedia(sound);
-
+        doReturn(null).when(helper).findNotes(eq(modelId), any(Map.class));
         doAnswer(new Answer<Long>() {
             @Override
             public Long answer(InvocationOnMock invocation) {
@@ -448,7 +449,7 @@ public class MusIntervalTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void add_NoSuchDeck_DeckShouldBeCreated() throws MusInterval.Exception {
+    public void add_NoSuchDeck_DeckShouldBeCreated() throws MusInterval.Exception, AnkiDroidHelper.InvalidAnkiDatabaseException {
         final long deckId = new Random().nextLong();
         final long modelId = new Random().nextLong();
         final long noteId = new Random().nextLong();
@@ -517,7 +518,7 @@ public class MusIntervalTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void add_AllFieldsAreSet_NoteShouldBeCreated() throws MusInterval.Exception {
+    public void add_AllFieldsAreSet_NoteShouldBeCreated() throws MusInterval.Exception, AnkiDroidHelper.InvalidAnkiDatabaseException {
         final long deckId = new Random().nextLong();
         final long modelId = new Random().nextLong();
         final long noteId = new Random().nextLong();
@@ -584,7 +585,7 @@ public class MusIntervalTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void add_AllFieldsAreSet_NewMusicIntervalShouldBeCreated() throws MusInterval.Exception {
+    public void add_AllFieldsAreSet_NewMusicIntervalShouldBeCreated() throws MusInterval.Exception, AnkiDroidHelper.InvalidAnkiDatabaseException {
         final long deckId = new Random().nextLong();
         final long modelId = new Random().nextLong();
         final long noteId = new Random().nextLong();
@@ -629,7 +630,7 @@ public class MusIntervalTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void add_AllFieldsAreSet_startNoteShouldBeFixedToUpperCase() throws MusInterval.Exception {
+    public void add_AllFieldsAreSet_startNoteShouldBeFixedToUpperCase() throws MusInterval.Exception, AnkiDroidHelper.InvalidAnkiDatabaseException {
         final long deckId = new Random().nextLong();
         final long modelId = new Random().nextLong();
         final long noteId = new Random().nextLong();
@@ -663,7 +664,7 @@ public class MusIntervalTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void add_AllFieldsAreSet_SoundFieldShouldBeProper() throws MusInterval.Exception {
+    public void add_AllFieldsAreSet_SoundFieldShouldBeProper() throws MusInterval.Exception, AnkiDroidHelper.InvalidAnkiDatabaseException {
         final long deckId = new Random().nextLong();
         final long modelId = new Random().nextLong();
         final long noteId = new Random().nextLong();
@@ -700,7 +701,7 @@ public class MusIntervalTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void add_AllFieldsAreSet_SoundFieldShouldBeProper2() throws MusInterval.Exception {
+    public void add_AllFieldsAreSet_SoundFieldShouldBeProper2() throws MusInterval.Exception, AnkiDroidHelper.InvalidAnkiDatabaseException {
         final long deckId = new Random().nextLong();
         final long modelId = new Random().nextLong();
         final long noteId = new Random().nextLong();
@@ -736,7 +737,7 @@ public class MusIntervalTest {
     }
 
     @Test(expected = MusInterval.MandatoryFieldEmptyException.class)
-    public void add_NoSoundSpecified_ShouldFail() throws MusInterval.Exception {
+    public void add_NoSoundSpecified_ShouldFail() throws MusInterval.Exception, AnkiDroidHelper.InvalidAnkiDatabaseException {
         final long deckId = new Random().nextLong();
         final long modelId = new Random().nextLong();
 
@@ -754,7 +755,7 @@ public class MusIntervalTest {
     }
 
     @Test(expected = MusInterval.MandatoryFieldEmptyException.class)
-    public void add_NoStartNoteSpecified_ShouldFail() throws MusInterval.Exception {
+    public void add_NoStartNoteSpecified_ShouldFail() throws MusInterval.Exception, AnkiDroidHelper.InvalidAnkiDatabaseException {
         final long deckId = new Random().nextLong();
         final long modelId = new Random().nextLong();
 
@@ -773,7 +774,7 @@ public class MusIntervalTest {
     }
 
     @Test(expected = MusInterval.MandatoryFieldEmptyException.class)
-    public void add_NoIntervalSpecified_ShouldFail() throws MusInterval.Exception {
+    public void add_NoIntervalSpecified_ShouldFail() throws MusInterval.Exception, AnkiDroidHelper.InvalidAnkiDatabaseException {
         final long deckId = new Random().nextLong();
         final long modelId = new Random().nextLong();
 
@@ -794,7 +795,7 @@ public class MusIntervalTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void add_TheSameSoundFileName2Times_shouldCreate2DifferentSoundFilesInAnki() throws MusInterval.Exception {
+    public void add_TheSameSoundFileName2Times_shouldCreate2DifferentSoundFilesInAnki() throws MusInterval.Exception, AnkiDroidHelper.InvalidAnkiDatabaseException {
         final long deckId = new Random().nextLong();
         final long modelId = new Random().nextLong();
         final long noteId = new Random().nextLong();
@@ -853,7 +854,7 @@ public class MusIntervalTest {
 
     @Test(expected = MusInterval.SoundAlreadyAddedException.class)
     @SuppressWarnings("unchecked")
-    public void add_SoundFieldContainsBrackets_shouldFail() throws MusInterval.Exception {
+    public void add_SoundFieldContainsBrackets_shouldFail() throws MusInterval.Exception, AnkiDroidHelper.InvalidAnkiDatabaseException {
         final long deckId = new Random().nextLong();
         final long modelId = new Random().nextLong();
         final long noteId = new Random().nextLong();
@@ -1382,5 +1383,430 @@ public class MusIntervalTest {
         new MusInterval.Builder(helper)
                 .tempo(tempo)
                 .build();
+    }
+
+    @Test
+    public void add_SimilarIntervals_shouldCreateLinks() throws MusInterval.Exception, AnkiDroidHelper.InvalidAnkiDatabaseException {
+        final long deckId = new Random().nextLong();
+        final long modelId = new Random().nextLong();
+        final long noteId = new Random().nextLong();
+
+        final AnkiDroidHelper helper = mock(AnkiDroidHelper.class);
+        doReturn(modelId).when(helper).findModelIdByName(defaultModelName);
+        doReturn(deckId).when(helper).findDeckIdByName(defaultDeckName);
+        doAnswer(new Answer<String>() {
+            @Override
+            public String answer(InvocationOnMock invocation) {
+                return invocation.getArgument(0);
+            }
+        }).when(helper).addFileToAnkiMedia(any(String.class));
+        doReturn(noteId).when(helper).addNote(eq(modelId), eq(deckId), any(Map.class), nullable(Set.class));
+
+        final MusInterval[] musIntervals = new MusInterval[MusInterval.Fields.Interval.VALUES.length - 1];
+        for (int i = 0; i < musIntervals.length; i++) {
+            String interval = MusInterval.Fields.Interval.VALUES[i + 1];
+            String sound = String.format("%s.mp3", interval);
+            musIntervals[i] = new MusInterval.Builder(helper)
+                    .model(defaultModelName)
+                    .deck(defaultDeckName)
+                    .sound(sound)
+                    .start_note(defaultStartNote)
+                    .direction(MusInterval.Fields.Direction.ASC)
+                    .timing(MusInterval.Fields.Timing.MELODIC)
+                    .interval(interval)
+                    .tempo("90")
+                    .instrument("violin")
+                    .build();
+        }
+
+        final ArrayList<MusInterval> musIntervalsAdded = new ArrayList<>();
+
+        doAnswer(new Answer<LinkedList<Map<String, String>>>() {
+            @Override
+            public LinkedList<Map<String, String>> answer(InvocationOnMock invocation) {
+                Map<String, String> inputData = new HashMap<>((Map<String, String>) invocation.getArgument(1));
+                LinkedList<Map<String, String>> result = new LinkedList<>();
+                for (int i = 0; i < musIntervalsAdded.size(); i++) {
+                    MusInterval mi = musIntervalsAdded.get(i);
+                    String sound = mi.sound;
+                    Map<String, String> data = mi.getCollectedData();
+                    data.remove(MusInterval.Fields.SOUND);
+                    data.remove(MusInterval.Fields.SOUND_SMALLER);
+                    data.remove(MusInterval.Fields.SOUND_LARGER);
+                    if (inputData.equals(data)) {
+                        data.put(MusInterval.Fields.SOUND, sound);
+                        data.put("id", String.valueOf(i));
+                        result.add(data);
+                    } else {
+                        data.put(MusInterval.Fields.SOUND, sound);
+                    }
+                }
+                return result;
+            }
+        }).when(helper).findNotes(eq(modelId), any(Map.class));
+
+        doAnswer(new Answer() {
+            @Override
+            public Boolean answer(InvocationOnMock invocation) throws Throwable {
+                int idx = (int)(long) invocation.getArgument(1);
+                Map<String, String> data = new HashMap<>((Map<String, String>) invocation.getArgument(2));
+                MusInterval updated = new MusInterval.Builder(helper)
+                        .model(defaultModelName)
+                        .deck(defaultDeckName)
+                        .sound(data.get(MusInterval.Fields.SOUND))
+                        .sound_smaller(data.get(MusInterval.Fields.SOUND_SMALLER))
+                        .sound_larger(data.get(MusInterval.Fields.SOUND_LARGER))
+                        .start_note(data.get(MusInterval.Fields.START_NOTE))
+                        .direction(data.get(MusInterval.Fields.DIRECTION))
+                        .timing(data.get(MusInterval.Fields.TIMING))
+                        .interval(data.get(MusInterval.Fields.INTERVAL))
+                        .tempo(data.get(MusInterval.Fields.TEMPO))
+                        .instrument(data.get(MusInterval.Fields.INSTRUMENT))
+                        .build();
+                musIntervalsAdded.set(idx, updated);
+                return true;
+            }
+        }).when(helper).updateNote(eq(modelId), any(Long.class), any(Map.class));
+
+        musIntervalsAdded.add(musIntervals[0].addToAnki());
+        assertEquals("", musIntervalsAdded.get(0).soundSmaller);
+        assertEquals("", musIntervalsAdded.get(0).soundLarger);
+        for (int i = 1; i < musIntervals.length; i++) {
+            musIntervalsAdded.add(musIntervals[i].addToAnki());
+            assertEquals(musIntervalsAdded.get(i - 1).sound, musIntervalsAdded.get(i).soundSmaller);
+            assertEquals(musIntervalsAdded.get(i).sound, musIntervalsAdded.get(i - 1).soundLarger);
+        }
+    }
+
+    @Test
+    public void add_DifferentIntervals_shouldNotCreateLinks() throws MusInterval.Exception, AnkiDroidHelper.InvalidAnkiDatabaseException {
+        final long deckId = new Random().nextLong();
+        final long modelId = new Random().nextLong();
+        final long noteId = new Random().nextLong();
+
+        final AnkiDroidHelper helper = mock(AnkiDroidHelper.class);
+        doReturn(modelId).when(helper).findModelIdByName(defaultModelName);
+        doReturn(deckId).when(helper).findDeckIdByName(defaultDeckName);
+        doAnswer(new Answer<String>() {
+            @Override
+            public String answer(InvocationOnMock invocation) {
+                return invocation.getArgument(0);
+            }
+        }).when(helper).addFileToAnkiMedia(any(String.class));
+        doReturn(noteId).when(helper).addNote(eq(modelId), eq(deckId), any(Map.class), nullable(Set.class));
+
+        final MusInterval[] musIntervals = new MusInterval[MusInterval.Fields.Interval.VALUES.length - 1];
+        final LinkedList<Map<String, String>> findMockResult = new LinkedList<>();
+        for (int i = 0; i < musIntervals.length; i++) {
+            String interval = MusInterval.Fields.Interval.VALUES[i + 1];
+            String sound = String.format("%s.mp3", interval);
+            musIntervals[i] = new MusInterval.Builder(helper)
+                    .model(defaultModelName)
+                    .deck(defaultDeckName)
+                    .sound(sound)
+                    .start_note(defaultStartNote)
+                    .direction(MusInterval.Fields.Direction.ASC)
+                    .timing(MusInterval.Fields.Timing.MELODIC)
+                    .interval(interval)
+                    .tempo("90")
+                    .instrument(String.format("instrument%d", i)) // different instruments
+                    .build();
+            findMockResult.add(musIntervals[i].getCollectedData(sound));
+        }
+
+        final ArrayList<MusInterval> musIntervalsAdded = new ArrayList<>();
+
+        doAnswer(new Answer<LinkedList<Map<String, String>>>() {
+            @Override
+            public LinkedList<Map<String, String>> answer(InvocationOnMock invocation) {
+                Map<String, String> inputData = new HashMap<>((Map<String, String>) invocation.getArgument(1));
+                LinkedList<Map<String, String>> result = new LinkedList<>();
+                for (int i = 0; i < musIntervalsAdded.size(); i++) {
+                    MusInterval mi = musIntervalsAdded.get(i);
+                    String sound = mi.sound;
+                    Map<String, String> data = mi.getCollectedData();
+                    data.remove(MusInterval.Fields.SOUND);
+                    data.remove(MusInterval.Fields.SOUND_SMALLER);
+                    data.remove(MusInterval.Fields.SOUND_LARGER);
+                    if (inputData.equals(data)) {
+                        data.put(MusInterval.Fields.SOUND, sound);
+                        data.put("id", String.valueOf(i));
+                        result.add(data);
+                    } else {
+                        data.put(MusInterval.Fields.SOUND, sound);
+                    }
+                }
+                return result;
+            }
+        }).when(helper).findNotes(eq(modelId), any(Map.class));
+
+        doAnswer(new Answer() {
+            @Override
+            public Boolean answer(InvocationOnMock invocation) throws Throwable {
+                int idx = (int)(long) invocation.getArgument(1);
+                Map<String, String> data = new HashMap<>((Map<String, String>) invocation.getArgument(2));
+                MusInterval updated = new MusInterval.Builder(helper)
+                        .model(defaultModelName)
+                        .deck(defaultDeckName)
+                        .sound(data.get(MusInterval.Fields.SOUND))
+                        .sound_smaller(data.get(MusInterval.Fields.SOUND_SMALLER))
+                        .sound_larger(data.get(MusInterval.Fields.SOUND_LARGER))
+                        .start_note(data.get(MusInterval.Fields.START_NOTE))
+                        .direction(data.get(MusInterval.Fields.DIRECTION))
+                        .timing(data.get(MusInterval.Fields.TIMING))
+                        .interval(data.get(MusInterval.Fields.INTERVAL))
+                        .tempo(data.get(MusInterval.Fields.TEMPO))
+                        .instrument(data.get(MusInterval.Fields.INSTRUMENT))
+                        .build();
+                musIntervalsAdded.set(idx, updated);
+                return true;
+            }
+        }).when(helper).updateNote(eq(modelId), any(Long.class), any(Map.class));
+
+        for (int i = 0; i < musIntervals.length; i++) {
+            musIntervalsAdded.add(musIntervals[i].addToAnki());
+            assertEquals("", musIntervals[i].soundSmaller);
+            assertEquals("", musIntervals[i].soundLarger);
+        }
+    }
+
+    @Test
+    public void add_SimilarIntervalToDuplicates_shouldCreateLinkToLatest() throws MusInterval.Exception, AnkiDroidHelper.InvalidAnkiDatabaseException {
+        final long deckId = new Random().nextLong();
+        final long modelId = new Random().nextLong();
+        final long noteId = new Random().nextLong();
+
+        final AnkiDroidHelper helper = mock(AnkiDroidHelper.class);
+        doReturn(modelId).when(helper).findModelIdByName(defaultModelName);
+        doReturn(deckId).when(helper).findDeckIdByName(defaultDeckName);
+        doAnswer(new Answer<String>() {
+            @Override
+            public String answer(InvocationOnMock invocation) {
+                return invocation.getArgument(0);
+            }
+        }).when(helper).addFileToAnkiMedia(any(String.class));
+        doReturn(noteId).when(helper).addNote(eq(modelId), eq(deckId), any(Map.class), nullable(Set.class));
+
+        final String interval = MusInterval.Fields.Interval.VALUES[2];
+        final String intervalSmaller = MusInterval.Fields.Interval.VALUES[1];
+        final String intervalLarger = MusInterval.Fields.Interval.VALUES[3];
+
+        final MusInterval[] musIntervals = new MusInterval[2];
+        for (int i = 0; i < musIntervals.length; i++) {
+            String sound = String.format("musInterval%d.mp3", i);
+            musIntervals[i] = new MusInterval.Builder(helper)
+                    .model(defaultModelName)
+                    .deck(defaultDeckName)
+                    .sound(sound)
+                    .start_note(defaultStartNote)
+                    .direction(MusInterval.Fields.Direction.ASC)
+                    .timing(MusInterval.Fields.Timing.MELODIC)
+                    .interval(interval)
+                    .tempo("90")
+                    .instrument("violin")
+                    .build();
+        }
+        final MusInterval musIntervalSmaller = new MusInterval.Builder(helper)
+                .model(defaultModelName)
+                .deck(defaultDeckName)
+                .sound("intervalSmaller.mp3")
+                .start_note(defaultStartNote)
+                .direction(MusInterval.Fields.Direction.ASC)
+                .timing(MusInterval.Fields.Timing.MELODIC)
+                .interval(intervalSmaller)
+                .tempo("90")
+                .instrument("violin")
+                .build();
+        final MusInterval musIntervalLarger = new MusInterval.Builder(helper)
+                .model(defaultModelName)
+                .deck(defaultDeckName)
+                .sound("intervalLarger.mp3")
+                .start_note(defaultStartNote)
+                .direction(MusInterval.Fields.Direction.ASC)
+                .timing(MusInterval.Fields.Timing.MELODIC)
+                .interval(intervalLarger)
+                .tempo("90")
+                .instrument("violin")
+                .build();
+
+        final LinkedList<MusInterval> musIntervalsAdded = new LinkedList<>();
+
+        doAnswer(new Answer<LinkedList<Map<String, String>>>() {
+            @Override
+            public LinkedList<Map<String, String>> answer(InvocationOnMock invocation) {
+                Map<String, String> inputData = new HashMap<>((Map<String, String>) invocation.getArgument(1));
+                LinkedList<Map<String, String>> result = new LinkedList<>();
+                for (int i = 0; i < musIntervalsAdded.size(); i++) {
+                    MusInterval mi = musIntervalsAdded.get(i);
+                    String sound = mi.sound;
+                    Map<String, String> data = mi.getCollectedData();
+                    data.remove(MusInterval.Fields.SOUND);
+                    data.remove(MusInterval.Fields.SOUND_SMALLER);
+                    data.remove(MusInterval.Fields.SOUND_LARGER);
+                    if (inputData.equals(data)) {
+                        data.put(MusInterval.Fields.SOUND, sound);
+                        data.put("id", String.valueOf(i));
+                        result.add(data);
+                    } else {
+                        data.put(MusInterval.Fields.SOUND, sound);
+                    }
+                }
+                return result;
+            }
+        }).when(helper).findNotes(eq(modelId), any(Map.class));
+
+        doAnswer(new Answer() {
+            @Override
+            public Boolean answer(InvocationOnMock invocation) throws Throwable {
+                int idx = (int)(long) invocation.getArgument(1);
+                Map<String, String> data = new HashMap<>((Map<String, String>) invocation.getArgument(2));
+                MusInterval updated = new MusInterval.Builder(helper)
+                        .model(defaultModelName)
+                        .deck(defaultDeckName)
+                        .sound(data.get(MusInterval.Fields.SOUND))
+                        .sound_smaller(data.get(MusInterval.Fields.SOUND_SMALLER))
+                        .sound_larger(data.get(MusInterval.Fields.SOUND_LARGER))
+                        .start_note(data.get(MusInterval.Fields.START_NOTE))
+                        .direction(data.get(MusInterval.Fields.DIRECTION))
+                        .timing(data.get(MusInterval.Fields.TIMING))
+                        .interval(data.get(MusInterval.Fields.INTERVAL))
+                        .tempo(data.get(MusInterval.Fields.TEMPO))
+                        .instrument(data.get(MusInterval.Fields.INSTRUMENT))
+                        .build();
+                musIntervalsAdded.set(idx, updated);
+                return true;
+            }
+        }).when(helper).updateNote(eq(modelId), any(Long.class), any(Map.class));
+
+        for (int i = 0; i < musIntervals.length; i++) {
+            musIntervalsAdded.add(musIntervals[i].addToAnki());
+        }
+        MusInterval musIntervalSmallerAdded = musIntervalSmaller.addToAnki();
+        assertEquals(musIntervalsAdded.getLast().sound, musIntervalSmallerAdded.soundLarger);
+        MusInterval musIntervalLargerAdded = musIntervalLarger.addToAnki();
+        assertEquals(musIntervalsAdded.getLast().sound, musIntervalLargerAdded.soundSmaller);
+    }
+
+    @Test
+    public void add_DuplicateSimilarInterval_shouldUpdateLink() throws MusInterval.Exception, AnkiDroidHelper.InvalidAnkiDatabaseException {
+        final long deckId = new Random().nextLong();
+        final long modelId = new Random().nextLong();
+        final long noteId = new Random().nextLong();
+
+        final AnkiDroidHelper helper = mock(AnkiDroidHelper.class);
+        doReturn(modelId).when(helper).findModelIdByName(defaultModelName);
+        doReturn(deckId).when(helper).findDeckIdByName(defaultDeckName);
+        doAnswer(new Answer<String>() {
+            @Override
+            public String answer(InvocationOnMock invocation) {
+                return invocation.getArgument(0);
+            }
+        }).when(helper).addFileToAnkiMedia(any(String.class));
+        doReturn(noteId).when(helper).addNote(eq(modelId), eq(deckId), any(Map.class), nullable(Set.class));
+
+        final String interval = MusInterval.Fields.Interval.VALUES[2];
+        final String intervalSmaller = MusInterval.Fields.Interval.VALUES[1];
+        final String intervalLarger = MusInterval.Fields.Interval.VALUES[3];
+
+        final MusInterval musInterval = new MusInterval.Builder(helper)
+                    .model(defaultModelName)
+                    .deck(defaultDeckName)
+                    .sound("musInterval.mp3")
+                    .start_note(defaultStartNote)
+                    .direction(MusInterval.Fields.Direction.ASC)
+                    .timing(MusInterval.Fields.Timing.MELODIC)
+                    .interval(interval)
+                    .tempo("90")
+                    .instrument("violin")
+                    .build();
+        final MusInterval[] musIntervalsSmaller = new MusInterval[2];
+        for (int i = 0; i < musIntervalsSmaller.length; i++) {
+            String sound = String.format("musIntervalSmaller%d.mp3", i);
+            musIntervalsSmaller[i] = new MusInterval.Builder(helper)
+                    .model(defaultModelName)
+                    .deck(defaultDeckName)
+                    .sound(sound)
+                    .start_note(defaultStartNote)
+                    .direction(MusInterval.Fields.Direction.ASC)
+                    .timing(MusInterval.Fields.Timing.MELODIC)
+                    .interval(intervalSmaller)
+                    .tempo("90")
+                    .instrument("violin")
+                    .build();
+        }
+        final MusInterval[] musIntervalsLarger = new MusInterval[2];
+        for (int i = 0; i < musIntervalsLarger.length; i++) {
+            String sound = String.format("musIntervalLarger%d", i);
+            musIntervalsLarger[i] = new MusInterval.Builder(helper)
+                .model(defaultModelName)
+                .deck(defaultDeckName)
+                .sound(sound)
+                .start_note(defaultStartNote)
+                .direction(MusInterval.Fields.Direction.ASC)
+                .timing(MusInterval.Fields.Timing.MELODIC)
+                .interval(intervalLarger)
+                .tempo("90")
+                .instrument("violin")
+                .build();}
+
+        final LinkedList<MusInterval> musIntervalsAdded = new LinkedList<>();
+
+        doAnswer(new Answer<LinkedList<Map<String, String>>>() {
+            @Override
+            public LinkedList<Map<String, String>> answer(InvocationOnMock invocation) {
+                Map<String, String> inputData = new HashMap<>((Map<String, String>) invocation.getArgument(1));
+                LinkedList<Map<String, String>> result = new LinkedList<>();
+                for (int i = 0; i < musIntervalsAdded.size(); i++) {
+                    MusInterval mi = musIntervalsAdded.get(i);
+                    String sound = mi.sound;
+                    Map<String, String> data = mi.getCollectedData();
+                    data.remove(MusInterval.Fields.SOUND);
+                    data.remove(MusInterval.Fields.SOUND_SMALLER);
+                    data.remove(MusInterval.Fields.SOUND_LARGER);
+                    if (inputData.equals(data)) {
+                        data.put(MusInterval.Fields.SOUND, sound);
+                        data.put("id", String.valueOf(i));
+                        result.add(data);
+                    } else {
+                        data.put(MusInterval.Fields.SOUND, sound);
+                    }
+                }
+                return result;
+            }
+        }).when(helper).findNotes(eq(modelId), any(Map.class));
+
+        doAnswer(new Answer() {
+            @Override
+            public Boolean answer(InvocationOnMock invocation) throws Throwable {
+                int idx = (int)(long) invocation.getArgument(1);
+                Map<String, String> data = new HashMap<>((Map<String, String>) invocation.getArgument(2));
+                MusInterval updated = new MusInterval.Builder(helper)
+                        .model(defaultModelName)
+                        .deck(defaultDeckName)
+                        .sound(data.get(MusInterval.Fields.SOUND))
+                        .sound_smaller(data.get(MusInterval.Fields.SOUND_SMALLER))
+                        .sound_larger(data.get(MusInterval.Fields.SOUND_LARGER))
+                        .start_note(data.get(MusInterval.Fields.START_NOTE))
+                        .direction(data.get(MusInterval.Fields.DIRECTION))
+                        .timing(data.get(MusInterval.Fields.TIMING))
+                        .interval(data.get(MusInterval.Fields.INTERVAL))
+                        .tempo(data.get(MusInterval.Fields.TEMPO))
+                        .instrument(data.get(MusInterval.Fields.INSTRUMENT))
+                        .build();
+                musIntervalsAdded.set(idx, updated);
+                return true;
+            }
+        }).when(helper).updateNote(eq(modelId), any(Long.class), any(Map.class));
+
+
+        musIntervalsAdded.add(musInterval.addToAnki());
+        for (int i = 0; i < musIntervalsSmaller.length; i++) {
+            MusInterval musIntervalSmallerAdded = musIntervalsSmaller[i].addToAnki();
+            assertEquals(musIntervalSmallerAdded.sound, musIntervalsAdded.getFirst().soundSmaller);
+        }
+        for (int i = 0; i < musIntervalsLarger.length; i++) {
+            MusInterval musIntervalLargerAdded = musIntervalsLarger[i].addToAnki();
+            assertEquals(musIntervalLargerAdded.sound, musIntervalsAdded.getFirst().soundLarger);
+        }
     }
 }
