@@ -72,6 +72,8 @@
     <string name="model_preference_title">Note type</string>
     <string name="fields_preference_category_title">Fields mapping</string>
     <string name="sound_field_list_preference_title">Sound</string>
+    <string name="sound_smaller_field_list_preference_title">Smaller interval sound</string>
+    <string name="sound_larger_field_list_preference_title">Larger interval sound</string>
     <string name="start_note_field_list_preference_title">Start note</string>
     <string name="direction_field_list_preference_title">Direction</string>
     <string name="timing_field_list_preference_title">Timing</string>
