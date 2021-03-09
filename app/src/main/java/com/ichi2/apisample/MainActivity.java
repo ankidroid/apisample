@@ -18,8 +18,11 @@ import androidx.core.app.ActivityCompat;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.preference.PreferenceManager;
 
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
@@ -87,17 +90,41 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         seekTempo = findViewById(R.id.seekTempo);
         inputInstrument = findViewById(R.id.inputInstrument);
 
+        inputStartNote.addTextChangedListener(new FieldInputTextWatcher());
+        radioGroupDirection.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup radioGroup, int i) {
+                clearAddedInputFilename();
+            }
+        });
+        radioGroupTiming.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup radioGroup, int i) {
+                clearAddedInputFilename();
+            }
+        });
+        selectInterval.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                clearAddedInputFilename();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) { }
+        });
         seekTempo.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @SuppressLint("SetTextI18n")
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 TextView label = findViewById(R.id.labelTempoValue);
                 label.setText(Integer.toString(seekBar.getProgress()));
+                clearAddedInputFilename();
             }
 
             @Override public void onStartTrackingTouch(SeekBar seekBar) { }
             @Override public void onStopTrackingTouch(SeekBar seekBar) { }
         });
+        inputInstrument.addTextChangedListener(new FieldInputTextWatcher());
 
         final ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_spinner_dropdown_item,
@@ -120,6 +147,33 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         } else if (!doesModelExist() || !doesModelHaveEnoughFields() || !doesModelHaveStoredFields()) {
             validateModel();
         }
+    }
+
+    private void clearAddedInputFilename() {
+        String filename = MainActivity.this.inputFilename.getText().toString();
+        if (filename.length() > 0 && filename.startsWith("[sound:")) {
+            inputFilename.setText("");
+        }
+    }
+
+    private class FieldInputTextWatcher implements TextWatcher {
+        private String prev;
+
+        @Override
+        public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+            prev = charSequence.toString();
+        }
+
+        @Override
+        public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+            String curr = charSequence.toString();
+            if (!curr.equalsIgnoreCase(prev)) {
+                clearAddedInputFilename();
+            }
+        }
+
+        @Override
+        public void afterTextChanged(Editable editable) { }
     }
 
     private void configureTempoButtons() {
