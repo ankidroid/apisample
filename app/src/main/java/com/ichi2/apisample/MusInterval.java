@@ -366,20 +366,7 @@ public class MusInterval {
             helper.storeDeckReference(deckName, deckId);
         }
 
-        final Map<String, String> fields = new HashMap<String, String>() {{
-            put(Fields.SOUND, sound);
-            put(Fields.START_NOTE, startNote);
-            put(Fields.DIRECTION, direction);
-            put(Fields.TIMING, timing);
-            put(Fields.INTERVAL, interval);
-            put(Fields.TEMPO, tempo);
-            put(Fields.INSTRUMENT, instrument);
-        }};
-        for (Map.Entry<String, String> field : fields.entrySet()) {
-            if (field.getValue().isEmpty()) {
-                throw new MandatoryFieldEmptyException(field.getKey());
-            }
-        }
+        checkMandatoryFields();
 
         if (sound.startsWith("[sound:")) {
             throw new SoundAlreadyAddedException();
@@ -414,7 +401,24 @@ public class MusInterval {
                 .build();
     }
 
-    private Map<String, String> fillSimilarIntervals(Map<String, String> data) throws AnkiDroidHelper.InvalidAnkiDatabaseException {
+    public void checkMandatoryFields() throws MandatoryFieldEmptyException {
+        final Map<String, String> fields = new HashMap<String, String>() {{
+            put(Fields.SOUND, sound);
+            put(Fields.START_NOTE, startNote);
+            put(Fields.DIRECTION, direction);
+            put(Fields.TIMING, timing);
+            put(Fields.INTERVAL, interval);
+            put(Fields.TEMPO, tempo);
+            put(Fields.INSTRUMENT, instrument);
+        }};
+        for (Map.Entry<String, String> field : fields.entrySet()) {
+            if (field.getValue().isEmpty()) {
+                throw new MandatoryFieldEmptyException(field.getKey());
+            }
+        }
+    }
+
+    public Map<String, String> fillSimilarIntervals(Map<String, String> data) throws AnkiDroidHelper.InvalidAnkiDatabaseException {
         Map<String, String> newData = new HashMap<>(data);
         String soundField = modelFields.get(Fields.SOUND);
         String sound = newData.remove(soundField);
