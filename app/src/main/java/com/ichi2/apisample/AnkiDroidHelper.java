@@ -31,6 +31,9 @@ import java.util.Set;
 import static com.ichi2.anki.api.AddContentApi.READ_WRITE_PERMISSION;
 
 public class AnkiDroidHelper {
+    public static final String KEY_ID = "id";
+    public static final String KEY_TAGS = "tags";
+
     private static final String DECK_REF_DB = "com.ichi2.anki.api.decks";
     private static final String MODEL_REF_DB = "com.ichi2.anki.api.models";
     private static final String FLDS_SEPARATOR = "\u001f";
@@ -265,8 +268,8 @@ public class AnkiDroidHelper {
                     }
 
                     Map<String, String> item = new HashMap<>();
-                    item.put("id", Long.toString(notesTableCursor.getLong(idIndex)));
-                    item.put("tags", notesTableCursor.getString(tagsIndex));
+                    item.put(KEY_ID, Long.toString(notesTableCursor.getLong(idIndex)));
+                    item.put(KEY_TAGS, notesTableCursor.getString(tagsIndex));
 
                     for (int i = 0; i < fieldNames.length; ++i) {
                         item.put(fieldNames[i], fields[i]);
