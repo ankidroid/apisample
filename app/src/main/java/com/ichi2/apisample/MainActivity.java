@@ -9,6 +9,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.net.Uri;
 import android.os.Bundle;
 
@@ -35,6 +36,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Map;
 
 
@@ -110,6 +112,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         configureCheckExistenceButton();
         configureAddToAnkiButton();
         configureSettingsButton();
+        configureCheckIntegrityButton();
 
         restoreUiState();
 
@@ -308,6 +311,168 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
     private void openSettings() {
         startActivity(new Intent(this, SettingsActivity.class));
+    }
+
+    private void configureCheckIntegrityButton() {
+        final Button actionCheckIntegrity = findViewById(R.id.actionCheckIntegrity);
+        actionCheckIntegrity.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mAnkiDroid.shouldRequestPermission()) {
+                    mAnkiDroid.requestPermission(MainActivity.this, AD_PERM_REQUEST);
+                    return;
+                }
+                if (!doesModelExist() || !doesModelHaveEnoughFields() || !doesModelHaveStoredFields()) {
+                    validateModel();
+                    return;
+                }
+                try {
+                    MusInterval mi = getMusInterval();
+                    Map<String, String> searchData = mi.getCollectedData();
+                    final String soundField = mi.modelFields.get(MusInterval.Fields.SOUND);
+                    final String soundSmallerField = mi.modelFields.get(MusInterval.Fields.SOUND_SMALLER);
+                    final String soundLargerField = mi.modelFields.get(MusInterval.Fields.SOUND_LARGER);
+                    searchData.remove(soundField);
+                    int invalidFieldsCount = 0;
+                    int missingFieldsCount = 0;
+                    LinkedList<Map<String, String>> searchResult = mAnkiDroid.findNotes(findModel(), searchData);
+                    Map<Map<String, String>, LinkedList<Map<String, String>>> groupedSearchResult = new HashMap<>();
+                    final String idKey = AnkiDroidHelper.KEY_ID;
+                    SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+                    final String invalidTag = sharedPreferences.getString(SettingsFragment.INVALID_TAG_PREFERENCE_KEY, SettingsFragment.INVALID_TAG_PREFERENCE_KEY);
+                    for (final Map<String, String> recordData : searchResult) {
+                        try {
+                            MusInterval record = new MusInterval.Builder(mAnkiDroid)
+                                    .sound(recordData.get(soundField))
+                                    .sound_smaller(recordData.get(soundSmallerField))
+                                    .sound_larger(recordData.get(soundLargerField))
+                                    .start_note(recordData.get(mi.modelFields.get(MusInterval.Fields.START_NOTE)))
+                                    .direction(recordData.get(mi.modelFields.get(MusInterval.Fields.DIRECTION)))
+                                    .timing(recordData.get(mi.modelFields.get(MusInterval.Fields.TIMING)))
+                                    .interval(recordData.get(mi.modelFields.get(MusInterval.Fields.INTERVAL)))
+                                    .tempo(recordData.get(mi.modelFields.get(MusInterval.Fields.TEMPO)))
+                                    .instrument(recordData.get(mi.modelFields.get(MusInterval.Fields.INSTRUMENT)))
+                                    .build(); // validity check
+                            record.checkMandatoryFields();
+
+                            final Map<String, String> recordKeyData = new HashMap<String, String>(recordData) {{
+                                remove(soundField);
+                                remove(soundSmallerField);
+                                remove(soundLargerField);
+                            }};
+                            if (groupedSearchResult.containsKey(recordKeyData)) {
+                                LinkedList<Map<String, String>> duplicates = groupedSearchResult.get(recordKeyData);
+                                final long recordId = Long.parseLong(recordData.get(idKey));
+                                boolean added = false;
+                                for (int i = 0; i < duplicates.size(); i++) {
+                                    if (Long.parseLong(duplicates.get(i).get(idKey)) < recordId) {
+                                        duplicates.add(i, recordData);
+                                        added = true;
+                                        break;
+                                    }
+                                }
+                                if (!added) {
+                                    duplicates.add(recordData);
+                                }
+                            } else {
+                                groupedSearchResult.put(recordKeyData, new LinkedList<Map<String, String>>() {{
+                                    add(recordData);
+                                }});
+                            }
+                        } catch (MusInterval.ValidationException e) {
+                            invalidFieldsCount++;
+                            mAnkiDroid.addTagToNote(Long.parseLong(recordData.get(idKey)), String.format(" %s ", invalidTag));
+                        } catch (MusInterval.MandatoryFieldEmptyException e) {
+                            missingFieldsCount++;
+                            mAnkiDroid.addTagToNote(Long.parseLong(recordData.get(idKey)), String.format(" %s ", invalidTag));
+                        }
+                    }
+                    final String intervalField = mi.modelFields.get(MusInterval.Fields.INTERVAL);
+                    for (Map.Entry<Map<String, String>, LinkedList<Map<String, String>>> duplicates : groupedSearchResult.entrySet()) {
+                        Map<String, String> keyData = duplicates.getKey();
+                        String interval = keyData.get(intervalField);
+                        int intervalIdx = 0;
+                        for (int i = 1; i < MusInterval.Fields.Interval.VALUES.length; i++) {
+                            if (MusInterval.Fields.Interval.VALUES[i].equals(interval)) {
+                                intervalIdx = i;
+                                break;
+                            }
+                        }
+                        if (intervalIdx > 1) {
+                            Map<String, String> smallerIntervalKeyData = new HashMap<>(keyData);
+                            smallerIntervalKeyData.put(intervalField, MusInterval.Fields.Interval.VALUES[intervalIdx - 1]);
+                            LinkedList<Map<String, String>> smallerIntervalDuplicates =
+                                    groupedSearchResult.getOrDefault(smallerIntervalKeyData, null);
+                            for (Map<String, String> recordData : duplicates.getValue()) {
+                                String recordSoundSmaller = recordData.getOrDefault(soundSmallerField, "");
+                                if (smallerIntervalDuplicates == null) {
+                                    if (!"".equals(recordSoundSmaller)) {
+                                        // bad
+                                    }
+                                } else {
+                                    final String correctSoundSmaller = smallerIntervalDuplicates.getFirst().get(soundField);
+                                    if (correctSoundSmaller.equals(recordSoundSmaller)) {
+                                        // bad
+                                    }
+                                }
+                            }
+                        }
+                        if (intervalIdx < MusInterval.Fields.Interval.VALUES.length - 1) {
+                            Map<String, String> largerIntervalKeyData = new HashMap<>(keyData);
+                            largerIntervalKeyData.put(intervalField, MusInterval.Fields.Interval.VALUES[intervalIdx + 1]);
+                            LinkedList<Map<String, String>> largerIntervalDuplicates =
+                                    groupedSearchResult.getOrDefault(largerIntervalKeyData, null);
+                            for (Map<String, String> recordData : duplicates.getValue()) {
+                                String recordSoundLarger = recordData.getOrDefault(soundLargerField, "");
+                                if (largerIntervalDuplicates == null) {
+                                    if (!"".equals(recordSoundLarger)) {
+                                        // bad
+                                    }
+                                } else {
+                                    final String correctSoundLarger = largerIntervalDuplicates.getFirst().get(soundField);
+                                    if (correctSoundLarger.equals(recordSoundLarger)) {
+                                        // bad
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    StringBuilder report = new StringBuilder();
+                    Resources res = getResources();
+                    final int corruptRecordsCount = invalidFieldsCount + missingFieldsCount;
+                    report.append(res.getString(R.string.integrity_check_completed));
+                    report.append("\n");
+                    if (corruptRecordsCount > 0) {
+                        if (corruptRecordsCount == 1) {
+                            report.append(res.getQuantityString(R.plurals.integrity_report_header, corruptRecordsCount, invalidTag));
+                        } else {
+                            report.append(res.getQuantityString(R.plurals.integrity_report_header, corruptRecordsCount, corruptRecordsCount, invalidTag));
+                        }
+                        report.append("\n");
+                        report.append(res.getQuantityString(R.plurals.mi_invalid_fields, invalidFieldsCount, invalidFieldsCount));
+                        report.append("\n");
+                        report.append(res.getQuantityString(R.plurals.mi_missing_fields, missingFieldsCount, missingFieldsCount));
+                    } else {
+                        report.append(res.getString(R.string.integrity_check_ok));
+                    }
+
+                    new AlertDialog.Builder(MainActivity.this)
+                            .setMessage(report.toString())
+                            .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+
+                                }
+                            })
+                            .show();
+                } catch (MusInterval.Exception e) {
+                    processMusIntervalException(e);
+                } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
+                    processInvalidAnkiDatabase(e);
+                }
+            }
+        });
     }
 
     private Long findModel() {

@@ -1,6 +1,5 @@
 package com.ichi2.apisample;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
@@ -220,7 +219,7 @@ public class MusInterval {
     private final AnkiDroidHelper helper;
 
     public final String modelName;
-    private final Map<String, String> modelFields;
+    public final Map<String, String> modelFields;
     private final Long modelId;
     public final String deckName;
     private Long deckId;

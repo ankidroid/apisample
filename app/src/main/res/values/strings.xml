@@ -46,6 +46,18 @@
         <item quantity="one">One music interval successfully marked</item>
         <item quantity="other">%d music intervals successfully marked</item>
     </plurals>
+    <plurals name="mi_invalid_fields">
+        <item quantity="one">One interval with invalid field values\n</item>
+        <item quantity="other">%d intervals with invalid field values\n</item>
+    </plurals>
+    <plurals name="mi_missing_fields">
+        <item quantity="one">One interval with empty mandatory field values\n</item>
+        <item quantity="other">%d intervals with empty mandatory field values\n</item>
+    </plurals>
+    <plurals name="integrity_report_header">
+        <item quantity="one">Found one corrupt record and marked it with \"%s\" tag:</item>
+        <item quantity="other">Found %d corrupt records and marked them with \"%s\" tag:</item>
+    </plurals>
     <string name="create_model">Note type \"%s\" is not found. Create it?</string>
     <string name="configure_model">The \"%s\" note type settings are invalid. You need to configure fields to continue using it.</string>
     <string name="create">Create</string>
@@ -62,6 +74,8 @@
     <string name="item_added">Music interval successfully added to AnkiDroid</string>
     <string name="add_file_error">Failed to add file to AnkiDroid media</string>
     <string name="unknown_adding_error">Failed to add music interval to AnkiDroid</string>
+    <string name="integrity_check_completed">Integrity check completed.</string>
+    <string name="integrity_check_ok">No issues have been found.</string>
 
     <string name="InvalidAnkiDatabase_fieldAndFieldNameCountMismatch">Invalid Anki Database: field and field name count mismatches</string>
     <string name="InvalidAnkiDatabase_unknownError">Invalid Anki Database: unknown error</string>
