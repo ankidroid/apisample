@@ -23,6 +23,7 @@
     <string name="action_check_existence">Check existence</string>
     <string name="action_add_to_anki">Add to AnkiDroid</string>
     <string name="open_settings">Settings…</string>
+    <string name="action_check_integrity">Check integrity</string>
 
     <!-- MainActivity messages-->
     <string name="anki_permission_denied">Could not get permission to access the AnkiDroid database</string>
@@ -80,4 +81,6 @@
     <string name="interval_field_list_preference_title">Interval</string>
     <string name="tempo_field_list_preference_title">Tempo</string>
     <string name="instrument_field_list_preference_title">Instrument</string>
+    <string name="invalid_tag_edit_text_preference_title">Invalid note tag</string>
+    <string name="invalid_tag_edit_text_preference_dialog_title">This tag will be added to invalid notes after running integrity check</string>
 </resources>

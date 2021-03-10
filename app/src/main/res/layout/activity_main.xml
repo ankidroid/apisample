@@ -208,12 +208,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
 
-            <Button
-                android:id="@+id/actionClearAll"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/action_clear_all" />
-
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -223,14 +217,36 @@
                     android:id="@+id/actionCheckExistence"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
+                    android:layout_weight="0.5"
                     android:text="@string/action_check_existence" />
 
                 <Button
                     android:id="@+id/actionAddToAnki"
-                    android:layout_width="190dp"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_weight="0.5"
                     android:text="@string/action_add_to_anki" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/actionCheckIntegrity"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.5"
+                    android:text="@string/action_check_integrity" />
+
+                <Button
+                    android:id="@+id/actionClearAll"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.5"
+                    android:text="@string/action_clear_all" />
 
             </LinearLayout>
 

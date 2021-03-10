@@ -1,25 +1,33 @@
 package com.ichi2.apisample;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.os.Bundle;
 
 import androidx.preference.DropDownPreference;
+import androidx.preference.EditTextPreference;
 import androidx.preference.ListPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceCategory;
 import androidx.preference.PreferenceFragmentCompat;
+import androidx.preference.PreferenceManager;
 import androidx.preference.PreferenceScreen;
+
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Map;
 
 public class SettingsFragment extends PreferenceFragmentCompat {
     private static final String FIELDS_PREFERENCE_CATEGORY_KEY = "fields";
+    public static final String INVALID_TAG_PREFERENCE_KEY = "invalid_tag";
 
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
-        Context context = getPreferenceManager().getContext();
+        final Context context = getPreferenceManager().getContext();
         PreferenceScreen preferenceScreen = getPreferenceManager().createPreferenceScreen(context);
 
-        AnkiDroidHelper helper = new AnkiDroidHelper(context);
+        final AnkiDroidHelper helper = new AnkiDroidHelper(context);
 
         Long modelId = helper.findModelIdByName(MusInterval.Builder.DEFAULT_MODEL_NAME);
         if (modelId == null) {
@@ -71,6 +79,34 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             fieldListPreference.setEntryValues(entries);
             fieldsPreferenceCategory.addPreference(fieldListPreference);
         }
+
+        EditTextPreference invalidTagPreference = new EditTextPreference(context);
+        invalidTagPreference.setKey(INVALID_TAG_PREFERENCE_KEY);
+        invalidTagPreference.setTitle(R.string.invalid_tag_edit_text_preference_title);
+        invalidTagPreference.setSummaryProvider(EditTextPreference.SimpleSummaryProvider.getInstance());
+        invalidTagPreference.setDialogTitle(R.string.invalid_tag_edit_text_preference_dialog_title);
+        invalidTagPreference.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
+                try {
+                    SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+                    final long modelId = helper.findModelIdByName(MusInterval.Builder.DEFAULT_MODEL_NAME);
+                    LinkedList<Map<String, String>> recordsData = helper.findNotes(modelId, new HashMap<String, String>());
+                    final String currValue = sharedPreferences.getString(SettingsFragment.INVALID_TAG_PREFERENCE_KEY, SettingsFragment.INVALID_TAG_PREFERENCE_KEY);
+                    for (Map<String, String> recordData : recordsData) {
+                        String tags = recordData.get(AnkiDroidHelper.KEY_TAGS);
+                        if (tags.contains(String.format(" %s ", currValue))) {
+                            long id = Long.parseLong(recordData.get(AnkiDroidHelper.KEY_ID));
+                            helper.updateNoteTags(id, tags.replace(currValue, (String) newValue));
+                        }
+                    }
+                } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
+                    return false;
+                }
+                return true;
+            }
+        });
+        preferenceScreen.addPreference(invalidTagPreference);
 
         setPreferenceScreen(preferenceScreen);
     }
