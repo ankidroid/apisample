@@ -58,6 +58,10 @@
         <item quantity="one">Mandatory field \%s\ is empty</item>
         <item quantity="other">Mandatory fields \%s\ are empty</item>
     </plurals>
+    <plurals name="integrity_links">
+        <item quantity="one">Automatically fixed one similar interval link</item>
+        <item quantity="other">Automatically fixed %d similar interval links</item>
+    </plurals>
     <string name="create_model">Note type \"%s\" is not found. Create it?</string>
     <string name="configure_model">The \"%s\" note type settings are invalid. You need to configure fields to continue using it</string>
     <string name="create">Create</string>

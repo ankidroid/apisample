@@ -34,6 +34,8 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -335,7 +337,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     searchData.remove(soundField);
                     Map<String, Integer> invalidFieldsCount = new HashMap<>();
                     Map<String, Integer> emptyFieldsCount = new HashMap<>();
-                    LinkedList<Map<String, String>> searchResult = mAnkiDroid.findNotes(findModel(), searchData);
+                    int fixedLinksCount = 0;
+                    final long modelId = findModel();
+                    LinkedList<Map<String, String>> searchResult = mAnkiDroid.findNotes(modelId, searchData);
                     Map<Map<String, String>, LinkedList<Map<String, String>>> groupedSearchResult = new HashMap<>();
                     final String idKey = AnkiDroidHelper.KEY_ID;
                     SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
@@ -374,8 +378,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                             valid = false;
                         }
 
+                        final long recordId = Long.parseLong(recordData.get(idKey));
                         if (!valid) {
-                            mAnkiDroid.addTagToNote(Long.parseLong(recordData.get(idKey)), String.format(" %s ", invalidTag));
+                            mAnkiDroid.addTagToNote(recordId, String.format(" %s ", invalidTag));
                             invalidRecordsCount++;
                             continue;
                         }
@@ -387,7 +392,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                         }};
                         if (groupedSearchResult.containsKey(recordKeyData)) {
                             LinkedList<Map<String, String>> duplicates = groupedSearchResult.get(recordKeyData);
-                            final long recordId = Long.parseLong(recordData.get(idKey));
                             boolean added = false;
                             for (int i = 0; i < duplicates.size(); i++) {
                                 if (Long.parseLong(duplicates.get(i).get(idKey)) < recordId) {
@@ -419,38 +423,48 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                         if (intervalIdx > 1) {
                             Map<String, String> smallerIntervalKeyData = new HashMap<>(keyData);
                             smallerIntervalKeyData.put(intervalField, MusInterval.Fields.Interval.VALUES[intervalIdx - 1]);
-                            LinkedList<Map<String, String>> smallerIntervalDuplicates =
-                                    groupedSearchResult.getOrDefault(smallerIntervalKeyData, null);
+                            LinkedList<Map<String, String>> smallerIntervalDuplicates = mAnkiDroid.findNotes(modelId, smallerIntervalKeyData);
+                            Collections.sort(smallerIntervalDuplicates, new Comparator<Map<String, String>>() {
+                                @Override
+                                public int compare(Map<String, String> m1, Map<String, String> m2) {
+                                    return (int) (Long.parseLong(m2.get(idKey)) - Long.parseLong(m1.get(idKey)));
+                                }
+                            });
                             for (Map<String, String> recordData : duplicates.getValue()) {
-                                String recordSoundSmaller = recordData.getOrDefault(soundSmallerField, "");
-                                if (smallerIntervalDuplicates == null) {
-                                    if (!"".equals(recordSoundSmaller)) {
-                                        // bad
-                                    }
-                                } else {
-                                    final String correctSoundSmaller = smallerIntervalDuplicates.getFirst().get(soundField);
-                                    if (correctSoundSmaller.equals(recordSoundSmaller)) {
-                                        // bad
-                                    }
+                                final long recordId = Long.parseLong(recordData.get(idKey));
+                                final String recordSoundSmaller = recordData.getOrDefault(soundSmallerField, "");
+                                final String correctSoundSmaller = smallerIntervalDuplicates != null && !smallerIntervalDuplicates.isEmpty() ?
+                                        smallerIntervalDuplicates.getFirst().get(soundField) : "";
+                                if (!correctSoundSmaller.equals(recordSoundSmaller)) {
+                                    Map<String, String> updatedRecordData = new HashMap<String, String>(recordData) {{
+                                        put(soundSmallerField, correctSoundSmaller);
+                                    }};
+                                    mAnkiDroid.updateNote(modelId, recordId, updatedRecordData);
+                                    fixedLinksCount++;
                                 }
                             }
                         }
                         if (intervalIdx < MusInterval.Fields.Interval.VALUES.length - 1) {
                             Map<String, String> largerIntervalKeyData = new HashMap<>(keyData);
                             largerIntervalKeyData.put(intervalField, MusInterval.Fields.Interval.VALUES[intervalIdx + 1]);
-                            LinkedList<Map<String, String>> largerIntervalDuplicates =
-                                    groupedSearchResult.getOrDefault(largerIntervalKeyData, null);
+                            LinkedList<Map<String, String>> largerIntervalDuplicates = mAnkiDroid.findNotes(modelId, largerIntervalKeyData);
+                            Collections.sort(largerIntervalDuplicates, new Comparator<Map<String, String>>() {
+                                @Override
+                                public int compare(Map<String, String> m1, Map<String, String> m2) {
+                                    return (int) (Long.parseLong(m2.get(idKey)) - Long.parseLong(m1.get(idKey)));
+                                }
+                            });
                             for (Map<String, String> recordData : duplicates.getValue()) {
-                                String recordSoundLarger = recordData.getOrDefault(soundLargerField, "");
-                                if (largerIntervalDuplicates == null) {
-                                    if (!"".equals(recordSoundLarger)) {
-                                        // bad
-                                    }
-                                } else {
-                                    final String correctSoundLarger = largerIntervalDuplicates.getFirst().get(soundField);
-                                    if (correctSoundLarger.equals(recordSoundLarger)) {
-                                        // bad
-                                    }
+                                final long recordId = Long.parseLong(recordData.get(idKey));
+                                final String recordSoundLarger = recordData.getOrDefault(soundLargerField, "");
+                                final String correctSoundLarger = largerIntervalDuplicates != null && !largerIntervalDuplicates.isEmpty() ?
+                                        largerIntervalDuplicates.getFirst().get(soundField) : "";
+                                if (!correctSoundLarger.equals(recordSoundLarger)) {
+                                    Map<String, String> updatedRecordData = new HashMap<String, String>(recordData) {{
+                                        put(soundLargerField, correctSoundLarger);
+                                    }};
+                                    mAnkiDroid.updateNote(modelId, recordId, updatedRecordData);
+                                    fixedLinksCount++;
                                 }
                             }
                         }
@@ -492,6 +506,10 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                         }
                     } else {
                         report.append(res.getString(R.string.integrity_ok));
+                    }
+                    if (fixedLinksCount > 0) {
+                        report.append("\n\n");
+                        report.append(res.getQuantityString(R.plurals.integrity_links, fixedLinksCount, fixedLinksCount));
                     }
 
                     new AlertDialog.Builder(MainActivity.this)
