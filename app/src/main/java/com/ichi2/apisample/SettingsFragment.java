@@ -19,8 +19,9 @@ import java.util.LinkedList;
 import java.util.Map;
 
 public class SettingsFragment extends PreferenceFragmentCompat {
-    private static final String FIELDS_PREFERENCE_CATEGORY_KEY = "fields";
-    public static final String INVALID_TAG_PREFERENCE_KEY = "invalid_tag";
+    private static final String KEY_FIELDS_PREFERENCE_CATEGORY = "fields";
+    public static final String KEY_INVALID_TAG_PREFERENCE = "invalid_tag";
+    public static final String  DEFAULT_INVALID_TAG = "mi2a_invalid";
 
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
@@ -65,7 +66,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         entries[0] = "";
         System.arraycopy(entryValues, 0, entries, 1, entryValues.length);
         PreferenceCategory fieldsPreferenceCategory = new PreferenceCategory(context);
-        fieldsPreferenceCategory.setKey(FIELDS_PREFERENCE_CATEGORY_KEY);
+        fieldsPreferenceCategory.setKey(KEY_FIELDS_PREFERENCE_CATEGORY);
         fieldsPreferenceCategory.setTitle(R.string.fields_preference_category_title);
         fieldsPreferenceCategory.setInitialExpandedChildrenCount(0);
         preferenceScreen.addPreference(fieldsPreferenceCategory);
@@ -81,7 +82,8 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         }
 
         EditTextPreference invalidTagPreference = new EditTextPreference(context);
-        invalidTagPreference.setKey(INVALID_TAG_PREFERENCE_KEY);
+        invalidTagPreference.setKey(KEY_INVALID_TAG_PREFERENCE);
+        invalidTagPreference.setDefaultValue(DEFAULT_INVALID_TAG);
         invalidTagPreference.setTitle(R.string.invalid_tag_edit_text_preference_title);
         invalidTagPreference.setSummaryProvider(EditTextPreference.SimpleSummaryProvider.getInstance());
         invalidTagPreference.setDialogTitle(R.string.invalid_tag_edit_text_preference_dialog_title);
@@ -92,7 +94,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
                     SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
                     final long modelId = helper.findModelIdByName(MusInterval.Builder.DEFAULT_MODEL_NAME);
                     LinkedList<Map<String, String>> recordsData = helper.findNotes(modelId, new HashMap<String, String>());
-                    final String currValue = sharedPreferences.getString(SettingsFragment.INVALID_TAG_PREFERENCE_KEY, SettingsFragment.INVALID_TAG_PREFERENCE_KEY);
+                    final String currValue = sharedPreferences.getString(KEY_INVALID_TAG_PREFERENCE, DEFAULT_INVALID_TAG);
                     for (Map<String, String> recordData : recordsData) {
                         String tags = recordData.get(AnkiDroidHelper.KEY_TAGS);
                         if (tags.contains(String.format(" %s ", currValue))) {

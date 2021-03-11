@@ -46,20 +46,20 @@
         <item quantity="one">One music interval successfully marked</item>
         <item quantity="other">%d music intervals successfully marked</item>
     </plurals>
-    <plurals name="mi_invalid_fields">
-        <item quantity="one">One interval with invalid field values\n</item>
-        <item quantity="other">%d intervals with invalid field values\n</item>
+    <plurals name="integrity_summary">
+        <item quantity="one">Found one corrupt record and marked it with \"%s\" tag</item>
+        <item quantity="other">Found %d corrupt records and marked them with \"%s\" tag</item>
     </plurals>
-    <plurals name="mi_missing_fields">
-        <item quantity="one">One interval with empty mandatory field values\n</item>
-        <item quantity="other">%d intervals with empty mandatory field values\n</item>
+    <plurals name="invalid_fields">
+        <item quantity="one">Invalid value of \%s\ field</item>
+        <item quantity="other">Invalid values of \%s\ fields </item>
     </plurals>
-    <plurals name="integrity_report_header">
-        <item quantity="one">Found one corrupt record and marked it with \"%s\" tag:</item>
-        <item quantity="other">Found %d corrupt records and marked them with \"%s\" tag:</item>
+    <plurals name="empty_mandatory_fields">
+        <item quantity="one">Mandatory field \%s\ is empty</item>
+        <item quantity="other">Mandatory fields \%s\ are empty</item>
     </plurals>
     <string name="create_model">Note type \"%s\" is not found. Create it?</string>
-    <string name="configure_model">The \"%s\" note type settings are invalid. You need to configure fields to continue using it.</string>
+    <string name="configure_model">The \"%s\" note type settings are invalid. You need to configure fields to continue using it</string>
     <string name="create">Create</string>
     <string name="configure">Configure</string>
     <string name="cancel">Cancel</string>
@@ -69,18 +69,17 @@
     <string name="invalid_model">Too few fields in existing \"%s\" note type</string>
     <string name="create_deck_error">Could not create deck \"%s\"</string>
     <string name="add_card_error">Music interval adding to AnkiDroid failed</string>
-    <string name="mandatory_field_empty">Mandatory field \"%s\" is empty</string>
     <string name="already_added">Sound file is not selected</string>
     <string name="item_added">Music interval successfully added to AnkiDroid</string>
     <string name="add_file_error">Failed to add file to AnkiDroid media</string>
     <string name="unknown_adding_error">Failed to add music interval to AnkiDroid</string>
-    <string name="integrity_check_completed">Integrity check completed.</string>
-    <string name="integrity_check_ok">No issues have been found.</string>
+    <string name="integrity_check_completed">Integrity check completed</string>
+    <string name="integrity_ok">No issues have been found</string>
+    <string name="integrity_invalid">%d invalid</string>
+    <string name="integrity_empty">%d empty</string>
 
     <string name="InvalidAnkiDatabase_fieldAndFieldNameCountMismatch">Invalid Anki Database: field and field name count mismatches</string>
     <string name="InvalidAnkiDatabase_unknownError">Invalid Anki Database: unknown error</string>
-
-    <string name="invalid_start_note">Invalid syntax of start note</string>
 
     <!-- SettingsActivity labels, fields and buttons -->
     <string name="deck_preference_title">Deck</string>

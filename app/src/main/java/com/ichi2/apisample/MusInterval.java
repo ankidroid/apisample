@@ -128,7 +128,7 @@ public class MusInterval {
             mHelper = helper;
         }
 
-        public MusInterval build() throws ValidationException {
+        public MusInterval build() throws InvalidFieldsException {
             return new MusInterval(this);
         }
 
@@ -197,24 +197,29 @@ public class MusInterval {
     public static class CreateDeckException extends Exception {}
     public static class AddToAnkiException extends Exception {}
     public static class NoteNotExistsException extends Exception {}
-    public static class MandatoryFieldEmptyException extends Exception {
-        private String field;
-
-        public MandatoryFieldEmptyException(String field) {
-            super();
-            this.field = field;
-        }
-
-        public String getField() {
-            return field;
-        }
-    }
     public static class SoundAlreadyAddedException extends Exception {}
     public static class AddSoundFileException extends Exception {}
 
-    public static class ValidationException extends Exception {}
-    public static class StartNoteSyntaxException extends ValidationException {}
-    public static class TempoValueException extends ValidationException {}
+    public static class FieldsValidationException extends Exception {
+        private LinkedList<String> fields;
+
+        public FieldsValidationException(LinkedList<String> fields) {
+            super();
+            this.fields = fields;
+        }
+
+        public LinkedList<String> getFields() {
+            return fields;
+        }
+    }
+    public static class InvalidFieldsException extends FieldsValidationException {
+        public InvalidFieldsException(LinkedList<String> invalidFields) { super(invalidFields); }
+    }
+    public static class MandatoryFieldsEmptyException extends FieldsValidationException {
+        public MandatoryFieldsEmptyException(LinkedList<String> emptyFields) {
+            super(emptyFields);
+        }
+    }
 
     private final AnkiDroidHelper helper;
 
@@ -238,7 +243,7 @@ public class MusInterval {
     /**
      * Construct an object using builder class.
      */
-    public MusInterval(Builder builder) throws ValidationException {
+    public MusInterval(Builder builder) throws InvalidFieldsException {
         helper = builder.mHelper;
 
         modelName = builder.mModelName;
@@ -260,16 +265,46 @@ public class MusInterval {
         validateFields();
     }
 
-    protected void validateFields() throws ValidationException {
+    protected void validateFields() throws InvalidFieldsException {
+        LinkedList<String> invalidFields = new LinkedList<>();
         if (!startNote.isEmpty() && !startNote.matches("[A-Ga-g]#?[0-8]")) {
-            throw new StartNoteSyntaxException();
+            invalidFields.add(Fields.START_NOTE);
         }
 
         if (!tempo.isEmpty()) {
             int tempoInt = Integer.parseInt(tempo);
             if (tempoInt < Fields.Tempo.MIN_VALUE || tempoInt > Fields.Tempo.MAX_VALUE) {
-                throw new TempoValueException();
+                invalidFields.add(Fields.TEMPO);
             }
+        }
+
+        if (!direction.isEmpty()
+                && !direction.equalsIgnoreCase(Fields.Direction.ASC)
+                && !direction.equalsIgnoreCase(Fields.Direction.DESC)) {
+            invalidFields.add(Fields.DIRECTION);
+        }
+
+        if (!interval.isEmpty()) {
+            boolean valid = false;
+            for (int i = 1; i < Fields.Interval.VALUES.length; i++) {
+                if (Fields.Interval.VALUES[i].equalsIgnoreCase(interval)) {
+                    valid = true;
+                    break;
+                }
+            }
+            if (!valid) {
+                invalidFields.add(Fields.INTERVAL);
+            }
+        }
+
+        if (!timing.isEmpty()
+                && !timing.equalsIgnoreCase(Fields.Timing.MELODIC)
+                && !timing.equalsIgnoreCase(Fields.Timing.HARMONIC)) {
+            invalidFields.add(Fields.TIMING);
+        }
+
+        if (!invalidFields.isEmpty()) {
+            throw new InvalidFieldsException(invalidFields);
         }
     }
 
@@ -353,9 +388,8 @@ public class MusInterval {
      * @return New MusInterval instance (with some of the fields updated)
      */
     public MusInterval addToAnki()
-            throws  CreateDeckException, AddToAnkiException, MandatoryFieldEmptyException,
-            SoundAlreadyAddedException, AddSoundFileException, ValidationException,
-            AnkiDroidHelper.InvalidAnkiDatabaseException {
+            throws CreateDeckException, AddToAnkiException, FieldsValidationException,
+            SoundAlreadyAddedException, AddSoundFileException, AnkiDroidHelper.InvalidAnkiDatabaseException {
 
         if (deckId == null) {
             deckId = helper.addNewDeck(deckName);
@@ -365,7 +399,7 @@ public class MusInterval {
             helper.storeDeckReference(deckName, deckId);
         }
 
-        checkMandatoryFields();
+        checkMandatoryFields(getDefaultKeyData(getCollectedData(), modelFields));
 
         if (sound.startsWith("[sound:")) {
             throw new SoundAlreadyAddedException();
@@ -400,21 +434,35 @@ public class MusInterval {
                 .build();
     }
 
-    public void checkMandatoryFields() throws MandatoryFieldEmptyException {
-        final Map<String, String> fields = new HashMap<String, String>() {{
-            put(Fields.SOUND, sound);
-            put(Fields.START_NOTE, startNote);
-            put(Fields.DIRECTION, direction);
-            put(Fields.TIMING, timing);
-            put(Fields.INTERVAL, interval);
-            put(Fields.TEMPO, tempo);
-            put(Fields.INSTRUMENT, instrument);
-        }};
-        for (Map.Entry<String, String> field : fields.entrySet()) {
-            if (field.getValue().isEmpty()) {
-                throw new MandatoryFieldEmptyException(field.getKey());
+    public static void checkMandatoryFields(Map<String, String> fields) throws MandatoryFieldsEmptyException {
+        final String[] mandatoryFields = new String[]{
+                Fields.SOUND,
+                Fields.START_NOTE,
+                Fields.DIRECTION,
+                Fields.TIMING,
+                Fields.INTERVAL,
+                Fields.TEMPO,
+                Fields.INSTRUMENT
+        };
+        LinkedList<String> emptyFields = new LinkedList<>();
+        for (String field : mandatoryFields) {
+            if (fields.getOrDefault(field, "").isEmpty()) {
+                emptyFields.add(field);
             }
         }
+        if (!emptyFields.isEmpty()) {
+            throw new MandatoryFieldsEmptyException(emptyFields);
+        }
+    }
+
+    public static Map<String, String> getDefaultKeyData(Map<String, String> data, final Map<String, String> modelFields) {
+        Map<String, String> defaultKeyData = new HashMap<>();
+        for (String field : Fields.SIGNATURE) {
+            String modelField = modelFields.getOrDefault(field, null);
+            String value = data.getOrDefault(modelField, "");
+            defaultKeyData.put(field, value);
+        }
+        return defaultKeyData;
     }
 
     public Map<String, String> fillSimilarIntervals(Map<String, String> data) throws AnkiDroidHelper.InvalidAnkiDatabaseException {
@@ -427,7 +475,7 @@ public class MusInterval {
         String interval = newData.get(intervalField);
         int intervalIdx = 0;
         for (int i = 1; i < Fields.Interval.VALUES.length; i++) {
-            if (Fields.Interval.VALUES[i].equals(interval)) {
+            if (Fields.Interval.VALUES[i].equalsIgnoreCase(interval)) {
                 intervalIdx = i;
                 break;
             }
