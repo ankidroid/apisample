@@ -46,9 +46,9 @@
         <item quantity="one">One music interval successfully marked</item>
         <item quantity="other">%d music intervals successfully marked</item>
     </plurals>
-    <plurals name="integrity_summary">
-        <item quantity="one">Found one corrupt record and marked it with \"%s\" tag</item>
-        <item quantity="other">Found %d corrupt records and marked them with \"%s\" tag</item>
+    <plurals name="integrity_invalid">
+        <item quantity="one">Found one invalid note</item>
+        <item quantity="other">Found %d invalid notes</item>
     </plurals>
     <plurals name="invalid_fields">
         <item quantity="one">Invalid value of \%s\ field</item>
@@ -59,8 +59,8 @@
         <item quantity="other">Mandatory fields \%s\ are empty</item>
     </plurals>
     <plurals name="integrity_links">
-        <item quantity="one">Automatically fixed one similar interval link</item>
-        <item quantity="other">Automatically fixed %d similar interval links</item>
+        <item quantity="one">Fixed one similar interval link</item>
+        <item quantity="other">Fixed %d similar interval links</item>
     </plurals>
     <string name="create_model">Note type \"%s\" is not found. Create it?</string>
     <string name="configure_model">The \"%s\" note type settings are invalid. You need to configure fields to continue using it</string>
@@ -81,6 +81,8 @@
     <string name="integrity_ok">No issues have been found</string>
     <string name="integrity_invalid">%d invalid</string>
     <string name="integrity_empty">%d empty</string>
+    <string name="integrity_suspicious">Found %d suspicious notes (invalid link fields)</string>
+    <string name="fix_link_confirmation_remember_answer">Remember answer</string>
 
     <string name="InvalidAnkiDatabase_fieldAndFieldNameCountMismatch">Invalid Anki Database: field and field name count mismatches</string>
     <string name="InvalidAnkiDatabase_unknownError">Invalid Anki Database: unknown error</string>
@@ -99,5 +101,7 @@
     <string name="tempo_field_list_preference_title">Tempo</string>
     <string name="instrument_field_list_preference_title">Instrument</string>
     <string name="invalid_tag_edit_text_preference_title">Invalid note tag</string>
-    <string name="invalid_tag_edit_text_preference_dialog_title">This tag will be added to invalid notes after running integrity check</string>
+    <string name="invalid_tag_edit_text_preference_dialog_title">This tag will be added to notes upon running integrity check</string>
+    <string name="auto_fix_links_switch_preference_title">Auto fix links</string>
+    <string name="auto_fix_links_switch_preference_summary">Correct relational fields upon running integrity check</string>
 </resources>

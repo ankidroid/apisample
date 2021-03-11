@@ -1496,7 +1496,6 @@ public class MusIntervalTest {
         doReturn(noteId).when(helper).addNote(eq(modelId), eq(deckId), any(Map.class), nullable(Set.class));
 
         final MusInterval[] musIntervals = new MusInterval[MusInterval.Fields.Interval.VALUES.length - 1];
-        final LinkedList<Map<String, String>> findMockResult = new LinkedList<>();
         for (int i = 0; i < musIntervals.length; i++) {
             String interval = MusInterval.Fields.Interval.VALUES[i + 1];
             String sound = String.format("%s.mp3", interval);
@@ -1511,7 +1510,6 @@ public class MusIntervalTest {
                     .tempo("90")
                     .instrument(String.format("instrument%d", i)) // different instruments
                     .build();
-            findMockResult.add(musIntervals[i].getCollectedData(sound));
         }
 
         final ArrayList<MusInterval> musIntervalsAdded = new ArrayList<>();

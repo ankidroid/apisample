@@ -468,9 +468,11 @@ public class MusInterval {
     public Map<String, String> fillSimilarIntervals(Map<String, String> data) throws AnkiDroidHelper.InvalidAnkiDatabaseException {
         Map<String, String> newData = new HashMap<>(data);
         String soundField = modelFields.get(Fields.SOUND);
+        String soundSmallerField = modelFields.get(Fields.SOUND_SMALLER);
+        String soundLargerField = modelFields.get(Fields.SOUND_LARGER);
         String sound = newData.remove(soundField);
-        newData.remove(Fields.SOUND_SMALLER);
-        newData.remove(Fields.SOUND_LARGER);
+        newData.remove(soundSmallerField);
+        newData.remove(soundLargerField);
         String intervalField = modelFields.get(Fields.INTERVAL);
         String interval = newData.get(intervalField);
         int intervalIdx = 0;
@@ -489,12 +491,12 @@ public class MusInterval {
                 long maxId = Long.MIN_VALUE;
                 for (int i = 0; i < smallerIntervals.size(); i++) {
                     Map<String, String> smallerIntervalData = smallerIntervals.get(i);
-                    long id = Long.parseLong(smallerIntervalData.get("id"));
+                    long id = Long.parseLong(smallerIntervalData.get(AnkiDroidHelper.KEY_ID));
                     if (id > maxId) {
                         maxId = id;
                         maxIdIdx = i;
                     }
-                    smallerIntervalData.put(Fields.SOUND_LARGER, sound);
+                    smallerIntervalData.put(soundLargerField, sound);
                     helper.updateNote(modelId, id, smallerIntervalData);
                 }
                 soundSmaller = smallerIntervals.get(maxIdIdx).get(soundField);
@@ -509,12 +511,12 @@ public class MusInterval {
                 long maxId = Long.MIN_VALUE;
                 for (int i = 0; i < largerIntervals.size(); i++) {
                     Map<String, String> largerIntervalData = largerIntervals.get(i);
-                    long id = Long.parseLong(largerIntervalData.get("id"));
+                    long id = Long.parseLong(largerIntervalData.get(AnkiDroidHelper.KEY_ID));
                     if (id > maxId) {
                         maxId = id;
                         maxIdIdx = i;
                     }
-                    largerIntervalData.put(Fields.SOUND_SMALLER, sound);
+                    largerIntervalData.put(soundSmallerField, sound);
                     helper.updateNote(modelId, id, largerIntervalData);
                 }
                 soundLarger = largerIntervals.get(maxIdIdx).get(soundField);
@@ -522,8 +524,8 @@ public class MusInterval {
         }
         newData.put(soundField, sound);
         newData.put(intervalField, interval);
-        newData.put(modelFields.get(Fields.SOUND_SMALLER), soundSmaller);
-        newData.put(modelFields.get(Fields.SOUND_LARGER), soundLarger);
+        newData.put(soundSmallerField, soundSmaller);
+        newData.put(soundLargerField, soundLarger);
         return newData;
     }
 

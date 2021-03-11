@@ -13,15 +13,19 @@ import androidx.preference.PreferenceCategory;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceManager;
 import androidx.preference.PreferenceScreen;
+import androidx.preference.SwitchPreference;
 
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 
 public class SettingsFragment extends PreferenceFragmentCompat {
-    private static final String KEY_FIELDS_PREFERENCE_CATEGORY = "fields";
     public static final String KEY_INVALID_TAG_PREFERENCE = "invalid_tag";
-    public static final String  DEFAULT_INVALID_TAG = "mi2a_invalid";
+    public static final String KEY_AUTO_FIX_LINKS_PREFERENCE = "auto_fix_links";
+    private static final String KEY_FIELDS_PREFERENCE_CATEGORY = "fields";
+
+    public static final String DEFAULT_INVALID_TAG = "mi2a_invalid";
+    public static final boolean DEFAULT_AUTO_FIX_LINKS = false;
 
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
@@ -81,6 +85,13 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             fieldsPreferenceCategory.addPreference(fieldListPreference);
         }
 
+        SwitchPreference autoFixLinksPreference = new SwitchPreference(context);
+        autoFixLinksPreference.setKey(KEY_AUTO_FIX_LINKS_PREFERENCE);
+        autoFixLinksPreference.setDefaultValue(DEFAULT_AUTO_FIX_LINKS);
+        autoFixLinksPreference.setTitle(R.string.auto_fix_links_switch_preference_title);
+        autoFixLinksPreference.setSummary(R.string.auto_fix_links_switch_preference_summary);
+        preferenceScreen.addPreference(autoFixLinksPreference);
+
         EditTextPreference invalidTagPreference = new EditTextPreference(context);
         invalidTagPreference.setKey(KEY_INVALID_TAG_PREFERENCE);
         invalidTagPreference.setDefaultValue(DEFAULT_INVALID_TAG);
@@ -93,12 +104,12 @@ public class SettingsFragment extends PreferenceFragmentCompat {
                 try {
                     SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
                     final long modelId = helper.findModelIdByName(MusInterval.Builder.DEFAULT_MODEL_NAME);
-                    LinkedList<Map<String, String>> recordsData = helper.findNotes(modelId, new HashMap<String, String>());
+                    LinkedList<Map<String, String>> notesData = helper.findNotes(modelId, new HashMap<String, String>());
                     final String currValue = sharedPreferences.getString(KEY_INVALID_TAG_PREFERENCE, DEFAULT_INVALID_TAG);
-                    for (Map<String, String> recordData : recordsData) {
-                        String tags = recordData.get(AnkiDroidHelper.KEY_TAGS);
+                    for (Map<String, String> noteData : notesData) {
+                        String tags = noteData.get(AnkiDroidHelper.KEY_TAGS);
                         if (tags.contains(String.format(" %s ", currValue))) {
-                            long id = Long.parseLong(recordData.get(AnkiDroidHelper.KEY_ID));
+                            long id = Long.parseLong(noteData.get(AnkiDroidHelper.KEY_ID));
                             helper.updateNoteTags(id, tags.replace(currValue, (String) newValue));
                         }
                     }
