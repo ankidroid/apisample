@@ -19,14 +19,11 @@ import androidx.core.app.ActivityCompat;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.preference.PreferenceManager;
 
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
@@ -37,8 +34,6 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -332,172 +327,13 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     return;
                 }
                 try {
-                    final long modelId = findModel();
                     MusInterval mi = getMusInterval();
-
-                    final String soundField = mi.modelFields.get(MusInterval.Fields.SOUND);
-
-                    Map<String, Map<String, String>> soundDict = new HashMap<>();
-                    LinkedList<Map<String, String>> allNotesData = mAnkiDroid.findNotes(modelId, new HashMap<String, String>());
-                    for (Map<String, String> noteData : allNotesData) {
-                        soundDict.put(noteData.getOrDefault(soundField, ""), noteData);
-                    }
-
-                    final String soundSmallerField = mi.modelFields.get(MusInterval.Fields.SOUND_SMALLER);
-                    final String soundLargerField = mi.modelFields.get(MusInterval.Fields.SOUND_LARGER);
-                    final String intervalField = mi.modelFields.get(MusInterval.Fields.INTERVAL);
-
-                    Map<String, String> searchData = mi.getCollectedData();
-                    searchData.remove(soundField);
-
-                    ArrayList<Map<String, String>> invalidNotesData = new ArrayList<>();
-                    ArrayList<Map<String, String>> validNotesData = new ArrayList<>();
-
-                    Map<String, Integer> invalidFieldsCount = new HashMap<>();
-                    Map<String, Integer> emptyFieldsCount = new HashMap<>();
-
-                    LinkedList<Map<String, String>> searchResult = mAnkiDroid.findNotes(modelId, searchData);
-
-                    // SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
-                    // final String invalidTag = sharedPreferences.getString(SettingsFragment.KEY_INVALID_TAG_PREFERENCE, SettingsFragment.DEFAULT_INVALID_TAG);
-
-                    for (final Map<String, String> noteData : searchResult) {
-                        boolean valid = true;
-                        try {
-                            Map<String, String> defaultKeyData = MusInterval.getDefaultKeyData(noteData, mi.modelFields);
-                            try {
-                                new MusInterval.Builder(mAnkiDroid)
-                                        .sound(noteData.get(soundField))
-                                        .sound_smaller(noteData.get(soundSmallerField))
-                                        .sound_larger(noteData.get(soundLargerField))
-                                        .start_note(noteData.get(mi.modelFields.get(MusInterval.Fields.START_NOTE)))
-                                        .direction(noteData.get(mi.modelFields.get(MusInterval.Fields.DIRECTION)))
-                                        .timing(noteData.get(mi.modelFields.get(MusInterval.Fields.TIMING)))
-                                        .interval(noteData.get(mi.modelFields.get(MusInterval.Fields.INTERVAL)))
-                                        .tempo(noteData.get(mi.modelFields.get(MusInterval.Fields.TEMPO)))
-                                        .instrument(noteData.get(mi.modelFields.get(MusInterval.Fields.INSTRUMENT)))
-                                        .build();
-                            } catch (MusInterval.InvalidFieldsException e) {
-                                for (String field : e.getFields()) {
-                                    int currCount = invalidFieldsCount.getOrDefault(field, 0);
-                                    invalidFieldsCount.put(field, currCount + 1);
-                                }
-                                valid = false;
-                            }
-                            MusInterval.checkMandatoryFields(defaultKeyData);
-                        } catch (MusInterval.MandatoryFieldsEmptyException e) {
-                            LinkedList<String> emptyFields = e.getFields();
-                            for (String field : emptyFields) {
-                                int currCount = emptyFieldsCount.getOrDefault(field, 0);
-                                emptyFieldsCount.put(field, currCount + 1);
-                            }
-                            valid = false;
-                        }
-
-                        //final long noteId = Long.parseLong(noteData.get(AnkiDroidHelper.KEY_ID));
-                        if (!valid) {
-                            invalidNotesData.add(noteData);
-                            // mAnkiDroid.addTagToNote(noteId, String.format(" %s ", invalidTag));
-                            continue;
-                        }
-                        validNotesData.add(noteData);
-                    }
-
-                    ArrayList<Map<String, String>> susNotesData = new ArrayList<>();
-
-                    for (Map<String, String> noteData : validNotesData) {
-                        String interval = noteData.get(intervalField);
-                        int intervalIdx = 0;
-                        for (int i = 1; i < MusInterval.Fields.Interval.VALUES.length; i++) {
-                            if (MusInterval.Fields.Interval.VALUES[i].equals(interval)) {
-                                intervalIdx = i;
-                                break;
-                            }
-                        }
-                        Map<String, String> keyData = new HashMap<String, String>(noteData) {{
-                            remove(soundField);
-                            remove(soundSmallerField);
-                            remove(soundLargerField);
-                            remove(intervalField);
-                            remove(AnkiDroidHelper.KEY_ID);
-                            remove(AnkiDroidHelper.KEY_TAGS);
-                        }};
-                        boolean sus = false;
-                        String soundSmaller = noteData.getOrDefault(soundSmallerField, "");
-                        if (!soundSmaller.isEmpty()) {
-                            Map<String, String> smallerNoteData = soundDict.getOrDefault(soundSmaller, null);
-                            if (smallerNoteData != null) {
-                                String smallerInterval = smallerNoteData.getOrDefault(intervalField, "");
-                                Map<String, String> smallerNoteKeyData = new HashMap<String, String>(smallerNoteData) {{
-                                    remove(soundField);
-                                    remove(soundSmallerField);
-                                    remove(soundLargerField);
-                                    remove(intervalField);
-                                    remove(AnkiDroidHelper.KEY_ID);
-                                    remove(AnkiDroidHelper.KEY_TAGS);
-                                }};
-                                if (!keyData.equals(smallerNoteKeyData) || intervalIdx <= 1 ||
-                                        !MusInterval.Fields.Interval.VALUES[intervalIdx - 1].equalsIgnoreCase(smallerInterval)) {
-                                    if (!susNotesData.contains(smallerNoteData)) {
-                                        susNotesData.add(smallerNoteData);
-                                    }
-                                    sus = true;
-                                }
-                            } else {
-                                sus = true;
-                            }
-                        }
-                        String soundLarger = noteData.getOrDefault(soundLargerField, "");
-                        if (!soundLarger.isEmpty()) {
-                            Map<String, String> largerNoteData = soundDict.getOrDefault(soundLarger, null);
-                            if (largerNoteData != null) {
-                                String largerInterval = largerNoteData.getOrDefault(intervalField, "");
-                                Map<String, String> largerNoteKeyData = new HashMap<String, String>(largerNoteData) {{
-                                    remove(soundField);
-                                    remove(soundSmallerField);
-                                    remove(soundLargerField);
-                                    remove(intervalField);
-                                    remove(AnkiDroidHelper.KEY_ID);
-                                    remove(AnkiDroidHelper.KEY_TAGS);
-                                }};
-                                if (!keyData.equals(largerNoteKeyData) || intervalIdx >= MusInterval.Fields.Interval.VALUES.length - 1 ||
-                                        !MusInterval.Fields.Interval.VALUES[intervalIdx + 1].equalsIgnoreCase(largerInterval)) {
-                                    if (!susNotesData.contains(largerNoteData)) {
-                                        susNotesData.add(largerNoteData);
-                                    }
-                                    sus = true;
-                                }
-                            } else {
-                                sus = true;
-                            }
-                        }
-                        if (sus) {
-                            if (!susNotesData.contains(noteData)) {
-                                susNotesData.add(noteData);
-                            }
-                        }
-                    }
-
-                    int fixedLinksCount = 0;
-                    ArrayList<Map<String, String>> correctNotesData = new ArrayList<>();
-                    for (Map<String, String> noteData : validNotesData) {
-                        if (!susNotesData.contains(noteData)) {
-                            correctNotesData.add(noteData);
-                            long noteId = Long.parseLong((noteData.get(AnkiDroidHelper.KEY_ID)));
-                            Map<String, String> updatedNoteData = mi.fillSimilarIntervals(noteData);
-                            boolean updatedSmaller = !updatedNoteData.get(soundSmallerField).equals(noteData.get(soundSmallerField));
-                            boolean updatedLarger = !updatedNoteData.get(soundLargerField).equals(noteData.get(soundLargerField));
-                            if (!updatedSmaller && !updatedLarger) {
-                                continue;
-                            }
-                            if (updatedSmaller && updatedLarger) {
-                                fixedLinksCount += 2;
-                            } else {
-                                fixedLinksCount++;
-                            }
-                            mAnkiDroid.updateNote(modelId, noteId, updatedNoteData);
-                        }
-                    }
+                    MusInterval.IntegritySummary integritySummary = mi.checkIntegrity();
+                    ArrayList<Map<String, String>> invalidNotesData = integritySummary.getInvalidNotesData();
+                    ArrayList<Map<String, String>> suspiciousNotesData = integritySummary.getSuspiciousNotesData();
+                    Map<String, Integer> invalidFieldsCount = integritySummary.getInvalidFieldsCount();
+                    Map<String, Integer> emptyFieldsCount = integritySummary.getEmptyFieldsCount();
+                    int filledLinksCount = integritySummary.getFilledLinksCount();
 
                     StringBuilder report = new StringBuilder();
                     Resources res = getResources();
@@ -533,17 +369,17 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                             }
                         }
                     }
-                    if (susNotesData.size() > 0) {
+                    if (suspiciousNotesData.size() > 0) {
                         report.append("\n\n");
-                        report.append(res.getString(R.string.integrity_suspicious, susNotesData.size()));
+                        report.append(res.getString(R.string.integrity_suspicious, suspiciousNotesData.size()));
                     }
-                    if (invalidNotesData.size() == 0 && susNotesData.size() == 0) {
+                    if (invalidNotesData.size() == 0 && suspiciousNotesData.size() == 0) {
                         report.append("\n\n");
                         report.append(res.getString(R.string.integrity_ok));
                     }
-                    if (fixedLinksCount > 0) {
+                    if (filledLinksCount > 0) {
                         report.append("\n\n");
-                        report.append(getResources().getQuantityString(R.plurals.integrity_links, fixedLinksCount, fixedLinksCount));
+                        report.append(getResources().getQuantityString(R.plurals.integrity_links, filledLinksCount, filledLinksCount));
                     }
 
                     new AlertDialog.Builder(MainActivity.this)
