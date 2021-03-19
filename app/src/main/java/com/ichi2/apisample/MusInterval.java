@@ -466,12 +466,12 @@ public class MusInterval {
                             .sound(noteData.get(soundField))
                             .sound_smaller(noteData.get(soundSmallerField))
                             .sound_larger(noteData.get(soundLargerField))
-                            .start_note(noteData.get(modelFields.get(MusInterval.Fields.START_NOTE)))
-                            .direction(noteData.get(modelFields.get(MusInterval.Fields.DIRECTION)))
-                            .timing(noteData.get(modelFields.get(MusInterval.Fields.TIMING)))
-                            .interval(noteData.get(modelFields.get(MusInterval.Fields.INTERVAL)))
-                            .tempo(noteData.get(modelFields.get(MusInterval.Fields.TEMPO)))
-                            .instrument(noteData.get(modelFields.get(MusInterval.Fields.INSTRUMENT)))
+                            .start_note(noteData.get(modelFields.get(Fields.START_NOTE)))
+                            .direction(noteData.get(modelFields.get(Fields.DIRECTION)))
+                            .timing(noteData.get(modelFields.get(Fields.TIMING)))
+                            .interval(noteData.get(intervalField))
+                            .tempo(noteData.get(modelFields.get(Fields.TEMPO)))
+                            .instrument(noteData.get(modelFields.get(Fields.INSTRUMENT)))
                             .build();
                 } catch (MusInterval.InvalidFieldsException e) {
                     for (String field : e.getFields()) {
@@ -504,8 +504,8 @@ public class MusInterval {
         for (Map<String, String> noteData : validNotesData) {
             String interval = noteData.get(intervalField);
             int intervalIdx = 0;
-            for (int i = 1; i < MusInterval.Fields.Interval.VALUES.length; i++) {
-                if (MusInterval.Fields.Interval.VALUES[i].equals(interval)) {
+            for (int i = 1; i < Fields.Interval.VALUES.length; i++) {
+                if (Fields.Interval.VALUES[i].equals(interval)) {
                     intervalIdx = i;
                     break;
                 }
@@ -533,7 +533,7 @@ public class MusInterval {
                         remove(AnkiDroidHelper.KEY_TAGS);
                     }};
                     if (!keyData.equals(smallerNoteKeyData) || intervalIdx <= 1 ||
-                            !MusInterval.Fields.Interval.VALUES[intervalIdx - 1].equalsIgnoreCase(smallerInterval)) {
+                            !Fields.Interval.VALUES[intervalIdx - 1].equalsIgnoreCase(smallerInterval)) {
                         if (!susNotesData.contains(smallerNoteData)) {
                             susNotesData.add(smallerNoteData);
                         }
@@ -556,8 +556,8 @@ public class MusInterval {
                         remove(AnkiDroidHelper.KEY_ID);
                         remove(AnkiDroidHelper.KEY_TAGS);
                     }};
-                    if (!keyData.equals(largerNoteKeyData) || intervalIdx >= MusInterval.Fields.Interval.VALUES.length - 1 ||
-                            !MusInterval.Fields.Interval.VALUES[intervalIdx + 1].equalsIgnoreCase(largerInterval)) {
+                    if (!keyData.equals(largerNoteKeyData) || intervalIdx >= Fields.Interval.VALUES.length - 1 ||
+                            !Fields.Interval.VALUES[intervalIdx + 1].equalsIgnoreCase(largerInterval)) {
                         if (!susNotesData.contains(largerNoteData)) {
                             susNotesData.add(largerNoteData);
                         }
@@ -620,7 +620,7 @@ public class MusInterval {
         }
     }
 
-    public Map<String, String> fillSimilarIntervals(Map<String, String> data) throws AnkiDroidHelper.InvalidAnkiDatabaseException {
+    private Map<String, String> fillSimilarIntervals(Map<String, String> data) throws AnkiDroidHelper.InvalidAnkiDatabaseException {
         Map<String, String> newData = new HashMap<>(data);
         String soundField = modelFields.get(Fields.SOUND);
         String soundSmallerField = modelFields.get(Fields.SOUND_SMALLER);
