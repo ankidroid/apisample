@@ -13,19 +13,18 @@ import androidx.preference.PreferenceCategory;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceManager;
 import androidx.preference.PreferenceScreen;
-import androidx.preference.SwitchPreference;
 
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 
 public class SettingsFragment extends PreferenceFragmentCompat {
-    public static final String KEY_INVALID_TAG_PREFERENCE = "invalid_tag";
-    public static final String KEY_AUTO_FIX_LINKS_PREFERENCE = "auto_fix_links";
+    public static final String KEY_CORRUPTED_TAG_PREFERENCE = "invalid_tag";
+    public static final String KEY_SUSPICIOUS_TAG_PREFERENCE = "suspicipus_tag";
     private static final String KEY_FIELDS_PREFERENCE_CATEGORY = "fields";
 
-    public static final String DEFAULT_INVALID_TAG = "mi2a_invalid";
-    public static final boolean DEFAULT_AUTO_FIX_LINKS = false;
+    public static final String DEFAULT_CORRUPTED_TAG = "mi2a_invalid";
+    public static final String DEFAULT_SUSPICIOUS_TAG = "mi2a_suspicious";
 
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
@@ -85,42 +84,59 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             fieldsPreferenceCategory.addPreference(fieldListPreference);
         }
 
-        SwitchPreference autoFixLinksPreference = new SwitchPreference(context);
-        autoFixLinksPreference.setKey(KEY_AUTO_FIX_LINKS_PREFERENCE);
-        autoFixLinksPreference.setDefaultValue(DEFAULT_AUTO_FIX_LINKS);
-        autoFixLinksPreference.setTitle(R.string.auto_fix_links_switch_preference_title);
-        autoFixLinksPreference.setSummary(R.string.auto_fix_links_switch_preference_summary);
-        preferenceScreen.addPreference(autoFixLinksPreference);
+        EditTextPreference corruptedTagPreference = new EditTextPreference(context);
+        corruptedTagPreference.setKey(KEY_CORRUPTED_TAG_PREFERENCE);
+        corruptedTagPreference.setDefaultValue(DEFAULT_CORRUPTED_TAG);
+        corruptedTagPreference.setTitle(R.string.corrupted_tag_edit_text_preference_title);
+        corruptedTagPreference.setSummaryProvider(EditTextPreference.SimpleSummaryProvider.getInstance());
+        corruptedTagPreference.setDialogTitle(R.string.corrupted_tag_edit_text_preference_dialog_title);
+        corruptedTagPreference.setOnPreferenceChangeListener(new TagPreferenceChangeListener(context, helper, KEY_CORRUPTED_TAG_PREFERENCE, DEFAULT_CORRUPTED_TAG));
+        preferenceScreen.addPreference(corruptedTagPreference);
 
-        EditTextPreference invalidTagPreference = new EditTextPreference(context);
-        invalidTagPreference.setKey(KEY_INVALID_TAG_PREFERENCE);
-        invalidTagPreference.setDefaultValue(DEFAULT_INVALID_TAG);
-        invalidTagPreference.setTitle(R.string.invalid_tag_edit_text_preference_title);
-        invalidTagPreference.setSummaryProvider(EditTextPreference.SimpleSummaryProvider.getInstance());
-        invalidTagPreference.setDialogTitle(R.string.invalid_tag_edit_text_preference_dialog_title);
-        invalidTagPreference.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-            @Override
-            public boolean onPreferenceChange(Preference preference, Object newValue) {
-                try {
-                    SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-                    final long modelId = helper.findModelIdByName(MusInterval.Builder.DEFAULT_MODEL_NAME);
-                    LinkedList<Map<String, String>> notesData = helper.findNotes(modelId, new HashMap<String, String>());
-                    final String currValue = sharedPreferences.getString(KEY_INVALID_TAG_PREFERENCE, DEFAULT_INVALID_TAG);
-                    for (Map<String, String> noteData : notesData) {
-                        String tags = noteData.get(AnkiDroidHelper.KEY_TAGS);
-                        if (tags.contains(String.format(" %s ", currValue))) {
-                            long id = Long.parseLong(noteData.get(AnkiDroidHelper.KEY_ID));
-                            helper.updateNoteTags(id, tags.replace(currValue, (String) newValue));
-                        }
-                    }
-                } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
-                    return false;
-                }
-                return true;
-            }
-        });
-        preferenceScreen.addPreference(invalidTagPreference);
+        EditTextPreference suspiciousTagPreference = new EditTextPreference(context);
+        suspiciousTagPreference.setKey(KEY_SUSPICIOUS_TAG_PREFERENCE);
+        suspiciousTagPreference.setDefaultValue(DEFAULT_SUSPICIOUS_TAG);
+        suspiciousTagPreference.setTitle(R.string.suspicious_tag_edit_text_preference_title);
+        suspiciousTagPreference.setSummaryProvider(EditTextPreference.SimpleSummaryProvider.getInstance());
+        suspiciousTagPreference.setDialogTitle(R.string.suspicious_tag_edit_text_preference_dialog_title);
+        suspiciousTagPreference.setOnPreferenceChangeListener(new TagPreferenceChangeListener(context, helper, KEY_SUSPICIOUS_TAG_PREFERENCE, DEFAULT_SUSPICIOUS_TAG));
+        preferenceScreen.addPreference(suspiciousTagPreference);
 
         setPreferenceScreen(preferenceScreen);
+    }
+
+    private class TagPreferenceChangeListener implements Preference.OnPreferenceChangeListener {
+        private final Context context;
+        private final AnkiDroidHelper helper;
+        private final String key;
+        private final String defaultValue;
+
+        public TagPreferenceChangeListener(Context context, AnkiDroidHelper helper, String key, String defaultValue) {
+            super();
+            this.context = context;
+            this.helper = helper;
+            this.key = key;
+            this.defaultValue = defaultValue;
+        }
+
+        @Override
+        public boolean onPreferenceChange(Preference preference, Object newValue) {
+            try {
+                SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+                final long modelId = helper.findModelIdByName(MusInterval.Builder.DEFAULT_MODEL_NAME);
+                LinkedList<Map<String, String>> notesData = helper.findNotes(modelId, new HashMap<String, String>());
+                final String currValue = sharedPreferences.getString(key, defaultValue);
+                for (Map<String, String> noteData : notesData) {
+                    String tags = noteData.get(AnkiDroidHelper.KEY_TAGS);
+                    if (tags.contains(String.format(" %s ", currValue))) {
+                        long id = Long.parseLong(noteData.get(AnkiDroidHelper.KEY_ID));
+                        helper.updateNoteTags(id, tags.replace(currValue, (String) newValue));
+                    }
+                }
+            } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
+                return false;
+            }
+            return true;
+        }
     }
 }

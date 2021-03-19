@@ -46,9 +46,17 @@
         <item quantity="one">One music interval successfully marked</item>
         <item quantity="other">%d music intervals successfully marked</item>
     </plurals>
-    <plurals name="integrity_invalid">
-        <item quantity="one">Found one invalid note</item>
-        <item quantity="other">Found %d invalid notes</item>
+    <plurals name="integrity_corrupted">
+        <item quantity="one">Found one corrupted note</item>
+        <item quantity="other">Found %d corrupted notes</item>
+    </plurals>
+    <plurals name="integrity_corrupted_fixed">
+        <item quantity="one">One note previously tagged as corrupted has been fixed</item>
+        <item quantity="other">%d notes previously tagged as corrupted have been fixed</item>
+    </plurals>
+    <plurals name="integrity_suspicious_fixed">
+        <item quantity="one">One note previously tagged as suspicious has been fixed</item>
+        <item quantity="other">%d notes previously tagged as suspicious have been fixed</item>
     </plurals>
     <plurals name="invalid_fields">
         <item quantity="one">Invalid value of \%s\ field</item>
@@ -77,7 +85,7 @@
     <string name="item_added">Music interval successfully added to AnkiDroid</string>
     <string name="add_file_error">Failed to add file to AnkiDroid media</string>
     <string name="unknown_adding_error">Failed to add music interval to AnkiDroid</string>
-    <string name="integrity_check_completed">Integrity check completed</string>
+    <string name="integrity_check_completed">Integrity check completed (%d notes)</string>
     <string name="integrity_ok">No issues have been found</string>
     <string name="integrity_invalid">%d invalid</string>
     <string name="integrity_empty">%d empty</string>
@@ -100,8 +108,8 @@
     <string name="interval_field_list_preference_title">Interval</string>
     <string name="tempo_field_list_preference_title">Tempo</string>
     <string name="instrument_field_list_preference_title">Instrument</string>
-    <string name="invalid_tag_edit_text_preference_title">Invalid note tag</string>
-    <string name="invalid_tag_edit_text_preference_dialog_title">This tag will be added to notes upon running integrity check</string>
-    <string name="auto_fix_links_switch_preference_title">Auto fix links</string>
-    <string name="auto_fix_links_switch_preference_summary">Correct relational fields upon running integrity check</string>
+    <string name="corrupted_tag_edit_text_preference_title">Corrupted note tag</string>
+    <string name="corrupted_tag_edit_text_preference_dialog_title">Added to notes with empty/invalid fields upon running integrity check</string>
+    <string name="suspicious_tag_edit_text_preference_title">Suspicious note tag</string>
+    <string name="suspicious_tag_edit_text_preference_dialog_title">Added to notes that are point or being pointed with broken links upon running integrity check</string>
 </resources>

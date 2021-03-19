@@ -327,30 +327,36 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     return;
                 }
                 try {
+                    final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+                    final String corruptedTag = sharedPreferences.getString(SettingsFragment.KEY_CORRUPTED_TAG_PREFERENCE, SettingsFragment.DEFAULT_CORRUPTED_TAG);
+                    final String suspiciousTag = sharedPreferences.getString(SettingsFragment.KEY_SUSPICIOUS_TAG_PREFERENCE, SettingsFragment.DEFAULT_SUSPICIOUS_TAG);
                     MusInterval mi = getMusInterval();
-                    MusInterval.IntegritySummary integritySummary = mi.checkIntegrity();
-                    ArrayList<Map<String, String>> invalidNotesData = integritySummary.getInvalidNotesData();
-                    ArrayList<Map<String, String>> suspiciousNotesData = integritySummary.getSuspiciousNotesData();
+                    MusInterval.IntegritySummary integritySummary = mi.checkIntegrity(corruptedTag, suspiciousTag);
+                    int notesCount = integritySummary.getNotesCount();
+                    int corruptedNotesCount = integritySummary.getCorruptedNotesCount();
                     Map<String, Integer> invalidFieldsCount = integritySummary.getInvalidFieldsCount();
                     Map<String, Integer> emptyFieldsCount = integritySummary.getEmptyFieldsCount();
+                    int fixedCorruptedNotesCount = integritySummary.getFixedCorruptedNotesCount();
+                    int suspiciousNotesCount = integritySummary.getSuspiciousNotesCount();
+                    int fixedSuspiciousNotesCount = integritySummary.getFixedSuspiciousNotesCount();
                     int filledLinksCount = integritySummary.getFilledLinksCount();
 
                     StringBuilder report = new StringBuilder();
                     Resources res = getResources();
-                    report.append(res.getString(R.string.integrity_check_completed));
-                    if (invalidNotesData.size() > 0) {
+                    report.append(res.getString(R.string.integrity_check_completed, notesCount));
+                    if (corruptedNotesCount > 0) {
                         report.append("\n\n");
-                        if (invalidNotesData.size() == 1) {
-                            report.append(res.getQuantityString(R.plurals.integrity_invalid, invalidNotesData.size()));
+                        if (corruptedNotesCount == 1) {
+                            report.append(res.getQuantityString(R.plurals.integrity_corrupted, corruptedNotesCount));
                         } else {
-                            report.append(res.getQuantityString(R.plurals.integrity_invalid, invalidNotesData.size(), invalidNotesData.size()));
+                            report.append(res.getQuantityString(R.plurals.integrity_corrupted, corruptedNotesCount, corruptedNotesCount));
                         }
                         report.append("\n");
                         for (String field : MusInterval.Fields.SIGNATURE) {
                             final int invalidCount = invalidFieldsCount.getOrDefault(field, 0);
                             final int emptyCount = emptyFieldsCount.getOrDefault(field, 0);
-                            final int totalCount = invalidCount + emptyCount;
-                            if (totalCount > 0) {
+                            final int corruptedCount = invalidCount + emptyCount;
+                            if (corruptedCount > 0) {
                                 report.append("\n");
                                 report.append(String.format("%s: ", mi.modelFields.get(field)));
                                 if (invalidCount > 0) {
@@ -369,11 +375,27 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                             }
                         }
                     }
-                    if (suspiciousNotesData.size() > 0) {
+                    if (fixedCorruptedNotesCount > 0) {
                         report.append("\n\n");
-                        report.append(res.getString(R.string.integrity_suspicious, suspiciousNotesData.size()));
+                        if (fixedCorruptedNotesCount == 1) {
+                            report.append(res.getQuantityString(R.plurals.integrity_corrupted_fixed, fixedCorruptedNotesCount));
+                        } else {
+                            report.append(res.getQuantityString(R.plurals.integrity_corrupted_fixed, fixedCorruptedNotesCount, fixedCorruptedNotesCount));
+                        }
                     }
-                    if (invalidNotesData.size() == 0 && suspiciousNotesData.size() == 0) {
+                    if (suspiciousNotesCount > 0) {
+                        report.append("\n\n");
+                        report.append(res.getString(R.string.integrity_suspicious, suspiciousNotesCount));
+                    }
+                    if (fixedSuspiciousNotesCount > 0) {
+                        report.append("\n\n");
+                        if (fixedSuspiciousNotesCount == 1) {
+                            report.append(res.getQuantityString(R.plurals.integrity_suspicious_fixed, fixedSuspiciousNotesCount));
+                        } else {
+                            report.append(res.getQuantityString(R.plurals.integrity_suspicious_fixed, fixedSuspiciousNotesCount, fixedSuspiciousNotesCount));
+                        }
+                    }
+                    if (corruptedNotesCount == 0 && suspiciousNotesCount == 0) {
                         report.append("\n\n");
                         report.append(res.getString(R.string.integrity_ok));
                     }

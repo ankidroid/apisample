@@ -435,10 +435,11 @@ public class MusInterval {
                 .build();
     }
 
-    public IntegritySummary checkIntegrity() throws AnkiDroidHelper.InvalidAnkiDatabaseException {
+    public IntegritySummary checkIntegrity(String corruptedTag, String suspiciousTag) throws AnkiDroidHelper.InvalidAnkiDatabaseException {
+        LinkedList<Map<String, String>> allNotesData = helper.findNotes(modelId, new HashMap<String, String>());
+
         final String soundField = modelFields.get(Fields.SOUND);
         Map<String, Map<String, String>> soundDict = new HashMap<>();
-        LinkedList<Map<String, String>> allNotesData = helper.findNotes(modelId, new HashMap<String, String>());
         for (Map<String, String> noteData : allNotesData) {
             soundDict.put(noteData.getOrDefault(soundField, ""), noteData);
         }
@@ -450,13 +451,18 @@ public class MusInterval {
         Map<String, String> searchData = getCollectedData();
         searchData.remove(soundField);
 
-        ArrayList<Map<String, String>> invalidNotesData = new ArrayList<>();
         ArrayList<Map<String, String>> validNotesData = new ArrayList<>();
+        ArrayList<Map<String, String>> corruptedRecordsData = new ArrayList<>();
 
         Map<String, Integer> invalidFieldsCount = new HashMap<>();
         Map<String, Integer> emptyFieldsCount = new HashMap<>();
 
         LinkedList<Map<String, String>> searchResult = helper.findNotes(modelId, searchData);
+
+        final String corruptedTagStr = String.format(" %s ", corruptedTag);
+
+        int fixedCorruptedNotesCount = 0;
+        int fixedSuspiciousNotesCount = 0;
 
         for (final Map<String, String> noteData : searchResult) {
             boolean valid = true;
@@ -490,16 +496,24 @@ public class MusInterval {
                 valid = false;
             }
 
-            //final long noteId = Long.parseLong(noteData.get(AnkiDroidHelper.KEY_ID));
+            long noteId = Long.parseLong(noteData.get(AnkiDroidHelper.KEY_ID));
+            String noteTags = noteData.get(AnkiDroidHelper.KEY_TAGS);
+            boolean hasCorruptedTag = noteTags.contains(corruptedTagStr);
             if (!valid) {
-                invalidNotesData.add(noteData);
-                // mAnkiDroid.addTagToNote(noteId, String.format(" %s ", invalidTag));
+                if (!hasCorruptedTag) {
+                    helper.addTagToNote(noteId, corruptedTagStr);
+                }
+                corruptedRecordsData.add(noteData);
                 continue;
+            }
+            if (hasCorruptedTag) {
+                helper.updateNoteTags(noteId, noteTags.replace(corruptedTagStr, " "));
+                fixedCorruptedNotesCount++;
             }
             validNotesData.add(noteData);
         }
 
-        ArrayList<Map<String, String>> susNotesData = new ArrayList<>();
+        ArrayList<Map<String, String>> suspiciousNotesData = new ArrayList<>();
 
         for (Map<String, String> noteData : validNotesData) {
             String interval = noteData.get(intervalField);
@@ -518,7 +532,7 @@ public class MusInterval {
                 remove(AnkiDroidHelper.KEY_ID);
                 remove(AnkiDroidHelper.KEY_TAGS);
             }};
-            boolean sus = false;
+            boolean suspicious = false;
             String soundSmaller = noteData.getOrDefault(soundSmallerField, "");
             if (!soundSmaller.isEmpty()) {
                 Map<String, String> smallerNoteData = soundDict.getOrDefault(soundSmaller, null);
@@ -534,13 +548,13 @@ public class MusInterval {
                     }};
                     if (!keyData.equals(smallerNoteKeyData) || intervalIdx <= 1 ||
                             !Fields.Interval.VALUES[intervalIdx - 1].equalsIgnoreCase(smallerInterval)) {
-                        if (!susNotesData.contains(smallerNoteData)) {
-                            susNotesData.add(smallerNoteData);
+                        if (!suspiciousNotesData.contains(smallerNoteData)) {
+                            suspiciousNotesData.add(smallerNoteData);
                         }
-                        sus = true;
+                        suspicious = true;
                     }
                 } else {
-                    sus = true;
+                    suspicious = true;
                 }
             }
             String soundLarger = noteData.getOrDefault(soundLargerField, "");
@@ -558,28 +572,32 @@ public class MusInterval {
                     }};
                     if (!keyData.equals(largerNoteKeyData) || intervalIdx >= Fields.Interval.VALUES.length - 1 ||
                             !Fields.Interval.VALUES[intervalIdx + 1].equalsIgnoreCase(largerInterval)) {
-                        if (!susNotesData.contains(largerNoteData)) {
-                            susNotesData.add(largerNoteData);
+                        if (!suspiciousNotesData.contains(largerNoteData)) {
+                            suspiciousNotesData.add(largerNoteData);
                         }
-                        sus = true;
+                        suspicious = true;
                     }
                 } else {
-                    sus = true;
+                    suspicious = true;
                 }
             }
-            if (sus) {
-                if (!susNotesData.contains(noteData)) {
-                    susNotesData.add(noteData);
+            if (suspicious) {
+                if (!suspiciousNotesData.contains(noteData)) {
+                    suspiciousNotesData.add(noteData);
                 }
             }
         }
 
-        int fixedLinksCount = 0;
+        final String suspiciousTagStr = String.format(" %s ", suspiciousTag);
+
+        int filledLinksCount = 0;
         ArrayList<Map<String, String>> correctNotesData = new ArrayList<>();
         for (Map<String, String> noteData : validNotesData) {
-            if (!susNotesData.contains(noteData)) {
+            long noteId = Long.parseLong((noteData.get(AnkiDroidHelper.KEY_ID)));
+            String noteTags = noteData.get(AnkiDroidHelper.KEY_TAGS);
+            boolean hasSuspiciousTag = noteTags.contains(suspiciousTagStr);
+            if (!suspiciousNotesData.contains(noteData)) {
                 correctNotesData.add(noteData);
-                long noteId = Long.parseLong((noteData.get(AnkiDroidHelper.KEY_ID)));
                 Map<String, String> updatedNoteData = fillSimilarIntervals(noteData);
                 boolean updatedSmaller = !updatedNoteData.get(soundSmallerField).equals(noteData.get(soundSmallerField));
                 boolean updatedLarger = !updatedNoteData.get(soundLargerField).equals(noteData.get(soundLargerField));
@@ -587,15 +605,32 @@ public class MusInterval {
                     continue;
                 }
                 if (updatedSmaller && updatedLarger) {
-                    fixedLinksCount += 2;
+                    filledLinksCount += 2;
                 } else {
-                    fixedLinksCount++;
+                    filledLinksCount++;
                 }
                 helper.updateNote(modelId, noteId, updatedNoteData);
+                if (hasSuspiciousTag) {
+                    helper.updateNoteTags(noteId, noteTags.replace(corruptedTagStr, " "));
+                    fixedSuspiciousNotesCount++;
+                }
+            } else {
+                if (!hasSuspiciousTag) {
+                    helper.addTagToNote(noteId, suspiciousTagStr);
+                }
             }
         }
 
-        return new IntegritySummary(invalidNotesData, susNotesData, invalidFieldsCount, emptyFieldsCount, fixedLinksCount);
+        return new IntegritySummary(
+                searchResult.size(),
+                corruptedRecordsData.size(),
+                invalidFieldsCount,
+                emptyFieldsCount,
+                suspiciousNotesData.size(),
+                fixedCorruptedNotesCount,
+                fixedSuspiciousNotesCount,
+                filledLinksCount
+        );
     }
 
     private void checkMandatoryFields(Map<String, String> data) throws MandatoryFieldsEmptyException {
@@ -705,28 +740,33 @@ public class MusInterval {
         return data;
     }
 
-    public class IntegritySummary {
-        private ArrayList<Map<String, String>> invalidNotesData;
-        private ArrayList<Map<String, String>> suspiciousNotesData;
+    public static class IntegritySummary {
+        private final int notesCount;
+        private final int corruptedNotesCount;
+        private final Map<String, Integer> invalidFieldsCount;
+        private final Map<String, Integer> emptyFieldsCount;
+        private final int fixedCorruptedNotesCount;
+        private final int suspiciousNotesCount;
+        private final int fixedSuspiciousNotesCount;
+        private final int filledLinksCount;
 
-        private Map<String, Integer> invalidFieldsCount;
-        private Map<String, Integer> emptyFieldsCount;
-        private int filledLinksCound;
-
-        public IntegritySummary(ArrayList<Map<String, String>> invalidNotesData, ArrayList<Map<String, String>> suspiciousNotesData, Map<String, Integer> invalidFieldsCount, Map<String, Integer> emptyFieldsCount, int filledLinksCound) {
-            this.invalidNotesData = invalidNotesData;
-            this.suspiciousNotesData = suspiciousNotesData;
+        public IntegritySummary(int notesCount, int corruptedNotesCount, Map<String, Integer> invalidFieldsCount, Map<String, Integer> emptyFieldsCount, int fixedCorruptedNotesCount, int suspiciousNotesCount, int fixedSuspiciousNotesCount, int filledLinksCount) {
+            this.notesCount = notesCount;
+            this.corruptedNotesCount = corruptedNotesCount;
             this.invalidFieldsCount = invalidFieldsCount;
             this.emptyFieldsCount = emptyFieldsCount;
-            this.filledLinksCound = filledLinksCound;
+            this.fixedCorruptedNotesCount = fixedCorruptedNotesCount;
+            this.suspiciousNotesCount = suspiciousNotesCount;
+            this.fixedSuspiciousNotesCount = fixedSuspiciousNotesCount;
+            this.filledLinksCount = filledLinksCount;
         }
 
-        public ArrayList<Map<String, String>> getInvalidNotesData() {
-            return invalidNotesData;
+        public int getNotesCount() {
+            return notesCount;
         }
 
-        public ArrayList<Map<String, String>> getSuspiciousNotesData() {
-            return suspiciousNotesData;
+        public int getCorruptedNotesCount() {
+            return corruptedNotesCount;
         }
 
         public Map<String, Integer> getInvalidFieldsCount() {
@@ -737,8 +777,20 @@ public class MusInterval {
             return emptyFieldsCount;
         }
 
+        public int getFixedCorruptedNotesCount() {
+            return fixedCorruptedNotesCount;
+        }
+
+        public int getSuspiciousNotesCount() {
+            return suspiciousNotesCount;
+        }
+
+        public int getFixedSuspiciousNotesCount() {
+            return fixedSuspiciousNotesCount;
+        }
+
         public int getFilledLinksCount() {
-            return filledLinksCound;
+            return filledLinksCount;
         }
     }
 }
