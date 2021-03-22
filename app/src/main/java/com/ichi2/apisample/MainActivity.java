@@ -330,8 +330,10 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
                     final String corruptedTag = sharedPreferences.getString(SettingsFragment.KEY_CORRUPTED_TAG_PREFERENCE, SettingsFragment.DEFAULT_CORRUPTED_TAG);
                     final String suspiciousTag = sharedPreferences.getString(SettingsFragment.KEY_SUSPICIOUS_TAG_PREFERENCE, SettingsFragment.DEFAULT_SUSPICIOUS_TAG);
+
                     MusInterval mi = getMusInterval();
                     MusInterval.IntegritySummary integritySummary = mi.checkIntegrity(corruptedTag, suspiciousTag);
+
                     int notesCount = integritySummary.getNotesCount();
                     int corruptedNotesCount = integritySummary.getCorruptedNotesCount();
                     Map<String, Integer> invalidFieldsCount = integritySummary.getInvalidFieldsCount();
