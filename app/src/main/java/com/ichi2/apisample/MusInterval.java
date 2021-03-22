@@ -595,16 +595,6 @@ public class MusInterval {
         final String suspiciousTagStr = String.format(" %s ", suspiciousTag);
 
         int filledLinksCount = 0;
-        Collections.sort(correctNotesData, new Comparator<Map<String, String>>() {
-            @Override
-            public int compare(Map<String, String> data1, Map<String, String> data2) {
-                Long id1 = Long.parseLong(data1.get(AnkiDroidHelper.KEY_ID));
-                Long id2 = Long.parseLong(data2.get(AnkiDroidHelper.KEY_ID));
-                return Long.compare(id1, id2);
-            }
-        });
-        ArrayList<Map<String, String>> filledSmallerLinkNotesKeyData = new ArrayList<>();
-        ArrayList<Map<String, String>> filledLargerLinkNotesKeyData = new ArrayList<>();
         for (Map<String, String> noteData : correctNotesData) {
             long noteId = Long.parseLong((noteData.get(AnkiDroidHelper.KEY_ID)));
             String noteTags = noteData.get(AnkiDroidHelper.KEY_TAGS);
@@ -614,43 +604,13 @@ public class MusInterval {
                     remove(AnkiDroidHelper.KEY_ID);
                     remove(AnkiDroidHelper.KEY_TAGS);
                 }};
-                Map<String, String> keyNoteData = new HashMap<String, String>(noteFieldsData) {{
-                    remove(soundField);
-                    remove(soundSmallerField);
-                    remove(soundLargerField);
-                }};
-                String interval = noteData.get(intervalField);
-                int idx = 0;
-                for (int i = 1; i < Fields.Interval.VALUES.length; i++) {
-                    if (Fields.Interval.VALUES[i].equals(interval)) {
-                        idx = i;
-                        break;
-                    }
+                int updatedLinks = 0;
+                updatedLinks += linkSmallerIntervals(noteFieldsData, false);
+                updatedLinks += linkLargerIntervals(noteFieldsData, false);
+                if (updatedLinks > 0) {
+                    helper.updateNote(modelId, noteId, noteFieldsData);
+                    filledLinksCount += updatedLinks;
                 }
-                final int intervalIdx = idx;
-                if (intervalIdx > 1) {
-                    Map<String, String> smallerNoteKeyData = new HashMap<String, String>(keyNoteData) {{
-                        put(intervalField, Fields.Interval.VALUES[intervalIdx - 1]);
-                    }};
-                    if (!filledLargerLinkNotesKeyData.contains(smallerNoteKeyData)) {
-                        filledLinksCount += linkSmallerIntervals(noteFieldsData, true, suspiciousNotesData);
-                        filledSmallerLinkNotesKeyData.add(keyNoteData);
-                    } else {
-                        filledLinksCount += linkSmallerIntervals(noteFieldsData, false, suspiciousNotesData);
-                    }
-                }
-                if (intervalIdx < Fields.Interval.VALUES.length - 1) {
-                    Map<String, String> largerNoteKeyData = new HashMap<String, String>(keyNoteData) {{
-                        put(intervalField, Fields.Interval.VALUES[intervalIdx + 1]);
-                    }};
-                    if (!filledSmallerLinkNotesKeyData.contains(largerNoteKeyData)) {
-                        filledLinksCount += linkLargerIntervals(noteFieldsData, true, suspiciousNotesData);
-                        filledLargerLinkNotesKeyData.add(keyNoteData);
-                    } else {
-                        filledLinksCount += linkLargerIntervals(noteFieldsData, false, suspiciousNotesData);
-                    }
-                }
-                helper.updateNote(modelId, noteId, noteFieldsData);
                 if (hasSuspiciousTag) {
                     helper.updateNoteTags(noteId, noteTags.replace(suspiciousTag, " "));
                     fixedSuspiciousNotesCount++;
@@ -697,17 +657,6 @@ public class MusInterval {
     }
 
     private int linkSmallerIntervals(Map<String, String> data, boolean updateReverse) throws AnkiDroidHelper.InvalidAnkiDatabaseException {
-        return linkSmallerIntervals(data, updateReverse, new ArrayList<Map<String, String>>());
-    }
-
-    /**
-     * fills soundSmaller field in place, updates notes in reverse relation
-     *
-     * @param data
-     * @return number of updated links
-     * @throws AnkiDroidHelper.InvalidAnkiDatabaseException
-     */
-    private int linkSmallerIntervals(Map<String, String> data, boolean updateReverse, ArrayList<Map<String, String>> ignoreNotes) throws AnkiDroidHelper.InvalidAnkiDatabaseException {
         String intervalField = modelFields.get(Fields.INTERVAL);
         String interval = data.get(intervalField);
         int intervalIdx = 0;
@@ -731,9 +680,6 @@ public class MusInterval {
         int updatedLinks = 0;
         data.put(intervalField, Fields.Interval.VALUES[intervalIdx - 1]);
         LinkedList<Map<String, String>> smallerNotes = helper.findNotes(modelId, data);
-        for (Map<String, String> ignoreNote : ignoreNotes) {
-            smallerNotes.remove(ignoreNote);
-        }
         if (smallerNotes != null && smallerNotes.size() >= 1) {
             int maxIdIdx = 0;
             long maxId = Long.MIN_VALUE;
@@ -764,15 +710,6 @@ public class MusInterval {
     }
 
     private int linkLargerIntervals(Map<String, String> data, boolean updateReverse) throws AnkiDroidHelper.InvalidAnkiDatabaseException {
-        return linkLargerIntervals(data, updateReverse, new ArrayList<Map<String, String>>());
-    }
-
-    /**
-     * @param data
-     * @return
-     * @throws AnkiDroidHelper.InvalidAnkiDatabaseException
-     */
-    private int linkLargerIntervals(Map<String, String> data, boolean updateReverse, ArrayList<Map<String, String>> ignoreNotes) throws AnkiDroidHelper.InvalidAnkiDatabaseException {
         String intervalField = modelFields.get(Fields.INTERVAL);
         String interval = data.get(intervalField);
         int intervalIdx = 0;
@@ -796,9 +733,6 @@ public class MusInterval {
         int updatedLinks = 0;
         data.put(intervalField, Fields.Interval.VALUES[intervalIdx + 1]);
         LinkedList<Map<String, String>> largerNotes = helper.findNotes(modelId, data);
-        for (Map<String, String> ignoreNote : ignoreNotes) {
-            largerNotes.remove(ignoreNote);
-        }
         if (largerNotes != null && largerNotes.size() >= 1) {
             int maxIdIdx = 0;
             long maxId = Long.MIN_VALUE;
