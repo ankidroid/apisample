@@ -50,6 +50,10 @@
         <item quantity="one">Found one corrupted note and marked it with \"%s\" tag</item>
         <item quantity="other">Found %d corrupted notes and marked them with \"%s\" tag</item>
     </plurals>
+    <plurals name="integrity_suspicious">
+        <item quantity="one">Found one suspicious note (invalid link fields) and marked it with \"%s\" tag</item>
+        <item quantity="other">Found %d suspicious notes (invalid link fields) and marked them with \"%s\" tag</item>
+    </plurals>
     <plurals name="integrity_corrupted_fixed">
         <item quantity="one">One note previously tagged as corrupted has been fixed</item>
         <item quantity="other">%d notes previously tagged as corrupted have been fixed</item>
@@ -89,7 +93,6 @@
     <string name="integrity_ok">No issues have been found</string>
     <string name="integrity_invalid">%d invalid</string>
     <string name="integrity_empty">%d empty</string>
-    <string name="integrity_suspicious">Found %d suspicious notes (invalid link fields) and marked them with \"%s\" tag</string>
     <string name="fix_link_confirmation_remember_answer">Remember answer</string>
 
     <string name="InvalidAnkiDatabase_fieldAndFieldNameCountMismatch">Invalid Anki Database: field and field name count mismatches</string>

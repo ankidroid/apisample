@@ -385,7 +385,15 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     }
                     if (suspiciousNotesCount > 0) {
                         report.append("\n\n");
-                        report.append(res.getString(R.string.integrity_suspicious, suspiciousNotesCount, suspiciousTag));
+                        if (suspiciousNotesCount == 1) {
+                            report.append(res.getQuantityString(R.plurals.integrity_suspicious, suspiciousNotesCount, suspiciousTag));
+                        } else {
+                            report.append(res.getQuantityString(R.plurals.integrity_suspicious, suspiciousNotesCount, suspiciousNotesCount, suspiciousTag));
+                        }
+                    }
+                    if (filledLinksCount > 0) {
+                        report.append("\n\n");
+                        report.append(getResources().getQuantityString(R.plurals.integrity_links, filledLinksCount, filledLinksCount));
                     }
                     if (fixedSuspiciousNotesCount > 0) {
                         report.append("\n\n");
@@ -398,10 +406,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     if (corruptedNotesCount == 0 && suspiciousNotesCount == 0) {
                         report.append("\n\n");
                         report.append(res.getString(R.string.integrity_ok));
-                    }
-                    if (filledLinksCount > 0) {
-                        report.append("\n\n");
-                        report.append(getResources().getQuantityString(R.plurals.integrity_links, filledLinksCount, filledLinksCount));
                     }
 
                     new AlertDialog.Builder(MainActivity.this)
