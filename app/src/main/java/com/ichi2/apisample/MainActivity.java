@@ -34,8 +34,6 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -45,7 +43,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
     private static final int AD_PERM_REQUEST = 0;
     private static final int PERMISSIONS_REQUEST_EXTERNAL_STORAGE = 1;
-    private static final int AD_PERM_REQUEST_VALID = 2;
 
     private static final int ACTION_SELECT_FILE = 10;
 
@@ -141,12 +138,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         restoreUiState();
 
         mAnkiDroid = new AnkiDroidHelper(this);
-
-        if (mAnkiDroid.shouldRequestPermission()) {
-            mAnkiDroid.requestPermission(this, AD_PERM_REQUEST_VALID);
-        } else if (!doesModelExist() || !doesModelHaveEnoughFields() || !doesModelHaveStoredFields()) {
-            validateModel();
-        }
     }
 
     private void clearAddedInputFilename() {
@@ -277,10 +268,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     mAnkiDroid.requestPermission(MainActivity.this, AD_PERM_REQUEST);
                     return;
                 }
-                if (!doesModelExist() || !doesModelHaveEnoughFields() || !doesModelHaveStoredFields()) {
-                    validateModel();
-                    return;
-                }
                 try {
                     final MusInterval mi = getMusInterval();
                     final int count = mi.getExistingNotesCount();
@@ -316,10 +303,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     mAnkiDroid.requestPermission(MainActivity.this, AD_PERM_REQUEST);
                     return;
                 }
-                if (!doesModelExist() || !doesModelHaveEnoughFields() || !doesModelHaveStoredFields()) {
-                    validateModel();
-                    return;
-                }
                 try {
                     MusInterval newMi = getMusInterval().addToAnki();
                     inputFilename.setText(newMi.sound);
@@ -347,14 +330,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     mAnkiDroid.requestPermission(MainActivity.this, AD_PERM_REQUEST);
                     return;
                 }
-                if (!doesModelExist()) {
-                    DialogFragment f = new CreateModelDialogFragment();
-                    f.show(getFragmentManager(), "createModelDialog");
-                    return;
-                } else if (!doesModelHaveEnoughFields()) {
-                    showMsg(String.format(getResources().getString(R.string.invalid_model), MusInterval.Builder.DEFAULT_MODEL_NAME));
-                    return;
-                }
                 openSettings();
             }
         });
@@ -362,48 +337,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
     private void openSettings() {
         startActivity(new Intent(this, SettingsActivity.class));
-    }
-
-    private Long findModel() {
-        return mAnkiDroid.findModelIdByName(MusInterval.Builder.DEFAULT_MODEL_NAME);
-    }
-
-    private boolean doesModelExist() {
-        return findModel() != null;
-    }
-
-    private boolean doesModelHaveEnoughFields() {
-        return mAnkiDroid.getFieldList(findModel()).length >= MusInterval.Fields.SIGNATURE.length;
-    }
-
-    private boolean doesModelHaveStoredFields() {
-        final ArrayList<String> existingModelFields = new ArrayList<>(Arrays.asList(mAnkiDroid.getFieldList(findModel())));
-        final String[] storedFields = new String[MusInterval.Fields.SIGNATURE.length];
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        for (int i = 0; i < MusInterval.Fields.SIGNATURE.length; i++) {
-            storedFields[i] = sharedPreferences.getString(MusInterval.Fields.SIGNATURE[i], MusInterval.Fields.SIGNATURE[i]);
-        }
-        ArrayList<String> takenFields = new ArrayList<>();
-        for (String field : storedFields) {
-            if (!existingModelFields.contains(field) || takenFields.contains(field)) {
-                return false;
-            }
-            takenFields.add(field);
-        }
-        return true;
-    }
-
-    private void validateModel() {
-        Long modelId = findModel();
-        if (modelId == null) {
-            DialogFragment f = new CreateModelDialogFragment();
-            f.show(getFragmentManager(), "createModelDialog");
-        } else if (!doesModelHaveEnoughFields()) {
-            showMsg(String.format(getResources().getString(R.string.invalid_model), MusInterval.Builder.DEFAULT_MODEL_NAME));
-        } else if (!doesModelHaveStoredFields()) {
-            DialogFragment f = new ConfigureModelDialogFragment();
-            f.show(getFragmentManager(), "configureModelDialog");
-        }
     }
 
     @Override
@@ -447,13 +380,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         switch (requestCode) {
-            case AD_PERM_REQUEST_VALID:
-                if (grantResults.length > 0 && grantResults[0] != PackageManager.PERMISSION_GRANTED) {
-                    showMsg(R.string.anki_permission_denied);
-                } else if (!doesModelExist() || !doesModelHaveEnoughFields() || !doesModelHaveStoredFields()) {
-                    validateModel();
-                }
-                break;
             case AD_PERM_REQUEST: {
                 if (grantResults.length > 0 && grantResults[0] != PackageManager.PERMISSION_GRANTED) {
                     showMsg(R.string.anki_permission_denied);
@@ -471,22 +397,26 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         final String anyStr = getResources().getString(R.string.radio_any);
 
         final int radioDirectionId = radioGroupDirection.getCheckedRadioButtonId();
-        final RadioButton radioDirection = findViewById(radioDirectionId);
-        final String directionStr = radioDirectionId != -1  && radioDirection != null ?
-                radioDirection.getText().toString() : anyStr;
-
+        final View radioDirection = findViewById(radioDirectionId);
+        final String directionStr = radioDirection instanceof RadioButton && radioDirectionId != -1 ?
+                ((RadioButton) radioDirection).getText().toString() : anyStr;
+        // @todo: fix underlying cause of crash on unchecked groups
         final int radioTimingId = radioGroupTiming.getCheckedRadioButtonId();
-        final RadioButton radioTiming = findViewById(radioTimingId);
-        final String timingStr = radioTimingId != -1 && radioTiming != null ?
-                radioTiming.getText().toString() : anyStr;
+        final View radioTiming = findViewById(radioTimingId);
+        final String timingStr = radioTiming instanceof RadioButton && radioTimingId != -1 ?
+                ((RadioButton) radioTiming).getText().toString() : anyStr;
 
         final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         final Map<String, String> storedFields = new HashMap<>();
         for (String field : MusInterval.Fields.SIGNATURE) {
             storedFields.put(field, sharedPreferences.getString(field, field));
         }
+        final String storedDeck = sharedPreferences.getString(SettingsFragment.KEY_DECK_PREFERENCE, MusInterval.Builder.DEFAULT_DECK_NAME);
+        final String storedModel = sharedPreferences.getString(SettingsFragment.KEY_MODEL_PREFERENCE, MusInterval.Builder.DEFAULT_MODEL_NAME);
 
         return new MusInterval.Builder(mAnkiDroid)
+                .deck(storedDeck)
+                .model(storedModel)
                 .model_fields(storedFields)
                 .sound(inputFilename.getText().toString())
                 .start_note(inputStartNote.getText().toString())
@@ -501,6 +431,20 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private void processMusIntervalException(MusInterval.Exception miException) {
         try {
             throw miException;
+        } catch (MusInterval.ModelDoesNotExistException e) {
+            DialogFragment f = new CreateModelDialogFragment();
+            Bundle args = new Bundle();
+            args.putString(SettingsFragment.KEY_MODEL_PREFERENCE, e.getModelName());
+            f.setArguments(args);
+            f.show(getFragmentManager(), "createModelDialog");
+        } catch (MusInterval.NotEnoughFieldsException e) {
+            showMsg(String.format(getResources().getString(R.string.invalid_model), e.getModelName()));
+        } catch (MusInterval.ModelNotConfiguredException e) {
+            DialogFragment f = new ConfigureModelDialogFragment();
+            Bundle args = new Bundle();
+            args.putString(SettingsFragment.KEY_MODEL_PREFERENCE, e.getModelName());
+            f.setArguments(args);
+            f.show(getFragmentManager(), "configureModelDialog");
         } catch (MusInterval.NoteNotExistsException e) {
             showMsg(R.string.mi_not_exists);
         } catch (MusInterval.StartNoteSyntaxException e) {
@@ -542,13 +486,31 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         @Override
         public Dialog onCreateDialog(Bundle savedInstanceState) {
             final MainActivity mainActivity = (MainActivity) getActivity();
+            final String modelName = getArguments().getString(SettingsFragment.KEY_MODEL_PREFERENCE);
             return new AlertDialog.Builder(mainActivity)
                     .setMessage(String.format(
                             getResources().getString(R.string.create_model),
-                            MusInterval.Builder.DEFAULT_MODEL_NAME))
+                            modelName))
                     .setPositiveButton(R.string.create, new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
-                            mainActivity.handleCreateModel();
+                            final Long newModelId = mainActivity.mAnkiDroid.addNewCustomModel(
+                                    modelName,
+                                    MusInterval.Fields.SIGNATURE,
+                                    MusInterval.Builder.CARD_NAMES,
+                                    MusInterval.Builder.QFMT,
+                                    MusInterval.Builder.AFMT,
+                                    MusInterval.Builder.CSS
+                            );
+                            if (newModelId != null) {
+                                mainActivity.showMsg(
+                                        String.format(
+                                                getResources().getString(R.string.create_model_success),
+                                                modelName
+                                        )
+                                );
+                            } else {
+                                mainActivity.showMsg(R.string.create_model_error);
+                            }
                         }
                     })
                     .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
@@ -567,7 +529,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             return new AlertDialog.Builder(mainActivity)
                     .setMessage(String.format(
                             getResources().getString(R.string.configure_model),
-                            MusInterval.Builder.DEFAULT_MODEL_NAME))
+                            getArguments().getString(SettingsFragment.KEY_MODEL_PREFERENCE)))
                     .setPositiveButton(R.string.configure, new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
                             mainActivity.openSettings();
@@ -579,24 +541,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                         }
                     })
                     .create();
-        }
-    }
-
-    private void handleCreateModel() {
-        String modelName = MusInterval.Builder.DEFAULT_MODEL_NAME;
-        final Long newModelId = mAnkiDroid.addNewCustomModel(
-                modelName,
-                MusInterval.Fields.SIGNATURE,
-                MusInterval.Builder.CARD_NAMES,
-                MusInterval.Builder.QFMT,
-                MusInterval.Builder.AFMT,
-                MusInterval.Builder.CSS);
-        if (newModelId != null) {
-            showMsg(String.format(
-                    getResources().getString(R.string.create_model_success),
-                    modelName));
-        } else {
-            showMsg(R.string.create_model_error);
         }
     }
 
