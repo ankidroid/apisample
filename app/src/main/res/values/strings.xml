@@ -111,5 +111,5 @@
     <string name="corrupted_tag_edit_text_preference_title">Corrupted note tag</string>
     <string name="corrupted_tag_edit_text_preference_dialog_title">Added to notes with empty/invalid fields upon running integrity check</string>
     <string name="suspicious_tag_edit_text_preference_title">Suspicious note tag</string>
-    <string name="suspicious_tag_edit_text_preference_dialog_title">Added to notes that point or are being pointed by broken links upon running integrity check</string>
+    <string name="suspicious_tag_edit_text_preference_dialog_title">Added to notes that point or are being pointed by broken links</string>
 </resources>

@@ -204,7 +204,7 @@ public class MusInterval {
     public static class AddSoundFileException extends Exception {}
 
     public static class FieldsValidationException extends Exception {
-        private LinkedList<String> fields;
+        private final LinkedList<String> fields;
 
         public FieldsValidationException(LinkedList<String> fields) {
             super();
@@ -449,16 +449,13 @@ public class MusInterval {
 
         final String soundSmallerField = modelFields.get(MusInterval.Fields.SOUND_SMALLER);
         final String soundLargerField = modelFields.get(MusInterval.Fields.SOUND_LARGER);
-        final String intervalField = modelFields.get(MusInterval.Fields.INTERVAL);
-
         Map<String, String> searchData = getCollectedData();
         searchData.remove(soundField);
         searchData.remove(soundSmallerField);
         searchData.remove(soundLargerField);
 
-        ArrayList<Map<String, String>> notesData = new ArrayList<>();
+        ArrayList<Map<String, String>> correctNotesData = new ArrayList<>();
         ArrayList<Map<String, String>> corruptedNotesData = new ArrayList<>();
-
         Map<String, Integer> invalidFieldsCount = new HashMap<>();
         Map<String, Integer> emptyFieldsCount = new HashMap<>();
 
@@ -468,6 +465,8 @@ public class MusInterval {
 
         int fixedCorruptedNotesCount = 0;
         int fixedSuspiciousNotesCount = 0;
+
+        final String intervalField = modelFields.get(MusInterval.Fields.INTERVAL);
 
         for (final Map<String, String> noteData : searchResult) {
             boolean corrupted = false;
@@ -515,12 +514,12 @@ public class MusInterval {
                 helper.updateNoteTags(noteId, noteTags.replace(corruptedTagStr, " "));
                 fixedCorruptedNotesCount++;
             }
-            notesData.add(noteData);
+            correctNotesData.add(noteData);
         }
 
         ArrayList<Map<String, String>> suspiciousNotesData = new ArrayList<>();
 
-        for (Map<String, String> noteData : notesData) {
+        for (Map<String, String> noteData : correctNotesData) {
             String interval = noteData.get(intervalField);
             int intervalIdx = 0;
             for (int i = 1; i < Fields.Interval.VALUES.length; i++) {
@@ -596,23 +595,21 @@ public class MusInterval {
         final String suspiciousTagStr = String.format(" %s ", suspiciousTag);
 
         int filledLinksCount = 0;
-        Collections.sort(notesData, new Comparator<Map<String, String>>() {
+        Collections.sort(correctNotesData, new Comparator<Map<String, String>>() {
             @Override
             public int compare(Map<String, String> data1, Map<String, String> data2) {
-                long id1 = Long.parseLong(data1.get(AnkiDroidHelper.KEY_ID));
-                long id2 = Long.parseLong(data2.get(AnkiDroidHelper.KEY_ID));
-                return id1 > id2 ? 1 : id1 < id2 ? -1 : 0;
+                Long id1 = Long.parseLong(data1.get(AnkiDroidHelper.KEY_ID));
+                Long id2 = Long.parseLong(data2.get(AnkiDroidHelper.KEY_ID));
+                return Long.compare(id1, id2);
             }
         });
-        ArrayList<Map<String, String>> correctNotesData = new ArrayList<>();
         ArrayList<Map<String, String>> filledSmallerLinkNotesKeyData = new ArrayList<>();
         ArrayList<Map<String, String>> filledLargerLinkNotesKeyData = new ArrayList<>();
-        for (Map<String, String> noteData : notesData) {
+        for (Map<String, String> noteData : correctNotesData) {
             long noteId = Long.parseLong((noteData.get(AnkiDroidHelper.KEY_ID)));
             String noteTags = noteData.get(AnkiDroidHelper.KEY_TAGS);
             boolean hasSuspiciousTag = noteTags.contains(suspiciousTagStr);
             if (!suspiciousNotesData.contains(noteData)) {
-                correctNotesData.add(noteData);
                 Map<String, String> noteFieldsData = new HashMap<String, String>(noteData) {{
                     remove(AnkiDroidHelper.KEY_ID);
                     remove(AnkiDroidHelper.KEY_TAGS);
@@ -760,7 +757,6 @@ public class MusInterval {
     }
 
     /**
-     *
      * @param data
      * @return
      * @throws AnkiDroidHelper.InvalidAnkiDatabaseException

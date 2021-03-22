@@ -105,7 +105,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         setPreferenceScreen(preferenceScreen);
     }
 
-    private class TagPreferenceChangeListener implements Preference.OnPreferenceChangeListener {
+    private static class TagPreferenceChangeListener implements Preference.OnPreferenceChangeListener {
         private final Context context;
         private final AnkiDroidHelper helper;
         private final String key;
