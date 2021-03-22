@@ -11,37 +11,69 @@ import androidx.preference.PreferenceCategory;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceScreen;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 public class SettingsFragment extends PreferenceFragmentCompat {
-    private static final String FIELDS_PREFERENCE_CATEGORY_KEY = "fields";
+    public static final String KEY_DECK_PREFERENCE = "preference_deck";
+    public static final String KEY_MODEL_PREFERENCE = "preference_model";
+
+    private static final String KEY_FIELDS_PREFERENCE_CATEGORY = "preference_fields";
+
+    private Context context;
+    private PreferenceScreen preferenceScreen;
+
+    private AnkiDroidHelper helper;
+
+    private PreferenceCategory fieldsPreferenceCategory;
 
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
-        Context context = getPreferenceManager().getContext();
-        PreferenceScreen preferenceScreen = getPreferenceManager().createPreferenceScreen(context);
+        context = getPreferenceManager().getContext();
+        preferenceScreen = getPreferenceManager().createPreferenceScreen(context);
 
-        AnkiDroidHelper helper = new AnkiDroidHelper(context);
+        helper = new AnkiDroidHelper(context);
 
-        Long modelId = helper.findModelIdByName(MusInterval.Builder.DEFAULT_MODEL_NAME);
-        if (modelId == null) {
-            getActivity().finish();
-            return;
+        ListPreference deckListPreference = new ListPreference(context);
+        deckListPreference.setKey(KEY_DECK_PREFERENCE);
+        deckListPreference.setTitle(R.string.deck_preference_title);
+        deckListPreference.setSummaryProvider(ListPreference.SimpleSummaryProvider.getInstance());
+        Map<Long, String> deckList = helper.getDeckList();
+        List<String> deckEntriesList = new ArrayList<>(deckList.values());
+        if (!deckEntriesList.contains(MusInterval.Builder.DEFAULT_DECK_NAME)) {
+            deckEntriesList.add(MusInterval.Builder.DEFAULT_DECK_NAME);
         }
+        deckListPreference.setDefaultValue(MusInterval.Builder.DEFAULT_DECK_NAME);
+        String[] deckEntries = deckEntriesList.toArray(new String[deckEntriesList.size()]);
+        deckListPreference.setEntries(deckEntries);
+        deckListPreference.setEntryValues(deckEntries);
+        preferenceScreen.addPreference(deckListPreference);
 
-        Preference deckPreference = new Preference(context);
-        deckPreference.setTitle(R.string.deck_preference_title);
-        deckPreference.setSummary(MusInterval.Builder.DEFAULT_DECK_NAME);
-        deckPreference.setPersistent(false); // @todo: add deck configuration
-        preferenceScreen.addPreference(deckPreference);
+        ListPreference modelListPreference = new ListPreference(context);
+        modelListPreference.setKey(KEY_MODEL_PREFERENCE);
+        modelListPreference.setTitle(R.string.model_preference_title);
+        modelListPreference.setSummaryProvider(ListPreference.SimpleSummaryProvider.getInstance());
+        Map<Long, String> modelList = helper.getModelList(MusInterval.Fields.SIGNATURE.length);
+        List<String> modelEntriesList = new ArrayList<>(modelList.values());
+        String[] modelEntries = modelEntriesList.toArray(new String[modelEntriesList.size()]);
+        modelListPreference.setEntries(modelEntries);
+        modelListPreference.setEntryValues(modelEntries);
+        modelListPreference.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
+                Long newModelId = helper.findModelIdByName((String) newValue, MusInterval.Fields.SIGNATURE.length);
+                if (newModelId == null) {
+                    return false;
+                }
+                refreshFieldsPreferenceEntries(newModelId);
+                return true;
+            }
+        });
+        preferenceScreen.addPreference(modelListPreference);
 
-        Preference modelPreference = new Preference(context);
-        modelPreference.setTitle(R.string.model_preference_title);
-        modelPreference.setSummary(MusInterval.Builder.DEFAULT_MODEL_NAME);
-        deckPreference.setPersistent(false); // @todo: add model configuration
-        preferenceScreen.addPreference(modelPreference);
-
-        String[] keys = MusInterval.Fields.SIGNATURE;
         Resources res = getResources();
-        String[] titles = new String[]{
+        String[] fieldTitles = new String[]{
                 res.getString(R.string.sound_field_list_preference_title),
                 res.getString(R.string.sound_smaller_field_list_preference_title),
                 res.getString(R.string.sound_larger_field_list_preference_title),
@@ -52,26 +84,31 @@ public class SettingsFragment extends PreferenceFragmentCompat {
                 res.getString(R.string.tempo_field_list_preference_title),
                 res.getString(R.string.instrument_field_list_preference_title),
         };
-        String[] entryValues = helper.getFieldList(modelId);
-        String[] entries = new String[entryValues.length + 1];
-        entries[0] = "";
-        System.arraycopy(entryValues, 0, entries, 1, entryValues.length);
-        PreferenceCategory fieldsPreferenceCategory = new PreferenceCategory(context);
-        fieldsPreferenceCategory.setKey(FIELDS_PREFERENCE_CATEGORY_KEY);
+        fieldsPreferenceCategory = new PreferenceCategory(context);
+        fieldsPreferenceCategory.setKey(KEY_FIELDS_PREFERENCE_CATEGORY);
         fieldsPreferenceCategory.setTitle(R.string.fields_preference_category_title);
         fieldsPreferenceCategory.setInitialExpandedChildrenCount(0);
         preferenceScreen.addPreference(fieldsPreferenceCategory);
-        for (int i = 0; i < keys.length; i++) {
+        for (int i = 0; i < MusInterval.Fields.SIGNATURE.length; i++) {
             ListPreference fieldListPreference = new DropDownPreference(context);
-            fieldListPreference.setKey(keys[i]);
-            fieldListPreference.setTitle(titles[i]);
-            fieldListPreference.setDefaultValue(keys[i]);
+            fieldListPreference.setKey(MusInterval.Fields.SIGNATURE[i]);
+            fieldListPreference.setTitle(fieldTitles[i]);
+            fieldListPreference.setDefaultValue(MusInterval.Fields.SIGNATURE[i]);
             fieldListPreference.setSummaryProvider(ListPreference.SimpleSummaryProvider.getInstance());
-            fieldListPreference.setEntries(entries);
-            fieldListPreference.setEntryValues(entries);
             fieldsPreferenceCategory.addPreference(fieldListPreference);
         }
+        Long modelId = helper.findModelIdByName(modelListPreference.getValue(), MusInterval.Fields.SIGNATURE.length);
+        refreshFieldsPreferenceEntries(modelId);
 
         setPreferenceScreen(preferenceScreen);
+    }
+
+    private void refreshFieldsPreferenceEntries(Long modelId) {
+        String[] fieldList = modelId != null ? helper.getFieldList(modelId) : new String[]{};
+        for (int i = 0; i < MusInterval.Fields.SIGNATURE.length; i++) {
+            ListPreference fieldListPreference = (ListPreference) fieldsPreferenceCategory.getPreference(i);
+            fieldListPreference.setEntries(fieldList);
+            fieldListPreference.setEntryValues(fieldList);
+        }
     }
 }
