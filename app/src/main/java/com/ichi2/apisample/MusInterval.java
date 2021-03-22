@@ -1,6 +1,8 @@
 package com.ichi2.apisample;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
@@ -414,7 +416,8 @@ public class MusInterval {
 
         Map<String, String> data = getCollectedData(newSound);
 
-        data = fillSimilarIntervals(data);
+        linkSmallerIntervals(data, true);
+        linkLargerIntervals(data, true);
 
         Long noteId = helper.addNote(modelId, deckId, data, null);
 
@@ -450,9 +453,11 @@ public class MusInterval {
 
         Map<String, String> searchData = getCollectedData();
         searchData.remove(soundField);
+        searchData.remove(soundSmallerField);
+        searchData.remove(soundLargerField);
 
-        ArrayList<Map<String, String>> validNotesData = new ArrayList<>();
-        ArrayList<Map<String, String>> corruptedRecordsData = new ArrayList<>();
+        ArrayList<Map<String, String>> notesData = new ArrayList<>();
+        ArrayList<Map<String, String>> corruptedNotesData = new ArrayList<>();
 
         Map<String, Integer> invalidFieldsCount = new HashMap<>();
         Map<String, Integer> emptyFieldsCount = new HashMap<>();
@@ -465,7 +470,7 @@ public class MusInterval {
         int fixedSuspiciousNotesCount = 0;
 
         for (final Map<String, String> noteData : searchResult) {
-            boolean valid = true;
+            boolean corrupted = false;
             try {
                 try {
                     new MusInterval.Builder(helper)
@@ -484,7 +489,7 @@ public class MusInterval {
                         int currCount = invalidFieldsCount.getOrDefault(field, 0);
                         invalidFieldsCount.put(field, currCount + 1);
                     }
-                    valid = false;
+                    corrupted = true;
                 }
                 checkMandatoryFields(noteData);
             } catch (MusInterval.MandatoryFieldsEmptyException e) {
@@ -493,29 +498,29 @@ public class MusInterval {
                     int currCount = emptyFieldsCount.getOrDefault(field, 0);
                     emptyFieldsCount.put(field, currCount + 1);
                 }
-                valid = false;
+                corrupted = true;
             }
 
             long noteId = Long.parseLong(noteData.get(AnkiDroidHelper.KEY_ID));
             String noteTags = noteData.get(AnkiDroidHelper.KEY_TAGS);
             boolean hasCorruptedTag = noteTags.contains(corruptedTagStr);
-            if (!valid) {
+            if (corrupted) {
                 if (!hasCorruptedTag) {
                     helper.addTagToNote(noteId, corruptedTagStr);
                 }
-                corruptedRecordsData.add(noteData);
+                corruptedNotesData.add(noteData);
                 continue;
             }
             if (hasCorruptedTag) {
                 helper.updateNoteTags(noteId, noteTags.replace(corruptedTagStr, " "));
                 fixedCorruptedNotesCount++;
             }
-            validNotesData.add(noteData);
+            notesData.add(noteData);
         }
 
         ArrayList<Map<String, String>> suspiciousNotesData = new ArrayList<>();
 
-        for (Map<String, String> noteData : validNotesData) {
+        for (Map<String, String> noteData : notesData) {
             String interval = noteData.get(intervalField);
             int intervalIdx = 0;
             for (int i = 1; i < Fields.Interval.VALUES.length; i++) {
@@ -591,25 +596,64 @@ public class MusInterval {
         final String suspiciousTagStr = String.format(" %s ", suspiciousTag);
 
         int filledLinksCount = 0;
+        Collections.sort(notesData, new Comparator<Map<String, String>>() {
+            @Override
+            public int compare(Map<String, String> data1, Map<String, String> data2) {
+                long id1 = Long.parseLong(data1.get(AnkiDroidHelper.KEY_ID));
+                long id2 = Long.parseLong(data2.get(AnkiDroidHelper.KEY_ID));
+                return id1 > id2 ? 1 : id1 < id2 ? -1 : 0;
+            }
+        });
         ArrayList<Map<String, String>> correctNotesData = new ArrayList<>();
-        for (Map<String, String> noteData : validNotesData) {
+        ArrayList<Map<String, String>> filledSmallerLinkNotesKeyData = new ArrayList<>();
+        ArrayList<Map<String, String>> filledLargerLinkNotesKeyData = new ArrayList<>();
+        for (Map<String, String> noteData : notesData) {
             long noteId = Long.parseLong((noteData.get(AnkiDroidHelper.KEY_ID)));
             String noteTags = noteData.get(AnkiDroidHelper.KEY_TAGS);
             boolean hasSuspiciousTag = noteTags.contains(suspiciousTagStr);
             if (!suspiciousNotesData.contains(noteData)) {
                 correctNotesData.add(noteData);
-                Map<String, String> updatedNoteData = fillSimilarIntervals(noteData);
-                boolean updatedSmaller = !updatedNoteData.get(soundSmallerField).equals(noteData.get(soundSmallerField));
-                boolean updatedLarger = !updatedNoteData.get(soundLargerField).equals(noteData.get(soundLargerField));
-                if (!updatedSmaller && !updatedLarger) {
-                    continue;
+                Map<String, String> noteFieldsData = new HashMap<String, String>(noteData) {{
+                    remove(AnkiDroidHelper.KEY_ID);
+                    remove(AnkiDroidHelper.KEY_TAGS);
+                }};
+                Map<String, String> keyNoteData = new HashMap<String, String>(noteFieldsData) {{
+                    remove(soundField);
+                    remove(soundSmallerField);
+                    remove(soundLargerField);
+                }};
+                String interval = noteData.get(intervalField);
+                int idx = 0;
+                for (int i = 1; i < Fields.Interval.VALUES.length; i++) {
+                    if (Fields.Interval.VALUES[i].equals(interval)) {
+                        idx = i;
+                        break;
+                    }
                 }
-                if (updatedSmaller && updatedLarger) {
-                    filledLinksCount += 2;
-                } else {
-                    filledLinksCount++;
+                final int intervalIdx = idx;
+                if (intervalIdx > 1) {
+                    Map<String, String> smallerNoteKeyData = new HashMap<String, String>(keyNoteData) {{
+                        put(intervalField, Fields.Interval.VALUES[intervalIdx - 1]);
+                    }};
+                    if (!filledLargerLinkNotesKeyData.contains(smallerNoteKeyData)) {
+                        filledLinksCount += linkSmallerIntervals(noteFieldsData, true);
+                        filledSmallerLinkNotesKeyData.add(keyNoteData);
+                    } else {
+                        filledLinksCount += linkSmallerIntervals(noteFieldsData, false);
+                    }
                 }
-                helper.updateNote(modelId, noteId, updatedNoteData);
+                if (intervalIdx < Fields.Interval.VALUES.length - 1) {
+                    Map<String, String> largerNoteKeyData = new HashMap<String, String>(keyNoteData) {{
+                        put(intervalField, Fields.Interval.VALUES[intervalIdx + 1]);
+                    }};
+                    if (!filledSmallerLinkNotesKeyData.contains(largerNoteKeyData)) {
+                        filledLinksCount += linkLargerIntervals(noteFieldsData, true);
+                        filledLargerLinkNotesKeyData.add(keyNoteData);
+                    } else {
+                        filledLinksCount += linkLargerIntervals(noteFieldsData, false);
+                    }
+                }
+                helper.updateNote(modelId, noteId, noteData);
                 if (hasSuspiciousTag) {
                     helper.updateNoteTags(noteId, noteTags.replace(corruptedTagStr, " "));
                     fixedSuspiciousNotesCount++;
@@ -623,11 +667,11 @@ public class MusInterval {
 
         return new IntegritySummary(
                 searchResult.size(),
-                corruptedRecordsData.size(),
+                corruptedNotesData.size(),
                 invalidFieldsCount,
                 emptyFieldsCount,
-                suspiciousNotesData.size(),
                 fixedCorruptedNotesCount,
+                suspiciousNotesData.size(),
                 fixedSuspiciousNotesCount,
                 filledLinksCount
         );
@@ -655,16 +699,16 @@ public class MusInterval {
         }
     }
 
-    private Map<String, String> fillSimilarIntervals(Map<String, String> data) throws AnkiDroidHelper.InvalidAnkiDatabaseException {
-        Map<String, String> newData = new HashMap<>(data);
-        String soundField = modelFields.get(Fields.SOUND);
-        String soundSmallerField = modelFields.get(Fields.SOUND_SMALLER);
-        String soundLargerField = modelFields.get(Fields.SOUND_LARGER);
-        String sound = newData.remove(soundField);
-        newData.remove(soundSmallerField);
-        newData.remove(soundLargerField);
+    /**
+     * fills soundSmaller field in place, updates notes in reverse relation
+     *
+     * @param data
+     * @return number of updated links
+     * @throws AnkiDroidHelper.InvalidAnkiDatabaseException
+     */
+    private int linkSmallerIntervals(Map<String, String> data, boolean updateReverse) throws AnkiDroidHelper.InvalidAnkiDatabaseException {
         String intervalField = modelFields.get(Fields.INTERVAL);
-        String interval = newData.get(intervalField);
+        String interval = data.get(intervalField);
         int intervalIdx = 0;
         for (int i = 1; i < Fields.Interval.VALUES.length; i++) {
             if (Fields.Interval.VALUES[i].equalsIgnoreCase(interval)) {
@@ -672,51 +716,106 @@ public class MusInterval {
                 break;
             }
         }
-        String soundSmaller = "";
-        if (intervalIdx > 1) {
-            newData.put(intervalField, Fields.Interval.VALUES[intervalIdx - 1]);
-            LinkedList<Map<String, String>> smallerIntervals = helper.findNotes(modelId, newData);
-            if (smallerIntervals != null && smallerIntervals.size() >= 1) {
-                int maxIdIdx = 0;
-                long maxId = Long.MIN_VALUE;
-                for (int i = 0; i < smallerIntervals.size(); i++) {
-                    Map<String, String> smallerIntervalData = smallerIntervals.get(i);
-                    long id = Long.parseLong(smallerIntervalData.get(AnkiDroidHelper.KEY_ID));
-                    if (id > maxId) {
-                        maxId = id;
-                        maxIdIdx = i;
-                    }
+        if (intervalIdx <= 1) {
+            return 0;
+        }
+
+        String soundField = modelFields.get(Fields.SOUND);
+        String soundSmallerField = modelFields.get(Fields.SOUND_SMALLER);
+        String soundLargerField = modelFields.get(Fields.SOUND_LARGER);
+        String sound = data.remove(soundField);
+        String soundSmaller = data.remove(soundSmallerField);
+        String soundLarger = data.remove(soundLargerField);
+
+        int updatedLinks = 0;
+        data.put(intervalField, Fields.Interval.VALUES[intervalIdx - 1]);
+        LinkedList<Map<String, String>> smallerIntervals = helper.findNotes(modelId, data);
+        if (smallerIntervals != null && smallerIntervals.size() >= 1) {
+            int maxIdIdx = 0;
+            long maxId = Long.MIN_VALUE;
+            for (int i = 0; i < smallerIntervals.size(); i++) {
+                Map<String, String> smallerIntervalData = smallerIntervals.get(i);
+                long id = Long.parseLong(smallerIntervalData.get(AnkiDroidHelper.KEY_ID));
+                if (id > maxId) {
+                    maxId = id;
+                    maxIdIdx = i;
+                }
+                if (updateReverse && !smallerIntervalData.getOrDefault(soundLargerField, "").equalsIgnoreCase(interval)) {
                     smallerIntervalData.put(soundLargerField, sound);
                     helper.updateNote(modelId, id, smallerIntervalData);
+                    updatedLinks++;
                 }
-                soundSmaller = smallerIntervals.get(maxIdIdx).get(soundField);
+            }
+            String newSoundSmaller = smallerIntervals.get(maxIdIdx).get(soundField);
+            if (!soundSmaller.equals(newSoundSmaller)) {
+                soundSmaller = newSoundSmaller;
+                updatedLinks++;
             }
         }
-        String soundLarger = "";
-        if (intervalIdx < Fields.Interval.VALUES.length - 1) {
-            newData.put(intervalField, Fields.Interval.VALUES[intervalIdx + 1]);
-            LinkedList<Map<String, String>> largerIntervals = helper.findNotes(modelId, newData);
-            if (largerIntervals != null && largerIntervals.size() >= 1) {
-                int maxIdIdx = 0;
-                long maxId = Long.MIN_VALUE;
-                for (int i = 0; i < largerIntervals.size(); i++) {
-                    Map<String, String> largerIntervalData = largerIntervals.get(i);
-                    long id = Long.parseLong(largerIntervalData.get(AnkiDroidHelper.KEY_ID));
-                    if (id > maxId) {
-                        maxId = id;
-                        maxIdIdx = i;
-                    }
+        data.put(soundField, sound);
+        data.put(intervalField, interval);
+        data.put(soundSmallerField, soundSmaller);
+        data.put(soundLargerField, soundLarger);
+        return updatedLinks;
+    }
+
+    /**
+     *
+     * @param data
+     * @return
+     * @throws AnkiDroidHelper.InvalidAnkiDatabaseException
+     */
+    private int linkLargerIntervals(Map<String, String> data, boolean updateReverse) throws AnkiDroidHelper.InvalidAnkiDatabaseException {
+        String intervalField = modelFields.get(Fields.INTERVAL);
+        String interval = data.get(intervalField);
+        int intervalIdx = 0;
+        for (int i = 1; i < Fields.Interval.VALUES.length; i++) {
+            if (Fields.Interval.VALUES[i].equalsIgnoreCase(interval)) {
+                intervalIdx = i;
+                break;
+            }
+        }
+        if (intervalIdx >= Fields.Interval.VALUES.length - 1) {
+            return 0;
+        }
+
+        String soundField = modelFields.get(Fields.SOUND);
+        String soundSmallerField = modelFields.get(Fields.SOUND_SMALLER);
+        String soundLargerField = modelFields.get(Fields.SOUND_LARGER);
+        String sound = data.remove(soundField);
+        String soundSmaller = data.remove(soundSmallerField);
+        String soundLarger = data.remove(soundLargerField);
+
+        int updatedLinks = 0;
+        data.put(intervalField, Fields.Interval.VALUES[intervalIdx + 1]);
+        LinkedList<Map<String, String>> largerIntervals = helper.findNotes(modelId, data);
+        if (largerIntervals != null && largerIntervals.size() >= 1) {
+            int maxIdIdx = 0;
+            long maxId = Long.MIN_VALUE;
+            for (int i = 0; i < largerIntervals.size(); i++) {
+                Map<String, String> largerIntervalData = largerIntervals.get(i);
+                long id = Long.parseLong(largerIntervalData.get(AnkiDroidHelper.KEY_ID));
+                if (id > maxId) {
+                    maxId = id;
+                    maxIdIdx = i;
+                }
+                if (updateReverse && !largerIntervalData.getOrDefault(soundSmallerField, "").equalsIgnoreCase(interval)) {
                     largerIntervalData.put(soundSmallerField, sound);
                     helper.updateNote(modelId, id, largerIntervalData);
+                    updatedLinks++;
                 }
-                soundLarger = largerIntervals.get(maxIdIdx).get(soundField);
+            }
+            String newSoundLarger = largerIntervals.get(maxIdIdx).get(soundField);
+            if (!soundLarger.equals(newSoundLarger)) {
+                soundLarger = newSoundLarger;
+                updatedLinks++;
             }
         }
-        newData.put(soundField, sound);
-        newData.put(intervalField, interval);
-        newData.put(soundSmallerField, soundSmaller);
-        newData.put(soundLargerField, soundLarger);
-        return newData;
+        data.put(soundField, sound);
+        data.put(intervalField, interval);
+        data.put(soundSmallerField, soundSmaller);
+        data.put(soundLargerField, soundLarger);
+        return updatedLinks;
     }
 
     /**
