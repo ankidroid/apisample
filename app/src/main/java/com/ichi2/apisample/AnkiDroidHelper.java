@@ -83,6 +83,10 @@ public class AnkiDroidHelper {
         decksDb.edit().putLong(deckName, deckId).apply();
     }
 
+    public Map<Long, String> getModelList(int minNumFields) {
+        return mApi.getModelList(minNumFields);
+    }
+
     /**
      * Try to find the given model by name, accounting for renaming of the model:
      * If there's a model with this modelName that is known to have previously been created (by this app)
@@ -120,6 +124,10 @@ public class AnkiDroidHelper {
 
     public Long addNewCustomModel(String modelName, String[] fields, String[] cards, String[] qfmt, String[] afmt, String css) {
         return getApi().addNewCustomModel(modelName, fields, cards, qfmt, afmt, css, null, null);
+    }
+
+    public Map<Long, String> getDeckList() {
+        return mApi.getDeckList();
     }
 
     /**
