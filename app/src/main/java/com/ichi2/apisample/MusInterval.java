@@ -650,9 +650,9 @@ public class MusInterval {
                         filledLinksCount += linkLargerIntervals(noteFieldsData, false);
                     }
                 }
-                helper.updateNote(modelId, noteId, noteData);
+                helper.updateNote(modelId, noteId, noteFieldsData);
                 if (hasSuspiciousTag) {
-                    helper.updateNoteTags(noteId, noteTags.replace(corruptedTagStr, " "));
+                    helper.updateNoteTags(noteId, noteTags.replace(suspiciousTag, " "));
                     fixedSuspiciousNotesCount++;
                 }
             } else {
@@ -737,7 +737,7 @@ public class MusInterval {
                     maxId = id;
                     maxIdIdx = i;
                 }
-                if (updateReverse && !smallerIntervalData.getOrDefault(soundLargerField, "").equalsIgnoreCase(interval)) {
+                if (updateReverse && !smallerIntervalData.getOrDefault(soundLargerField, "").equals(sound)) {
                     smallerIntervalData.put(soundLargerField, sound);
                     helper.updateNote(modelId, id, smallerIntervalData);
                     updatedLinks++;
@@ -795,7 +795,7 @@ public class MusInterval {
                     maxId = id;
                     maxIdIdx = i;
                 }
-                if (updateReverse && !largerIntervalData.getOrDefault(soundSmallerField, "").equalsIgnoreCase(interval)) {
+                if (updateReverse && !largerIntervalData.getOrDefault(soundSmallerField, "").equals(sound)) {
                     largerIntervalData.put(soundSmallerField, sound);
                     helper.updateNote(modelId, id, largerIntervalData);
                     updatedLinks++;

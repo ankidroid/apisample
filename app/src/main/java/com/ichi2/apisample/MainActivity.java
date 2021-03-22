@@ -347,9 +347,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     if (corruptedNotesCount > 0) {
                         report.append("\n\n");
                         if (corruptedNotesCount == 1) {
-                            report.append(res.getQuantityString(R.plurals.integrity_corrupted, corruptedNotesCount));
+                            report.append(res.getQuantityString(R.plurals.integrity_corrupted, corruptedNotesCount, corruptedTag));
                         } else {
-                            report.append(res.getQuantityString(R.plurals.integrity_corrupted, corruptedNotesCount, corruptedNotesCount));
+                            report.append(res.getQuantityString(R.plurals.integrity_corrupted, corruptedNotesCount, corruptedNotesCount, corruptedTag));
                         }
                         report.append("\n");
                         for (String field : MusInterval.Fields.SIGNATURE) {
@@ -385,7 +385,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     }
                     if (suspiciousNotesCount > 0) {
                         report.append("\n\n");
-                        report.append(res.getString(R.string.integrity_suspicious, suspiciousNotesCount));
+                        report.append(res.getString(R.string.integrity_suspicious, suspiciousNotesCount, suspiciousTag));
                     }
                     if (fixedSuspiciousNotesCount > 0) {
                         report.append("\n\n");

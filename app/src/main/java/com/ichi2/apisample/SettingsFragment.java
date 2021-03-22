@@ -20,10 +20,10 @@ import java.util.Map;
 
 public class SettingsFragment extends PreferenceFragmentCompat {
     public static final String KEY_CORRUPTED_TAG_PREFERENCE = "invalid_tag";
-    public static final String KEY_SUSPICIOUS_TAG_PREFERENCE = "suspicipus_tag";
+    public static final String KEY_SUSPICIOUS_TAG_PREFERENCE = "suspicious_tag";
     private static final String KEY_FIELDS_PREFERENCE_CATEGORY = "fields";
 
-    public static final String DEFAULT_CORRUPTED_TAG = "mi2a_invalid";
+    public static final String DEFAULT_CORRUPTED_TAG = "mi2a_corrupted";
     public static final String DEFAULT_SUSPICIOUS_TAG = "mi2a_suspicious";
 
     @Override
