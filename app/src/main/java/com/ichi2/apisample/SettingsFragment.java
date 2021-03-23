@@ -23,8 +23,8 @@ public class SettingsFragment extends PreferenceFragmentCompat {
 
     private static final String KEY_FIELDS_PREFERENCE_CATEGORY = "preference_fields";
 
-    private static final String TEMPLATE_FIELD_PREFERENCE_KEY = "preference_%s_field";
-    private static final String TEMPLATE_MODEL_FIELD_PREFERENCE_KEY = "%s_%s_model";
+    private static final String TEMPLATE_KEY_FIELD_PREFERENCE = "preference_%s_field";
+    private static final String TEMPLATE_KEY_MODEL_FIELD_PREFERENCE = "%s_%s_model";
 
     private Context context;
     private PreferenceScreen preferenceScreen;
@@ -119,11 +119,11 @@ public class SettingsFragment extends PreferenceFragmentCompat {
     }
 
     public static String getFieldPreferenceKey(String fieldKey) {
-        return String.format(TEMPLATE_FIELD_PREFERENCE_KEY, fieldKey);
+        return String.format(TEMPLATE_KEY_FIELD_PREFERENCE, fieldKey);
     }
 
     public static String getModelFieldPreferenceKey(long modelId, String fieldPreferenceKey) {
-        return String.format(TEMPLATE_MODEL_FIELD_PREFERENCE_KEY, fieldPreferenceKey, modelId);
+        return String.format(TEMPLATE_KEY_MODEL_FIELD_PREFERENCE, fieldPreferenceKey, modelId);
     }
 
     private void updateFieldsPreferenceEntries(String modelName) {
