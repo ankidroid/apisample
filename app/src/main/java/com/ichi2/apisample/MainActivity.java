@@ -60,6 +60,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private Spinner selectInterval;
     private SeekBar seekTempo;
     private AutoCompleteTextView inputInstrument;
+    private TextView textExistingNotes;
 
     private HashSet<String> savedStartNotes = new HashSet<>();
     private HashSet<String> savedInstruments = new HashSet<>();
@@ -89,24 +90,28 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         selectInterval = findViewById(R.id.selectInterval);
         seekTempo = findViewById(R.id.seekTempo);
         inputInstrument = findViewById(R.id.inputInstrument);
+        textExistingNotes = findViewById(R.id.textExistingNotes);
 
         inputStartNote.addTextChangedListener(new FieldInputTextWatcher());
         radioGroupDirection.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup radioGroup, int i) {
                 clearAddedInputFilename();
+                updateExistingNotesNumber();
             }
         });
         radioGroupTiming.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup radioGroup, int i) {
                 clearAddedInputFilename();
+                updateExistingNotesNumber();
             }
         });
         selectInterval.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
                 clearAddedInputFilename();
+                updateExistingNotesNumber();
             }
 
             @Override
@@ -119,6 +124,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 TextView label = findViewById(R.id.labelTempoValue);
                 label.setText(Integer.toString(seekBar.getProgress()));
                 clearAddedInputFilename();
+                updateExistingNotesNumber();
             }
 
             @Override public void onStartTrackingTouch(SeekBar seekBar) { }
@@ -156,6 +162,21 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
     }
 
+    private void updateExistingNotesNumber() {
+        if (mAnkiDroid == null) { // temp
+            return;
+        }
+        String text = getString(R.string.existing_notes_unknown);
+        try {
+            int count = getMusInterval().getExistingNotesCount();
+            text = String.valueOf(count);
+        } catch (MusInterval.ValidationException | AnkiDroidHelper.InvalidAnkiDatabaseException e) {
+
+        } finally {
+            textExistingNotes.setText(text);
+        }
+    }
+
     private class FieldInputTextWatcher implements TextWatcher {
         private String prev;
 
@@ -169,6 +190,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             String curr = charSequence.toString();
             if (!curr.equalsIgnoreCase(prev)) {
                 clearAddedInputFilename();
+                updateExistingNotesNumber();
             }
         }
 
@@ -327,6 +349,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
                     savedStartNotes.add(newMi.startNote);
                     savedInstruments.add(newMi.instrument);
+
+                    updateExistingNotesNumber();
 
                     showMsg(R.string.item_added);
                 } catch (MusInterval.Exception e) {
