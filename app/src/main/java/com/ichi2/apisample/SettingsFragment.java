@@ -22,15 +22,18 @@ public class SettingsFragment extends PreferenceFragmentCompat {
     public static final String KEY_MODEL_PREFERENCE = "preference_model";
 
     private static final String KEY_FIELDS_PREFERENCE_CATEGORY = "preference_fields";
-    private static final String KEY_FIELD_PREFERENCE_TEMPLATE = "preference_%s_field";
+
+    private static final String TEMPLATE_FIELD_PREFERENCE_KEY = "preference_%s_field";
+    private static final String TEMPLATE_MODEL_FIELD_PREFERENCE_KEY = "%s_%s_model";
+
+    private Context context;
+    private PreferenceScreen preferenceScreen;
 
     private AnkiDroidHelper helper;
 
-    private PreferenceScreen preferenceScreen;
-
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
-        final Context context = getPreferenceManager().getContext();
+        context = getPreferenceManager().getContext();
         preferenceScreen = getPreferenceManager().createPreferenceScreen(context);
 
         helper = new AnkiDroidHelper(context);
@@ -66,14 +69,21 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         modelListPreference.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
             @Override
             public boolean onPreferenceChange(Preference preference, Object newValue) {
-                Long newModelId = helper.findModelIdByName((String) newValue);
-                SharedPreferences.Editor preferencesEditor = PreferenceManager.getDefaultSharedPreferences(context).edit();
-                for (int i = 0; i < MusInterval.Fields.SIGNATURE.length; i++) {
-                    String fieldPreferenceKey = getFieldPreferenceKey(MusInterval.Fields.SIGNATURE[i]);
-                    preferencesEditor.remove(fieldPreferenceKey);
+                SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+                String currModel = preferences.getString(KEY_MODEL_PREFERENCE, "");
+                Long modelId = helper.findModelIdByName(currModel);
+                if (modelId != null) {
+                    SharedPreferences.Editor preferencesEditor = preferences.edit();
+                    for (int i = 0; i < MusInterval.Fields.SIGNATURE.length; i++) {
+                        String fieldKey = MusInterval.Fields.SIGNATURE[i];
+                        String fieldPreferenceKey = getFieldPreferenceKey(fieldKey);
+                        String fieldPreference = preferences.getString(fieldPreferenceKey, "");
+                        String modelFieldPreferenceKey = getModelFieldPreferenceKey(modelId, fieldPreferenceKey);
+                        preferencesEditor.putString(modelFieldPreferenceKey, fieldPreference);
+                    }
+                    preferencesEditor.apply();
                 }
-                preferencesEditor.apply();
-                updateFieldsPreferenceEntries(newModelId, true);
+                updateFieldsPreferenceEntries((String) newValue);
                 return true;
             }
         });
@@ -103,32 +113,39 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             fieldListPreference.setSummaryProvider(ListPreference.SimpleSummaryProvider.getInstance());
             fieldsPreferenceCategory.addPreference(fieldListPreference);
         }
-        Long modelId = helper.findModelIdByName(modelListPreference.getValue());
-        updateFieldsPreferenceEntries(modelId, false);
+        updateFieldsPreferenceEntries(modelListPreference.getValue());
 
         setPreferenceScreen(preferenceScreen);
     }
 
     public static String getFieldPreferenceKey(String fieldKey) {
-        return String.format(KEY_FIELD_PREFERENCE_TEMPLATE, fieldKey);
+        return String.format(TEMPLATE_FIELD_PREFERENCE_KEY, fieldKey);
     }
 
-    private void updateFieldsPreferenceEntries(Long modelId, boolean newModel) {
+    public static String getModelFieldPreferenceKey(long modelId, String fieldPreferenceKey) {
+        return String.format(TEMPLATE_MODEL_FIELD_PREFERENCE_KEY, fieldPreferenceKey, modelId);
+    }
+
+    private void updateFieldsPreferenceEntries(String modelName) {
+        Long modelId = helper.findModelIdByName(modelName);
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
         String[] fieldList = modelId != null ? helper.getFieldList(modelId) : new String[]{};
         String[] entries = new String[fieldList.length + 1];
         entries[0] = "";
         System.arraycopy(fieldList, 0, entries, 1, fieldList.length);
         for (int i = 0; i < MusInterval.Fields.SIGNATURE.length; i++) {
-            ListPreference fieldListPreference = preferenceScreen.findPreference(
-                    getFieldPreferenceKey(MusInterval.Fields.SIGNATURE[i])
-            );
+            String fieldKey = MusInterval.Fields.SIGNATURE[i];
+            String fieldPreferenceKey = getFieldPreferenceKey(fieldKey);
+            String modelFieldPreference = "";
+            if (modelId != null) {
+                String modelFieldPreferenceKey = getModelFieldPreferenceKey(modelId, fieldPreferenceKey);
+                modelFieldPreference = preferences.getString(modelFieldPreferenceKey, "");
+            }
+            ListPreference fieldListPreference = preferenceScreen.findPreference(fieldPreferenceKey);
             if (fieldListPreference != null) {
                 fieldListPreference.setEntries(entries);
                 fieldListPreference.setEntryValues(entries);
-                if (newModel) {
-                    fieldListPreference.setValue("");
-                    // @todo: save configuration for every used model (?)
-                }
+                fieldListPreference.setValue(modelFieldPreference);
             }
         }
     }

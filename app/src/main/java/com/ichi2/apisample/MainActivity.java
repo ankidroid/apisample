@@ -508,6 +508,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                                     String fieldKey = MusInterval.Fields.SIGNATURE[i];
                                     String fieldPreferenceKey = SettingsFragment.getFieldPreferenceKey(fieldKey);
                                     preferenceEditor.putString(fieldPreferenceKey, fieldKey);
+                                    String modelFieldPreferenceKey = SettingsFragment.getModelFieldPreferenceKey(newModelId, fieldPreferenceKey);
+                                    preferenceEditor.putString(modelFieldPreferenceKey, fieldKey);
                                 }
                                 preferenceEditor.apply();
                                 mainActivity.showMsg(
