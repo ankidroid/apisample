@@ -444,9 +444,16 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
     private void validateModel() {
         final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        final Map<String, String> storedFields = new HashMap<>();
+        for (String field : MusInterval.Fields.SIGNATURE) {
+            storedFields.put(field, sharedPreferences.getString(field, field));
+        }
         final String storedModel = sharedPreferences.getString(SettingsFragment.KEY_MODEL_PREFERENCE, MusInterval.Builder.DEFAULT_MODEL_NAME);
         try {
-            new MusInterval.Builder(mAnkiDroid).model(storedModel).build();
+            new MusInterval.Builder(mAnkiDroid)
+                    .model(storedModel)
+                    .model_fields(storedFields)
+                    .build();
         } catch (MusInterval.ValidationException e) {
             processMusIntervalException(e);
         }
