@@ -503,6 +503,13 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                                     MusInterval.Builder.CSS
                             );
                             if (newModelId != null) {
+                                SharedPreferences.Editor preferenceEditor = PreferenceManager.getDefaultSharedPreferences(mainActivity).edit();
+                                for (int i = 0; i < MusInterval.Fields.SIGNATURE.length; i++) {
+                                    String fieldKey = MusInterval.Fields.SIGNATURE[i];
+                                    String fieldPreferenceKey = SettingsFragment.getFieldPreferenceKey(fieldKey);
+                                    preferenceEditor.putString(fieldPreferenceKey, fieldKey);
+                                }
+                                preferenceEditor.apply();
                                 mainActivity.showMsg(
                                         String.format(
                                                 getResources().getString(R.string.create_model_success),
