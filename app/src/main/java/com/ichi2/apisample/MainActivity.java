@@ -408,8 +408,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
         final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         final Map<String, String> storedFields = new HashMap<>();
-        for (String field : MusInterval.Fields.SIGNATURE) {
-            storedFields.put(field, sharedPreferences.getString(field, field));
+        for (String fieldKey : MusInterval.Fields.SIGNATURE) {
+            String fieldPreferenceKey = SettingsFragment.getFieldPreferenceKey(fieldKey);
+            storedFields.put(fieldKey, sharedPreferences.getString(fieldPreferenceKey, ""));
         }
         final String storedDeck = sharedPreferences.getString(SettingsFragment.KEY_DECK_PREFERENCE, MusInterval.Builder.DEFAULT_DECK_NAME);
         final String storedModel = sharedPreferences.getString(SettingsFragment.KEY_MODEL_PREFERENCE, MusInterval.Builder.DEFAULT_MODEL_NAME);

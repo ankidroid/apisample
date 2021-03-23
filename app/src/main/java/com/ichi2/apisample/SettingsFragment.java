@@ -20,15 +20,16 @@ public class SettingsFragment extends PreferenceFragmentCompat {
     public static final String KEY_MODEL_PREFERENCE = "preference_model";
 
     private static final String KEY_FIELDS_PREFERENCE_CATEGORY = "preference_fields";
+    private static final String KEY_FIELD_PREFERENCE_TEMPLATE = "preference_%s_field";
 
     private AnkiDroidHelper helper;
 
-    private PreferenceCategory fieldsPreferenceCategory;
+    private PreferenceScreen preferenceScreen;
 
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
         Context context = getPreferenceManager().getContext();
-        PreferenceScreen preferenceScreen = getPreferenceManager().createPreferenceScreen(context);
+        preferenceScreen = getPreferenceManager().createPreferenceScreen(context);
 
         helper = new AnkiDroidHelper(context);
 
@@ -82,16 +83,15 @@ public class SettingsFragment extends PreferenceFragmentCompat {
                 res.getString(R.string.tempo_field_list_preference_title),
                 res.getString(R.string.instrument_field_list_preference_title),
         };
-        fieldsPreferenceCategory = new PreferenceCategory(context);
+        PreferenceCategory fieldsPreferenceCategory = new PreferenceCategory(context);
         fieldsPreferenceCategory.setKey(KEY_FIELDS_PREFERENCE_CATEGORY);
         fieldsPreferenceCategory.setTitle(R.string.fields_preference_category_title);
         fieldsPreferenceCategory.setInitialExpandedChildrenCount(0);
         preferenceScreen.addPreference(fieldsPreferenceCategory);
         for (int i = 0; i < MusInterval.Fields.SIGNATURE.length; i++) {
             ListPreference fieldListPreference = new DropDownPreference(context);
-            fieldListPreference.setKey(MusInterval.Fields.SIGNATURE[i]);
+            fieldListPreference.setKey(getFieldPreferenceKey(MusInterval.Fields.SIGNATURE[i]));
             fieldListPreference.setTitle(fieldTitles[i]);
-            fieldListPreference.setDefaultValue(MusInterval.Fields.SIGNATURE[i]);
             fieldListPreference.setSummaryProvider(ListPreference.SimpleSummaryProvider.getInstance());
             fieldsPreferenceCategory.addPreference(fieldListPreference);
         }
@@ -101,14 +101,24 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         setPreferenceScreen(preferenceScreen);
     }
 
+    public static String getFieldPreferenceKey(String fieldKey) {
+        return String.format(KEY_FIELD_PREFERENCE_TEMPLATE, fieldKey);
+    }
+
     private void refreshFieldsPreferenceEntries(Long modelId) {
         String[] fieldList = modelId != null ? helper.getFieldList(modelId) : new String[]{};
-        boolean enabled = fieldList.length > 0;
+        String[] entries = new String[fieldList.length + 1];
+        entries[0] = "";
+        System.arraycopy(fieldList, 0, entries, 1, fieldList.length);
         for (int i = 0; i < MusInterval.Fields.SIGNATURE.length; i++) {
-            ListPreference fieldListPreference = (ListPreference) fieldsPreferenceCategory.getPreference(i);
-            fieldListPreference.setEntries(fieldList);
-            fieldListPreference.setEntryValues(fieldList);
-            fieldListPreference.setEnabled(enabled);
+            ListPreference fieldListPreference = preferenceScreen.findPreference(
+                    getFieldPreferenceKey(MusInterval.Fields.SIGNATURE[i])
+            );
+            if (fieldListPreference != null) {
+                fieldListPreference.setEntries(entries);
+                fieldListPreference.setEntryValues(entries);
+                fieldListPreference.setValue("");
+            }
         }
     }
 }
