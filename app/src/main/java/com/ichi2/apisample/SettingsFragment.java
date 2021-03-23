@@ -56,6 +56,10 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         modelListPreference.setSummaryProvider(ListPreference.SimpleSummaryProvider.getInstance());
         Map<Long, String> modelList = helper.getModelList(MusInterval.Fields.SIGNATURE.length);
         List<String> modelEntriesList = new ArrayList<>(modelList.values());
+        if (!modelEntriesList.contains(MusInterval.Builder.DEFAULT_MODEL_NAME)) {
+            modelEntriesList.add(MusInterval.Builder.DEFAULT_MODEL_NAME);
+        }
+        modelListPreference.setDefaultValue(MusInterval.Builder.DEFAULT_MODEL_NAME);
         String[] modelEntries = modelEntriesList.toArray(new String[modelEntriesList.size()]);
         modelListPreference.setEntries(modelEntries);
         modelListPreference.setEntryValues(modelEntries);
