@@ -43,6 +43,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
     private static final int AD_PERM_REQUEST = 0;
     private static final int PERMISSIONS_REQUEST_EXTERNAL_STORAGE = 1;
+    private static final int AD_PERM_REQUEST_VALID = 2;
 
     private static final int ACTION_SELECT_FILE = 10;
 
@@ -138,6 +139,12 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         restoreUiState();
 
         mAnkiDroid = new AnkiDroidHelper(this);
+
+        if (mAnkiDroid.shouldRequestPermission()) {
+            mAnkiDroid.requestPermission(MainActivity.this, AD_PERM_REQUEST_VALID);
+        } else {
+            validateModel();
+        }
     }
 
     private void clearAddedInputFilename() {
@@ -380,6 +387,13 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         switch (requestCode) {
+            case AD_PERM_REQUEST_VALID: {
+                if (grantResults.length > 0 && grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                    showMsg(R.string.anki_permission_denied);
+                } else {
+                    validateModel();
+                }
+            }
             case AD_PERM_REQUEST: {
                 if (grantResults.length > 0 && grantResults[0] != PackageManager.PERMISSION_GRANTED) {
                     showMsg(R.string.anki_permission_denied);
@@ -426,6 +440,16 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 .tempo(seekTempo.getProgress() > 0 ? Integer.toString(seekTempo.getProgress()) : "")
                 .instrument(inputInstrument.getText().toString())
                 .build();
+    }
+
+    private void validateModel() {
+        final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        final String storedModel = sharedPreferences.getString(SettingsFragment.KEY_MODEL_PREFERENCE, MusInterval.Builder.DEFAULT_MODEL_NAME);
+        try {
+            new MusInterval.Builder(mAnkiDroid).model(storedModel).build();
+        } catch (MusInterval.ValidationException e) {
+            processMusIntervalException(e);
+        }
     }
 
     private void processMusIntervalException(MusInterval.Exception miException) {
