@@ -83,8 +83,8 @@ public class AnkiDroidHelper {
         decksDb.edit().putLong(deckName, deckId).apply();
     }
 
-    public Map<Long, String> getModelList(int minNumFields) {
-        return mApi.getModelList(minNumFields);
+    public Map<Long, String> getModelList() {
+        return mApi.getModelList();
     }
 
     /**

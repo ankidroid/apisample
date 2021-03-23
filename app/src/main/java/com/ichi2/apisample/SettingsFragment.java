@@ -21,17 +21,14 @@ public class SettingsFragment extends PreferenceFragmentCompat {
 
     private static final String KEY_FIELDS_PREFERENCE_CATEGORY = "preference_fields";
 
-    private Context context;
-    private PreferenceScreen preferenceScreen;
-
     private AnkiDroidHelper helper;
 
     private PreferenceCategory fieldsPreferenceCategory;
 
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
-        context = getPreferenceManager().getContext();
-        preferenceScreen = getPreferenceManager().createPreferenceScreen(context);
+        Context context = getPreferenceManager().getContext();
+        PreferenceScreen preferenceScreen = getPreferenceManager().createPreferenceScreen(context);
 
         helper = new AnkiDroidHelper(context);
 
@@ -54,7 +51,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         modelListPreference.setKey(KEY_MODEL_PREFERENCE);
         modelListPreference.setTitle(R.string.model_preference_title);
         modelListPreference.setSummaryProvider(ListPreference.SimpleSummaryProvider.getInstance());
-        Map<Long, String> modelList = helper.getModelList(MusInterval.Fields.SIGNATURE.length);
+        Map<Long, String> modelList = helper.getModelList();
         List<String> modelEntriesList = new ArrayList<>(modelList.values());
         if (!modelEntriesList.contains(MusInterval.Builder.DEFAULT_MODEL_NAME)) {
             modelEntriesList.add(MusInterval.Builder.DEFAULT_MODEL_NAME);
@@ -66,10 +63,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         modelListPreference.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
             @Override
             public boolean onPreferenceChange(Preference preference, Object newValue) {
-                Long newModelId = helper.findModelIdByName((String) newValue, MusInterval.Fields.SIGNATURE.length);
-                if (newModelId == null) {
-                    return false;
-                }
+                Long newModelId = helper.findModelIdByName((String) newValue);
                 refreshFieldsPreferenceEntries(newModelId);
                 return true;
             }
@@ -109,10 +103,12 @@ public class SettingsFragment extends PreferenceFragmentCompat {
 
     private void refreshFieldsPreferenceEntries(Long modelId) {
         String[] fieldList = modelId != null ? helper.getFieldList(modelId) : new String[]{};
+        boolean enabled = fieldList.length > 0;
         for (int i = 0; i < MusInterval.Fields.SIGNATURE.length; i++) {
             ListPreference fieldListPreference = (ListPreference) fieldsPreferenceCategory.getPreference(i);
             fieldListPreference.setEntries(fieldList);
             fieldListPreference.setEntryValues(fieldList);
+            fieldListPreference.setEnabled(enabled);
         }
     }
 }
