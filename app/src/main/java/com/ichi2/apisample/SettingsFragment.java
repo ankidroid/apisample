@@ -1,6 +1,7 @@
 package com.ichi2.apisample;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.os.Bundle;
 
@@ -9,6 +10,7 @@ import androidx.preference.ListPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceCategory;
 import androidx.preference.PreferenceFragmentCompat;
+import androidx.preference.PreferenceManager;
 import androidx.preference.PreferenceScreen;
 
 import java.util.ArrayList;
@@ -28,7 +30,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
 
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
-        Context context = getPreferenceManager().getContext();
+        final Context context = getPreferenceManager().getContext();
         preferenceScreen = getPreferenceManager().createPreferenceScreen(context);
 
         helper = new AnkiDroidHelper(context);
@@ -65,7 +67,13 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             @Override
             public boolean onPreferenceChange(Preference preference, Object newValue) {
                 Long newModelId = helper.findModelIdByName((String) newValue);
-                refreshFieldsPreferenceEntries(newModelId);
+                SharedPreferences.Editor preferencesEditor = PreferenceManager.getDefaultSharedPreferences(context).edit();
+                for (int i = 0; i < MusInterval.Fields.SIGNATURE.length; i++) {
+                    String fieldPreferenceKey = getFieldPreferenceKey(MusInterval.Fields.SIGNATURE[i]);
+                    preferencesEditor.remove(fieldPreferenceKey);
+                }
+                preferencesEditor.apply();
+                updateFieldsPreferenceEntries(newModelId, true);
                 return true;
             }
         });
@@ -96,7 +104,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             fieldsPreferenceCategory.addPreference(fieldListPreference);
         }
         Long modelId = helper.findModelIdByName(modelListPreference.getValue());
-        refreshFieldsPreferenceEntries(modelId);
+        updateFieldsPreferenceEntries(modelId, false);
 
         setPreferenceScreen(preferenceScreen);
     }
@@ -105,7 +113,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         return String.format(KEY_FIELD_PREFERENCE_TEMPLATE, fieldKey);
     }
 
-    private void refreshFieldsPreferenceEntries(Long modelId) {
+    private void updateFieldsPreferenceEntries(Long modelId, boolean newModel) {
         String[] fieldList = modelId != null ? helper.getFieldList(modelId) : new String[]{};
         String[] entries = new String[fieldList.length + 1];
         entries[0] = "";
@@ -117,7 +125,10 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             if (fieldListPreference != null) {
                 fieldListPreference.setEntries(entries);
                 fieldListPreference.setEntryValues(entries);
-                fieldListPreference.setValue("");
+                if (newModel) {
+                    fieldListPreference.setValue("");
+                    // @todo: save configuration for every used model (?)
+                }
             }
         }
     }
