@@ -46,7 +46,7 @@
         <item quantity="other">%d music intervals successfully marked</item>
     </plurals>
     <string name="create_model">Note type \"%s\" is not found. Create it?</string>
-    <string name="configure_model">The \"%s\" note type settings are invalid. You need to configure fields to continue using it.</string>
+    <string name="configure_model">The \"%s\" note type settings are invalid. You need to configure fields to continue using it</string>
     <string name="create">Create</string>
     <string name="configure">Configure</string>
     <string name="cancel">Cancel</string>

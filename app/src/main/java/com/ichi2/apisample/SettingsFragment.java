@@ -42,7 +42,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             deckEntriesList.add(MusInterval.Builder.DEFAULT_DECK_NAME);
         }
         deckListPreference.setDefaultValue(MusInterval.Builder.DEFAULT_DECK_NAME);
-        String[] deckEntries = deckEntriesList.toArray(new String[deckEntriesList.size()]);
+        String[] deckEntries = deckEntriesList.toArray(new String[0]);
         deckListPreference.setEntries(deckEntries);
         deckListPreference.setEntryValues(deckEntries);
         preferenceScreen.addPreference(deckListPreference);
@@ -57,7 +57,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             modelEntriesList.add(MusInterval.Builder.DEFAULT_MODEL_NAME);
         }
         modelListPreference.setDefaultValue(MusInterval.Builder.DEFAULT_MODEL_NAME);
-        String[] modelEntries = modelEntriesList.toArray(new String[modelEntriesList.size()]);
+        String[] modelEntries = modelEntriesList.toArray(new String[0]);
         modelListPreference.setEntries(modelEntries);
         modelListPreference.setEntryValues(modelEntries);
         modelListPreference.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
@@ -95,7 +95,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             fieldListPreference.setSummaryProvider(ListPreference.SimpleSummaryProvider.getInstance());
             fieldsPreferenceCategory.addPreference(fieldListPreference);
         }
-        Long modelId = helper.findModelIdByName(modelListPreference.getValue(), MusInterval.Fields.SIGNATURE.length);
+        Long modelId = helper.findModelIdByName(modelListPreference.getValue());
         refreshFieldsPreferenceEntries(modelId);
 
         setPreferenceScreen(preferenceScreen);
