@@ -4,11 +4,13 @@ import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
+import android.content.ClipData;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.net.Uri;
 import android.os.Bundle;
 
@@ -26,7 +28,9 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
-import android.widget.EditText;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.SeekBar;
@@ -39,6 +43,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 
 public class MainActivity extends AppCompatActivity implements ActivityCompat.OnRequestPermissionsResultCallback {
@@ -47,29 +52,47 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private static final int PERMISSIONS_REQUEST_EXTERNAL_STORAGE = 1;
     private static final int AD_PERM_REQUEST_VALID = 2;
 
-    private static final int ACTION_SELECT_FILE = 10;
+    private static final int ACTION_SELECT_FILES = 10;
 
     private static final String STATE_REF_DB = "com.ichi2.apisample.uistate";
 
     private final Map<String, String> fieldLabels = new HashMap<>();
 
-    private EditText inputFilename;
-    private AutoCompleteTextView inputStartNote;
+    private TextView labelFilename;
+    private Button actionSelectFile;
+    private LinearLayout layoutFilenames;
+    private CheckBox[] checkNotes;
+    private CheckBox[] checkOctaves;
     private RadioGroup radioGroupDirection;
     private RadioGroup radioGroupTiming;
     private Spinner selectInterval;
     private SeekBar seekTempo;
     private AutoCompleteTextView inputInstrument;
 
-    private HashSet<String> savedStartNotes = new HashSet<>();
+    private final int[] checkNoteIds = new int[]{
+            R.id.checkC, R.id.checkCSharp,
+            R.id.checkD, R.id.checkDSharp,
+            R.id.checkE,
+            R.id.checkF, R.id.checkFSharp,
+            R.id.checkG, R.id.checkGSharp,
+            R.id.checkA, R.id.checkASharp,
+            R.id.checkB
+    };
+    private final int[] checkOctaveIds = new int[]{
+            R.id.checkOctave1,
+            R.id.checkOctave2,
+            R.id.checkOctave3,
+            R.id.checkOctave4,
+            R.id.checkOctave5,
+            R.id.checkOctave6
+    };
+
     private HashSet<String> savedInstruments = new HashSet<>();
 
     private AnkiDroidHelper mAnkiDroid;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        fieldLabels.put(MusInterval.Fields.SOUND, getResources().getString(R.string.label_filename));
-        fieldLabels.put(MusInterval.Fields.START_NOTE, getResources().getString(R.string.start_note));
+    protected synchronized void onCreate(Bundle savedInstanceState) {
         fieldLabels.put(MusInterval.Fields.DIRECTION, getResources().getString(R.string.direction));
         fieldLabels.put(MusInterval.Fields.TIMING, getResources().getString(R.string.timing));
         fieldLabels.put(MusInterval.Fields.INTERVAL, getResources().getString(R.string.interval));
@@ -82,31 +105,57 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         Toolbar main_toolbar = findViewById(R.id.main_toolbar);
         setSupportActionBar(main_toolbar);
 
-        inputFilename = findViewById(R.id.inputFilename);
-        inputStartNote = findViewById(R.id.inputStartNote);
+        labelFilename = findViewById(R.id.labelFilename);
+        actionSelectFile = findViewById(R.id.actionSelectFile);
+        layoutFilenames = findViewById(R.id.layoutFilenames);
+        checkNotes = new CheckBox[checkNoteIds.length];
+        for (int i = 0; i < checkNoteIds.length; i++) {
+            checkNotes[i] = findViewById(checkNoteIds[i]);
+        }
+        checkOctaves = new CheckBox[checkOctaveIds.length];
+        for (int i = 0; i < checkOctaveIds.length; i++) {
+            checkOctaves[i] = findViewById(checkOctaveIds[i]);
+        }
         radioGroupDirection = findViewById(R.id.radioGroupDirection);
         radioGroupTiming = findViewById(R.id.radioGroupTiming);
         selectInterval = findViewById(R.id.selectInterval);
         seekTempo = findViewById(R.id.seekTempo);
         inputInstrument = findViewById(R.id.inputInstrument);
 
-        inputStartNote.addTextChangedListener(new FieldInputTextWatcher());
+        for (CheckBox checkNote : checkNotes) {
+            checkNote.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                    clearAddedFilenames();
+                    refreshPermutationsLabel();
+                }
+            });
+        }
+        for (CheckBox checkOctave : checkOctaves) {
+            checkOctave.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                    clearAddedFilenames();
+                    refreshPermutationsLabel();
+                }
+            });
+        }
         radioGroupDirection.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup radioGroup, int i) {
-                clearAddedInputFilename();
+                clearAddedFilenames();
             }
         });
         radioGroupTiming.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup radioGroup, int i) {
-                clearAddedInputFilename();
+                clearAddedFilenames();
             }
         });
         selectInterval.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                clearAddedInputFilename();
+                clearAddedFilenames();
             }
 
             @Override
@@ -118,7 +167,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 TextView label = findViewById(R.id.labelTempoValue);
                 label.setText(Integer.toString(seekBar.getProgress()));
-                clearAddedInputFilename();
+                clearAddedFilenames();
             }
 
             @Override public void onStartTrackingTouch(SeekBar seekBar) { }
@@ -147,14 +196,43 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         } else if (!doesModelExist() || !doesModelHaveEnoughFields() || !doesModelHaveStoredFields()) {
             validateModel();
         }
+
+        refreshPermutationsLabel();
     }
 
-    private void clearAddedInputFilename() {
-        String filename = MainActivity.this.inputFilename.getText().toString();
-        if (filename.length() > 0 && filename.startsWith("[sound:")) {
-            inputFilename.setText("");
+    private void clearAddedFilenames() {
+        if (layoutFilenames.getChildCount() == 0) {
+            return;
+        }
+        String firstFilename = ((TextView)layoutFilenames.getChildAt(0)).getText().toString();
+        // wack
+        if (firstFilename.length() > 0 && firstFilename.startsWith("[sound:")) {
+            layoutFilenames.removeAllViews();
         }
     }
+
+    private void refreshPermutationsLabel() {
+        if (mAnkiDroid == null) {
+            return;
+        }
+        int permutationsNumber = 1;
+        try {
+            permutationsNumber = getMusInterval().getPermutationsNumber();
+
+        } catch (MusInterval.ValidationException e) {
+        } finally {
+            Resources res = getResources();
+            labelFilename.setText(res.getQuantityString(R.plurals.label_filename, permutationsNumber));
+            String selectFileText;
+            if (permutationsNumber == 1) {
+                selectFileText = res.getQuantityString(R.plurals.select_file, permutationsNumber);
+            } else {
+                selectFileText = res.getQuantityString(R.plurals.select_file, permutationsNumber, permutationsNumber);
+            }
+            actionSelectFile.setText(selectFileText);
+        }
+    }
+
 
     private class FieldInputTextWatcher implements TextWatcher {
         private String prev;
@@ -168,7 +246,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
             String curr = charSequence.toString();
             if (!curr.equalsIgnoreCase(prev)) {
-                clearAddedInputFilename();
+                clearAddedFilenames();
             }
         }
 
@@ -205,8 +283,13 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         actionClearAll.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                inputFilename.setText("");
-                inputStartNote.setText("");
+                layoutFilenames.removeAllViews();
+                for (CheckBox checkNote : checkNotes) {
+                    checkNote.setChecked(false);
+                }
+                for (CheckBox checkOctave : checkOctaves) {
+                    checkOctave.setChecked(false);
+                }
                 radioGroupDirection.check(findViewById(R.id.radioDirectionAny).getId());
                 radioGroupTiming.check(findViewById(R.id.radioTimingAny).getId());
                 selectInterval.setSelection(0);
@@ -230,10 +313,11 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                         .setAction(Intent.ACTION_GET_CONTENT)
                         .setType("audio/*")
                         .addCategory(Intent.CATEGORY_OPENABLE)
-                        .putExtra(Intent.EXTRA_LOCAL_ONLY, true);
+                        .putExtra(Intent.EXTRA_LOCAL_ONLY, true)
+                        .putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
 
-                startActivityForResult(Intent.createChooser(intent, getResources().getText(R.string.select_filename)),
-                        ACTION_SELECT_FILE);
+                startActivityForResult(Intent.createChooser(intent, actionSelectFile.getText().toString()),
+                        ACTION_SELECT_FILES);
             }
         });
     }
@@ -242,9 +326,24 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if (requestCode == ACTION_SELECT_FILE && resultCode == RESULT_OK) {
-            final Uri selectedFile = data.getData();
-            inputFilename.setText(selectedFile.toString());
+        if (requestCode == ACTION_SELECT_FILES && resultCode == RESULT_OK) {
+            layoutFilenames.removeAllViews();
+            ArrayList<Uri> selectedFiles = new ArrayList<>();
+            if (data != null) {
+                ClipData clipData = data.getClipData();
+                if (clipData != null) {
+                    for (int i = 0; i < clipData.getItemCount(); i++) {
+                        selectedFiles.add(clipData.getItemAt(i).getUri());
+                    }
+                } else {
+                    selectedFiles.add(data.getData());
+                }
+            }
+            for (Uri file : selectedFiles) {
+                TextView labelName = new TextView(this);
+                labelName.setText(file.toString());
+                layoutFilenames.addView(labelName);
+            }
         }
     }
 
@@ -321,14 +420,23 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     return;
                 }
                 try {
-                    MusInterval newMi = getMusInterval().addToAnki();
-                    inputFilename.setText(newMi.sound);
-                    inputStartNote.setText(newMi.startNote);
-
-                    savedStartNotes.add(newMi.startNote);
+                    MusInterval mi = getMusInterval();
+                    final int nMis = mi.getPermutationsNumber();
+                    MusInterval newMi = mi.addToAnki();
+                    layoutFilenames.removeAllViews();
+                    for (String sound : newMi.sounds) {
+                        TextView labelAdded = new TextView(MainActivity.this);
+                        labelAdded.setText(sound);
+                        layoutFilenames.addView(labelAdded);
+                    }
                     savedInstruments.add(newMi.instrument);
-
-                    showMsg(R.string.item_added);
+                    String msg;
+                    if (nMis == 1) {
+                        msg = getResources().getQuantityString(R.plurals.mi_added, nMis);
+                    } else {
+                        msg = getResources().getQuantityString(R.plurals.mi_added, nMis, nMis);
+                    }
+                    showMsg(msg);
                 } catch (MusInterval.Exception e) {
                     processMusIntervalException(e);
                 } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
@@ -408,35 +516,50 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
     @Override
     protected void onPause() {
-        final SharedPreferences uiDb = getSharedPreferences(STATE_REF_DB, Context.MODE_PRIVATE);
-        uiDb.edit()
-                .putString("inputFilename", inputFilename.getText().toString())
-                .putString("inputStartNote", inputStartNote.getText().toString())
-                .putInt("radioGroupDirection", radioGroupDirection.getCheckedRadioButtonId())
-                .putInt("radioGroupTiming", radioGroupTiming.getCheckedRadioButtonId())
-                .putInt("selectInterval", selectInterval.getSelectedItemPosition())
-                .putString("inputTempo", Integer.toString(seekTempo.getProgress()))
-                .putString("inputInstrument", inputInstrument.getText().toString())
-                .putStringSet("savedStartNotes", savedStartNotes)
-                .putStringSet("savedInstruments", savedInstruments)
-                .apply();
+        final SharedPreferences.Editor uiDbEditor = getSharedPreferences(STATE_REF_DB, Context.MODE_PRIVATE).edit();
+
+        final int nFiles = layoutFilenames.getChildCount();
+        Set<String> fileNames = new HashSet<>(nFiles);
+        for (int i = 0; i < nFiles; i++) {
+            fileNames.add(((TextView) layoutFilenames.getChildAt(i)).getText().toString());
+        }
+        uiDbEditor.putStringSet("layoutFilenames", fileNames);
+        for (int i = 0; i < checkNoteIds.length; i++) {
+            uiDbEditor.putBoolean(String.valueOf(checkNoteIds[i]), checkNotes[i].isChecked());
+        }
+        for (int i = 0; i < checkOctaveIds.length; i++) {
+            uiDbEditor.putBoolean(String.valueOf(checkOctaveIds[i]), checkOctaves[i].isChecked());
+        }
+        uiDbEditor.putInt("radioGroupDirection", radioGroupDirection.getCheckedRadioButtonId());
+        uiDbEditor.putInt("radioGroupTiming", radioGroupTiming.getCheckedRadioButtonId());
+        uiDbEditor.putInt("selectInterval", selectInterval.getSelectedItemPosition());
+        uiDbEditor.putString("inputTempo", Integer.toString(seekTempo.getProgress()));
+        uiDbEditor.putString("inputInstrument", inputInstrument.getText().toString());
+        uiDbEditor.putStringSet("savedInstruments", savedInstruments);
+        uiDbEditor.apply();
 
         super.onPause();
     }
 
     protected void restoreUiState() {
         final SharedPreferences uiDb = getSharedPreferences(STATE_REF_DB, Context.MODE_PRIVATE);
-        inputFilename.setText(uiDb.getString("inputFilename", ""));
-        inputStartNote.setText(uiDb.getString("inputStartNote", ""));
+        Set<String> fileNames = uiDb.getStringSet("layoutFilenames", new HashSet<String>());
+        for (String name : fileNames) {
+            TextView labelName = new TextView(this);
+            labelName.setText(name);
+            layoutFilenames.addView(labelName);
+        }
+        for (int i = 0; i < checkNoteIds.length; i++) {
+            checkNotes[i].setChecked(uiDb.getBoolean(String.valueOf(checkNoteIds[i]), false));
+        }
+        for (int i = 0; i < checkOctaveIds.length; i++) {
+            checkOctaves[i].setChecked(uiDb.getBoolean(String.valueOf(checkOctaveIds[i]), false));
+        }
         radioGroupDirection.check(uiDb.getInt("radioGroupDirection", findViewById(R.id.radioDirectionAny).getId()));
         radioGroupTiming.check(uiDb.getInt("radioGroupTiming", findViewById(R.id.radioTimingAny).getId()));
         selectInterval.setSelection(uiDb.getInt("selectInterval", 0));
         seekTempo.setProgress(Integer.parseInt(uiDb.getString("inputTempo", "0")));
         inputInstrument.setText(uiDb.getString("inputInstrument", ""));
-
-        savedStartNotes = (HashSet<String>) uiDb.getStringSet("savedStartNotes", new HashSet<String>());
-        inputStartNote.setAdapter(new ArrayAdapter<>(this,
-                android.R.layout.simple_dropdown_item_1line, savedStartNotes.toArray(new String[0])));
 
         savedInstruments = (HashSet<String>) uiDb.getStringSet("savedInstruments", new HashSet<String>());
         inputInstrument.setAdapter(new ArrayAdapter<>(this,
@@ -470,6 +593,24 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private MusInterval getMusInterval() throws MusInterval.ValidationException {
         final String anyStr = getResources().getString(R.string.radio_any);
 
+        String[] sounds = new String[layoutFilenames.getChildCount()];
+        for (int i = 0; i < sounds.length; i++) {
+            sounds[i] = ((TextView)layoutFilenames.getChildAt(i)).getText().toString();
+        }
+
+        final ArrayList<String> noteList = new ArrayList<>();
+        for (CheckBox checkNote : checkNotes) {
+            if (checkNote.isChecked()) {
+                noteList.add(checkNote.getText().toString());
+            }
+        }
+        final ArrayList<String> octaveList = new ArrayList<>();
+        for (CheckBox checkOctave : checkOctaves) {
+            if (checkOctave.isChecked()) {
+                octaveList.add(checkOctave.getText().toString());
+            }
+        }
+
         final int radioDirectionId = radioGroupDirection.getCheckedRadioButtonId();
         final RadioButton radioDirection = findViewById(radioDirectionId);
         final String directionStr = radioDirectionId != -1  && radioDirection != null ?
@@ -488,8 +629,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
         return new MusInterval.Builder(mAnkiDroid)
                 .model_fields(storedFields)
-                .sound(inputFilename.getText().toString())
-                .start_note(inputStartNote.getText().toString())
+                .sounds(sounds)
+                .notes(noteList.toArray(new String[0]))
+                .octaves(octaveList.toArray(new String[0]))
                 .direction(!directionStr.equals(anyStr) ? directionStr : "")
                 .timing(!timingStr.equals(anyStr) ? timingStr : "")
                 .interval(selectInterval.getSelectedItem().toString())
@@ -501,10 +643,22 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private void processMusIntervalException(MusInterval.Exception miException) {
         try {
             throw miException;
+        } catch (MusInterval.NoteNotSelectedException e) {
+            showMsg(R.string.note_not_selected);
+        } catch (MusInterval.OctaveNotSelectedException e) {
+            showMsg(R.string.octave_not_selected);
+        } catch (MusInterval.UnexpectedSoundsAmountException e) {
+            int expected = e.getExpectedAmount();
+            Resources res = getResources();
+            String msg;
+            if (expected == 1) {
+                msg = res.getQuantityString(R.plurals.unexpected_sounds_amount, expected);
+            } else {
+                msg = res.getQuantityString(R.plurals.unexpected_sounds_amount, expected, e.getProvidedAmount());
+            }
+            showMsg(msg);
         } catch (MusInterval.NoteNotExistsException e) {
             showMsg(R.string.mi_not_exists);
-        } catch (MusInterval.StartNoteSyntaxException e) {
-            showMsg(R.string.invalid_start_note);
         } catch (MusInterval.CreateDeckException e) {
             showMsg(R.string.create_deck_error);
         } catch (MusInterval.AddToAnkiException e) {

@@ -40,29 +40,25 @@
             <TextView
                 android:id="@+id/labelFilename"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/label_filename" />
+                android:layout_height="wrap_content" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
 
-                <EditText
-                    android:id="@+id/inputFilename"
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:id="@+id/layoutFilenames"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:ems="10"
-                    android:enabled="false"
-                    android:inputType="textPersonName" />
+                    android:orientation="vertical"></LinearLayout>
 
                 <Button
                     android:id="@+id/actionSelectFile"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/select_filename" />
+                    android:layout_gravity="end" />
             </LinearLayout>
 
             <TextView
@@ -71,10 +67,144 @@
                 android:layout_height="wrap_content"
                 android:text="@string/start_note" />
 
-            <AutoCompleteTextView
-                android:id="@+id/inputStartNote"
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="horizontal">
+
+                    <CheckBox
+                        android:id="@+id/checkCSharp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/note_c_sharp" />
+
+                    <CheckBox
+                        android:id="@+id/checkDSharp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/note_d_sharp" />
+
+                    <CheckBox
+                        android:id="@+id/checkFSharp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/note_f_sharp" />
+
+                    <CheckBox
+                        android:id="@+id/checkGSharp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/note_g_sharp" />
+
+                    <CheckBox
+                        android:id="@+id/checkASharp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/note_a_sharp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="horizontal">
+
+                    <CheckBox
+                        android:id="@+id/checkC"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/note_c" />
+
+                    <CheckBox
+                        android:id="@+id/checkD"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/note_d" />
+
+                    <CheckBox
+                        android:id="@+id/checkE"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/note_e" />
+
+                    <CheckBox
+                        android:id="@+id/checkF"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/note_f" />
+
+                    <CheckBox
+                        android:id="@+id/checkG"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/note_g" />
+
+                    <CheckBox
+                        android:id="@+id/checkA"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/note_a" />
+
+                    <CheckBox
+                        android:id="@+id/checkB"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/note_b" />
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/labelOctave"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/octave" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="horizontal">
+
+                <CheckBox
+                    android:id="@+id/checkOctave1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/octave_1" />
+
+                <CheckBox
+                    android:id="@+id/checkOctave2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/octave_2" />
+
+                <CheckBox
+                    android:id="@+id/checkOctave3"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/octave_3" />
+
+                <CheckBox
+                    android:id="@+id/checkOctave4"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/octave_4" />
+
+                <CheckBox
+                    android:id="@+id/checkOctave5"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/octave_5" />
+
+                <CheckBox
+                    android:id="@+id/checkOctave6"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/octave_6" />
+            </LinearLayout>
 
             <TextView
                 android:id="@+id/labelDirection"
