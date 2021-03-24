@@ -208,26 +208,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
 
-            <LinearLayout
+            <TextView
+                android:id="@+id/labelExisting"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:id="@+id/labelExistingNotes"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="0.5"
-                    android:gravity="end"
-                    android:text="@string/existing_notes" />
-
-                <TextView
-                    android:id="@+id/textExistingNotes"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="0.5"
-                    android:text="@string/existing_notes_unknown" />
-            </LinearLayout>
+                android:layout_height="wrap_content"
+                android:gravity="center" />
 
             <Button
                 android:id="@+id/actionClearAll"
@@ -241,11 +226,11 @@
                 android:orientation="horizontal">
 
                 <Button
-                    android:id="@+id/actionCheckExistence"
+                    android:id="@+id/actionMarkExisting"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="@string/action_check_existence" />
+                    android:text="@string/action_mark" />
 
                 <Button
                     android:id="@+id/actionAddToAnki"
