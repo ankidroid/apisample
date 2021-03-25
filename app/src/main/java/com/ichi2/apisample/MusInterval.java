@@ -531,6 +531,7 @@ public class MusInterval {
         String startNoteField = modelFields.get(Fields.START_NOTE);
         String directionField = modelFields.get(Fields.DIRECTION);
         String timingField = modelFields.get(Fields.TIMING);
+        String intervalField = modelFields.get(Fields.INTERVAL);
         String tempoField = modelFields.get(Fields.TEMPO);
         String instrumentField = modelFields.get(Fields.INSTRUMENT);
 
@@ -542,6 +543,7 @@ public class MusInterval {
                 miData.put(startNoteField, note + octave);
                 miData.put(directionField, direction);
                 miData.put(timingField, timing);
+                miData.put(intervalField, interval);
                 miData.put(tempoField, tempo);
                 miData.put(instrumentField, instrument);
                 miDataSet[i] = miData;
