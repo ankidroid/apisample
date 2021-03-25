@@ -173,6 +173,10 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         int existingCount = 0;
         int markedCount = 0;
         try {
+            if (mAnkiDroid.shouldRequestPermission()) {
+                mAnkiDroid.requestPermission(MainActivity.this, AD_PERM_REQUEST);
+                return;
+            }
             MusInterval mi = getMusInterval();
             existingCount = mi.getExistingNotesCount();
             markedCount = mi.getExistingMarkedNotesCount();
@@ -474,8 +478,12 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 }
                 break;
             case AD_PERM_REQUEST: {
-                if (grantResults.length > 0 && grantResults[0] != PackageManager.PERMISSION_GRANTED) {
-                    showMsg(R.string.anki_permission_denied);
+                if (grantResults.length > 0) {
+                    if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                        refreshExisting();
+                    } else {
+                        showMsg(R.string.anki_permission_denied);
+                    }
                 }
             }
             case PERMISSIONS_REQUEST_EXTERNAL_STORAGE: {
