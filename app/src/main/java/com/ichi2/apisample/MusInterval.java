@@ -392,7 +392,7 @@ public class MusInterval {
         String soundSmallerField = modelFields.get(Fields.SOUND_SMALLER);
         String soundLargerField = modelFields.get(Fields.SOUND_LARGER);
 
-        Map<String, String>[] miDataSet = getPermutationDataSet();
+        Map<String, String>[] miDataSet = getPermutationsDataSet();
         String[] addedSounds = new String[miDataSet.length];
         String[] soundsSmaller = new String[miDataSet.length];
         String[] soundsLarger = new String[miDataSet.length];
@@ -502,7 +502,7 @@ public class MusInterval {
         return notes.length * octaves.length;
     }
 
-    public Map<String, String>[] getPermutationDataSet() throws UnexpectedSoundsAmountException, MandatoryFieldEmptyException {
+    public Map<String, String>[] getPermutationsDataSet() throws UnexpectedSoundsAmountException, MandatoryFieldEmptyException {
         final int nMis = getPermutationsNumber();
 
         if (sounds == null) { // @fixme
@@ -554,7 +554,7 @@ public class MusInterval {
         return miDataSet;
     }
 
-    public Map<String, String> getSearchData() {
+    private Map<String, String> getSearchData() {
         StringBuilder startNoteSelection = new StringBuilder();
         int nStartNotes = notes.length * octaves.length;
         int i = 0;

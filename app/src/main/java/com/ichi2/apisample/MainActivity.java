@@ -127,7 +127,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 @Override
                 public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
                     clearAddedFilenames();
-                    refreshPermutationsLabel();
+                    refreshPermutations();
                 }
             });
         }
@@ -136,7 +136,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 @Override
                 public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
                     clearAddedFilenames();
-                    refreshPermutationsLabel();
+                    refreshPermutations();
                 }
             });
         }
@@ -197,7 +197,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             validateModel();
         }
 
-        refreshPermutationsLabel();
+        refreshPermutations();
     }
 
     private void clearAddedFilenames() {
@@ -211,7 +211,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
     }
 
-    private void refreshPermutationsLabel() {
+    private void refreshPermutations() {
         if (mAnkiDroid == null) {
             return;
         }
@@ -584,7 +584,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             case AD_PERM_REQUEST: {
                 if (grantResults.length > 0) {
                     if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                        refreshPermutationsLabel();
+                        refreshPermutations();
                     } else {
                         showMsg(R.string.anki_permission_denied);
                     }

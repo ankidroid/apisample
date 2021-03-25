@@ -1,7 +1,6 @@
 package com.ichi2.apisample;
 
 import org.junit.Test;
-import org.mockito.ArgumentMatchers;
 import org.mockito.internal.stubbing.answers.ThrowsExceptionClass;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -1336,7 +1335,7 @@ public class MusIntervalTest {
                     String sound = mi.sounds[0];
                     Map<String, String> data;
                     try {
-                        data = mi.getPermutationDataSet()[0];
+                        data = mi.getPermutationsDataSet()[0];
                     } catch (Throwable e) {
                         data = new HashMap<>();
                     }
@@ -1440,7 +1439,7 @@ public class MusIntervalTest {
                     String sound = mi.sounds[0];
                     Map<String, String> data;
                     try {
-                        data = mi.getPermutationDataSet()[0];
+                        data = mi.getPermutationsDataSet()[0];
                     } catch (Throwable e) {
                         data = new HashMap<>();
                     }
@@ -1568,7 +1567,7 @@ public class MusIntervalTest {
                     String sound = mi.sounds[0];
                     Map<String, String> data;
                     try {
-                        data = mi.getPermutationDataSet()[0];
+                        data = mi.getPermutationsDataSet()[0];
                     } catch (Throwable e) {
                         data = new HashMap<>();
                     }
@@ -1702,7 +1701,7 @@ public class MusIntervalTest {
                     String sound = mi.sounds[0];
                     Map<String, String> data;
                     try {
-                        data = mi.getPermutationDataSet()[0];
+                        data = mi.getPermutationsDataSet()[0];
                     } catch (Throwable e) {
                         data = new HashMap<>();
                     }
