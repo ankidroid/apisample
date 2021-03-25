@@ -21,12 +21,6 @@ public class MusIntervalTest {
 
     final static String defaultDeckName = "Music intervals";
     final static String defaultModelName = "Music.interval";
-    final static String defaultNote = "C#";
-    final static String defaultOctave = "3";
-    final static String defaultStartNote = defaultNote + defaultOctave;
-    final static String note2 = "C#";
-    final static String octave2 = "2";
-    final static String startNote2 = note2 + octave2;
 
     final static String[] ALL_NOTES = new String[]{
             "C", "C#",
@@ -38,6 +32,25 @@ public class MusIntervalTest {
             "B",
     };
     final static String[] ALL_OCTAVES = new String[]{"1", "2", "3", "4", "5", "6"};
+    final static String[] ALL_INTERVALS = new String[]{
+            "P1",
+            "m2", "M2",
+            "m3", "M3",
+            "P4",
+            "TT",
+            "P5",
+            "m6", "M6",
+            "m7", "M7",
+            "P8"
+    };
+
+    final static String defaultNote = ALL_NOTES[1]; // C#
+    final static String defaultOctave = ALL_NOTES[2]; // 3
+    final static String defaultStartNote = defaultNote + defaultOctave; // C#3
+    final static String note2 = ALL_NOTES[1]; // C#
+    final static String octave2 = ALL_NOTES[1]; // 2
+    final static String startNote2 = note2 + octave2; // C#2
+    final static String intervalMin3 = ALL_INTERVALS[3]; //m3
 
     @Test
     @SuppressWarnings("unchecked")
@@ -57,6 +70,7 @@ public class MusIntervalTest {
                 .deck(defaultDeckName)
                 .notes(new String[]{defaultNote})
                 .octaves(new String[]{defaultOctave})
+                .intervals(new String[]{intervalMin3})
                 .build();
 
         assertFalse(mi.existsInAnki());
@@ -70,7 +84,7 @@ public class MusIntervalTest {
         final long deckId = new Random().nextLong();
         final long modelId = new Random().nextLong();
 
-        final String interval = "min2";
+        final String interval = "m2";
         final String tempo = "80";
         final String instrument = "guitar";
 
@@ -96,7 +110,7 @@ public class MusIntervalTest {
                 .octaves(new String[]{defaultOctave})
                 .direction(MusInterval.Fields.Direction.ASC)
                 .timing(MusInterval.Fields.Timing.MELODIC)
-                .interval(interval)
+                .intervals(new String[]{interval})
                 .tempo(tempo)
                 .instrument(instrument)
                 .build();
@@ -112,7 +126,7 @@ public class MusIntervalTest {
         final long deckId = new Random().nextLong();
         final long modelId = new Random().nextLong();
 
-        final String interval = "min2";
+        final String interval = "m2";
         final String tempo = "80";
         final String instrument = "guitar";
 
@@ -139,7 +153,7 @@ public class MusIntervalTest {
                 .octaves(new String[]{defaultOctave})
                 .direction(MusInterval.Fields.Direction.ASC)
                 .timing(MusInterval.Fields.Timing.MELODIC)
-                .interval(interval)
+                .intervals(new String[]{interval})
                 .tempo(tempo)
                 .instrument(instrument)
                 .build();
@@ -155,7 +169,7 @@ public class MusIntervalTest {
         final long deckId = new Random().nextLong();
         final long modelId = new Random().nextLong();
 
-        final String interval = "min2";
+        final String interval = "m2";
         final String tempo = "80";
         final String instrument = "guitar";
 
@@ -181,7 +195,7 @@ public class MusIntervalTest {
                 .octaves(new String[]{defaultOctave})
                 .direction(MusInterval.Fields.Direction.ASC)
                 .timing(MusInterval.Fields.Timing.MELODIC)
-                .interval(interval + " ")
+                .intervals(new String[]{interval})
                 .tempo("  ") // should be trimmed
                 .instrument(" " + instrument + " ") // should be trimmed
                 .build();
@@ -197,7 +211,7 @@ public class MusIntervalTest {
         final long deckId = new Random().nextLong();
         final long modelId = new Random().nextLong();
 
-        final String interval = "min2";
+        final String interval = "m2";
         final String tempo = "80";
         final String instrument = "guitar";
 
@@ -215,7 +229,7 @@ public class MusIntervalTest {
                 .octaves(new String[]{defaultOctave})
                 .direction(MusInterval.Fields.Direction.ASC)
                 .timing(MusInterval.Fields.Timing.MELODIC)
-                .interval(interval)
+                .intervals(new String[]{interval})
                 .tempo(tempo)
                 .instrument(instrument)
                 .build();
@@ -231,7 +245,7 @@ public class MusIntervalTest {
         final long deckId = new Random().nextLong();
         final long modelId = new Random().nextLong();
 
-        final String interval = "min2";
+        final String interval = "m2";
         final String tempo = "80";
         final String instrument = "guitar";
 
@@ -259,7 +273,7 @@ public class MusIntervalTest {
                 .octaves(new String[]{defaultOctave})
                 .direction(MusInterval.Fields.Direction.ASC)
                 .timing(MusInterval.Fields.Timing.MELODIC)
-                .interval(interval)
+                .intervals(new String[]{interval})
                 .tempo(tempo)
                 .instrument(instrument)
                 .build();
@@ -287,6 +301,7 @@ public class MusIntervalTest {
                 .deck(defaultDeckName)
                 .notes(ALL_NOTES)
                 .octaves(ALL_OCTAVES)
+                .intervals(ALL_INTERVALS)
                 .build();
 
         assertFalse(mi.existsInAnki());
@@ -315,6 +330,7 @@ public class MusIntervalTest {
                 .deck(defaultDeckName)
                 .notes(ALL_NOTES)
                 .octaves(ALL_OCTAVES)
+                .intervals(ALL_INTERVALS)
                 .build();
 
         assertTrue(mi.existsInAnki());
@@ -338,6 +354,7 @@ public class MusIntervalTest {
                 .deck(defaultDeckName)
                 .notes(ALL_NOTES)
                 .octaves(ALL_OCTAVES)
+                .intervals(ALL_INTERVALS)
                 .build();
 
         mi.addToAnki();
@@ -353,7 +370,7 @@ public class MusIntervalTest {
         final String newSound = "music_interval_12345.m4a";
         final String direction = MusInterval.Fields.Direction.ASC;
         final String timing = MusInterval.Fields.Timing.MELODIC;
-        final String interval = "min2";
+        final String interval = "m2";
         final String tempo = "80";
         final String instrument = "guitar";
 
@@ -404,7 +421,7 @@ public class MusIntervalTest {
                 .octaves(new String[]{defaultOctave})
                 .direction(direction)
                 .timing(timing)
-                .interval(interval)
+                .intervals(new String[]{interval})
                 .tempo(tempo)
                 .instrument(instrument)
                 .build();
@@ -423,7 +440,7 @@ public class MusIntervalTest {
         final String newSound = "music_interval_12345.m4a";
         final String direction = MusInterval.Fields.Direction.ASC;
         final String timing = MusInterval.Fields.Timing.MELODIC;
-        final String interval = "min2";
+        final String interval = "m2";
         final String tempo = "80";
         final String instrument = "guitar";
 
@@ -474,7 +491,7 @@ public class MusIntervalTest {
                 .octaves(new String[]{defaultOctave})
                 .direction(direction)
                 .timing(timing)
-                .interval(interval)
+                .intervals(new String[]{interval})
                 .tempo(tempo)
                 .instrument(instrument)
                 .build();
@@ -493,7 +510,7 @@ public class MusIntervalTest {
         final String newSound = "music_interval_12345.m4a";
         final String direction = MusInterval.Fields.Direction.ASC;
         final String timing = MusInterval.Fields.Timing.MELODIC;
-        final String interval = "min3";
+        final String interval = "m3";
         final String tempo = "90";
         final String instrument = "violin";
 
@@ -542,7 +559,7 @@ public class MusIntervalTest {
                 .octaves(new String[]{octave2})
                 .direction(direction)
                 .timing(timing)
-                .interval(interval)
+                .intervals(new String[]{interval})
                 .tempo(tempo)
                 .instrument(instrument)
                 .build();
@@ -561,7 +578,7 @@ public class MusIntervalTest {
         final String newSound = "music_interval_12345.m4a";
         final String direction = MusInterval.Fields.Direction.ASC;
         final String timing = MusInterval.Fields.Timing.MELODIC;
-        final String interval = "min3";
+        final String interval = "m3";
         final String tempo = "90";
         final String instrument = "violin";
 
@@ -579,7 +596,7 @@ public class MusIntervalTest {
                 .octaves(new String[]{octave2})
                 .direction(direction)
                 .timing(timing)
-                .interval(interval)
+                .intervals(new String[]{interval})
                 .tempo(tempo)
                 .instrument(instrument)
                 .build();
@@ -592,7 +609,7 @@ public class MusIntervalTest {
         assertArrayEquals(mi.octaves, mi2.octaves);
         assertEquals(mi.direction, mi2.direction);
         assertEquals(mi.timing, mi2.timing);
-        assertEquals(mi.interval, mi2.interval);
+        assertArrayEquals(mi.intervals, mi2.intervals);
         assertEquals(mi.tempo, mi2.tempo);
         assertEquals(mi.instrument, mi2.instrument);
     }
@@ -621,7 +638,7 @@ public class MusIntervalTest {
                 .octaves(new String[]{octave2})
                 .direction(MusInterval.Fields.Direction.ASC)
                 .timing(MusInterval.Fields.Timing.MELODIC)
-                .interval("min3")
+                .intervals(new String[]{intervalMin3})
                 .tempo("90")
                 .instrument("violin")
                 .build();
@@ -660,7 +677,7 @@ public class MusIntervalTest {
                 .octaves(new String[]{octave2})
                 .direction(MusInterval.Fields.Direction.ASC)
                 .timing(MusInterval.Fields.Timing.MELODIC)
-                .interval("min3")
+                .intervals(new String[]{intervalMin3})
                 .tempo("90")
                 .instrument("violin")
                 .build();
@@ -690,13 +707,14 @@ public class MusIntervalTest {
                 .sounds(new String[]{}) // should not be empty on adding
                 .notes(ALL_NOTES)
                 .octaves(ALL_OCTAVES)
+                .intervals(ALL_INTERVALS)
                 .build();
 
         mi.addToAnki(); // should throw exception
     }
 
     @Test(expected = MusInterval.NoteNotSelectedException.class)
-    public void add_NoNoteSpecified_ShouldFail() throws MusInterval.Exception, AnkiDroidHelper.InvalidAnkiDatabaseException {
+    public void create_NoNoteSpecified_ShouldFail() throws MusInterval.Exception {
         final long deckId = new Random().nextLong();
         final long modelId = new Random().nextLong();
 
@@ -708,14 +726,12 @@ public class MusIntervalTest {
                 .model(defaultModelName)
                 .deck(defaultDeckName)
                 .sounds(new String[]{"/path/to/file"})
-                .notes(new String[]{}) // should not be empty on adding
-                .build();
-
-        mi.addToAnki(); // should throw exception
+                .notes(new String[]{})
+                .build(); // should throw exception
     }
 
     @Test(expected = MusInterval.OctaveNotSelectedException.class)
-    public void add_NoOctaveSpecified_ShouldFail() throws MusInterval.Exception, AnkiDroidHelper.InvalidAnkiDatabaseException {
+    public void create_NoOctaveSpecified_ShouldFail() throws MusInterval.Exception {
         final long deckId = new Random().nextLong();
         final long modelId = new Random().nextLong();
 
@@ -728,14 +744,12 @@ public class MusIntervalTest {
                 .deck(defaultDeckName)
                 .sounds(new String[]{"/path/to/file"})
                 .notes(new String[]{defaultNote})
-                .octaves(new String[]{})// should not be empty on adding
-                .build();
-
-        mi.addToAnki(); // should throw exception
+                .octaves(new String[]{})
+                .build(); // should throw exception
     }
 
-    @Test(expected = MusInterval.MandatoryFieldEmptyException.class)
-    public void add_NoIntervalSpecified_ShouldFail() throws MusInterval.Exception, AnkiDroidHelper.InvalidAnkiDatabaseException {
+    @Test(expected = MusInterval.IntervalNotSelectedException.class)
+    public void create_NoIntervalSpecified_ShouldFail() throws MusInterval.Exception {
         final long deckId = new Random().nextLong();
         final long modelId = new Random().nextLong();
 
@@ -749,10 +763,8 @@ public class MusIntervalTest {
                 .sounds(new String[]{"/path/to/file"})
                 .notes(new String[]{defaultNote})
                 .octaves(new String[]{defaultOctave})
-                .interval("") // should not be empty on adding
+                .intervals(new String[]{}) // should throw exception
                 .build();
-
-        mi.addToAnki(); // should throw exception
     }
 
     @Test
@@ -792,7 +804,7 @@ public class MusIntervalTest {
                 .octaves(new String[]{octave2})
                 .direction(MusInterval.Fields.Direction.ASC)
                 .timing(MusInterval.Fields.Timing.MELODIC)
-                .interval("min3")
+                .intervals(new String[]{intervalMin3})
                 .tempo("90")
                 .instrument("violin")
                 .build();
@@ -805,7 +817,7 @@ public class MusIntervalTest {
                 .octaves(new String[]{octave2})
                 .direction(MusInterval.Fields.Direction.ASC)
                 .timing(MusInterval.Fields.Timing.MELODIC)
-                .interval("min3")
+                .intervals(new String[]{intervalMin3})
                 .tempo("90")
                 .instrument("violin")
                 .build();
@@ -838,7 +850,7 @@ public class MusIntervalTest {
                 .octaves(new String[]{octave2})
                 .direction(MusInterval.Fields.Direction.ASC)
                 .timing(MusInterval.Fields.Timing.MELODIC)
-                .interval("min3")
+                .intervals(new String[]{intervalMin3})
                 .tempo("90")
                 .instrument("violin")
                 .build();
@@ -864,6 +876,7 @@ public class MusIntervalTest {
                 .deck(defaultDeckName)
                 .notes(new String[]{defaultNote})
                 .octaves(new String[]{defaultOctave})
+                .intervals(new String[]{intervalMin3})
                 .build();
 
         assertEquals(0, mi.getExistingNotesCount());
@@ -879,7 +892,7 @@ public class MusIntervalTest {
 
         final String direction = MusInterval.Fields.Direction.ASC;
         final String timing = MusInterval.Fields.Timing.MELODIC;
-        final String interval = "min2";
+        final String interval = "m2";
         final String tempo = "80";
         final String instrument = "guitar";
 
@@ -910,7 +923,7 @@ public class MusIntervalTest {
                 .octaves(new String[]{defaultOctave})
                 .direction(direction)
                 .timing(timing)
-                .interval(interval)
+                .intervals(new String[]{interval})
                 .tempo(tempo)
                 .instrument(instrument)
                 .build();
@@ -928,7 +941,7 @@ public class MusIntervalTest {
 
         final String direction = MusInterval.Fields.Direction.ASC;
         final String timing = MusInterval.Fields.Timing.MELODIC;
-        final String interval = "min2";
+        final String interval = "m2";
         final String tempo = "80";
         final String instrument = "guitar";
 
@@ -959,7 +972,7 @@ public class MusIntervalTest {
                 .octaves(new String[]{defaultOctave})
                 .direction(direction)
                 .timing(timing)
-                .interval(interval)
+                .intervals(new String[]{interval})
                 .tempo(tempo)
                 .instrument(instrument)
                 .build();
@@ -979,7 +992,7 @@ public class MusIntervalTest {
 
         final String direction = MusInterval.Fields.Direction.ASC;
         final String timing = MusInterval.Fields.Timing.MELODIC;
-        final String interval = "min2";
+        final String interval = "m2";
         final String tempo = "80";
         final String instrument = "guitar";
 
@@ -1023,7 +1036,7 @@ public class MusIntervalTest {
                 .octaves(new String[]{defaultOctave})
                 .direction(direction)
                 .timing(timing)
-                .interval(interval)
+                .intervals(new String[]{interval})
                 .tempo(tempo)
                 .instrument(instrument)
                 .build();
@@ -1041,7 +1054,7 @@ public class MusIntervalTest {
 
         final String direction = MusInterval.Fields.Direction.ASC;
         final String timing = MusInterval.Fields.Timing.MELODIC;
-        final String interval = "min2";
+        final String interval = "m2";
         final String tempo = "80";
         final String instrument = "guitar";
 
@@ -1073,7 +1086,7 @@ public class MusIntervalTest {
                 .octaves(new String[]{defaultOctave})
                 .direction(direction)
                 .timing(timing)
-                .interval(interval)
+                .intervals(new String[]{interval})
                 .tempo(tempo)
                 .instrument(instrument)
                 .build();
@@ -1091,7 +1104,7 @@ public class MusIntervalTest {
 
         final String direction = MusInterval.Fields.Direction.ASC;
         final String timing = MusInterval.Fields.Timing.MELODIC;
-        final String interval = "min2";
+        final String interval = "m2";
         final String tempo = "80";
         final String instrument = "guitar";
 
@@ -1123,7 +1136,7 @@ public class MusIntervalTest {
                 .octaves(new String[]{defaultOctave})
                 .direction(direction)
                 .timing(timing)
-                .interval(interval)
+                .intervals(new String[]{interval})
                 .tempo(tempo)
                 .instrument(instrument)
                 .build();
@@ -1138,23 +1151,26 @@ public class MusIntervalTest {
     }
 
     @Test
-    public void create_withOnlyHelperAndNoteAndOctave_shouldBeOk() throws MusInterval.ValidationException {
+    public void create_withOnlyHelperAndNoteAndOctaveAndInterval_shouldBeOk() throws MusInterval.ValidationException {
         final long modelId = new Random().nextLong();
 
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         doReturn(modelId).when(helper).findModelIdByName(any(String.class));
         doReturn(null).when(helper).findDeckIdByName(any(String.class));
 
-        final String note = "F";
-        final String octave = "4";
+        final String[] notes = new String[]{"F"};
+        final String[] octaves = new String[]{"4"};
+        final String[] intervals = new String[]{"TT"};
 
         MusInterval mi = new MusInterval.Builder(helper)
-                .notes(new String[]{note})
-                .octaves(new String[]{octave})
+                .notes(notes)
+                .octaves(octaves)
+                .intervals(intervals)
                 .build();
 
-        assertArrayEquals(new String[]{note}, mi.notes);
-        assertArrayEquals(new String[]{octave}, mi.octaves);
+        assertArrayEquals(notes, mi.notes);
+        assertArrayEquals(octaves, mi.octaves);
+        assertArrayEquals(intervals, mi.intervals);
     }
 
     @Test
@@ -1170,7 +1186,7 @@ public class MusIntervalTest {
         final String sound = "/path/to/file";
         final String direction = MusInterval.Fields.Direction.ASC;
         final String timing = MusInterval.Fields.Timing.MELODIC;
-        final String interval = "min2";
+        final String interval = "m2";
         final String tempo = "80";
         final String instrument = "guitar";
 
@@ -1182,7 +1198,7 @@ public class MusIntervalTest {
                 .octaves(new String[]{defaultOctave})
                 .direction(direction)
                 .timing(timing)
-                .interval(interval)
+                .intervals(new String[]{interval})
                 .tempo(tempo)
                 .instrument(instrument)
                 .build();
@@ -1194,7 +1210,7 @@ public class MusIntervalTest {
         assertArrayEquals(new String[]{defaultOctave}, mi.octaves);
         assertEquals(direction, mi.direction);
         assertEquals(timing, mi.timing);
-        assertEquals(interval, mi.interval);
+        assertArrayEquals(new String[]{interval}, mi.intervals);
         assertEquals(tempo, mi.tempo);
         assertEquals(instrument, mi.instrument);
     }
@@ -1204,8 +1220,10 @@ public class MusIntervalTest {
         final long modelId = new Random().nextLong();
         final String[] notes1 = new String[]{"C"};
         final String[] octaves1 = new String[]{"2"};
+        final String[] intervals1 = new String[]{"m2"};
         final String[] notes2 = new String[]{"C"};
         final String[] octaves2 = new String[]{"3"};
+        final String[] intervals2 = new String[]{"m3"};
 
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         doReturn(modelId).when(helper).findModelIdByName(any(String.class));
@@ -1213,19 +1231,23 @@ public class MusIntervalTest {
 
         MusInterval.Builder builder1 = new MusInterval.Builder(helper)
                 .notes(notes1)
-                .octaves(octaves1);
+                .octaves(octaves1)
+                .intervals(intervals1);
 
         MusInterval.Builder builder2 = new MusInterval.Builder(helper)
                 .notes(notes2)
-                .octaves(octaves2);
+                .octaves(octaves2)
+                .intervals(intervals2);
 
         MusInterval mi1 = builder1.build();
         MusInterval mi2 = builder2.build();
 
         assertArrayEquals(notes1, mi1.notes);
         assertArrayEquals(octaves1, mi1.octaves);
+        assertArrayEquals(intervals1, mi1.intervals);
         assertArrayEquals(notes2, mi2.notes);
         assertArrayEquals(octaves2, mi2.octaves);
+        assertArrayEquals(intervals2, mi2.intervals);
     }
 
     @Test(expected = MusInterval.TempoValueException.class)
@@ -1241,6 +1263,7 @@ public class MusIntervalTest {
         new MusInterval.Builder(helper)
                 .notes(ALL_NOTES)
                 .octaves(ALL_OCTAVES)
+                .intervals(ALL_INTERVALS)
                 .tempo(tempo)
                 .build();
     }
@@ -1258,6 +1281,7 @@ public class MusIntervalTest {
         new MusInterval.Builder(helper)
                 .notes(ALL_NOTES)
                 .octaves(ALL_OCTAVES)
+                .intervals(ALL_INTERVALS)
                 .tempo(tempo)
                 .build();
     }
@@ -1275,6 +1299,8 @@ public class MusIntervalTest {
         new MusInterval.Builder(helper)
                 .notes(ALL_NOTES)
                 .octaves(ALL_OCTAVES)
+                .intervals(ALL_INTERVALS)
+
                 .tempo(tempo)
                 .build();
 
@@ -1283,6 +1309,7 @@ public class MusIntervalTest {
         new MusInterval.Builder(helper)
                 .notes(ALL_NOTES)
                 .octaves(ALL_OCTAVES)
+                .intervals(ALL_INTERVALS)
                 .tempo(tempo)
                 .build();
     }
@@ -1317,7 +1344,7 @@ public class MusIntervalTest {
                     .octaves(new String[]{defaultOctave})
                     .direction(MusInterval.Fields.Direction.ASC)
                     .timing(MusInterval.Fields.Timing.MELODIC)
-                    .interval(interval)
+                    .intervals(new String[]{interval})
                     .tempo("90")
                     .instrument("violin")
                     .build();
@@ -1372,7 +1399,7 @@ public class MusIntervalTest {
                         .octaves(new String[]{octave})
                         .direction(data.get(MusInterval.Fields.DIRECTION))
                         .timing(data.get(MusInterval.Fields.TIMING))
-                        .interval(data.get(MusInterval.Fields.INTERVAL))
+                        .intervals(new String[]{data.get(MusInterval.Fields.INTERVAL)})
                         .tempo(data.get(MusInterval.Fields.TEMPO))
                         .instrument(data.get(MusInterval.Fields.INSTRUMENT))
                         .build();
@@ -1421,7 +1448,7 @@ public class MusIntervalTest {
                     .octaves(new String[]{defaultOctave})
                     .direction(MusInterval.Fields.Direction.ASC)
                     .timing(MusInterval.Fields.Timing.MELODIC)
-                    .interval(interval)
+                    .intervals(new String[]{interval})
                     .tempo("90")
                     .instrument(String.format("instrument%d", i)) // different instruments
                     .build();
@@ -1476,7 +1503,7 @@ public class MusIntervalTest {
                         .octaves(new String[]{octave})
                         .direction(data.get(MusInterval.Fields.DIRECTION))
                         .timing(data.get(MusInterval.Fields.TIMING))
-                        .interval(data.get(MusInterval.Fields.INTERVAL))
+                        .intervals(new String[]{data.get(MusInterval.Fields.INTERVAL)})
                         .tempo(data.get(MusInterval.Fields.TEMPO))
                         .instrument(data.get(MusInterval.Fields.INSTRUMENT))
                         .build();
@@ -1525,7 +1552,7 @@ public class MusIntervalTest {
                     .octaves(new String[]{defaultOctave})
                     .direction(MusInterval.Fields.Direction.ASC)
                     .timing(MusInterval.Fields.Timing.MELODIC)
-                    .interval(interval)
+                    .intervals(new String[]{interval})
                     .tempo("90")
                     .instrument("violin")
                     .build();
@@ -1538,7 +1565,7 @@ public class MusIntervalTest {
                 .octaves(new String[]{defaultOctave})
                 .direction(MusInterval.Fields.Direction.ASC)
                 .timing(MusInterval.Fields.Timing.MELODIC)
-                .interval(intervalSmaller)
+                .intervals(new String[]{intervalSmaller})
                 .tempo("90")
                 .instrument("violin")
                 .build();
@@ -1550,7 +1577,7 @@ public class MusIntervalTest {
                 .octaves(new String[]{defaultOctave})
                 .direction(MusInterval.Fields.Direction.ASC)
                 .timing(MusInterval.Fields.Timing.MELODIC)
-                .interval(intervalLarger)
+                .intervals(new String[]{intervalLarger})
                 .tempo("90")
                 .instrument("violin")
                 .build();
@@ -1604,7 +1631,7 @@ public class MusIntervalTest {
                         .octaves(new String[]{octave})
                         .direction(data.get(MusInterval.Fields.DIRECTION))
                         .timing(data.get(MusInterval.Fields.TIMING))
-                        .interval(data.get(MusInterval.Fields.INTERVAL))
+                        .intervals(new String[]{data.get(MusInterval.Fields.INTERVAL)})
                         .tempo(data.get(MusInterval.Fields.TEMPO))
                         .instrument(data.get(MusInterval.Fields.INSTRUMENT))
                         .build();
@@ -1652,7 +1679,7 @@ public class MusIntervalTest {
                 .octaves(new String[]{defaultOctave})
                 .direction(MusInterval.Fields.Direction.ASC)
                 .timing(MusInterval.Fields.Timing.MELODIC)
-                .interval(interval)
+                .intervals(new String[]{interval})
                 .tempo("90")
                 .instrument("violin")
                 .build();
@@ -1667,7 +1694,7 @@ public class MusIntervalTest {
                     .octaves(new String[]{defaultOctave})
                     .direction(MusInterval.Fields.Direction.ASC)
                     .timing(MusInterval.Fields.Timing.MELODIC)
-                    .interval(intervalSmaller)
+                    .intervals(new String[]{intervalSmaller})
                     .tempo("90")
                     .instrument("violin")
                     .build();
@@ -1683,7 +1710,7 @@ public class MusIntervalTest {
                     .octaves(new String[]{defaultOctave})
                     .direction(MusInterval.Fields.Direction.ASC)
                     .timing(MusInterval.Fields.Timing.MELODIC)
-                    .interval(intervalLarger)
+                    .intervals(new String[]{intervalLarger})
                     .tempo("90")
                     .instrument("violin")
                     .build();
@@ -1738,7 +1765,7 @@ public class MusIntervalTest {
                         .octaves(new String[]{octave})
                         .direction(data.get(MusInterval.Fields.DIRECTION))
                         .timing(data.get(MusInterval.Fields.TIMING))
-                        .interval(data.get(MusInterval.Fields.INTERVAL))
+                        .intervals(new String[]{data.get(MusInterval.Fields.INTERVAL)})
                         .tempo(data.get(MusInterval.Fields.TEMPO))
                         .instrument(data.get(MusInterval.Fields.INSTRUMENT))
                         .build();
@@ -1765,8 +1792,9 @@ public class MusIntervalTest {
 
         new MusInterval.Builder(helper)
                 .sounds(new String[]{"/path/to/file.mp3"})
-                .notes(new String[]{defaultNote, note2})
-                .octaves(new String[]{defaultOctave, octave2})
+                .notes(ALL_NOTES)
+                .octaves(ALL_OCTAVES)
+                .intervals(ALL_INTERVALS)
                 .build().addToAnki();
     }
 
@@ -1797,7 +1825,7 @@ public class MusIntervalTest {
             }
         }).when(helper).addNote(eq(modelId), eq(deckId), any(Map.class), nullable(Set.class));
 
-        final int permutations = ALL_NOTES.length * ALL_OCTAVES.length;
+        final int permutations = ALL_NOTES.length * ALL_OCTAVES.length * ALL_INTERVALS.length;
         String[] sounds = new String[permutations];
         for (int i = 0; i < permutations; i++) {
             sounds[i] = String.format("/path/to/file%d.mp3", i);
@@ -1811,7 +1839,7 @@ public class MusIntervalTest {
                 .octaves(ALL_OCTAVES)
                 .direction(MusInterval.Fields.Direction.ASC)
                 .timing(MusInterval.Fields.Timing.MELODIC)
-                .interval("min3")
+                .intervals(ALL_INTERVALS)
                 .tempo("90")
                 .instrument("violin")
                 .build()
@@ -1821,10 +1849,13 @@ public class MusIntervalTest {
         int i = 0;
         for (String octave : ALL_OCTAVES) {
             for (String note : ALL_NOTES) {
-                Map<String, String> data = addedNotesData.get(i);
-                assertEquals(data.get(MusInterval.Fields.SOUND), String.format("[sound:%s]", sounds[i]));
-                assertEquals(data.get(MusInterval.Fields.START_NOTE), note + octave);
-                i++;
+                for (String interval : ALL_INTERVALS) {
+                    Map<String, String> data = addedNotesData.get(i);
+                    assertEquals(data.get(MusInterval.Fields.SOUND), String.format("[sound:%s]", sounds[i]));
+                    assertEquals(data.get(MusInterval.Fields.START_NOTE), note + octave);
+                    assertEquals(data.get(MusInterval.Fields.INTERVAL), interval);
+                    i++;
+                }
             }
         }
     }
