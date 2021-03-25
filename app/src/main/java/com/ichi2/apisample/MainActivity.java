@@ -52,7 +52,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private static final int PERMISSIONS_REQUEST_EXTERNAL_STORAGE = 1;
     private static final int AD_PERM_REQUEST_VALID = 2;
 
-    private static final int ACTION_SELECT_FILES = 10;
+    private static final int ACTION_SELECT_FILE = 10;
 
     private static final String STATE_REF_DB = "com.ichi2.apisample.uistate";
 
@@ -317,7 +317,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                         .putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
 
                 startActivityForResult(Intent.createChooser(intent, actionSelectFile.getText().toString()),
-                        ACTION_SELECT_FILES);
+                        ACTION_SELECT_FILE);
             }
         });
     }
@@ -326,7 +326,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if (requestCode == ACTION_SELECT_FILES && resultCode == RESULT_OK) {
+        if (requestCode == ACTION_SELECT_FILE && resultCode == RESULT_OK) {
             layoutFilenames.removeAllViews();
             ArrayList<Uri> selectedFiles = new ArrayList<>();
             if (data != null) {

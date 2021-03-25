@@ -1,6 +1,7 @@
 package com.ichi2.apisample;
 
 import org.junit.Test;
+import org.mockito.ArgumentMatchers;
 import org.mockito.internal.stubbing.answers.ThrowsExceptionClass;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -667,7 +668,7 @@ public class MusIntervalTest {
 
         MusInterval mi2 = mi.addToAnki(); // should not throw any exception
 
-        assertFalse(mi2.sounds.length == 0);
+        assertNotEquals(0, mi2.sounds.length);
         assertFalse(Arrays.equals(new String[]{sound}, mi2.sounds));
         String addedSound = mi2.sounds[0];
         assertTrue(addedSound.startsWith("[sound:"));
@@ -1288,6 +1289,7 @@ public class MusIntervalTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void add_SimilarIntervals_shouldCreateLinks() throws MusInterval.Exception, AnkiDroidHelper.InvalidAnkiDatabaseException {
         final long deckId = new Random().nextLong();
         final long modelId = new Random().nextLong();
@@ -1353,10 +1355,10 @@ public class MusIntervalTest {
             }
         }).when(helper).findNotes(eq(modelId), any(Map.class));
 
-        doAnswer(new Answer() {
+        doAnswer(new Answer<Boolean>() {
             @Override
             public Boolean answer(InvocationOnMock invocation) throws Throwable {
-                int idx = (int)(long) invocation.getArgument(1);
+                int idx = (int) (long) invocation.getArgument(1);
                 Map<String, String> data = new HashMap<>((Map<String, String>) invocation.getArgument(2));
                 String startNote = data.get(MusInterval.Fields.START_NOTE);
                 String note = startNote.substring(0, startNote.length() - 1);
@@ -1391,6 +1393,7 @@ public class MusIntervalTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void add_DifferentIntervals_shouldNotCreateLinks() throws MusInterval.Exception, AnkiDroidHelper.InvalidAnkiDatabaseException {
         final long deckId = new Random().nextLong();
         final long modelId = new Random().nextLong();
@@ -1456,10 +1459,10 @@ public class MusIntervalTest {
             }
         }).when(helper).findNotes(eq(modelId), any(Map.class));
 
-        doAnswer(new Answer() {
+        doAnswer(new Answer<Boolean>() {
             @Override
             public Boolean answer(InvocationOnMock invocation) throws Throwable {
-                int idx = (int)(long) invocation.getArgument(1);
+                int idx = (int) (long) invocation.getArgument(1);
                 Map<String, String> data = new HashMap<>((Map<String, String>) invocation.getArgument(2));
                 String startNote = data.get(MusInterval.Fields.START_NOTE);
                 String note = startNote.substring(0, startNote.length() - 1);
@@ -1483,14 +1486,15 @@ public class MusIntervalTest {
             }
         }).when(helper).updateNote(eq(modelId), any(Long.class), any(Map.class));
 
-        for (int i = 0; i < musIntervals.length; i++) {
-            musIntervalsAdded.add(musIntervals[i].addToAnki());
-            assertArrayEquals(new String[]{}, musIntervals[i].soundsSmaller);
-            assertArrayEquals(new String[]{}, musIntervals[i].soundsLarger);
+        for (MusInterval musInterval : musIntervals) {
+            musIntervalsAdded.add(musInterval.addToAnki());
+            assertArrayEquals(new String[]{}, musInterval.soundsSmaller);
+            assertArrayEquals(new String[]{}, musInterval.soundsLarger);
         }
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void add_SimilarIntervalToDuplicates_shouldCreateLinkToLatest() throws MusInterval.Exception, AnkiDroidHelper.InvalidAnkiDatabaseException {
         final long deckId = new Random().nextLong();
         final long modelId = new Random().nextLong();
@@ -1583,10 +1587,10 @@ public class MusIntervalTest {
             }
         }).when(helper).findNotes(eq(modelId), any(Map.class));
 
-        doAnswer(new Answer() {
+        doAnswer(new Answer<Boolean>() {
             @Override
             public Boolean answer(InvocationOnMock invocation) throws Throwable {
-                int idx = (int)(long) invocation.getArgument(1);
+                int idx = (int) (long) invocation.getArgument(1);
                 Map<String, String> data = new HashMap<>((Map<String, String>) invocation.getArgument(2));
                 String startNote = data.get(MusInterval.Fields.START_NOTE);
                 String note = startNote.substring(0, startNote.length() - 1);
@@ -1610,8 +1614,8 @@ public class MusIntervalTest {
             }
         }).when(helper).updateNote(eq(modelId), any(Long.class), any(Map.class));
 
-        for (int i = 0; i < musIntervals.length; i++) {
-            musIntervalsAdded.add(musIntervals[i].addToAnki());
+        for (MusInterval musInterval : musIntervals) {
+            musIntervalsAdded.add(musInterval.addToAnki());
         }
         MusInterval musIntervalSmallerAdded = musIntervalSmaller.addToAnki();
         assertArrayEquals(musIntervalsAdded.getLast().sounds, musIntervalSmallerAdded.soundsLarger);
@@ -1620,6 +1624,7 @@ public class MusIntervalTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void add_DuplicateSimilarInterval_shouldUpdateLink() throws MusInterval.Exception, AnkiDroidHelper.InvalidAnkiDatabaseException {
         final long deckId = new Random().nextLong();
         final long modelId = new Random().nextLong();
@@ -1641,17 +1646,17 @@ public class MusIntervalTest {
         final String intervalLarger = MusInterval.Fields.Interval.VALUES[3];
 
         final MusInterval musInterval = new MusInterval.Builder(helper)
-                    .model(defaultModelName)
-                    .deck(defaultDeckName)
-                    .sounds(new String[]{"musInterval.mp3"})
-                    .notes(new String[]{defaultNote})
+                .model(defaultModelName)
+                .deck(defaultDeckName)
+                .sounds(new String[]{"musInterval.mp3"})
+                .notes(new String[]{defaultNote})
                 .octaves(new String[]{defaultOctave})
-                    .direction(MusInterval.Fields.Direction.ASC)
-                    .timing(MusInterval.Fields.Timing.MELODIC)
-                    .interval(interval)
-                    .tempo("90")
-                    .instrument("violin")
-                    .build();
+                .direction(MusInterval.Fields.Direction.ASC)
+                .timing(MusInterval.Fields.Timing.MELODIC)
+                .interval(interval)
+                .tempo("90")
+                .instrument("violin")
+                .build();
         final MusInterval[] musIntervalsSmaller = new MusInterval[2];
         for (int i = 0; i < musIntervalsSmaller.length; i++) {
             String sound = String.format("musIntervalSmaller%d.mp3", i);
@@ -1672,17 +1677,18 @@ public class MusIntervalTest {
         for (int i = 0; i < musIntervalsLarger.length; i++) {
             String sound = String.format("musIntervalLarger%d", i);
             musIntervalsLarger[i] = new MusInterval.Builder(helper)
-                .model(defaultModelName)
-                .deck(defaultDeckName)
-                .sounds(new String[]{sound})
-                .notes(new String[]{defaultNote})
+                    .model(defaultModelName)
+                    .deck(defaultDeckName)
+                    .sounds(new String[]{sound})
+                    .notes(new String[]{defaultNote})
                     .octaves(new String[]{defaultOctave})
-                .direction(MusInterval.Fields.Direction.ASC)
-                .timing(MusInterval.Fields.Timing.MELODIC)
-                .interval(intervalLarger)
-                .tempo("90")
-                .instrument("violin")
-                .build();}
+                    .direction(MusInterval.Fields.Direction.ASC)
+                    .timing(MusInterval.Fields.Timing.MELODIC)
+                    .interval(intervalLarger)
+                    .tempo("90")
+                    .instrument("violin")
+                    .build();
+        }
 
         final LinkedList<MusInterval> musIntervalsAdded = new LinkedList<>();
 
@@ -1715,10 +1721,10 @@ public class MusIntervalTest {
             }
         }).when(helper).findNotes(eq(modelId), any(Map.class));
 
-        doAnswer(new Answer() {
+        doAnswer(new Answer<Boolean>() {
             @Override
             public Boolean answer(InvocationOnMock invocation) throws Throwable {
-                int idx = (int)(long) invocation.getArgument(1);
+                int idx = (int) (long) invocation.getArgument(1);
                 Map<String, String> data = new HashMap<>((Map<String, String>) invocation.getArgument(2));
                 String startNote = data.get(MusInterval.Fields.START_NOTE);
                 String note = startNote.substring(0, startNote.length() - 1);
@@ -1744,12 +1750,12 @@ public class MusIntervalTest {
 
 
         musIntervalsAdded.add(musInterval.addToAnki());
-        for (int i = 0; i < musIntervalsSmaller.length; i++) {
-            MusInterval musIntervalSmallerAdded = musIntervalsSmaller[i].addToAnki();
+        for (MusInterval value : musIntervalsSmaller) {
+            MusInterval musIntervalSmallerAdded = value.addToAnki();
             assertArrayEquals(musIntervalSmallerAdded.sounds, musIntervalsAdded.getFirst().soundsSmaller);
         }
-        for (int i = 0; i < musIntervalsLarger.length; i++) {
-            MusInterval musIntervalLargerAdded = musIntervalsLarger[i].addToAnki();
+        for (MusInterval value : musIntervalsLarger) {
+            MusInterval musIntervalLargerAdded = value.addToAnki();
             assertArrayEquals(musIntervalLargerAdded.sounds, musIntervalsAdded.getFirst().soundsLarger);
         }
     }
