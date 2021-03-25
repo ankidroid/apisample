@@ -121,7 +121,7 @@ public class MusInterval {
         private String[] mOctaves = new String[]{};
         private String mDirection = "";
         private String mTiming = "";
-        private String mInterval = "";
+        private String[] mIntervals = new String[]{};
         private String mTempo = "";
         private String mInstrument = "";
 
@@ -183,8 +183,8 @@ public class MusInterval {
             return this;
         }
 
-        public Builder interval(String in) {
-            mInterval = in;
+        public Builder intervals(String[] ins) {
+            mIntervals = ins;
             return this;
         }
 
@@ -234,6 +234,7 @@ public class MusInterval {
     public static class ValidationException extends Exception {}
     public static class NoteNotSelectedException extends ValidationException {}
     public static class OctaveNotSelectedException extends ValidationException {}
+    public static class IntervalNotSelectedException extends ValidationException {}
     public static class TempoValueException extends ValidationException {}
 
     private final AnkiDroidHelper helper;
@@ -252,7 +253,7 @@ public class MusInterval {
     public final String[] octaves;
     public final String direction;
     public final String timing;
-    public final String interval;
+    public final String[] intervals;
     public final String tempo;
     public final String instrument;
 
@@ -275,7 +276,7 @@ public class MusInterval {
         octaves = builder.mOctaves;
         direction = builder.mDirection.trim().toLowerCase();
         timing = builder.mTiming.trim().toLowerCase();
-        interval = builder.mInterval.trim();
+        intervals = builder.mIntervals;
         tempo = builder.mTempo.trim();
         instrument = builder.mInstrument.trim();
 
@@ -289,6 +290,10 @@ public class MusInterval {
 
         if (octaves.length < 1) {
             throw new OctaveNotSelectedException();
+        }
+
+        if (intervals.length < 1) {
+            throw new IntervalNotSelectedException();
         }
 
         if (!tempo.isEmpty()) {
@@ -404,7 +409,6 @@ public class MusInterval {
         final Map<String, String> fields = new HashMap<String, String>() {{
             put(Fields.DIRECTION, direction);
             put(Fields.TIMING, timing);
-            put(Fields.INTERVAL, interval);
             put(Fields.TEMPO, tempo);
             put(Fields.INSTRUMENT, instrument);
         }};
@@ -455,7 +459,7 @@ public class MusInterval {
                 .octaves(octaves)
                 .direction(direction)
                 .timing(timing)
-                .interval(interval)
+                .intervals(intervals)
                 .tempo(tempo)
                 .instrument(instrument)
                 .build();
@@ -524,7 +528,7 @@ public class MusInterval {
     }
 
     public int getPermutationsNumber() {
-        return notes.length * octaves.length;
+        return notes.length * octaves.length * intervals.length;
     }
 
     @SuppressWarnings("unchecked")
@@ -537,21 +541,23 @@ public class MusInterval {
         final boolean soundsLargerProvided = soundsLarger != null;
         for (String octave : octaves) {
             for (String note : notes) {
-                Map<String, String> miData = new HashMap<>();
-                String sound = soundsProvided && sounds.length > i ? sounds[i] : "";
-                miData.put(modelFields.get(Fields.SOUND), sound);
-                String soundSmaller = soundsSmallerProvided && soundsSmaller.length > i ? soundsSmaller[i] : "";
-                miData.put(modelFields.get(Fields.SOUND_SMALLER), soundSmaller);
-                String soundLarger = soundsLargerProvided && soundsLarger.length > i ? soundsLarger[i] : "";
-                miData.put(modelFields.get(Fields.SOUND_LARGER), soundLarger);
-                miData.put(modelFields.get(Fields.START_NOTE), note + octave);
-                miData.put(modelFields.get(Fields.DIRECTION), direction);
-                miData.put(modelFields.get(Fields.TIMING), timing);
-                miData.put(modelFields.get(Fields.INTERVAL), interval);
-                miData.put(modelFields.get(Fields.TEMPO), tempo);
-                miData.put(modelFields.get(Fields.INSTRUMENT), instrument);
-                miDataSet[i] = miData;
-                i++;
+                for (String interval : intervals) {
+                    Map<String, String> miData = new HashMap<>();
+                    String sound = soundsProvided && sounds.length > i ? sounds[i] : "";
+                    miData.put(modelFields.get(Fields.SOUND), sound);
+                    String soundSmaller = soundsSmallerProvided && soundsSmaller.length > i ? soundsSmaller[i] : "";
+                    miData.put(modelFields.get(Fields.SOUND_SMALLER), soundSmaller);
+                    String soundLarger = soundsLargerProvided && soundsLarger.length > i ? soundsLarger[i] : "";
+                    miData.put(modelFields.get(Fields.SOUND_LARGER), soundLarger);
+                    miData.put(modelFields.get(Fields.START_NOTE), note + octave);
+                    miData.put(modelFields.get(Fields.DIRECTION), direction);
+                    miData.put(modelFields.get(Fields.TIMING), timing);
+                    miData.put(modelFields.get(Fields.INTERVAL), interval);
+                    miData.put(modelFields.get(Fields.TEMPO), tempo);
+                    miData.put(modelFields.get(Fields.INSTRUMENT), instrument);
+                    miDataSet[i] = miData;
+                    i++;
+                }
             }
         }
         return miDataSet;
