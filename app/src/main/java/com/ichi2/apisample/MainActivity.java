@@ -9,6 +9,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.net.Uri;
 import android.os.Bundle;
 
@@ -60,6 +61,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private Spinner selectInterval;
     private SeekBar seekTempo;
     private AutoCompleteTextView inputInstrument;
+    private TextView labelExisting;
+    private Button actionMarkExisting;
 
     private HashSet<String> savedStartNotes = new HashSet<>();
     private HashSet<String> savedInstruments = new HashSet<>();
@@ -89,24 +92,29 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         selectInterval = findViewById(R.id.selectInterval);
         seekTempo = findViewById(R.id.seekTempo);
         inputInstrument = findViewById(R.id.inputInstrument);
+        labelExisting = findViewById(R.id.labelExisting);
+        actionMarkExisting = findViewById(R.id.actionMarkExisting);
 
         inputStartNote.addTextChangedListener(new FieldInputTextWatcher());
         radioGroupDirection.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup radioGroup, int i) {
                 clearAddedInputFilename();
+                refreshExisting();
             }
         });
         radioGroupTiming.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup radioGroup, int i) {
                 clearAddedInputFilename();
+                refreshExisting();
             }
         });
         selectInterval.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
                 clearAddedInputFilename();
+                refreshExisting();
             }
 
             @Override
@@ -119,6 +127,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 TextView label = findViewById(R.id.labelTempoValue);
                 label.setText(Integer.toString(seekBar.getProgress()));
                 clearAddedInputFilename();
+                refreshExisting();
             }
 
             @Override public void onStartTrackingTouch(SeekBar seekBar) { }
@@ -134,7 +143,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         configureTempoButtons();
         configureClearAllButton();
         configureSelectFileButton();
-        configureCheckExistenceButton();
+        configureMarkExistingButton();
         configureAddToAnkiButton();
         configureSettingsButton();
 
@@ -156,6 +165,52 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
     }
 
+    private void refreshExisting() {
+        if (mAnkiDroid == null) {
+            return;
+        }
+        String textExisting = "";
+        int existingCount = 0;
+        int markedCount = 0;
+        try {
+            if (mAnkiDroid.shouldRequestPermission()) {
+                mAnkiDroid.requestPermission(MainActivity.this, AD_PERM_REQUEST);
+                return;
+            }
+            MusInterval mi = getMusInterval();
+            existingCount = mi.getExistingNotesCount();
+            markedCount = mi.getExistingMarkedNotesCount();
+            Resources res = getResources();
+            String textFound;
+            String textMarked;
+            if (existingCount == 1) {
+                textFound = res.getQuantityString(R.plurals.mi_found, existingCount);
+                if (markedCount == 1) {
+                    textMarked = res.getString(R.string.mi_found_one_marked);
+                } else {
+                    textMarked = res.getString(R.string.mi_found_one_unmarked);
+                }
+            } else {
+                textFound = res.getQuantityString(R.plurals.mi_found, existingCount, existingCount);
+                if (markedCount == 1) {
+                    textMarked = res.getQuantityString(R.plurals.mi_found_other_marked, markedCount);
+                } else {
+                    textMarked = res.getQuantityString(R.plurals.mi_found_other_marked, markedCount, markedCount);
+                }
+            }
+            textExisting = existingCount == 0 ?
+                    textFound :
+                    textFound + textMarked;
+        } catch (MusInterval.ValidationException | AnkiDroidHelper.InvalidAnkiDatabaseException e) {
+            textExisting = ""; // might wanna set some error message here
+        } finally {
+            labelExisting.setText(textExisting);
+            final int unmarkedCount = existingCount - markedCount;
+            actionMarkExisting.setText(getString(R.string.action_mark, unmarkedCount));
+            actionMarkExisting.setEnabled(unmarkedCount > 0);
+        }
+    }
+
     private class FieldInputTextWatcher implements TextWatcher {
         private String prev;
 
@@ -169,6 +224,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             String curr = charSequence.toString();
             if (!curr.equalsIgnoreCase(prev)) {
                 clearAddedInputFilename();
+                refreshExisting();
             }
         }
 
@@ -248,29 +304,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
     }
 
-    private void configureCheckExistenceButton() {
-        final AlertDialog.Builder markNoteDialog = new AlertDialog.Builder(this);
-        markNoteDialog
-                .setPositiveButton(R.string.str_yes, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        try {
-                            final int count = getMusInterval().markExistingNotes();
-                            showMsg(getResources().getQuantityString(R.plurals.mi_marked, count, count));
-                        } catch (MusInterval.Exception e) {
-                            processMusIntervalException(e);
-                        } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
-                            processInvalidAnkiDatabase(e);
-                        }
-                    }
-                })
-                .setNegativeButton(R.string.str_no, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        dialog.cancel();
-                    }
-                });
-
-        final Button actionCheckExistence = findViewById(R.id.actionCheckExistence);
-        actionCheckExistence.setOnClickListener(new View.OnClickListener() {
+    private void configureMarkExistingButton() {
+        actionMarkExisting.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (mAnkiDroid.shouldRequestPermission()) {
@@ -282,22 +317,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     return;
                 }
                 try {
-                    final MusInterval mi = getMusInterval();
-                    final int count = mi.getExistingNotesCount();
-
-                    if (count > 0) {
-                        final int marked = mi.getExistingMarkedNotesCount();
-
-                        if (count == marked) {
-                            showMsg(getResources().getQuantityString(R.plurals.mi_exists_marked, count, count));
-                        } else if (marked == 0) {
-                            markNoteDialog.setMessage(getResources().getQuantityString(R.plurals.mi_exists_ask_mark, count, count)).show();
-                        } else {
-                            markNoteDialog.setMessage(getResources().getQuantityString(R.plurals.mi_exists_partially_marked_ask_mark, marked, count, marked)).show();
-                        }
-                    } else {
-                        showMsg(R.string.mi_not_exists);
-                    }
+                    final int count = getMusInterval().markExistingNotes();
+                    showMsg(getResources().getQuantityString(R.plurals.mi_marked_result, count, count));
+                    refreshExisting();
                 } catch (MusInterval.Exception e) {
                     processMusIntervalException(e);
                 } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
@@ -327,6 +349,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
                     savedStartNotes.add(newMi.startNote);
                     savedInstruments.add(newMi.instrument);
+
+                    refreshExisting();
 
                     showMsg(R.string.item_added);
                 } catch (MusInterval.Exception e) {
@@ -455,8 +479,12 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 }
                 break;
             case AD_PERM_REQUEST: {
-                if (grantResults.length > 0 && grantResults[0] != PackageManager.PERMISSION_GRANTED) {
-                    showMsg(R.string.anki_permission_denied);
+                if (grantResults.length > 0) {
+                    if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                        refreshExisting();
+                    } else {
+                        showMsg(R.string.anki_permission_denied);
+                    }
                 }
             }
             case PERMISSIONS_REQUEST_EXTERNAL_STORAGE: {
@@ -471,14 +499,18 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         final String anyStr = getResources().getString(R.string.radio_any);
 
         final int radioDirectionId = radioGroupDirection.getCheckedRadioButtonId();
-        final RadioButton radioDirection = findViewById(radioDirectionId);
-        final String directionStr = radioDirectionId != -1  && radioDirection != null ?
-                radioDirection.getText().toString() : anyStr;
+        final View radioDirection = findViewById(radioDirectionId);
+        final String directionStr =
+                radioDirection instanceof RadioButton && radioDirectionId != -1 ?
+                        ((RadioButton) radioDirection).getText().toString() :
+                        anyStr;
 
         final int radioTimingId = radioGroupTiming.getCheckedRadioButtonId();
-        final RadioButton radioTiming = findViewById(radioTimingId);
-        final String timingStr = radioTimingId != -1 && radioTiming != null ?
-                radioTiming.getText().toString() : anyStr;
+        final View radioTiming = findViewById(radioTimingId);
+        final String timingStr =
+                radioTiming instanceof RadioButton && radioTimingId != -1 ?
+                        ((RadioButton) radioTiming).getText().toString() :
+                        anyStr;
 
         final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         final Map<String, String> storedFields = new HashMap<>();

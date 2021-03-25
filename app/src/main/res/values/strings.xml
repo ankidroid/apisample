@@ -20,27 +20,25 @@
     <string name="tempo">Tempo</string>
     <string name="instrument">Instrument</string>
     <string name="action_clear_all">Clear all fields</string>
-    <string name="action_check_existence">Check existence</string>
+    <string name="action_mark">Mark %d</string>
     <string name="action_add_to_anki">Add to AnkiDroid</string>
     <string name="open_settings">Settings…</string>
+    <plurals name="mi_found">
+        <item quantity="one">Found 1 music interval</item>
+        <item quantity="other">Found %d music intervals</item>
+    </plurals>
+    <string name="mi_found_one_marked" >\u0020which is marked</string>
+    <string name="mi_found_one_unmarked" >\u0020which is NOT marked</string>
+    <plurals name="mi_found_other_marked">
+        <item quantity="one">; 1 of them is marked</item>
+        <item quantity="other">; %d of them are marked</item>
+    </plurals>
 
     <!-- MainActivity messages-->
     <string name="anki_permission_denied">Could not get permission to access the AnkiDroid database</string>
     <string name="fs_permission_denied">Could not get permission to access a filesystem</string>
     <string name="mi_not_exists">Music interval not found</string>
-    <plurals name="mi_exists_ask_mark">
-        <item quantity="one">One music interval found. Mark a note?</item>
-        <item quantity="other">Found %d similar music intervals. Mark them?</item>
-    </plurals>
-    <plurals name="mi_exists_marked">
-        <item quantity="one">One music interval found and it is already marked</item>
-        <item quantity="other">Found %d similar music intervals, all of them are already marked</item>
-    </plurals>
-    <plurals name="mi_exists_partially_marked_ask_mark">
-        <item quantity="one">Found %d similar music intervals, one of them is already marked. Mark remaining notes?</item>
-        <item quantity="other">Found %d similar music intervals, %d of them are already marked. Mark remaining notes?</item>
-    </plurals>
-    <plurals name="mi_marked">
+    <plurals name="mi_marked_result">
         <item quantity="zero">Nothing was marked</item>
         <item quantity="one">One music interval successfully marked</item>
         <item quantity="other">%d music intervals successfully marked</item>
