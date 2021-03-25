@@ -217,7 +217,7 @@ public class MusInterval {
         public int getExpectedAmount() { return expectedAmount; }
     }
     public static class MandatoryFieldEmptyException extends Exception {
-        private String field;
+        private final String field;
 
         public MandatoryFieldEmptyException(String field) {
             super();
@@ -502,6 +502,7 @@ public class MusInterval {
         return notes.length * octaves.length;
     }
 
+    @SuppressWarnings("unchecked")
     public Map<String, String>[] getPermutationsDataSet() throws UnexpectedSoundsAmountException, MandatoryFieldEmptyException {
         final int nMis = getPermutationsNumber();
 
@@ -562,7 +563,7 @@ public class MusInterval {
                 if (i > 0 && i < nStartNotes - 1) {
                     startNoteSelection.append(" or ");
                 }
-                startNoteSelection.append(note + octave);
+                startNoteSelection.append(note).append(octave);
                 i++;
             }
         }
