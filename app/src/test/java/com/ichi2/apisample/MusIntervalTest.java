@@ -6,6 +6,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
@@ -20,31 +21,23 @@ public class MusIntervalTest {
 
     final static String defaultDeckName = "Music intervals";
     final static String defaultModelName = "Music.interval";
-    final static String defaultStartNote = "C#3";
-    final static String startNote2 = "C#2";
+    final static String defaultNote = "C#";
+    final static String defaultOctave = "3";
+    final static String defaultStartNote = defaultNote + defaultOctave;
+    final static String note2 = "C#";
+    final static String octave2 = "2";
+    final static String startNote2 = note2 + octave2;
 
-    @Test
-    @SuppressWarnings("unchecked")
-    public void checkExistence_NoStartingNotes() throws AnkiDroidHelper.InvalidAnkiDatabaseException, MusInterval.ValidationException {
-        final long deckId = new Random().nextLong();
-        final long modelId = new Random().nextLong();
-
-        LinkedList<Map<String, String>> existingNotesData = new LinkedList<>();
-
-        AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
-        doReturn(modelId).when(helper).findModelIdByName(defaultModelName);
-        doReturn(deckId).when(helper).findDeckIdByName(defaultDeckName);
-        doReturn(existingNotesData).when(helper).findNotes(eq(modelId), any(Map.class));
-
-        MusInterval mi = new MusInterval.Builder(helper)
-                .model(defaultModelName)
-                .deck(defaultDeckName)
-                .build();
-
-        assertFalse(mi.existsInAnki());
-        assertEquals(0, mi.getExistingNotesCount());
-        assertEquals(0, mi.getExistingMarkedNotesCount());
-    }
+    final static String[] ALL_NOTES = new String[]{
+            "C", "C#",
+            "D", "D#",
+            "E",
+            "F", "F#",
+            "G", "G#",
+            "A", "A#",
+            "B",
+    };
+    final static String[] ALL_OCTAVES = new String[]{"1", "2", "3", "4", "5", "6"};
 
     @Test
     @SuppressWarnings("unchecked")
@@ -62,7 +55,8 @@ public class MusIntervalTest {
         MusInterval mi = new MusInterval.Builder(helper)
                 .model(defaultModelName)
                 .deck(defaultDeckName)
-                .start_note(defaultStartNote)
+                .notes(new String[]{defaultNote})
+                .octaves(new String[]{defaultOctave})
                 .build();
 
         assertFalse(mi.existsInAnki());
@@ -98,7 +92,8 @@ public class MusIntervalTest {
         MusInterval mi = new MusInterval.Builder(helper)
                 .model(defaultModelName)
                 .deck(defaultDeckName)
-                .start_note(defaultStartNote)
+                .notes(new String[]{defaultNote})
+                .octaves(new String[]{defaultOctave})
                 .direction(MusInterval.Fields.Direction.ASC)
                 .timing(MusInterval.Fields.Timing.MELODIC)
                 .interval(interval)
@@ -140,7 +135,8 @@ public class MusIntervalTest {
         MusInterval mi = new MusInterval.Builder(helper)
                 .model(defaultModelName)
                 .deck(defaultDeckName)
-                .start_note(defaultStartNote)
+                .notes(new String[]{defaultNote})
+                .octaves(new String[]{defaultOctave})
                 .direction(MusInterval.Fields.Direction.ASC)
                 .timing(MusInterval.Fields.Timing.MELODIC)
                 .interval(interval)
@@ -151,47 +147,6 @@ public class MusIntervalTest {
         assertTrue(mi.existsInAnki());
         assertEquals(1, mi.getExistingNotesCount());
         assertEquals(1, mi.getExistingMarkedNotesCount());
-    }
-
-    @Test
-    @SuppressWarnings("unchecked")
-    public void checkExistence_StartingNoteExistsIgnoreCase() throws AnkiDroidHelper.InvalidAnkiDatabaseException, MusInterval.ValidationException {
-        final long deckId = new Random().nextLong();
-        final long modelId = new Random().nextLong();
-
-        final String interval = "min2";
-        final String tempo = "80";
-        final String instrument = "guitar";
-
-        LinkedList<Map<String, String>> existingNotesData = new LinkedList<>();
-        Map<String, String> item1 = new HashMap<>();
-        item1.put(MusInterval.Fields.START_NOTE, defaultStartNote);
-        item1.put(MusInterval.Fields.DIRECTION, MusInterval.Fields.Direction.ASC);
-        item1.put(MusInterval.Fields.TIMING, MusInterval.Fields.Timing.MELODIC);
-        item1.put(MusInterval.Fields.INTERVAL, interval);
-        item1.put(MusInterval.Fields.TEMPO, tempo);
-        item1.put(MusInterval.Fields.INSTRUMENT, instrument);
-        existingNotesData.add(item1);
-
-        AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
-        doReturn(modelId).when(helper).findModelIdByName(defaultModelName);
-        doReturn(deckId).when(helper).findDeckIdByName(defaultDeckName);
-        doReturn(existingNotesData).when(helper).findNotes(eq(modelId), any(Map.class));
-
-        MusInterval mi = new MusInterval.Builder(helper)
-                .model(defaultModelName)
-                .deck(defaultDeckName)
-                .start_note(defaultStartNote.toLowerCase()) // case should be ignored
-                .direction(MusInterval.Fields.Direction.ASC)
-                .timing(MusInterval.Fields.Timing.MELODIC)
-                .interval(interval.toUpperCase()) // case should be ignored
-                .tempo(tempo)
-                .instrument(instrument)
-                .build();
-
-        assertTrue(mi.existsInAnki());
-        assertEquals(1, mi.getExistingNotesCount());
-        assertEquals(0, mi.getExistingMarkedNotesCount());
     }
 
     @Test
@@ -222,7 +177,8 @@ public class MusIntervalTest {
         MusInterval mi = new MusInterval.Builder(helper)
                 .model(defaultModelName)
                 .deck(defaultDeckName)
-                .start_note(defaultStartNote)
+                .notes(new String[]{defaultNote})
+                .octaves(new String[]{defaultOctave})
                 .direction(MusInterval.Fields.Direction.ASC)
                 .timing(MusInterval.Fields.Timing.MELODIC)
                 .interval(interval + " ")
@@ -255,7 +211,8 @@ public class MusIntervalTest {
         MusInterval mi = new MusInterval.Builder(helper)
                 .model(defaultModelName)
                 .deck(defaultDeckName)
-                .start_note(defaultStartNote)
+                .notes(new String[]{defaultNote})
+                .octaves(new String[]{defaultOctave})
                 .direction(MusInterval.Fields.Direction.ASC)
                 .timing(MusInterval.Fields.Timing.MELODIC)
                 .interval(interval)
@@ -297,8 +254,9 @@ public class MusIntervalTest {
         MusInterval mi = new MusInterval.Builder(helper)
                 .model(defaultModelName)
                 .deck(defaultDeckName)
-                .sound("/test2")
-                .start_note(defaultStartNote)
+                .sounds(new String[]{"/test2"})
+                .notes(new String[]{defaultNote})
+                .octaves(new String[]{defaultOctave})
                 .direction(MusInterval.Fields.Direction.ASC)
                 .timing(MusInterval.Fields.Timing.MELODIC)
                 .interval(interval)
@@ -313,7 +271,7 @@ public class MusIntervalTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void checkExistence_withOnlyHelperAndEmptyModel_shouldFail() throws AnkiDroidHelper.InvalidAnkiDatabaseException, MusInterval.ValidationException {
+    public void checkExistence_EmptyModel_shouldFail() throws AnkiDroidHelper.InvalidAnkiDatabaseException, MusInterval.ValidationException {
         final long deckId = new Random().nextLong();
         final long modelId = new Random().nextLong();
 
@@ -327,6 +285,8 @@ public class MusIntervalTest {
         MusInterval mi = new MusInterval.Builder(helper)
                 .model(defaultModelName)
                 .deck(defaultDeckName)
+                .notes(ALL_NOTES)
+                .octaves(ALL_OCTAVES)
                 .build();
 
         assertFalse(mi.existsInAnki());
@@ -336,7 +296,7 @@ public class MusIntervalTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void checkExistence_withOnlyHelperAndNonEmptyModel_shouldSucceed() throws AnkiDroidHelper.InvalidAnkiDatabaseException, MusInterval.ValidationException {
+    public void checkExistence_NonEmptyModel_shouldSucceed() throws AnkiDroidHelper.InvalidAnkiDatabaseException, MusInterval.ValidationException {
         final long deckId = new Random().nextLong();
         final long modelId = new Random().nextLong();
 
@@ -353,6 +313,8 @@ public class MusIntervalTest {
         MusInterval mi = new MusInterval.Builder(helper)
                 .model(defaultModelName)
                 .deck(defaultDeckName)
+                .notes(ALL_NOTES)
+                .octaves(ALL_OCTAVES)
                 .build();
 
         assertTrue(mi.existsInAnki());
@@ -374,6 +336,8 @@ public class MusIntervalTest {
         MusInterval mi = new MusInterval.Builder(helper)
                 .model(defaultModelName)
                 .deck(defaultDeckName)
+                .notes(ALL_NOTES)
+                .octaves(ALL_OCTAVES)
                 .build();
 
         mi.addToAnki();
@@ -435,8 +399,9 @@ public class MusIntervalTest {
         MusInterval mi = new MusInterval.Builder(helper)
                 .model(defaultModelName)
                 .deck(defaultDeckName)
-                .sound(sound)
-                .start_note(defaultStartNote)
+                .sounds(new String[]{sound})
+                .notes(new String[]{defaultNote})
+                .octaves(new String[]{defaultOctave})
                 .direction(direction)
                 .timing(timing)
                 .interval(interval)
@@ -504,8 +469,9 @@ public class MusIntervalTest {
         MusInterval mi = new MusInterval.Builder(helper)
                 .model(defaultModelName)
                 .deck(defaultDeckName)
-                .sound(sound)
-                .start_note(defaultStartNote)
+                .sounds(new String[]{sound})
+                .notes(new String[]{defaultNote})
+                .octaves(new String[]{defaultOctave})
                 .direction(direction)
                 .timing(timing)
                 .interval(interval)
@@ -571,8 +537,9 @@ public class MusIntervalTest {
         MusInterval mi = new MusInterval.Builder(helper)
                 .model(defaultModelName)
                 .deck(defaultDeckName)
-                .sound(sound)
-                .start_note(startNote2)
+                .sounds(new String[]{sound})
+                .notes(new String[]{note2})
+                .octaves(new String[]{octave2})
                 .direction(direction)
                 .timing(timing)
                 .interval(interval)
@@ -607,8 +574,9 @@ public class MusIntervalTest {
         MusInterval mi = new MusInterval.Builder(helper)
                 .model(defaultModelName)
                 .deck(defaultDeckName)
-                .sound(sound)
-                .start_note(startNote2)
+                .sounds(new String[]{sound})
+                .notes(new String[]{note2})
+                .octaves(new String[]{octave2})
                 .direction(direction)
                 .timing(timing)
                 .interval(interval)
@@ -619,47 +587,14 @@ public class MusIntervalTest {
         MusInterval mi2 = mi.addToAnki(); // should not throw any exception
 
         // everything should be the same, except "sound" field
-        assertNotEquals(mi.sound, mi2.sound);
-        assertEquals(mi.startNote, mi2.startNote);
+        assertFalse(Arrays.equals(mi.sounds, mi2.sounds));
+        assertArrayEquals(mi.notes, mi2.notes);
+        assertArrayEquals(mi.octaves, mi2.octaves);
         assertEquals(mi.direction, mi2.direction);
         assertEquals(mi.timing, mi2.timing);
         assertEquals(mi.interval, mi2.interval);
         assertEquals(mi.tempo, mi2.tempo);
         assertEquals(mi.instrument, mi2.instrument);
-    }
-
-    @Test
-    @SuppressWarnings("unchecked")
-    public void add_AllFieldsAreSet_startNoteShouldBeFixedToUpperCase() throws MusInterval.Exception, AnkiDroidHelper.InvalidAnkiDatabaseException {
-        final long deckId = new Random().nextLong();
-        final long modelId = new Random().nextLong();
-        final long noteId = new Random().nextLong();
-
-        final String sound = "/path/to/file.m4a";
-        final String newSound = "music_interval_12345.m4a";
-
-        AnkiDroidHelper helper = mock(AnkiDroidHelper.class);
-        doReturn(modelId).when(helper).findModelIdByName(defaultModelName);
-        doReturn(deckId).when(helper).findDeckIdByName(defaultDeckName);
-        doReturn(newSound).when(helper).addFileToAnkiMedia(sound);
-        doReturn(noteId).when(helper).addNote(eq(modelId), eq(deckId), any(Map.class), nullable(Set.class));
-
-        MusInterval mi = new MusInterval.Builder(helper)
-                .model(defaultModelName)
-                .deck(defaultDeckName)
-                .sound(sound)
-                .start_note(startNote2.toLowerCase())
-                .direction(MusInterval.Fields.Direction.ASC)
-                .timing(MusInterval.Fields.Timing.MELODIC)
-                .interval("min3")
-                .tempo("90")
-                .instrument("violin")
-                .build();
-
-        MusInterval mi2 = mi.addToAnki(); // should not throw any exception
-
-        // c#2 should be fixed to C#2
-        assertEquals(mi.startNote.toUpperCase(), mi2.startNote);
     }
 
     @Test
@@ -681,8 +616,9 @@ public class MusIntervalTest {
         MusInterval mi = new MusInterval.Builder(helper)
                 .model(defaultModelName)
                 .deck(defaultDeckName)
-                .sound(sound)
-                .start_note(startNote2)
+                .sounds(new String[]{sound})
+                .notes(new String[]{note2})
+                .octaves(new String[]{octave2})
                 .direction(MusInterval.Fields.Direction.ASC)
                 .timing(MusInterval.Fields.Timing.MELODIC)
                 .interval("min3")
@@ -692,11 +628,12 @@ public class MusIntervalTest {
 
         MusInterval mi2 = mi.addToAnki(); // should not throw any exception
 
-        assertFalse(mi2.sound.isEmpty());
-        assertNotEquals(sound, mi2.sound);
-        assertTrue(mi2.sound.startsWith("[sound:"));
-        assertTrue(mi2.sound.endsWith(".m4a]"));
-        assertEquals("[sound:" + newSound + "]", mi2.sound);
+        assertNotEquals(0, mi2.sounds.length);
+        assertFalse(Arrays.equals(new String[]{sound}, mi2.sounds));
+        String addedSound = mi2.sounds[0];
+        assertTrue(addedSound.startsWith("[sound:"));
+        assertTrue(addedSound.endsWith(".m4a]"));
+        assertEquals("[sound:" + newSound + "]", addedSound);
     }
 
     @Test
@@ -718,8 +655,9 @@ public class MusIntervalTest {
         MusInterval mi = new MusInterval.Builder(helper)
                 .model(defaultModelName)
                 .deck(defaultDeckName)
-                .sound(sound)
-                .start_note(startNote2)
+                .sounds(new String[]{sound})
+                .notes(new String[]{note2})
+                .octaves(new String[]{octave2})
                 .direction(MusInterval.Fields.Direction.ASC)
                 .timing(MusInterval.Fields.Timing.MELODIC)
                 .interval("min3")
@@ -729,14 +667,15 @@ public class MusIntervalTest {
 
         MusInterval mi2 = mi.addToAnki(); // should not throw any exception
 
-        assertFalse(mi2.sound.isEmpty());
-        assertNotEquals(sound, mi2.sound);
-        assertTrue(mi2.sound.startsWith("[sound:"));
-        assertTrue(mi2.sound.endsWith(".mp3]"));
-        assertEquals("[sound:" + newSound + "]", mi2.sound);
+        assertFalse(mi2.sounds.length == 0);
+        assertFalse(Arrays.equals(new String[]{sound}, mi2.sounds));
+        String addedSound = mi2.sounds[0];
+        assertTrue(addedSound.startsWith("[sound:"));
+        assertTrue(addedSound.endsWith(".mp3]"));
+        assertEquals("[sound:" + newSound + "]", addedSound);
     }
 
-    @Test(expected = MusInterval.MandatoryFieldEmptyException.class)
+    @Test(expected = MusInterval.UnexpectedSoundsAmountException.class)
     public void add_NoSoundSpecified_ShouldFail() throws MusInterval.Exception, AnkiDroidHelper.InvalidAnkiDatabaseException {
         final long deckId = new Random().nextLong();
         final long modelId = new Random().nextLong();
@@ -748,14 +687,16 @@ public class MusIntervalTest {
         MusInterval mi = new MusInterval.Builder(helper)
                 .model(defaultModelName)
                 .deck(defaultDeckName)
-                .sound("") // should not be empty on adding
+                .sounds(new String[]{}) // should not be empty on adding
+                .notes(ALL_NOTES)
+                .octaves(ALL_OCTAVES)
                 .build();
 
         mi.addToAnki(); // should throw exception
     }
 
-    @Test(expected = MusInterval.MandatoryFieldEmptyException.class)
-    public void add_NoStartNoteSpecified_ShouldFail() throws MusInterval.Exception, AnkiDroidHelper.InvalidAnkiDatabaseException {
+    @Test(expected = MusInterval.NoteNotSelectedException.class)
+    public void add_NoNoteSpecified_ShouldFail() throws MusInterval.Exception, AnkiDroidHelper.InvalidAnkiDatabaseException {
         final long deckId = new Random().nextLong();
         final long modelId = new Random().nextLong();
 
@@ -766,8 +707,28 @@ public class MusIntervalTest {
         MusInterval mi = new MusInterval.Builder(helper)
                 .model(defaultModelName)
                 .deck(defaultDeckName)
-                .sound("/path/to/file")
-                .start_note("")// should not be empty on adding
+                .sounds(new String[]{"/path/to/file"})
+                .notes(new String[]{}) // should not be empty on adding
+                .build();
+
+        mi.addToAnki(); // should throw exception
+    }
+
+    @Test(expected = MusInterval.OctaveNotSelectedException.class)
+    public void add_NoOctaveSpecified_ShouldFail() throws MusInterval.Exception, AnkiDroidHelper.InvalidAnkiDatabaseException {
+        final long deckId = new Random().nextLong();
+        final long modelId = new Random().nextLong();
+
+        AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
+        doReturn(modelId).when(helper).findModelIdByName(defaultModelName);
+        doReturn(deckId).when(helper).findDeckIdByName(defaultDeckName);
+
+        MusInterval mi = new MusInterval.Builder(helper)
+                .model(defaultModelName)
+                .deck(defaultDeckName)
+                .sounds(new String[]{"/path/to/file"})
+                .notes(new String[]{defaultNote})
+                .octaves(new String[]{})// should not be empty on adding
                 .build();
 
         mi.addToAnki(); // should throw exception
@@ -785,8 +746,9 @@ public class MusIntervalTest {
         MusInterval mi = new MusInterval.Builder(helper)
                 .model(defaultModelName)
                 .deck(defaultDeckName)
-                .sound("/path/to/file")
-                .start_note(defaultStartNote)
+                .sounds(new String[]{"/path/to/file"})
+                .notes(new String[]{defaultNote})
+                .octaves(new String[]{defaultOctave})
                 .interval("") // should not be empty on adding
                 .build();
 
@@ -825,8 +787,9 @@ public class MusIntervalTest {
         MusInterval mi1 = new MusInterval.Builder(helper)
                 .model(defaultModelName)
                 .deck(defaultDeckName)
-                .sound(sound)
-                .start_note(startNote2)
+                .sounds(new String[]{sound})
+                .notes(new String[]{note2})
+                .octaves(new String[]{octave2})
                 .direction(MusInterval.Fields.Direction.ASC)
                 .timing(MusInterval.Fields.Timing.MELODIC)
                 .interval("min3")
@@ -837,8 +800,9 @@ public class MusIntervalTest {
         MusInterval mi2 = new MusInterval.Builder(helper)
                 .model(defaultModelName)
                 .deck(defaultDeckName)
-                .sound(sound)
-                .start_note(startNote2)
+                .sounds(new String[]{sound})
+                .notes(new String[]{note2})
+                .octaves(new String[]{octave2})
                 .direction(MusInterval.Fields.Direction.ASC)
                 .timing(MusInterval.Fields.Timing.MELODIC)
                 .interval("min3")
@@ -849,7 +813,7 @@ public class MusIntervalTest {
         MusInterval mi1_2 = mi1.addToAnki();
         MusInterval mi2_2 = mi2.addToAnki();
 
-        assertNotEquals(mi1_2.sound, mi2_2.sound);
+        assertFalse(Arrays.equals(mi1_2.sounds, mi2_2.sounds));
     }
 
     @Test(expected = MusInterval.SoundAlreadyAddedException.class)
@@ -869,8 +833,9 @@ public class MusIntervalTest {
         MusInterval mi = new MusInterval.Builder(helper)
                 .model(defaultModelName)
                 .deck(defaultDeckName)
-                .sound(sound)
-                .start_note(startNote2)
+                .sounds(new String[]{sound})
+                .notes(new String[]{note2})
+                .octaves(new String[]{octave2})
                 .direction(MusInterval.Fields.Direction.ASC)
                 .timing(MusInterval.Fields.Timing.MELODIC)
                 .interval("min3")
@@ -897,7 +862,8 @@ public class MusIntervalTest {
         MusInterval mi = new MusInterval.Builder(helper)
                 .model(defaultModelName)
                 .deck(defaultDeckName)
-                .start_note(defaultStartNote)
+                .notes(new String[]{defaultNote})
+                .octaves(new String[]{defaultOctave})
                 .build();
 
         assertEquals(0, mi.getExistingNotesCount());
@@ -940,7 +906,8 @@ public class MusIntervalTest {
         MusInterval mi = new MusInterval.Builder(helper)
                 .model(defaultModelName)
                 .deck(defaultDeckName)
-                .start_note(defaultStartNote)
+                .notes(new String[]{defaultNote})
+                .octaves(new String[]{defaultOctave})
                 .direction(direction)
                 .timing(timing)
                 .interval(interval)
@@ -988,7 +955,8 @@ public class MusIntervalTest {
         MusInterval mi = new MusInterval.Builder(helper)
                 .model(defaultModelName)
                 .deck(defaultDeckName)
-                .start_note(defaultStartNote)
+                .notes(new String[]{defaultNote})
+                .octaves(new String[]{defaultOctave})
                 .direction(direction)
                 .timing(timing)
                 .interval(interval)
@@ -1050,8 +1018,9 @@ public class MusIntervalTest {
         MusInterval mi = new MusInterval.Builder(helper)
                 .model(defaultModelName)
                 .deck(defaultDeckName)
-                .sound("")
-                .start_note(defaultStartNote)
+                .sounds(new String[]{})
+                .notes(new String[]{defaultNote})
+                .octaves(new String[]{defaultOctave})
                 .direction(direction)
                 .timing(timing)
                 .interval(interval)
@@ -1100,7 +1069,8 @@ public class MusIntervalTest {
         MusInterval mi = new MusInterval.Builder(helper)
                 .model(defaultModelName)
                 .deck(defaultDeckName)
-                .start_note(defaultStartNote)
+                .notes(new String[]{defaultNote})
+                .octaves(new String[]{defaultOctave})
                 .direction(direction)
                 .timing(timing)
                 .interval(interval)
@@ -1149,7 +1119,8 @@ public class MusIntervalTest {
         MusInterval mi = new MusInterval.Builder(helper)
                 .model(defaultModelName)
                 .deck(defaultDeckName)
-                .start_note(defaultStartNote)
+                .notes(new String[]{defaultNote})
+                .octaves(new String[]{defaultOctave})
                 .direction(direction)
                 .timing(timing)
                 .interval(interval)
@@ -1167,78 +1138,23 @@ public class MusIntervalTest {
     }
 
     @Test
-    public void create_withOnlyHelper_shouldBeOk() throws MusInterval.ValidationException {
+    public void create_withOnlyHelperAndNoteAndOctave_shouldBeOk() throws MusInterval.ValidationException {
         final long modelId = new Random().nextLong();
 
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         doReturn(modelId).when(helper).findModelIdByName(any(String.class));
         doReturn(null).when(helper).findDeckIdByName(any(String.class));
 
-        MusInterval mi = new MusInterval.Builder(helper)
-                .build();
-
-        assertNotEquals("", mi.modelName);
-        assertNotEquals("", mi.deckName);
-        assertEquals("", mi.sound);
-        assertEquals("", mi.startNote);
-        assertEquals("", mi.direction);
-        assertEquals("", mi.timing);
-        assertEquals("", mi.interval);
-        assertEquals("", mi.tempo);
-        assertEquals("", mi.instrument);
-    }
-
-    @Test
-    public void create_withOnlyHelperAndModelAndDeck_shouldBeOk() throws MusInterval.ValidationException {
-        final long modelId = new Random().nextLong();
-        final String modelName = "Model name";
-        final String deckName = "Deck name";
-
-        AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
-        doReturn(modelId).when(helper).findModelIdByName(modelName);
-        doReturn(null).when(helper).findDeckIdByName(deckName);
+        final String note = "F";
+        final String octave = "4";
 
         MusInterval mi = new MusInterval.Builder(helper)
-                .model(modelName)
-                .deck(deckName)
+                .notes(new String[]{note})
+                .octaves(new String[]{octave})
                 .build();
 
-        assertEquals(modelName, mi.modelName);
-        assertEquals(deckName, mi.deckName);
-    }
-
-    @Test
-    public void create_withOnlyHelperAndStartNote_shouldBeOk() throws MusInterval.ValidationException {
-        final long modelId = new Random().nextLong();
-
-        AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
-        doReturn(modelId).when(helper).findModelIdByName(any(String.class));
-        doReturn(null).when(helper).findDeckIdByName(any(String.class));
-
-        final String startNote = "F4";
-
-        MusInterval mi = new MusInterval.Builder(helper)
-                .start_note(startNote)
-                .build();
-
-        assertEquals(startNote, mi.startNote);
-    }
-
-    @Test
-    public void create_withOnlyHelperAndInterval_shouldBeOk() throws MusInterval.ValidationException {
-        final long modelId = new Random().nextLong();
-
-        AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
-        doReturn(modelId).when(helper).findModelIdByName(any(String.class));
-        doReturn(null).when(helper).findDeckIdByName(any(String.class));
-
-        final String interval = "min2";
-
-        MusInterval mi = new MusInterval.Builder(helper)
-                .interval(interval)
-                .build();
-
-        assertEquals(interval, mi.interval);
+        assertArrayEquals(new String[]{note}, mi.notes);
+        assertArrayEquals(new String[]{octave}, mi.octaves);
     }
 
     @Test
@@ -1261,8 +1177,9 @@ public class MusIntervalTest {
         MusInterval mi = new MusInterval.Builder(helper)
                 .model(modelName)
                 .deck(deckName)
-                .sound(sound)
-                .start_note(defaultStartNote)
+                .sounds(new String[]{sound})
+                .notes(new String[]{defaultNote})
+                .octaves(new String[]{defaultOctave})
                 .direction(direction)
                 .timing(timing)
                 .interval(interval)
@@ -1272,8 +1189,9 @@ public class MusIntervalTest {
 
         assertEquals(modelName, mi.modelName);
         assertEquals(deckName, mi.deckName);
-        assertEquals(sound, mi.sound);
-        assertEquals(defaultStartNote, mi.startNote);
+        assertArrayEquals(new String[]{sound}, mi.sounds);
+        assertArrayEquals(new String[]{defaultNote}, mi.notes);
+        assertArrayEquals(new String[]{defaultOctave}, mi.octaves);
         assertEquals(direction, mi.direction);
         assertEquals(timing, mi.timing);
         assertEquals(interval, mi.interval);
@@ -1284,54 +1202,30 @@ public class MusIntervalTest {
     @Test
     public void create_MultipleBuilders_shouldNotAffectEachOther() throws MusInterval.ValidationException {
         final long modelId = new Random().nextLong();
-        final String startNote1 = "C2";
-        final String startNote2 = "C3";
+        final String[] notes1 = new String[]{"C"};
+        final String[] octaves1 = new String[]{"2"};
+        final String[] notes2 = new String[]{"C"};
+        final String[] octaves2 = new String[]{"3"};
 
         AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         doReturn(modelId).when(helper).findModelIdByName(any(String.class));
         doReturn(null).when(helper).findDeckIdByName(any(String.class));
 
         MusInterval.Builder builder1 = new MusInterval.Builder(helper)
-                .start_note(startNote1);
+                .notes(notes1)
+                .octaves(octaves1);
 
         MusInterval.Builder builder2 = new MusInterval.Builder(helper)
-                .start_note(startNote2);
+                .notes(notes2)
+                .octaves(octaves2);
 
         MusInterval mi1 = builder1.build();
         MusInterval mi2 = builder2.build();
 
-        assertEquals(startNote1, mi1.startNote);
-        assertEquals(startNote2, mi2.startNote);
-    }
-
-    @Test(expected = MusInterval.StartNoteSyntaxException.class)
-    public void create_InvalidNoteValue_shouldFail() throws MusInterval.ValidationException {
-        final long modelId = new Random().nextLong();
-
-        AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
-        doReturn(modelId).when(helper).findModelIdByName(any(String.class));
-        doReturn(null).when(helper).findDeckIdByName(any(String.class));
-
-        final String startNote = "123"; // incorrect
-
-        new MusInterval.Builder(helper)
-                .start_note(startNote)
-                .build();
-    }
-
-    @Test
-    public void create_ValidNoteValue_shouldBeOk() throws MusInterval.ValidationException {
-        final long modelId = new Random().nextLong();
-
-        AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
-        doReturn(modelId).when(helper).findModelIdByName(any(String.class));
-        doReturn(null).when(helper).findDeckIdByName(any(String.class));
-
-        final String startNote = " F7 "; // correct
-
-        new MusInterval.Builder(helper)
-                .start_note(startNote)
-                .build();
+        assertArrayEquals(notes1, mi1.notes);
+        assertArrayEquals(octaves1, mi1.octaves);
+        assertArrayEquals(notes2, mi2.notes);
+        assertArrayEquals(octaves2, mi2.octaves);
     }
 
     @Test(expected = MusInterval.TempoValueException.class)
@@ -1345,6 +1239,8 @@ public class MusIntervalTest {
         final String tempo = "999999"; // incorrect
 
         new MusInterval.Builder(helper)
+                .notes(ALL_NOTES)
+                .octaves(ALL_OCTAVES)
                 .tempo(tempo)
                 .build();
     }
@@ -1360,6 +1256,8 @@ public class MusIntervalTest {
         final String tempo = "asdf"; // incorrect
 
         new MusInterval.Builder(helper)
+                .notes(ALL_NOTES)
+                .octaves(ALL_OCTAVES)
                 .tempo(tempo)
                 .build();
     }
@@ -1375,12 +1273,16 @@ public class MusIntervalTest {
         String tempo = "80"; // correct
 
         new MusInterval.Builder(helper)
+                .notes(ALL_NOTES)
+                .octaves(ALL_OCTAVES)
                 .tempo(tempo)
                 .build();
 
         tempo = "     90    "; // also should be correct
 
         new MusInterval.Builder(helper)
+                .notes(ALL_NOTES)
+                .octaves(ALL_OCTAVES)
                 .tempo(tempo)
                 .build();
     }
@@ -1409,8 +1311,9 @@ public class MusIntervalTest {
             musIntervals[i] = new MusInterval.Builder(helper)
                     .model(defaultModelName)
                     .deck(defaultDeckName)
-                    .sound(sound)
-                    .start_note(defaultStartNote)
+                    .sounds(new String[]{sound})
+                    .notes(new String[]{defaultNote})
+                    .octaves(new String[]{defaultOctave})
                     .direction(MusInterval.Fields.Direction.ASC)
                     .timing(MusInterval.Fields.Timing.MELODIC)
                     .interval(interval)
@@ -1428,8 +1331,13 @@ public class MusIntervalTest {
                 LinkedList<Map<String, String>> result = new LinkedList<>();
                 for (int i = 0; i < musIntervalsAdded.size(); i++) {
                     MusInterval mi = musIntervalsAdded.get(i);
-                    String sound = mi.sound;
-                    Map<String, String> data = mi.getCollectedData();
+                    String sound = mi.sounds[0];
+                    Map<String, String> data;
+                    try {
+                        data = mi.getPermutationDataSet()[0];
+                    } catch (Throwable e) {
+                        data = new HashMap<>();
+                    }
                     data.remove(MusInterval.Fields.SOUND);
                     data.remove(MusInterval.Fields.SOUND_SMALLER);
                     data.remove(MusInterval.Fields.SOUND_LARGER);
@@ -1450,13 +1358,17 @@ public class MusIntervalTest {
             public Boolean answer(InvocationOnMock invocation) throws Throwable {
                 int idx = (int)(long) invocation.getArgument(1);
                 Map<String, String> data = new HashMap<>((Map<String, String>) invocation.getArgument(2));
+                String startNote = data.get(MusInterval.Fields.START_NOTE);
+                String note = startNote.substring(0, startNote.length() - 1);
+                String octave = String.valueOf(startNote.charAt(startNote.length() - 1));
                 MusInterval updated = new MusInterval.Builder(helper)
                         .model(defaultModelName)
                         .deck(defaultDeckName)
-                        .sound(data.get(MusInterval.Fields.SOUND))
-                        .sound_smaller(data.get(MusInterval.Fields.SOUND_SMALLER))
-                        .sound_larger(data.get(MusInterval.Fields.SOUND_LARGER))
-                        .start_note(data.get(MusInterval.Fields.START_NOTE))
+                        .sounds(new String[]{data.get(MusInterval.Fields.SOUND)})
+                        .sounds_smaller(new String[]{data.get(MusInterval.Fields.SOUND_SMALLER)})
+                        .sounds_larger(new String[]{data.get(MusInterval.Fields.SOUND_LARGER)})
+                        .notes(new String[]{note})
+                        .octaves(new String[]{octave})
                         .direction(data.get(MusInterval.Fields.DIRECTION))
                         .timing(data.get(MusInterval.Fields.TIMING))
                         .interval(data.get(MusInterval.Fields.INTERVAL))
@@ -1469,12 +1381,12 @@ public class MusIntervalTest {
         }).when(helper).updateNote(eq(modelId), any(Long.class), any(Map.class));
 
         musIntervalsAdded.add(musIntervals[0].addToAnki());
-        assertEquals("", musIntervalsAdded.get(0).soundSmaller);
-        assertEquals("", musIntervalsAdded.get(0).soundLarger);
+        assertArrayEquals(new String[]{""}, musIntervalsAdded.get(0).soundsSmaller);
+        assertArrayEquals(new String[]{""}, musIntervalsAdded.get(0).soundsLarger);
         for (int i = 1; i < musIntervals.length; i++) {
             musIntervalsAdded.add(musIntervals[i].addToAnki());
-            assertEquals(musIntervalsAdded.get(i - 1).sound, musIntervalsAdded.get(i).soundSmaller);
-            assertEquals(musIntervalsAdded.get(i).sound, musIntervalsAdded.get(i - 1).soundLarger);
+            assertArrayEquals(musIntervalsAdded.get(i - 1).sounds, musIntervalsAdded.get(i).soundsSmaller);
+            assertArrayEquals(musIntervalsAdded.get(i).sounds, musIntervalsAdded.get(i - 1).soundsLarger);
         }
     }
 
@@ -1496,22 +1408,21 @@ public class MusIntervalTest {
         doReturn(noteId).when(helper).addNote(eq(modelId), eq(deckId), any(Map.class), nullable(Set.class));
 
         final MusInterval[] musIntervals = new MusInterval[MusInterval.Fields.Interval.VALUES.length - 1];
-        final LinkedList<Map<String, String>> findMockResult = new LinkedList<>();
         for (int i = 0; i < musIntervals.length; i++) {
             String interval = MusInterval.Fields.Interval.VALUES[i + 1];
             String sound = String.format("%s.mp3", interval);
             musIntervals[i] = new MusInterval.Builder(helper)
                     .model(defaultModelName)
                     .deck(defaultDeckName)
-                    .sound(sound)
-                    .start_note(defaultStartNote)
+                    .sounds(new String[]{sound})
+                    .notes(new String[]{defaultNote})
+                    .octaves(new String[]{defaultOctave})
                     .direction(MusInterval.Fields.Direction.ASC)
                     .timing(MusInterval.Fields.Timing.MELODIC)
                     .interval(interval)
                     .tempo("90")
                     .instrument(String.format("instrument%d", i)) // different instruments
                     .build();
-            findMockResult.add(musIntervals[i].getCollectedData(sound));
         }
 
         final ArrayList<MusInterval> musIntervalsAdded = new ArrayList<>();
@@ -1523,8 +1434,13 @@ public class MusIntervalTest {
                 LinkedList<Map<String, String>> result = new LinkedList<>();
                 for (int i = 0; i < musIntervalsAdded.size(); i++) {
                     MusInterval mi = musIntervalsAdded.get(i);
-                    String sound = mi.sound;
-                    Map<String, String> data = mi.getCollectedData();
+                    String sound = mi.sounds[0];
+                    Map<String, String> data;
+                    try {
+                        data = mi.getPermutationDataSet()[0];
+                    } catch (Throwable e) {
+                        data = new HashMap<>();
+                    }
                     data.remove(MusInterval.Fields.SOUND);
                     data.remove(MusInterval.Fields.SOUND_SMALLER);
                     data.remove(MusInterval.Fields.SOUND_LARGER);
@@ -1545,13 +1461,17 @@ public class MusIntervalTest {
             public Boolean answer(InvocationOnMock invocation) throws Throwable {
                 int idx = (int)(long) invocation.getArgument(1);
                 Map<String, String> data = new HashMap<>((Map<String, String>) invocation.getArgument(2));
+                String startNote = data.get(MusInterval.Fields.START_NOTE);
+                String note = startNote.substring(0, startNote.length() - 1);
+                String octave = String.valueOf(startNote.charAt(startNote.length() - 1));
                 MusInterval updated = new MusInterval.Builder(helper)
                         .model(defaultModelName)
                         .deck(defaultDeckName)
-                        .sound(data.get(MusInterval.Fields.SOUND))
-                        .sound_smaller(data.get(MusInterval.Fields.SOUND_SMALLER))
-                        .sound_larger(data.get(MusInterval.Fields.SOUND_LARGER))
-                        .start_note(data.get(MusInterval.Fields.START_NOTE))
+                        .sounds(new String[]{data.get(MusInterval.Fields.SOUND)})
+                        .sounds_smaller(new String[]{data.get(MusInterval.Fields.SOUND_SMALLER)})
+                        .sounds_larger(new String[]{data.get(MusInterval.Fields.SOUND_LARGER)})
+                        .notes(new String[]{note})
+                        .octaves(new String[]{octave})
                         .direction(data.get(MusInterval.Fields.DIRECTION))
                         .timing(data.get(MusInterval.Fields.TIMING))
                         .interval(data.get(MusInterval.Fields.INTERVAL))
@@ -1565,8 +1485,8 @@ public class MusIntervalTest {
 
         for (int i = 0; i < musIntervals.length; i++) {
             musIntervalsAdded.add(musIntervals[i].addToAnki());
-            assertEquals("", musIntervals[i].soundSmaller);
-            assertEquals("", musIntervals[i].soundLarger);
+            assertArrayEquals(new String[]{}, musIntervals[i].soundsSmaller);
+            assertArrayEquals(new String[]{}, musIntervals[i].soundsLarger);
         }
     }
 
@@ -1597,8 +1517,9 @@ public class MusIntervalTest {
             musIntervals[i] = new MusInterval.Builder(helper)
                     .model(defaultModelName)
                     .deck(defaultDeckName)
-                    .sound(sound)
-                    .start_note(defaultStartNote)
+                    .sounds(new String[]{sound})
+                    .notes(new String[]{defaultNote})
+                    .octaves(new String[]{defaultOctave})
                     .direction(MusInterval.Fields.Direction.ASC)
                     .timing(MusInterval.Fields.Timing.MELODIC)
                     .interval(interval)
@@ -1609,8 +1530,9 @@ public class MusIntervalTest {
         final MusInterval musIntervalSmaller = new MusInterval.Builder(helper)
                 .model(defaultModelName)
                 .deck(defaultDeckName)
-                .sound("intervalSmaller.mp3")
-                .start_note(defaultStartNote)
+                .sounds(new String[]{"intervalSmaller.mp3"})
+                .notes(new String[]{defaultNote})
+                .octaves(new String[]{defaultOctave})
                 .direction(MusInterval.Fields.Direction.ASC)
                 .timing(MusInterval.Fields.Timing.MELODIC)
                 .interval(intervalSmaller)
@@ -1620,8 +1542,9 @@ public class MusIntervalTest {
         final MusInterval musIntervalLarger = new MusInterval.Builder(helper)
                 .model(defaultModelName)
                 .deck(defaultDeckName)
-                .sound("intervalLarger.mp3")
-                .start_note(defaultStartNote)
+                .sounds(new String[]{"intervalLarger.mp3"})
+                .notes(new String[]{defaultNote})
+                .octaves(new String[]{defaultOctave})
                 .direction(MusInterval.Fields.Direction.ASC)
                 .timing(MusInterval.Fields.Timing.MELODIC)
                 .interval(intervalLarger)
@@ -1638,8 +1561,13 @@ public class MusIntervalTest {
                 LinkedList<Map<String, String>> result = new LinkedList<>();
                 for (int i = 0; i < musIntervalsAdded.size(); i++) {
                     MusInterval mi = musIntervalsAdded.get(i);
-                    String sound = mi.sound;
-                    Map<String, String> data = mi.getCollectedData();
+                    String sound = mi.sounds[0];
+                    Map<String, String> data;
+                    try {
+                        data = mi.getPermutationDataSet()[0];
+                    } catch (Throwable e) {
+                        data = new HashMap<>();
+                    }
                     data.remove(MusInterval.Fields.SOUND);
                     data.remove(MusInterval.Fields.SOUND_SMALLER);
                     data.remove(MusInterval.Fields.SOUND_LARGER);
@@ -1660,13 +1588,17 @@ public class MusIntervalTest {
             public Boolean answer(InvocationOnMock invocation) throws Throwable {
                 int idx = (int)(long) invocation.getArgument(1);
                 Map<String, String> data = new HashMap<>((Map<String, String>) invocation.getArgument(2));
+                String startNote = data.get(MusInterval.Fields.START_NOTE);
+                String note = startNote.substring(0, startNote.length() - 1);
+                String octave = String.valueOf(startNote.charAt(startNote.length() - 1));
                 MusInterval updated = new MusInterval.Builder(helper)
                         .model(defaultModelName)
                         .deck(defaultDeckName)
-                        .sound(data.get(MusInterval.Fields.SOUND))
-                        .sound_smaller(data.get(MusInterval.Fields.SOUND_SMALLER))
-                        .sound_larger(data.get(MusInterval.Fields.SOUND_LARGER))
-                        .start_note(data.get(MusInterval.Fields.START_NOTE))
+                        .sounds(new String[]{data.get(MusInterval.Fields.SOUND)})
+                        .sounds_smaller(new String[]{data.get(MusInterval.Fields.SOUND_SMALLER)})
+                        .sounds_larger(new String[]{data.get(MusInterval.Fields.SOUND_LARGER)})
+                        .notes(new String[]{note})
+                        .octaves(new String[]{octave})
                         .direction(data.get(MusInterval.Fields.DIRECTION))
                         .timing(data.get(MusInterval.Fields.TIMING))
                         .interval(data.get(MusInterval.Fields.INTERVAL))
@@ -1682,9 +1614,9 @@ public class MusIntervalTest {
             musIntervalsAdded.add(musIntervals[i].addToAnki());
         }
         MusInterval musIntervalSmallerAdded = musIntervalSmaller.addToAnki();
-        assertEquals(musIntervalsAdded.getLast().sound, musIntervalSmallerAdded.soundLarger);
+        assertArrayEquals(musIntervalsAdded.getLast().sounds, musIntervalSmallerAdded.soundsLarger);
         MusInterval musIntervalLargerAdded = musIntervalLarger.addToAnki();
-        assertEquals(musIntervalsAdded.getLast().sound, musIntervalLargerAdded.soundSmaller);
+        assertArrayEquals(musIntervalsAdded.getLast().sounds, musIntervalLargerAdded.soundsSmaller);
     }
 
     @Test
@@ -1711,8 +1643,9 @@ public class MusIntervalTest {
         final MusInterval musInterval = new MusInterval.Builder(helper)
                     .model(defaultModelName)
                     .deck(defaultDeckName)
-                    .sound("musInterval.mp3")
-                    .start_note(defaultStartNote)
+                    .sounds(new String[]{"musInterval.mp3"})
+                    .notes(new String[]{defaultNote})
+                .octaves(new String[]{defaultOctave})
                     .direction(MusInterval.Fields.Direction.ASC)
                     .timing(MusInterval.Fields.Timing.MELODIC)
                     .interval(interval)
@@ -1725,8 +1658,9 @@ public class MusIntervalTest {
             musIntervalsSmaller[i] = new MusInterval.Builder(helper)
                     .model(defaultModelName)
                     .deck(defaultDeckName)
-                    .sound(sound)
-                    .start_note(defaultStartNote)
+                    .sounds(new String[]{sound})
+                    .notes(new String[]{defaultNote})
+                    .octaves(new String[]{defaultOctave})
                     .direction(MusInterval.Fields.Direction.ASC)
                     .timing(MusInterval.Fields.Timing.MELODIC)
                     .interval(intervalSmaller)
@@ -1740,8 +1674,9 @@ public class MusIntervalTest {
             musIntervalsLarger[i] = new MusInterval.Builder(helper)
                 .model(defaultModelName)
                 .deck(defaultDeckName)
-                .sound(sound)
-                .start_note(defaultStartNote)
+                .sounds(new String[]{sound})
+                .notes(new String[]{defaultNote})
+                    .octaves(new String[]{defaultOctave})
                 .direction(MusInterval.Fields.Direction.ASC)
                 .timing(MusInterval.Fields.Timing.MELODIC)
                 .interval(intervalLarger)
@@ -1758,8 +1693,13 @@ public class MusIntervalTest {
                 LinkedList<Map<String, String>> result = new LinkedList<>();
                 for (int i = 0; i < musIntervalsAdded.size(); i++) {
                     MusInterval mi = musIntervalsAdded.get(i);
-                    String sound = mi.sound;
-                    Map<String, String> data = mi.getCollectedData();
+                    String sound = mi.sounds[0];
+                    Map<String, String> data;
+                    try {
+                        data = mi.getPermutationDataSet()[0];
+                    } catch (Throwable e) {
+                        data = new HashMap<>();
+                    }
                     data.remove(MusInterval.Fields.SOUND);
                     data.remove(MusInterval.Fields.SOUND_SMALLER);
                     data.remove(MusInterval.Fields.SOUND_LARGER);
@@ -1780,13 +1720,17 @@ public class MusIntervalTest {
             public Boolean answer(InvocationOnMock invocation) throws Throwable {
                 int idx = (int)(long) invocation.getArgument(1);
                 Map<String, String> data = new HashMap<>((Map<String, String>) invocation.getArgument(2));
+                String startNote = data.get(MusInterval.Fields.START_NOTE);
+                String note = startNote.substring(0, startNote.length() - 1);
+                String octave = String.valueOf(startNote.charAt(startNote.length() - 1));
                 MusInterval updated = new MusInterval.Builder(helper)
                         .model(defaultModelName)
                         .deck(defaultDeckName)
-                        .sound(data.get(MusInterval.Fields.SOUND))
-                        .sound_smaller(data.get(MusInterval.Fields.SOUND_SMALLER))
-                        .sound_larger(data.get(MusInterval.Fields.SOUND_LARGER))
-                        .start_note(data.get(MusInterval.Fields.START_NOTE))
+                        .sounds(new String[]{data.get(MusInterval.Fields.SOUND)})
+                        .sounds_smaller(new String[]{data.get(MusInterval.Fields.SOUND_SMALLER)})
+                        .sounds_larger(new String[]{data.get(MusInterval.Fields.SOUND_LARGER)})
+                        .notes(new String[]{note})
+                        .octaves(new String[]{octave})
                         .direction(data.get(MusInterval.Fields.DIRECTION))
                         .timing(data.get(MusInterval.Fields.TIMING))
                         .interval(data.get(MusInterval.Fields.INTERVAL))
@@ -1802,11 +1746,11 @@ public class MusIntervalTest {
         musIntervalsAdded.add(musInterval.addToAnki());
         for (int i = 0; i < musIntervalsSmaller.length; i++) {
             MusInterval musIntervalSmallerAdded = musIntervalsSmaller[i].addToAnki();
-            assertEquals(musIntervalSmallerAdded.sound, musIntervalsAdded.getFirst().soundSmaller);
+            assertArrayEquals(musIntervalSmallerAdded.sounds, musIntervalsAdded.getFirst().soundsSmaller);
         }
         for (int i = 0; i < musIntervalsLarger.length; i++) {
             MusInterval musIntervalLargerAdded = musIntervalsLarger[i].addToAnki();
-            assertEquals(musIntervalLargerAdded.sound, musIntervalsAdded.getFirst().soundLarger);
+            assertArrayEquals(musIntervalLargerAdded.sounds, musIntervalsAdded.getFirst().soundsLarger);
         }
     }
 }

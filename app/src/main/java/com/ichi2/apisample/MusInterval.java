@@ -502,7 +502,7 @@ public class MusInterval {
         return notes.length * octaves.length;
     }
 
-    private Map<String, String>[] getPermutationDataSet() throws UnexpectedSoundsAmountException, MandatoryFieldEmptyException {
+    public Map<String, String>[] getPermutationDataSet() throws UnexpectedSoundsAmountException, MandatoryFieldEmptyException {
         final int nMis = getPermutationsNumber();
 
         if (sounds == null) { // @fixme
