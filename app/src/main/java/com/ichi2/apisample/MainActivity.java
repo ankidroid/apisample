@@ -217,6 +217,10 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
         int permutationsNumber = 1;
         try {
+            if (mAnkiDroid.shouldRequestPermission()) {
+                mAnkiDroid.requestPermission(MainActivity.this, AD_PERM_REQUEST);
+                return;
+            }
             permutationsNumber = getMusInterval().getPermutationsNumber();
 
         } catch (MusInterval.ValidationException e) {
@@ -578,8 +582,12 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 }
                 break;
             case AD_PERM_REQUEST: {
-                if (grantResults.length > 0 && grantResults[0] != PackageManager.PERMISSION_GRANTED) {
-                    showMsg(R.string.anki_permission_denied);
+                if (grantResults.length > 0) {
+                    if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                        refreshPermutationsLabel();
+                    } else {
+                        showMsg(R.string.anki_permission_denied);
+                    }
                 }
             }
             case PERMISSIONS_REQUEST_EXTERNAL_STORAGE: {
