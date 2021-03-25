@@ -204,17 +204,17 @@ public class MusInterval {
     public static class AddToAnkiException extends Exception {}
     public static class NoteNotExistsException extends Exception {}
     public static class UnexpectedSoundsAmountException extends Exception {
-        private final int providedAmount;
         private final int expectedAmount;
+        private final int providedAmount;
 
-        public UnexpectedSoundsAmountException(int providedAmount, int expectedAmount) {
-            this.providedAmount = providedAmount;
+        public UnexpectedSoundsAmountException(int expectedAmount, int providedAmount) {
             this.expectedAmount = expectedAmount;
+            this.providedAmount = providedAmount;
         }
 
-        public int getProvidedAmount() { return providedAmount; }
-
         public int getExpectedAmount() { return expectedAmount; }
+
+        public int getProvidedAmount() { return providedAmount; }
     }
     public static class MandatoryFieldEmptyException extends Exception {
         private final String field;
@@ -333,7 +333,13 @@ public class MusInterval {
      */
     private LinkedList<Map<String, String>> getExistingNotes() throws AnkiDroidHelper.InvalidAnkiDatabaseException {
         if (modelId != null) {
-            return helper.findNotes(modelId, getSearchData());
+            Map<String, String>[] dataSet = getCollectedDataSet();
+            for (Map<String, String> data : dataSet) {
+                data.remove(modelFields.get(Fields.SOUND));
+                data.remove(modelFields.get(Fields.SOUND_SMALLER));
+                data.remove(modelFields.get(Fields.SOUND_LARGER));
+            }
+            return helper.findNotes(modelId, dataSet);
         } else {
             return new LinkedList<>();
         }
@@ -388,11 +394,30 @@ public class MusInterval {
             helper.storeDeckReference(deckName, deckId);
         }
 
+        final int permutationsNumber = getPermutationsNumber();
+        final boolean soundsProvided = sounds != null;
+        if (!soundsProvided || sounds.length != permutationsNumber) {
+            final int providedAmount = soundsProvided ? sounds.length : 0;
+            throw new UnexpectedSoundsAmountException(permutationsNumber, providedAmount);
+        }
+
+        final Map<String, String> fields = new HashMap<String, String>() {{
+            put(Fields.DIRECTION, direction);
+            put(Fields.TIMING, timing);
+            put(Fields.INTERVAL, interval);
+            put(Fields.TEMPO, tempo);
+            put(Fields.INSTRUMENT, instrument);
+        }};
+        for (Map.Entry<String, String> field : fields.entrySet()) {
+            if (field.getValue().isEmpty()) {
+                throw new MandatoryFieldEmptyException(field.getKey());
+            }
+        }
+
+        Map<String, String>[] miDataSet = getCollectedDataSet();
         String soundField = modelFields.get(Fields.SOUND);
         String soundSmallerField = modelFields.get(Fields.SOUND_SMALLER);
         String soundLargerField = modelFields.get(Fields.SOUND_LARGER);
-
-        Map<String, String>[] miDataSet = getPermutationsDataSet();
         String[] addedSounds = new String[miDataSet.length];
         String[] soundsSmaller = new String[miDataSet.length];
         String[] soundsLarger = new String[miDataSet.length];
@@ -503,77 +528,32 @@ public class MusInterval {
     }
 
     @SuppressWarnings("unchecked")
-    public Map<String, String>[] getPermutationsDataSet() throws UnexpectedSoundsAmountException, MandatoryFieldEmptyException {
-        final int nMis = getPermutationsNumber();
-
-        final boolean soundsProvided = sounds != null;
-        if (!soundsProvided || sounds.length != nMis) {
-            final int providedAmount = soundsProvided ? sounds.length : 0;
-            throw new UnexpectedSoundsAmountException(providedAmount, nMis);
-        }
-
-        final Map<String, String> fields = new HashMap<String, String>() {{
-            put(Fields.DIRECTION, direction);
-            put(Fields.TIMING, timing);
-            put(Fields.INTERVAL, interval);
-            put(Fields.TEMPO, tempo);
-            put(Fields.INSTRUMENT, instrument);
-        }};
-        for (Map.Entry<String, String> field : fields.entrySet()) {
-            if (field.getValue().isEmpty()) {
-                throw new MandatoryFieldEmptyException(field.getKey());
-            }
-        }
-
-        Map<String, String>[] miDataSet = new Map[nMis];
-
-        String soundField = modelFields.get(Fields.SOUND);
-        String startNoteField = modelFields.get(Fields.START_NOTE);
-        String directionField = modelFields.get(Fields.DIRECTION);
-        String timingField = modelFields.get(Fields.TIMING);
-        String intervalField = modelFields.get(Fields.INTERVAL);
-        String tempoField = modelFields.get(Fields.TEMPO);
-        String instrumentField = modelFields.get(Fields.INSTRUMENT);
-
+    public Map<String, String>[] getCollectedDataSet() {
+        final int permutationsNumber = getPermutationsNumber();
+        Map<String, String>[] miDataSet = new Map[permutationsNumber];
         int i = 0;
+        final boolean soundsProvided = sounds != null;
+        final boolean soundsSmallerProvided = soundsSmaller != null;
+        final boolean soundsLargerProvided = soundsLarger != null;
         for (String octave : octaves) {
             for (String note : notes) {
                 Map<String, String> miData = new HashMap<>();
-                miData.put(soundField, sounds[i]);
-                miData.put(startNoteField, note + octave);
-                miData.put(directionField, direction);
-                miData.put(timingField, timing);
-                miData.put(intervalField, interval);
-                miData.put(tempoField, tempo);
-                miData.put(instrumentField, instrument);
+                String sound = soundsProvided && sounds.length > i ? sounds[i] : "";
+                miData.put(modelFields.get(Fields.SOUND), sound);
+                String soundSmaller = soundsSmallerProvided && soundsSmaller.length > i ? soundsSmaller[i] : "";
+                miData.put(modelFields.get(Fields.SOUND_SMALLER), soundSmaller);
+                String soundLarger = soundsLargerProvided && soundsLarger.length > i ? soundsLarger[i] : "";
+                miData.put(modelFields.get(Fields.SOUND_LARGER), soundLarger);
+                miData.put(modelFields.get(Fields.START_NOTE), note + octave);
+                miData.put(modelFields.get(Fields.DIRECTION), direction);
+                miData.put(modelFields.get(Fields.TIMING), timing);
+                miData.put(modelFields.get(Fields.INTERVAL), interval);
+                miData.put(modelFields.get(Fields.TEMPO), tempo);
+                miData.put(modelFields.get(Fields.INSTRUMENT), instrument);
                 miDataSet[i] = miData;
                 i++;
             }
         }
-
         return miDataSet;
-    }
-
-    private Map<String, String> getSearchData() {
-        StringBuilder startNoteSelection = new StringBuilder();
-        int nStartNotes = notes.length * octaves.length;
-        int i = 0;
-        for (String octave : octaves) {
-            for (String note : notes) {
-                if (i > 0 && i < nStartNotes - 1) {
-                    startNoteSelection.append(" or ");
-                }
-                startNoteSelection.append(note).append(octave);
-                i++;
-            }
-        }
-        Map<String, String> data = new HashMap<>();
-        data.put(modelFields.get(Fields.START_NOTE), startNoteSelection.toString());
-        data.put(modelFields.get(Fields.DIRECTION), direction);
-        data.put(modelFields.get(Fields.TIMING), timing);
-        data.put(modelFields.get(Fields.INTERVAL), interval);
-        data.put(modelFields.get(Fields.TEMPO), tempo);
-        data.put(modelFields.get(Fields.INSTRUMENT), instrument);
-        return data;
     }
 }

@@ -662,7 +662,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             if (expected == 1) {
                 msg = res.getQuantityString(R.plurals.unexpected_sounds_amount, expected);
             } else {
-                msg = res.getQuantityString(R.plurals.unexpected_sounds_amount, expected, e.getProvidedAmount());
+                msg = res.getQuantityString(R.plurals.unexpected_sounds_amount, expected, expected, e.getProvidedAmount());
             }
             showMsg(msg);
         } catch (MusInterval.NoteNotExistsException e) {
