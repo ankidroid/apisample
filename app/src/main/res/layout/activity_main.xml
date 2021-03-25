@@ -314,6 +314,13 @@
                     android:layout_height="wrap_content"
                     android:text="@string/interval_M3" />
 
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="horizontal">
+
                 <CheckBox
                     android:id="@+id/checkIntervalP4"
                     android:layout_width="wrap_content"
@@ -326,18 +333,17 @@
                     android:layout_height="wrap_content"
                     android:text="@string/interval_TT" />
 
+                <CheckBox
+                    android:id="@+id/checkIntervalP5"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/interval_P5" />
             </LinearLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:orientation="horizontal">
-
-                <CheckBox
-                    android:id="@+id/checkIntervalP5"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/interval_P5" />
 
                 <CheckBox
                     android:id="@+id/checkIntervalm6"

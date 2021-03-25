@@ -24,7 +24,6 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
@@ -130,6 +129,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
         radioGroupDirection = findViewById(R.id.radioGroupDirection);
         radioGroupTiming = findViewById(R.id.radioGroupTiming);
+        checkIntervals = new CheckBox[checkIntervalIds.length];
         for (int i = 0; i < checkIntervalIds.length; i++) {
             checkIntervals[i] = findViewById(checkIntervalIds[i]);
         }
@@ -157,17 +157,15 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         configureAddToAnkiButton();
         configureSettingsButton();
 
-        restoreUiState();
-
         mAnkiDroid = new AnkiDroidHelper(this);
+
+        restoreUiState();
 
         if (mAnkiDroid.shouldRequestPermission()) {
             mAnkiDroid.requestPermission(this, AD_PERM_REQUEST_VALID);
         } else if (!doesModelExist() || !doesModelHaveEnoughFields() || !doesModelHaveStoredFields()) {
             validateModel();
         }
-
-        refreshPermutations();
     }
 
     private void clearAddedFilenames() {
@@ -572,6 +570,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 android.R.layout.simple_dropdown_item_1line, savedInstruments.toArray(new String[0])));
 
         this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
+
+        refreshPermutations();
     }
 
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -609,14 +609,18 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
 
         final int radioDirectionId = radioGroupDirection.getCheckedRadioButtonId();
-        final RadioButton radioDirection = findViewById(radioDirectionId);
-        final String directionStr = radioDirectionId != -1  && radioDirection != null ?
-                radioDirection.getText().toString() : anyStr;
+        final View radioDirection = findViewById(radioDirectionId);
+        final String directionStr =
+                radioDirection instanceof RadioButton && radioDirectionId != -1 ?
+                        ((RadioButton) radioDirection).getText().toString() :
+                        anyStr;
 
         final int radioTimingId = radioGroupTiming.getCheckedRadioButtonId();
-        final RadioButton radioTiming = findViewById(radioTimingId);
-        final String timingStr = radioTimingId != -1 && radioTiming != null ?
-                radioTiming.getText().toString() : anyStr;
+        final View radioTiming = findViewById(radioTimingId);
+        final String timingStr =
+                radioTiming instanceof RadioButton && radioTimingId != -1 ?
+                        ((RadioButton) radioTiming).getText().toString() :
+                        anyStr;
 
         final ArrayList<String> intervalList = new ArrayList<>();
         for (CheckBox checkInterval : checkIntervals) {
@@ -661,6 +665,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             showMsg(R.string.note_not_selected);
         } catch (MusInterval.OctaveNotSelectedException e) {
             showMsg(R.string.octave_not_selected);
+        } catch (MusInterval.IntervalNotSelectedException e) {
+            showMsg(R.string.interval_not_selected);
         } catch (MusInterval.UnexpectedSoundsAmountException e) {
             int expected = e.getExpectedAmount();
             Resources res = getResources();
