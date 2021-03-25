@@ -34,7 +34,6 @@ import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.SeekBar;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -58,25 +57,24 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
     private final Map<String, String> fieldLabels = new HashMap<>();
 
-    private TextView labelFilename;
     private Button actionSelectFile;
     private LinearLayout layoutFilenames;
     private CheckBox[] checkNotes;
     private CheckBox[] checkOctaves;
     private RadioGroup radioGroupDirection;
     private RadioGroup radioGroupTiming;
-    private Spinner selectInterval;
+    private CheckBox[] checkIntervals;
     private SeekBar seekTempo;
     private AutoCompleteTextView inputInstrument;
 
     private final int[] checkNoteIds = new int[]{
-            R.id.checkC, R.id.checkCSharp,
-            R.id.checkD, R.id.checkDSharp,
-            R.id.checkE,
-            R.id.checkF, R.id.checkFSharp,
-            R.id.checkG, R.id.checkGSharp,
-            R.id.checkA, R.id.checkASharp,
-            R.id.checkB
+            R.id.checkNoteC, R.id.checkNoteCSharp,
+            R.id.checkNoteD, R.id.checkNoteDSharp,
+            R.id.checkNoteE,
+            R.id.checkNoteF, R.id.checkNoteFSharp,
+            R.id.checkNoteG, R.id.checkNoteGSharp,
+            R.id.checkNoteA, R.id.checkNoteASharp,
+            R.id.checkNoteB
     };
     private final int[] checkOctaveIds = new int[]{
             R.id.checkOctave1,
@@ -85,6 +83,21 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             R.id.checkOctave4,
             R.id.checkOctave5,
             R.id.checkOctave6
+    };
+    private final int[] checkIntervalIds = new int[]{
+            R.id.checkIntervalP1,
+            R.id.checkIntervalm2,
+            R.id.checkIntervalM2,
+            R.id.checkIntervalm3,
+            R.id.checkIntervalM3,
+            R.id.checkIntervalP4,
+            R.id.checkIntervalTT,
+            R.id.checkIntervalP5,
+            R.id.checkIntervalm6,
+            R.id.checkIntervalM6,
+            R.id.checkIntervalm7,
+            R.id.checkIntervalM7,
+            R.id.checkIntervalP8
     };
 
     private HashSet<String> savedInstruments = new HashSet<>();
@@ -105,7 +118,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         Toolbar main_toolbar = findViewById(R.id.main_toolbar);
         setSupportActionBar(main_toolbar);
 
-        labelFilename = findViewById(R.id.labelFilename);
         actionSelectFile = findViewById(R.id.actionSelectFile);
         layoutFilenames = findViewById(R.id.layoutFilenames);
         checkNotes = new CheckBox[checkNoteIds.length];
@@ -118,67 +130,25 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
         radioGroupDirection = findViewById(R.id.radioGroupDirection);
         radioGroupTiming = findViewById(R.id.radioGroupTiming);
-        selectInterval = findViewById(R.id.selectInterval);
+        for (int i = 0; i < checkIntervalIds.length; i++) {
+            checkIntervals[i] = findViewById(checkIntervalIds[i]);
+        }
         seekTempo = findViewById(R.id.seekTempo);
         inputInstrument = findViewById(R.id.inputInstrument);
 
         for (CheckBox checkNote : checkNotes) {
-            checkNote.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                @Override
-                public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                    clearAddedFilenames();
-                    refreshPermutations();
-                }
-            });
+            checkNote.setOnCheckedChangeListener(new FieldCheckChangeListener());
         }
         for (CheckBox checkOctave : checkOctaves) {
-            checkOctave.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                @Override
-                public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                    clearAddedFilenames();
-                    refreshPermutations();
-                }
-            });
+            checkOctave.setOnCheckedChangeListener(new FieldCheckChangeListener());
         }
-        radioGroupDirection.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(RadioGroup radioGroup, int i) {
-                clearAddedFilenames();
-            }
-        });
-        radioGroupTiming.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(RadioGroup radioGroup, int i) {
-                clearAddedFilenames();
-            }
-        });
-        selectInterval.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                clearAddedFilenames();
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> adapterView) { }
-        });
-        seekTempo.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @SuppressLint("SetTextI18n")
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                TextView label = findViewById(R.id.labelTempoValue);
-                label.setText(Integer.toString(seekBar.getProgress()));
-                clearAddedFilenames();
-            }
-
-            @Override public void onStartTrackingTouch(SeekBar seekBar) { }
-            @Override public void onStopTrackingTouch(SeekBar seekBar) { }
-        });
+        radioGroupDirection.setOnCheckedChangeListener(new FieldRadioChangeListener());
+        radioGroupTiming.setOnCheckedChangeListener(new FieldRadioChangeListener());
+        for (CheckBox checkInterval : checkIntervals) {
+            checkInterval.setOnCheckedChangeListener(new FieldCheckChangeListener());
+        }
+        seekTempo.setOnSeekBarChangeListener(new FieldSeekChangeListener());
         inputInstrument.addTextChangedListener(new FieldInputTextWatcher());
-
-        final ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
-                android.R.layout.simple_spinner_dropdown_item,
-                MusInterval.Fields.Interval.VALUES);
-        selectInterval.setAdapter(adapter);
 
         configureTempoButtons();
         configureClearAllButton();
@@ -226,7 +196,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         } catch (MusInterval.ValidationException e) {
         } finally {
             Resources res = getResources();
-            labelFilename.setText(res.getQuantityString(R.plurals.label_filename, permutationsNumber));
             String selectFileText;
             if (permutationsNumber == 1) {
                 selectFileText = res.getQuantityString(R.plurals.select_file, permutationsNumber);
@@ -237,6 +206,33 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
     }
 
+    private class FieldCheckChangeListener implements CompoundButton.OnCheckedChangeListener {
+        @Override
+        public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+            clearAddedFilenames();
+            refreshPermutations();
+        }
+    }
+
+    private class FieldRadioChangeListener implements RadioGroup.OnCheckedChangeListener {
+        @Override
+        public void onCheckedChanged(RadioGroup radioGroup, int i) {
+            clearAddedFilenames();
+        }
+    }
+
+    private class FieldSeekChangeListener implements SeekBar.OnSeekBarChangeListener {
+        @SuppressLint("SetTextI18n")
+        @Override
+        public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+            TextView label = findViewById(R.id.labelTempoValue);
+            label.setText(Integer.toString(seekBar.getProgress()));
+            clearAddedFilenames();
+        }
+
+        @Override public void onStartTrackingTouch(SeekBar seekBar) { }
+        @Override public void onStopTrackingTouch(SeekBar seekBar) { }
+    }
 
     private class FieldInputTextWatcher implements TextWatcher {
         private String prev;
@@ -296,7 +292,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 }
                 radioGroupDirection.check(findViewById(R.id.radioDirectionAny).getId());
                 radioGroupTiming.check(findViewById(R.id.radioTimingAny).getId());
-                selectInterval.setSelection(0);
+                for (CheckBox checkInterval : checkIntervals) {
+                    checkInterval.setChecked(false);
+                }
                 seekTempo.setProgress(0);
                 inputInstrument.setText("");
             }
@@ -536,7 +534,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
         uiDbEditor.putInt("radioGroupDirection", radioGroupDirection.getCheckedRadioButtonId());
         uiDbEditor.putInt("radioGroupTiming", radioGroupTiming.getCheckedRadioButtonId());
-        uiDbEditor.putInt("selectInterval", selectInterval.getSelectedItemPosition());
+        for (int i = 0; i < checkIntervalIds.length; i++) {
+            uiDbEditor.putBoolean(String.valueOf(checkIntervalIds[i]), checkIntervals[i].isChecked());
+        }
         uiDbEditor.putString("inputTempo", Integer.toString(seekTempo.getProgress()));
         uiDbEditor.putString("inputInstrument", inputInstrument.getText().toString());
         uiDbEditor.putStringSet("savedInstruments", savedInstruments);
@@ -561,7 +561,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
         radioGroupDirection.check(uiDb.getInt("radioGroupDirection", findViewById(R.id.radioDirectionAny).getId()));
         radioGroupTiming.check(uiDb.getInt("radioGroupTiming", findViewById(R.id.radioTimingAny).getId()));
-        selectInterval.setSelection(uiDb.getInt("selectInterval", 0));
+        for (int i = 0; i < checkIntervalIds.length; i++) {
+            checkIntervals[i].setChecked(uiDb.getBoolean(String.valueOf(checkIntervalIds[i]), false));
+        }
         seekTempo.setProgress(Integer.parseInt(uiDb.getString("inputTempo", "0")));
         inputInstrument.setText(uiDb.getString("inputInstrument", ""));
 
@@ -606,19 +608,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             sounds[i] = ((TextView)layoutFilenames.getChildAt(i)).getText().toString();
         }
 
-        final ArrayList<String> noteList = new ArrayList<>();
-        for (CheckBox checkNote : checkNotes) {
-            if (checkNote.isChecked()) {
-                noteList.add(checkNote.getText().toString());
-            }
-        }
-        final ArrayList<String> octaveList = new ArrayList<>();
-        for (CheckBox checkOctave : checkOctaves) {
-            if (checkOctave.isChecked()) {
-                octaveList.add(checkOctave.getText().toString());
-            }
-        }
-
         final int radioDirectionId = radioGroupDirection.getCheckedRadioButtonId();
         final RadioButton radioDirection = findViewById(radioDirectionId);
         final String directionStr = radioDirectionId != -1  && radioDirection != null ?
@@ -629,6 +618,13 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         final String timingStr = radioTimingId != -1 && radioTiming != null ?
                 radioTiming.getText().toString() : anyStr;
 
+        final ArrayList<String> intervalList = new ArrayList<>();
+        for (CheckBox checkInterval : checkIntervals) {
+            if (checkInterval.isChecked()) {
+                intervalList.add(checkInterval.getText().toString());
+            }
+        }
+
         final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         final Map<String, String> storedFields = new HashMap<>();
         for (String field : MusInterval.Fields.SIGNATURE) {
@@ -638,14 +634,24 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         return new MusInterval.Builder(mAnkiDroid)
                 .model_fields(storedFields)
                 .sounds(sounds)
-                .notes(noteList.toArray(new String[0]))
-                .octaves(octaveList.toArray(new String[0]))
+                .notes(getCheckedValues(checkNotes))
+                .octaves(getCheckedValues(checkOctaves))
                 .direction(!directionStr.equals(anyStr) ? directionStr : "")
                 .timing(!timingStr.equals(anyStr) ? timingStr : "")
-                .interval(selectInterval.getSelectedItem().toString())
+                .intervals(getCheckedValues(checkIntervals))
                 .tempo(seekTempo.getProgress() > 0 ? Integer.toString(seekTempo.getProgress()) : "")
                 .instrument(inputInstrument.getText().toString())
                 .build();
+    }
+
+    private static String[] getCheckedValues(CheckBox[] checkBoxes) {
+        ArrayList<String> valuesList = new ArrayList<>();
+        for (CheckBox checkBox : checkBoxes) {
+            if (checkBox.isChecked()) {
+                valuesList.add(checkBox.getText().toString());
+            }
+        }
+        return valuesList.toArray(new String[0]);
     }
 
     private void processMusIntervalException(MusInterval.Exception miException) {

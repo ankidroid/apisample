@@ -40,7 +40,8 @@
             <TextView
                 android:id="@+id/labelFilename"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:text="@string/label_filename" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -78,31 +79,31 @@
                     android:orientation="horizontal">
 
                     <CheckBox
-                        android:id="@+id/checkCSharp"
+                        android:id="@+id/checkNoteCSharp"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/note_c_sharp" />
 
                     <CheckBox
-                        android:id="@+id/checkDSharp"
+                        android:id="@+id/checkNoteDSharp"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/note_d_sharp" />
 
                     <CheckBox
-                        android:id="@+id/checkFSharp"
+                        android:id="@+id/checkNoteFSharp"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/note_f_sharp" />
 
                     <CheckBox
-                        android:id="@+id/checkGSharp"
+                        android:id="@+id/checkNoteGSharp"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/note_g_sharp" />
 
                     <CheckBox
-                        android:id="@+id/checkASharp"
+                        android:id="@+id/checkNoteASharp"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/note_a_sharp" />
@@ -114,43 +115,43 @@
                     android:orientation="horizontal">
 
                     <CheckBox
-                        android:id="@+id/checkC"
+                        android:id="@+id/checkNoteC"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/note_c" />
 
                     <CheckBox
-                        android:id="@+id/checkD"
+                        android:id="@+id/checkNoteD"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/note_d" />
 
                     <CheckBox
-                        android:id="@+id/checkE"
+                        android:id="@+id/checkNoteE"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/note_e" />
 
                     <CheckBox
-                        android:id="@+id/checkF"
+                        android:id="@+id/checkNoteF"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/note_f" />
 
                     <CheckBox
-                        android:id="@+id/checkG"
+                        android:id="@+id/checkNoteG"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/note_g" />
 
                     <CheckBox
-                        android:id="@+id/checkA"
+                        android:id="@+id/checkNoteA"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/note_a" />
 
                     <CheckBox
-                        android:id="@+id/checkB"
+                        android:id="@+id/checkNoteB"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/note_b" />
@@ -278,12 +279,97 @@
                 android:layout_height="wrap_content"
                 android:text="@string/interval" />
 
-            <Spinner
-                android:id="@+id/selectInterval"
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@android:drawable/btn_dropdown"
-                android:spinnerMode="dropdown" />
+                android:layout_height="match_parent"
+                android:orientation="horizontal">
+
+                <CheckBox
+                    android:id="@+id/checkIntervalP1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/interval_P1" />
+
+                <CheckBox
+                    android:id="@+id/checkIntervalm2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/interval_m2" />
+
+                <CheckBox
+                    android:id="@+id/checkIntervalM2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/interval_M2" />
+
+                <CheckBox
+                    android:id="@+id/checkIntervalm3"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/interval_m3" />
+
+                <CheckBox
+                    android:id="@+id/checkIntervalM3"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/interval_M3" />
+
+                <CheckBox
+                    android:id="@+id/checkIntervalP4"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/interval_P4" />
+
+                <CheckBox
+                    android:id="@+id/checkIntervalTT"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/interval_TT" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="horizontal">
+
+                <CheckBox
+                    android:id="@+id/checkIntervalP5"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/interval_P5" />
+
+                <CheckBox
+                    android:id="@+id/checkIntervalm6"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/interval_m6" />
+
+                <CheckBox
+                    android:id="@+id/checkIntervalM6"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/interval_M6" />
+
+                <CheckBox
+                    android:id="@+id/checkIntervalm7"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/interval_m7" />
+
+                <CheckBox
+                    android:id="@+id/checkIntervalM7"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/interval_M7" />
+
+                <CheckBox
+                    android:id="@+id/checkIntervalP8"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/interval_P8" />
+
+            </LinearLayout>
 
             <TextView
                 android:id="@+id/labelTempo"

@@ -6,6 +6,7 @@
     <string name="str_no">No</string>
 
     <!-- MainActivity labels, fields and buttons -->
+    <string name="label_filename">Filename</string>
     <string name="start_note">Start note</string>
     <string name="note_c">C</string>
     <string name="note_c_sharp">C#</string>
@@ -34,6 +35,20 @@
     <string name="timing_melodic">Melodic</string>
     <string name="timing_harmonic">Harmonic</string>
     <string name="interval">Interval</string>
+    <string name="interval_P1">P1</string>
+    <string name="interval_m2">m2</string>
+    <string name="interval_M2">M2</string>
+    <string name="interval_m3">m3</string>
+    <string name="interval_M3">M3</string>
+    <string name="interval_P4">P4</string>
+    <string name="interval_TT">TT</string>
+    <string name="interval_P5">P5</string>
+    <string name="interval_m6">m6</string>
+    <string name="interval_M6">M6</string>
+    <string name="interval_m7">m7</string>
+    <string name="interval_M7">M7</string>
+    <string name="interval_P8">P8</string>
+
     <string name="tempo">Tempo</string>
     <string name="instrument">Instrument</string>
     <string name="action_clear_all">Clear all fields</string>
@@ -69,10 +84,6 @@
     <plurals name="unexpected_sounds_amount">
         <item quantity="one">Sound file must be selected</item>
         <item quantity="other">%d sound files must be provided (got %d)</item>
-    </plurals>
-    <plurals name="label_filename">
-        <item quantity="one">Filename</item>
-        <item quantity="other">Filenames</item>
     </plurals>
     <plurals name="select_file">
         <item quantity="one">Select file</item>
