@@ -1758,4 +1758,74 @@ public class MusIntervalTest {
             assertArrayEquals(musIntervalLargerAdded.sounds, musIntervalsAdded.getFirst().soundsLarger);
         }
     }
+
+    @Test(expected = MusInterval.UnexpectedSoundsAmountException.class)
+    public void add_BatchIncorrectNumberOfSounds_shouldFail() throws MusInterval.Exception, AnkiDroidHelper.InvalidAnkiDatabaseException {
+        AnkiDroidHelper helper = mock(AnkiDroidHelper.class);
+
+        new MusInterval.Builder(helper)
+                .sounds(new String[]{"/path/to/file.mp3"})
+                .notes(new String[]{defaultNote, note2})
+                .octaves(new String[]{defaultOctave, octave2})
+                .build().addToAnki();
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void add_Batch_ShouldCorrectlyAssignSoundFiles() throws MusInterval.Exception, AnkiDroidHelper.InvalidAnkiDatabaseException {
+        final long deckId = new Random().nextLong();
+        final long modelId = new Random().nextLong();
+
+        AnkiDroidHelper helper = mock(AnkiDroidHelper.class);
+        doReturn(modelId).when(helper).findModelIdByName(defaultModelName);
+        doReturn(deckId).when(helper).findDeckIdByName(defaultDeckName);
+        doAnswer(new Answer<String>() {
+            @Override
+            public String answer(InvocationOnMock invocation) {
+                return invocation.getArgument(0);
+            }
+        }).when(helper).addFileToAnkiMedia(any(String.class));
+        final ArrayList<Map<String, String>> addedNotesData = new ArrayList<>();
+        doAnswer(new Answer<Long>() {
+            private long noteId = 1;
+
+            @Override
+            public Long answer(InvocationOnMock invocation) {
+                Map<String, String> data = invocation.getArgument(2);
+                addedNotesData.add(data);
+                return noteId++;
+            }
+        }).when(helper).addNote(eq(modelId), eq(deckId), any(Map.class), nullable(Set.class));
+
+        final int permutations = ALL_NOTES.length * ALL_OCTAVES.length;
+        String[] sounds = new String[permutations];
+        for (int i = 0; i < permutations; i++) {
+            sounds[i] = String.format("/path/to/file%d.mp3", i);
+        }
+
+        new MusInterval.Builder(helper)
+                .model(defaultModelName)
+                .deck(defaultDeckName)
+                .sounds(sounds)
+                .notes(ALL_NOTES)
+                .octaves(ALL_OCTAVES)
+                .direction(MusInterval.Fields.Direction.ASC)
+                .timing(MusInterval.Fields.Timing.MELODIC)
+                .interval("min3")
+                .tempo("90")
+                .instrument("violin")
+                .build()
+                .addToAnki();
+
+        assertEquals(permutations, addedNotesData.size());
+        int i = 0;
+        for (String octave : ALL_OCTAVES) {
+            for (String note : ALL_NOTES) {
+                Map<String, String> data = addedNotesData.get(i);
+                assertEquals(data.get(MusInterval.Fields.SOUND), String.format("[sound:%s]", sounds[i]));
+                assertEquals(data.get(MusInterval.Fields.START_NOTE), note + octave);
+                i++;
+            }
+        }
+    }
 }

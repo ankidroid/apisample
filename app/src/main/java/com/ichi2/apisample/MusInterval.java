@@ -505,11 +505,10 @@ public class MusInterval {
     public Map<String, String>[] getPermutationsDataSet() throws UnexpectedSoundsAmountException, MandatoryFieldEmptyException {
         final int nMis = getPermutationsNumber();
 
-        if (sounds == null) { // @fixme
-            throw new UnexpectedSoundsAmountException(0, nMis);
-        }
-        if (sounds.length != nMis) {
-            throw new UnexpectedSoundsAmountException(sounds.length, nMis);
+        final boolean soundsProvided = sounds != null;
+        if (!soundsProvided || sounds.length != nMis) {
+            final int providedAmount = soundsProvided ? sounds.length : 0;
+            throw new UnexpectedSoundsAmountException(providedAmount, nMis);
         }
 
         final Map<String, String> fields = new HashMap<String, String>() {{
