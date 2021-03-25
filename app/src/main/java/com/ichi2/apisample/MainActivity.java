@@ -198,7 +198,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     textMarked = res.getQuantityString(R.plurals.mi_found_other_marked, markedCount, markedCount);
                 }
             }
-            textExisting = existingCount == 0 ? textFound :
+            textExisting = existingCount == 0 ?
+                    textFound :
                     textFound + textMarked;
         } catch (MusInterval.ValidationException | AnkiDroidHelper.InvalidAnkiDatabaseException e) {
             textExisting = ""; // might wanna set some error message here
@@ -499,13 +500,17 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
         final int radioDirectionId = radioGroupDirection.getCheckedRadioButtonId();
         final View radioDirection = findViewById(radioDirectionId);
-        final String directionStr = radioDirection instanceof RadioButton && radioDirectionId != -1 ?
-                ((RadioButton) radioDirection).getText().toString() : anyStr;
+        final String directionStr =
+                radioDirection instanceof RadioButton && radioDirectionId != -1 ?
+                        ((RadioButton) radioDirection).getText().toString() :
+                        anyStr;
 
         final int radioTimingId = radioGroupTiming.getCheckedRadioButtonId();
         final View radioTiming = findViewById(radioTimingId);
-        final String timingStr = radioTiming instanceof RadioButton && radioTimingId != -1 ?
-                ((RadioButton) radioTiming).getText().toString() : anyStr;
+        final String timingStr =
+                radioTiming instanceof RadioButton && radioTimingId != -1 ?
+                        ((RadioButton) radioTiming).getText().toString() :
+                        anyStr;
 
         final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         final Map<String, String> storedFields = new HashMap<>();
