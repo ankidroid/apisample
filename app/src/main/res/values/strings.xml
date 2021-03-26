@@ -81,8 +81,12 @@
         <item quantity="one">Music interval has been successfully added to AnkiDroid</item>
         <item quantity="other">%d music intervals have been successfully added to AnkiDroid</item>
     </plurals>
+    <plurals name="sound_not_provided">
+        <item quantity="one">Sound file must be provided</item>
+        <item quantity="other">%d sound files must be provided</item>
+    </plurals>
     <plurals name="unexpected_sounds_amount">
-        <item quantity="one">Sound file must be selected</item>
+        <item quantity="one">Single sound file must be provided (got %d)</item>
         <item quantity="other">%d sound files must be provided (got %d)</item>
     </plurals>
     <plurals name="select_file">

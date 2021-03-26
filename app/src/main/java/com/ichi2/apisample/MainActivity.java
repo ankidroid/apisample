@@ -668,13 +668,23 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         } catch (MusInterval.IntervalNotSelectedException e) {
             showMsg(R.string.interval_not_selected);
         } catch (MusInterval.UnexpectedSoundsAmountException e) {
-            int expected = e.getExpectedAmount();
+            final int expected = e.getExpectedAmount();
+            final int provided = e.getProvidedAmount();
+            final boolean expectedSingle = expected == 1;
             Resources res = getResources();
             String msg;
-            if (expected == 1) {
-                msg = res.getQuantityString(R.plurals.unexpected_sounds_amount, expected);
+            if (provided == 0) {
+                if (expectedSingle) {
+                    msg = res.getQuantityString(R.plurals.sound_not_provided, expected);
+                } else {
+                    msg = res.getQuantityString(R.plurals.sound_not_provided, expected, expected);
+                }
             } else {
-                msg = res.getQuantityString(R.plurals.unexpected_sounds_amount, expected, expected, e.getProvidedAmount());
+                if (expectedSingle) {
+                    msg = res.getQuantityString(R.plurals.unexpected_sounds_amount, expected, provided);
+                } else {
+                    msg = res.getQuantityString(R.plurals.unexpected_sounds_amount, expected, expected, provided);
+                }
             }
             showMsg(msg);
         } catch (MusInterval.NoteNotExistsException e) {
