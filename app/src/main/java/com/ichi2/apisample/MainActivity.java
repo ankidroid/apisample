@@ -63,6 +63,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private CheckBox[] checkIntervals;
     private SeekBar seekTempo;
     private AutoCompleteTextView inputInstrument;
+    private TextView labelExisting;
+    private Button actionMarkExisting;
 
     private final int[] checkNoteIds = new int[]{
             R.id.checkNoteC, R.id.checkNoteCSharp,
@@ -104,7 +106,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private AnkiDroidHelper mAnkiDroid;
 
     @Override
-    protected synchronized void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
         fieldLabels.put(MusInterval.Fields.DIRECTION, getResources().getString(R.string.direction));
         fieldLabels.put(MusInterval.Fields.TIMING, getResources().getString(R.string.timing));
         fieldLabels.put(MusInterval.Fields.INTERVAL, getResources().getString(R.string.interval));
@@ -138,6 +140,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
         seekTempo = findViewById(R.id.seekTempo);
         inputInstrument = findViewById(R.id.inputInstrument);
+        labelExisting = findViewById(R.id.labelExisting);
+        actionMarkExisting = findViewById(R.id.actionMarkExisting);
 
         textFilename.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -182,7 +186,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         configureTempoButtons();
         configureClearAllButton();
         configureSelectFileButton();
-        configureCheckExistenceButton();
+        configureMarkExistingButton();
         configureAddToAnkiButton();
         configureSettingsButton();
 
@@ -265,6 +269,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         @Override
         public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
             clearAddedFilenames();
+            refreshExisting();
             refreshPermutations();
         }
     }
@@ -273,6 +278,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         @Override
         public void onCheckedChanged(RadioGroup radioGroup, int i) {
             clearAddedFilenames();
+            refreshExisting();
         }
     }
 
@@ -283,10 +289,57 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             TextView label = findViewById(R.id.labelTempoValue);
             label.setText(Integer.toString(seekBar.getProgress()));
             clearAddedFilenames();
+            refreshExisting();
         }
 
         @Override public void onStartTrackingTouch(SeekBar seekBar) { }
         @Override public void onStopTrackingTouch(SeekBar seekBar) { }
+    }
+
+    private void refreshExisting() {
+        if (mAnkiDroid == null) {
+            return;
+        }
+        String textExisting = "";
+        int existingCount = 0;
+        int markedCount = 0;
+        try {
+            if (mAnkiDroid.shouldRequestPermission()) {
+                mAnkiDroid.requestPermission(MainActivity.this, AD_PERM_REQUEST);
+                return;
+            }
+            MusInterval mi = getMusInterval();
+            existingCount = mi.getExistingNotesCount();
+            markedCount = mi.getExistingMarkedNotesCount();
+            Resources res = getResources();
+            String textFound;
+            String textMarked;
+            if (existingCount == 1) {
+                textFound = res.getQuantityString(R.plurals.mi_found, existingCount);
+                if (markedCount == 1) {
+                    textMarked = res.getString(R.string.mi_found_one_marked);
+                } else {
+                    textMarked = res.getString(R.string.mi_found_one_unmarked);
+                }
+            } else {
+                textFound = res.getQuantityString(R.plurals.mi_found, existingCount, existingCount);
+                if (markedCount == 1) {
+                    textMarked = res.getQuantityString(R.plurals.mi_found_other_marked, markedCount);
+                } else {
+                    textMarked = res.getQuantityString(R.plurals.mi_found_other_marked, markedCount, markedCount);
+                }
+            }
+            textExisting = existingCount == 0 ?
+                    textFound :
+                    textFound + textMarked;
+        } catch (MusInterval.ValidationException | AnkiDroidHelper.InvalidAnkiDatabaseException e) {
+            textExisting = ""; // might wanna set some error message here
+        } finally {
+            labelExisting.setText(textExisting);
+            final int unmarkedCount = existingCount - markedCount;
+            actionMarkExisting.setText(getString(R.string.action_mark, unmarkedCount));
+            actionMarkExisting.setEnabled(unmarkedCount > 0);
+        }
     }
 
     private class FieldInputTextWatcher implements TextWatcher {
@@ -302,6 +355,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             String curr = charSequence.toString();
             if (!curr.equalsIgnoreCase(prev)) {
                 clearAddedFilenames();
+                refreshExisting();
             }
         }
 
@@ -401,29 +455,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
     }
 
-    private void configureCheckExistenceButton() {
-        final AlertDialog.Builder markNoteDialog = new AlertDialog.Builder(this);
-        markNoteDialog
-                .setPositiveButton(R.string.str_yes, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        try {
-                            final int count = getMusInterval().markExistingNotes();
-                            showMsg(getResources().getQuantityString(R.plurals.mi_marked, count, count));
-                        } catch (MusInterval.Exception e) {
-                            processMusIntervalException(e);
-                        } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
-                            processInvalidAnkiDatabase(e);
-                        }
-                    }
-                })
-                .setNegativeButton(R.string.str_no, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        dialog.cancel();
-                    }
-                });
-
-        final Button actionCheckExistence = findViewById(R.id.actionCheckExistence);
-        actionCheckExistence.setOnClickListener(new View.OnClickListener() {
+    private void configureMarkExistingButton() {
+        actionMarkExisting.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (mAnkiDroid.shouldRequestPermission()) {
@@ -435,22 +468,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     return;
                 }
                 try {
-                    final MusInterval mi = getMusInterval();
-                    final int count = mi.getExistingNotesCount();
-
-                    if (count > 0) {
-                        final int marked = mi.getExistingMarkedNotesCount();
-
-                        if (count == marked) {
-                            showMsg(getResources().getQuantityString(R.plurals.mi_exists_marked, count, count));
-                        } else if (marked == 0) {
-                            markNoteDialog.setMessage(getResources().getQuantityString(R.plurals.mi_exists_ask_mark, count, count)).show();
-                        } else {
-                            markNoteDialog.setMessage(getResources().getQuantityString(R.plurals.mi_exists_partially_marked_ask_mark, marked, count, marked)).show();
-                        }
-                    } else {
-                        showMsg(R.string.mi_not_exists);
-                    }
+                    final int count = getMusInterval().markExistingNotes();
+                    showMsg(getResources().getQuantityString(R.plurals.mi_marked_result, count, count));
+                    refreshExisting();
                 } catch (MusInterval.Exception e) {
                     processMusIntervalException(e);
                 } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
@@ -480,6 +500,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     filenames = newMi.sounds;
                     refreshFilenameText();
                     savedInstruments.add(newMi.instrument);
+                    refreshExisting();
                     String msg;
                     if (nMis == 1) {
                         msg = getResources().getQuantityString(R.plurals.mi_added, nMis);
@@ -613,6 +634,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
         this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
 
+        refreshExisting();
         refreshPermutations();
     }
 
@@ -628,6 +650,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             case AD_PERM_REQUEST: {
                 if (grantResults.length > 0) {
                     if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                        refreshExisting();
                         refreshPermutations();
                     } else {
                         showMsg(R.string.anki_permission_denied);
