@@ -44,16 +44,17 @@
                 android:text="@string/label_filename" />
 
             <LinearLayout
+                android:id="@+id/layoutFilenames"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
 
-                <LinearLayout
-                    android:id="@+id/layoutFilenames"
+                <TextView
+                    android:id="@+id/textFilename"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:orientation="vertical"></LinearLayout>
+                    android:textAppearance="@style/TextAppearance.AppCompat.Body1" />
 
                 <Button
                     android:id="@+id/actionSelectFile"
@@ -63,7 +64,7 @@
             </LinearLayout>
 
             <TextView
-                android:id="@+id/labelStartNote"
+                android:id="@+id/labelNote"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/start_note" />

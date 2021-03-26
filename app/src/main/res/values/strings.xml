@@ -81,6 +81,10 @@
         <item quantity="one">Music interval has been successfully added to AnkiDroid</item>
         <item quantity="other">%d music intervals have been successfully added to AnkiDroid</item>
     </plurals>
+    <plurals name="select_file">
+        <item quantity="one">Select file</item>
+        <item quantity="other">Select %d files</item>
+    </plurals>
     <plurals name="sound_not_provided">
         <item quantity="one">Sound file must be provided</item>
         <item quantity="other">%d sound files must be provided</item>
@@ -88,10 +92,6 @@
     <plurals name="unexpected_sounds_amount">
         <item quantity="one">Single sound file must be provided (got %d)</item>
         <item quantity="other">%d sound files must be provided (got %d)</item>
-    </plurals>
-    <plurals name="select_file">
-        <item quantity="one">Select file</item>
-        <item quantity="other">Select %d files</item>
     </plurals>
     <string name="create_model">Note type \"%s\" is not found. Create it?</string>
     <string name="configure_model">The \"%s\" note type settings are invalid. You need to configure fields to continue using it.</string>
@@ -108,6 +108,9 @@
     <string name="already_added">Music interval seems to be already added to AnkiDroid (try to select sound file)</string>
     <string name="add_file_error">Failed to add file to AnkiDroid media</string>
     <string name="unknown_adding_error">Failed to add music interval to AnkiDroid</string>
+    <string name="additional_filenames">\u0020+ %d more</string>
+    <string name="filenames_list_item">%d. %s</string>
+    <string name="filenames_list_separator">\n\n</string>
     <string name="note_not_selected">At least one note must be selected</string>
     <string name="octave_not_selected">At least one octave must be selected</string>
     <string name="interval_not_selected">At least one interval must be selected</string>

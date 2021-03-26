@@ -11,7 +11,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
-import android.net.Uri;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -29,7 +28,6 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
-import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.SeekBar;
@@ -56,8 +54,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
     private final Map<String, String> fieldLabels = new HashMap<>();
 
+    private TextView textFilename;
     private Button actionSelectFile;
-    private LinearLayout layoutFilenames;
     private CheckBox[] checkNotes;
     private CheckBox[] checkOctaves;
     private RadioGroup radioGroupDirection;
@@ -99,6 +97,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             R.id.checkIntervalP8
     };
 
+    private String[] filenames = new String[]{};
+
     private HashSet<String> savedInstruments = new HashSet<>();
 
     private AnkiDroidHelper mAnkiDroid;
@@ -117,18 +117,21 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         Toolbar main_toolbar = findViewById(R.id.main_toolbar);
         setSupportActionBar(main_toolbar);
 
+        textFilename = findViewById(R.id.textFilename);
         actionSelectFile = findViewById(R.id.actionSelectFile);
-        layoutFilenames = findViewById(R.id.layoutFilenames);
+        TextView labelNote = findViewById(R.id.labelNote);
         checkNotes = new CheckBox[checkNoteIds.length];
         for (int i = 0; i < checkNoteIds.length; i++) {
             checkNotes[i] = findViewById(checkNoteIds[i]);
         }
+        TextView labelOctave = findViewById(R.id.labelOctave);
         checkOctaves = new CheckBox[checkOctaveIds.length];
         for (int i = 0; i < checkOctaveIds.length; i++) {
             checkOctaves[i] = findViewById(checkOctaveIds[i]);
         }
         radioGroupDirection = findViewById(R.id.radioGroupDirection);
         radioGroupTiming = findViewById(R.id.radioGroupTiming);
+        TextView labelInterval = findViewById(R.id.labelInterval);
         checkIntervals = new CheckBox[checkIntervalIds.length];
         for (int i = 0; i < checkIntervalIds.length; i++) {
             checkIntervals[i] = findViewById(checkIntervalIds[i]);
@@ -136,18 +139,44 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         seekTempo = findViewById(R.id.seekTempo);
         inputInstrument = findViewById(R.id.inputInstrument);
 
+        textFilename.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (filenames.length > 1) {
+                    StringBuilder msg = new StringBuilder();
+                    for (int i = 0; i < filenames.length; i++) {
+                        if (msg.length() > 0) {
+                            msg.append(getString(R.string.filenames_list_separator));
+                        }
+                        msg.append(getString(R.string.filenames_list_item, i + 1, filenames[i]));
+                    }
+                    new AlertDialog.Builder(MainActivity.this)
+                            .setMessage(msg)
+                            .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    dialogInterface.dismiss();
+                                }
+                            })
+                            .show();
+                }
+            }
+        });
+        labelNote.setOnLongClickListener(new OnFieldCheckLabelLongClickListener(checkNotes));
         for (CheckBox checkNote : checkNotes) {
-            checkNote.setOnCheckedChangeListener(new FieldCheckChangeListener());
+            checkNote.setOnCheckedChangeListener(new OnFieldCheckChangeListener());
         }
+        labelOctave.setOnLongClickListener(new OnFieldCheckLabelLongClickListener(checkOctaves));
         for (CheckBox checkOctave : checkOctaves) {
-            checkOctave.setOnCheckedChangeListener(new FieldCheckChangeListener());
+            checkOctave.setOnCheckedChangeListener(new OnFieldCheckChangeListener());
         }
-        radioGroupDirection.setOnCheckedChangeListener(new FieldRadioChangeListener());
-        radioGroupTiming.setOnCheckedChangeListener(new FieldRadioChangeListener());
+        radioGroupDirection.setOnCheckedChangeListener(new OnFieldRadioChangeListener());
+        radioGroupTiming.setOnCheckedChangeListener(new OnFieldRadioChangeListener());
+        labelInterval.setOnLongClickListener(new OnFieldCheckLabelLongClickListener(checkIntervals));
         for (CheckBox checkInterval : checkIntervals) {
-            checkInterval.setOnCheckedChangeListener(new FieldCheckChangeListener());
+            checkInterval.setOnCheckedChangeListener(new OnFieldCheckChangeListener());
         }
-        seekTempo.setOnSeekBarChangeListener(new FieldSeekChangeListener());
+        seekTempo.setOnSeekBarChangeListener(new OnFieldSeekChangeListener());
         inputInstrument.addTextChangedListener(new FieldInputTextWatcher());
 
         configureTempoButtons();
@@ -169,14 +198,25 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     }
 
     private void clearAddedFilenames() {
-        if (layoutFilenames.getChildCount() == 0) {
-            return;
+        ArrayList<String> unAddedFilenames = new ArrayList<>();
+        for (String filename : filenames) {
+            if (!filename.startsWith("[sound:")) {
+                unAddedFilenames.add(filename);
+            }
         }
-        String firstFilename = ((TextView)layoutFilenames.getChildAt(0)).getText().toString();
-        // wack
-        if (firstFilename.length() > 0 && firstFilename.startsWith("[sound:")) {
-            layoutFilenames.removeAllViews();
+        filenames = unAddedFilenames.toArray(new String[0]);
+        refreshFilenameText();
+    }
+
+    private void refreshFilenameText() {
+        StringBuilder text = new StringBuilder();
+        if (filenames.length > 0) {
+            text.append(filenames[0]);
+            if (filenames.length > 1) {
+                text.append(getString(R.string.additional_filenames, filenames.length - 1));
+            }
         }
+        textFilename.setText(text);
     }
 
     private void refreshPermutations() {
@@ -204,7 +244,24 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
     }
 
-    private class FieldCheckChangeListener implements CompoundButton.OnCheckedChangeListener {
+    private static class OnFieldCheckLabelLongClickListener implements View.OnLongClickListener {
+        private final CheckBox[] checks;
+
+        public OnFieldCheckLabelLongClickListener(CheckBox[] checks) {
+            super();
+            this.checks = checks;
+        }
+
+        @Override
+        public boolean onLongClick(View view) {
+            for (CheckBox check : checks) {
+                check.setChecked(true);
+            }
+            return true;
+        }
+    }
+
+    private class OnFieldCheckChangeListener implements CompoundButton.OnCheckedChangeListener {
         @Override
         public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
             clearAddedFilenames();
@@ -212,14 +269,14 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
     }
 
-    private class FieldRadioChangeListener implements RadioGroup.OnCheckedChangeListener {
+    private class OnFieldRadioChangeListener implements RadioGroup.OnCheckedChangeListener {
         @Override
         public void onCheckedChanged(RadioGroup radioGroup, int i) {
             clearAddedFilenames();
         }
     }
 
-    private class FieldSeekChangeListener implements SeekBar.OnSeekBarChangeListener {
+    private class OnFieldSeekChangeListener implements SeekBar.OnSeekBarChangeListener {
         @SuppressLint("SetTextI18n")
         @Override
         public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -281,7 +338,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         actionClearAll.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                layoutFilenames.removeAllViews();
+                filenames = new String[]{};
+                textFilename.setText("");
                 for (CheckBox checkNote : checkNotes) {
                     checkNote.setChecked(false);
                 }
@@ -327,23 +385,19 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         super.onActivityResult(requestCode, resultCode, data);
 
         if (requestCode == ACTION_SELECT_FILE && resultCode == RESULT_OK) {
-            layoutFilenames.removeAllViews();
-            ArrayList<Uri> selectedFiles = new ArrayList<>();
+            ArrayList<String> filenamesList = new ArrayList<>();
             if (data != null) {
                 ClipData clipData = data.getClipData();
                 if (clipData != null) {
                     for (int i = 0; i < clipData.getItemCount(); i++) {
-                        selectedFiles.add(clipData.getItemAt(i).getUri());
+                        filenamesList.add(clipData.getItemAt(i).getUri().toString());
                     }
                 } else {
-                    selectedFiles.add(data.getData());
+                    filenamesList.add(data.getData().toString());
                 }
             }
-            for (Uri file : selectedFiles) {
-                TextView labelName = new TextView(this);
-                labelName.setText(file.toString());
-                layoutFilenames.addView(labelName);
-            }
+            filenames = filenamesList.toArray(new String[0]);
+            refreshFilenameText();
         }
     }
 
@@ -423,12 +477,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     MusInterval mi = getMusInterval();
                     final int nMis = mi.getPermutationsNumber();
                     MusInterval newMi = mi.addToAnki();
-                    layoutFilenames.removeAllViews();
-                    for (String sound : newMi.sounds) {
-                        TextView labelAdded = new TextView(MainActivity.this);
-                        labelAdded.setText(sound);
-                        layoutFilenames.addView(labelAdded);
-                    }
+                    filenames = newMi.sounds;
+                    refreshFilenameText();
                     savedInstruments.add(newMi.instrument);
                     String msg;
                     if (nMis == 1) {
@@ -518,12 +568,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     protected void onPause() {
         final SharedPreferences.Editor uiDbEditor = getSharedPreferences(STATE_REF_DB, Context.MODE_PRIVATE).edit();
 
-        final int nFiles = layoutFilenames.getChildCount();
-        Set<String> fileNames = new HashSet<>(nFiles);
-        for (int i = 0; i < nFiles; i++) {
-            fileNames.add(((TextView) layoutFilenames.getChildAt(i)).getText().toString());
-        }
-        uiDbEditor.putStringSet("layoutFilenames", fileNames);
+        uiDbEditor.putStringSet("selectedFilenames", new HashSet<>(Arrays.asList(filenames)));
         for (int i = 0; i < checkNoteIds.length; i++) {
             uiDbEditor.putBoolean(String.valueOf(checkNoteIds[i]), checkNotes[i].isChecked());
         }
@@ -545,12 +590,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
     protected void restoreUiState() {
         final SharedPreferences uiDb = getSharedPreferences(STATE_REF_DB, Context.MODE_PRIVATE);
-        Set<String> fileNames = uiDb.getStringSet("layoutFilenames", new HashSet<String>());
-        for (String name : fileNames) {
-            TextView labelName = new TextView(this);
-            labelName.setText(name);
-            layoutFilenames.addView(labelName);
-        }
+        Set<String> storedFilenames = uiDb.getStringSet("selectedFilenames", new HashSet<String>());
+        filenames = storedFilenames.toArray(new String[0]);
+        refreshFilenameText();
         for (int i = 0; i < checkNoteIds.length; i++) {
             checkNotes[i].setChecked(uiDb.getBoolean(String.valueOf(checkNoteIds[i]), false));
         }
@@ -603,11 +645,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private MusInterval getMusInterval() throws MusInterval.ValidationException {
         final String anyStr = getResources().getString(R.string.radio_any);
 
-        String[] sounds = new String[layoutFilenames.getChildCount()];
-        for (int i = 0; i < sounds.length; i++) {
-            sounds[i] = ((TextView)layoutFilenames.getChildAt(i)).getText().toString();
-        }
-
         final int radioDirectionId = radioGroupDirection.getCheckedRadioButtonId();
         final View radioDirection = findViewById(radioDirectionId);
         final String directionStr =
@@ -622,13 +659,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                         ((RadioButton) radioTiming).getText().toString() :
                         anyStr;
 
-        final ArrayList<String> intervalList = new ArrayList<>();
-        for (CheckBox checkInterval : checkIntervals) {
-            if (checkInterval.isChecked()) {
-                intervalList.add(checkInterval.getText().toString());
-            }
-        }
-
         final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         final Map<String, String> storedFields = new HashMap<>();
         for (String field : MusInterval.Fields.SIGNATURE) {
@@ -637,7 +667,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
         return new MusInterval.Builder(mAnkiDroid)
                 .model_fields(storedFields)
-                .sounds(sounds)
+                .sounds(filenames)
                 .notes(getCheckedValues(checkNotes))
                 .octaves(getCheckedValues(checkOctaves))
                 .direction(!directionStr.equals(anyStr) ? directionStr : "")
