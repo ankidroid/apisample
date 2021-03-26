@@ -53,6 +53,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private static final String STATE_REF_DB = "com.ichi2.apisample.uistate";
 
     private final Map<String, String> fieldLabels = new HashMap<>();
+    private final Map<String, String> intervalLabels = new HashMap<>();
 
     private TextView textFilename;
     private Button actionSelectFile;
@@ -112,6 +113,28 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         fieldLabels.put(MusInterval.Fields.INTERVAL, getResources().getString(R.string.interval));
         fieldLabels.put(MusInterval.Fields.TEMPO, getResources().getString(R.string.tempo));
         fieldLabels.put(MusInterval.Fields.INSTRUMENT, getResources().getString(R.string.instrument));
+
+        final String[] intervalLabels = new String[]{
+                getString(R.string.interval_P1),
+                getString(R.string.interval_m2),
+                getString(R.string.interval_M2),
+                getString(R.string.interval_m3),
+                getString(R.string.interval_M3),
+                getString(R.string.interval_P4),
+                getString(R.string.interval_TT),
+                getString(R.string.interval_P5),
+                getString(R.string.interval_m6),
+                getString(R.string.interval_M6),
+                getString(R.string.interval_m7),
+                getString(R.string.interval_M7),
+                getString(R.string.interval_P8)
+        };
+        if (intervalLabels.length != MusInterval.Fields.Interval.VALUES.length) {
+            throw new AssertionError();
+        }
+        for (int i = 0; i < MusInterval.Fields.Interval.VALUES.length; i++) {
+            this.intervalLabels.put(intervalLabels[i], MusInterval.Fields.Interval.VALUES[i]);
+        }
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -695,17 +718,25 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 .octaves(getCheckedValues(checkOctaves))
                 .direction(!directionStr.equals(anyStr) ? directionStr : "")
                 .timing(!timingStr.equals(anyStr) ? timingStr : "")
-                .intervals(getCheckedValues(checkIntervals))
+                .intervals(getCheckedValues(checkIntervals, intervalLabels))
                 .tempo(seekTempo.getProgress() > 0 ? Integer.toString(seekTempo.getProgress()) : "")
                 .instrument(inputInstrument.getText().toString())
                 .build();
     }
 
     private static String[] getCheckedValues(CheckBox[] checkBoxes) {
+        return getCheckedValues(checkBoxes, null);
+    }
+
+    private static String[] getCheckedValues(CheckBox[] checkBoxes, Map<String, String> valueLabels) {
         ArrayList<String> valuesList = new ArrayList<>();
         for (CheckBox checkBox : checkBoxes) {
             if (checkBox.isChecked()) {
-                valuesList.add(checkBox.getText().toString());
+                String value = checkBox.getText().toString();
+                if (valueLabels != null) {
+                    value = valueLabels.get(value);
+                }
+                valuesList.add(value);
             }
         }
         return valuesList.toArray(new String[0]);

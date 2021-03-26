@@ -32,8 +32,17 @@ public class MusInterval {
         }
 
         public static class Interval {
-            // @todo: Make full list of intervals
-            public static final String[] VALUES = new String[]{"", "min2", "Maj2", "min3", "Maj3"};
+            public static final String[] VALUES = new String[]{
+                    "Uni",
+                    "min2", "Maj2",
+                    "min3", "Maj3",
+                    "P4",
+                    "Tri",
+                    "P5",
+                    "min6", "Maj6",
+                    "min7", "Maj7",
+                    "Oct"
+            };
         }
 
         public static class Tempo {
@@ -473,15 +482,15 @@ public class MusInterval {
         newData.remove(Fields.SOUND_LARGER);
         String intervalField = modelFields.get(Fields.INTERVAL);
         String interval = newData.get(intervalField);
-        int intervalIdx = 0;
-        for (int i = 1; i < Fields.Interval.VALUES.length; i++) {
+        int intervalIdx = -1;
+        for (int i = 0; i < Fields.Interval.VALUES.length; i++) {
             if (Fields.Interval.VALUES[i].equals(interval)) {
                 intervalIdx = i;
                 break;
             }
         }
         String soundSmaller = "";
-        if (intervalIdx > 1) {
+        if (intervalIdx > 0) {
             newData.put(intervalField, Fields.Interval.VALUES[intervalIdx - 1]);
             LinkedList<Map<String, String>> smallerIntervals = helper.findNotes(modelId, newData);
             if (smallerIntervals != null && smallerIntervals.size() >= 1) {

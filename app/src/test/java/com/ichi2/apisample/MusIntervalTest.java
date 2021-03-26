@@ -32,17 +32,6 @@ public class MusIntervalTest {
             "B",
     };
     final static String[] ALL_OCTAVES = new String[]{"1", "2", "3", "4", "5", "6"};
-    final static String[] ALL_INTERVALS = new String[]{
-            "P1",
-            "m2", "M2",
-            "m3", "M3",
-            "P4",
-            "TT",
-            "P5",
-            "m6", "M6",
-            "m7", "M7",
-            "P8"
-    };
 
     final static String defaultNote = ALL_NOTES[1]; // C#
     final static String defaultOctave = ALL_NOTES[2]; // 3
@@ -50,7 +39,7 @@ public class MusIntervalTest {
     final static String note2 = ALL_NOTES[1]; // C#
     final static String octave2 = ALL_NOTES[1]; // 2
     final static String startNote2 = note2 + octave2; // C#2
-    final static String intervalMin3 = ALL_INTERVALS[3]; //m3
+    final static String intervalMin3 = MusInterval.Fields.Interval.VALUES[3]; //m3
 
     @Test
     @SuppressWarnings("unchecked")
@@ -301,7 +290,7 @@ public class MusIntervalTest {
                 .deck(defaultDeckName)
                 .notes(ALL_NOTES)
                 .octaves(ALL_OCTAVES)
-                .intervals(ALL_INTERVALS)
+                .intervals(MusInterval.Fields.Interval.VALUES)
                 .build();
 
         assertFalse(mi.existsInAnki());
@@ -330,7 +319,7 @@ public class MusIntervalTest {
                 .deck(defaultDeckName)
                 .notes(ALL_NOTES)
                 .octaves(ALL_OCTAVES)
-                .intervals(ALL_INTERVALS)
+                .intervals(MusInterval.Fields.Interval.VALUES)
                 .build();
 
         assertTrue(mi.existsInAnki());
@@ -354,7 +343,7 @@ public class MusIntervalTest {
                 .deck(defaultDeckName)
                 .notes(ALL_NOTES)
                 .octaves(ALL_OCTAVES)
-                .intervals(ALL_INTERVALS)
+                .intervals(MusInterval.Fields.Interval.VALUES)
                 .build();
 
         mi.addToAnki();
@@ -707,7 +696,7 @@ public class MusIntervalTest {
                 .sounds(new String[]{}) // should not be empty on adding
                 .notes(ALL_NOTES)
                 .octaves(ALL_OCTAVES)
-                .intervals(ALL_INTERVALS)
+                .intervals(MusInterval.Fields.Interval.VALUES)
                 .build();
 
         mi.addToAnki(); // should throw exception
@@ -1263,7 +1252,7 @@ public class MusIntervalTest {
         new MusInterval.Builder(helper)
                 .notes(ALL_NOTES)
                 .octaves(ALL_OCTAVES)
-                .intervals(ALL_INTERVALS)
+                .intervals(MusInterval.Fields.Interval.VALUES)
                 .tempo(tempo)
                 .build();
     }
@@ -1281,7 +1270,7 @@ public class MusIntervalTest {
         new MusInterval.Builder(helper)
                 .notes(ALL_NOTES)
                 .octaves(ALL_OCTAVES)
-                .intervals(ALL_INTERVALS)
+                .intervals(MusInterval.Fields.Interval.VALUES)
                 .tempo(tempo)
                 .build();
     }
@@ -1299,7 +1288,7 @@ public class MusIntervalTest {
         new MusInterval.Builder(helper)
                 .notes(ALL_NOTES)
                 .octaves(ALL_OCTAVES)
-                .intervals(ALL_INTERVALS)
+                .intervals(MusInterval.Fields.Interval.VALUES)
 
                 .tempo(tempo)
                 .build();
@@ -1309,7 +1298,7 @@ public class MusIntervalTest {
         new MusInterval.Builder(helper)
                 .notes(ALL_NOTES)
                 .octaves(ALL_OCTAVES)
-                .intervals(ALL_INTERVALS)
+                .intervals(MusInterval.Fields.Interval.VALUES)
                 .tempo(tempo)
                 .build();
     }
@@ -1332,9 +1321,9 @@ public class MusIntervalTest {
         }).when(helper).addFileToAnkiMedia(any(String.class));
         doReturn(noteId).when(helper).addNote(eq(modelId), eq(deckId), any(Map.class), nullable(Set.class));
 
-        final MusInterval[] musIntervals = new MusInterval[MusInterval.Fields.Interval.VALUES.length - 1];
+        final MusInterval[] musIntervals = new MusInterval[MusInterval.Fields.Interval.VALUES.length];
         for (int i = 0; i < musIntervals.length; i++) {
-            String interval = MusInterval.Fields.Interval.VALUES[i + 1];
+            String interval = MusInterval.Fields.Interval.VALUES[i];
             String sound = String.format("%s.mp3", interval);
             musIntervals[i] = new MusInterval.Builder(helper)
                     .model(defaultModelName)
@@ -1436,9 +1425,9 @@ public class MusIntervalTest {
         }).when(helper).addFileToAnkiMedia(any(String.class));
         doReturn(noteId).when(helper).addNote(eq(modelId), eq(deckId), any(Map.class), nullable(Set.class));
 
-        final MusInterval[] musIntervals = new MusInterval[MusInterval.Fields.Interval.VALUES.length - 1];
+        final MusInterval[] musIntervals = new MusInterval[MusInterval.Fields.Interval.VALUES.length];
         for (int i = 0; i < musIntervals.length; i++) {
-            String interval = MusInterval.Fields.Interval.VALUES[i + 1];
+            String interval = MusInterval.Fields.Interval.VALUES[i];
             String sound = String.format("%s.mp3", interval);
             musIntervals[i] = new MusInterval.Builder(helper)
                     .model(defaultModelName)
@@ -1794,7 +1783,7 @@ public class MusIntervalTest {
                 .sounds(new String[]{"/path/to/file.mp3"})
                 .notes(ALL_NOTES)
                 .octaves(ALL_OCTAVES)
-                .intervals(ALL_INTERVALS)
+                .intervals(MusInterval.Fields.Interval.VALUES)
                 .build().addToAnki();
     }
 
@@ -1825,7 +1814,7 @@ public class MusIntervalTest {
             }
         }).when(helper).addNote(eq(modelId), eq(deckId), any(Map.class), nullable(Set.class));
 
-        final int permutations = ALL_NOTES.length * ALL_OCTAVES.length * ALL_INTERVALS.length;
+        final int permutations = ALL_NOTES.length * ALL_OCTAVES.length * MusInterval.Fields.Interval.VALUES.length;
         String[] sounds = new String[permutations];
         for (int i = 0; i < permutations; i++) {
             sounds[i] = String.format("/path/to/file%d.mp3", i);
@@ -1839,7 +1828,7 @@ public class MusIntervalTest {
                 .octaves(ALL_OCTAVES)
                 .direction(MusInterval.Fields.Direction.ASC)
                 .timing(MusInterval.Fields.Timing.MELODIC)
-                .intervals(ALL_INTERVALS)
+                .intervals(MusInterval.Fields.Interval.VALUES)
                 .tempo("90")
                 .instrument("violin")
                 .build()
@@ -1849,7 +1838,7 @@ public class MusIntervalTest {
         int i = 0;
         for (String octave : ALL_OCTAVES) {
             for (String note : ALL_NOTES) {
-                for (String interval : ALL_INTERVALS) {
+                for (String interval : MusInterval.Fields.Interval.VALUES) {
                     Map<String, String> data = addedNotesData.get(i);
                     assertEquals(data.get(MusInterval.Fields.SOUND), String.format("[sound:%s]", sounds[i]));
                     assertEquals(data.get(MusInterval.Fields.START_NOTE), note + octave);
