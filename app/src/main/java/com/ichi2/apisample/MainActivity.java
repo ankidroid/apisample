@@ -2,8 +2,6 @@ package com.ichi2.apisample;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
-import android.app.Dialog;
-import android.app.DialogFragment;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -471,19 +469,40 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         try {
             throw miException;
         } catch (MusInterval.ModelDoesNotExistException e) {
-            DialogFragment f = new CreateModelDialogFragment();
-            Bundle args = new Bundle();
-            args.putString(SettingsFragment.KEY_MODEL_PREFERENCE, e.getModelName());
-            f.setArguments(args);
-            f.show(getFragmentManager(), "createModelDialog");
+            final String modelName = e.getModelName();
+            new AlertDialog.Builder(this)
+                    .setMessage(String.format(
+                            getResources().getString(R.string.create_model),
+                            modelName))
+                    .setPositiveButton(R.string.create, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            handleCreateModel(modelName);
+                        }
+                    })
+                    .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            dialog.cancel();
+                        }
+                    })
+                    .show();
         } catch (MusInterval.NotEnoughFieldsException e) {
             showMsg(R.string.invalid_model, e.getModelName());
         } catch (MusInterval.ModelNotConfiguredException e) {
-            DialogFragment f = new ConfigureModelDialogFragment();
-            Bundle args = new Bundle();
-            args.putString(SettingsFragment.KEY_MODEL_PREFERENCE, e.getModelName());
-            f.setArguments(args);
-            f.show(getFragmentManager(), "configureModelDialog");
+            final String modelName = e.getModelName();
+            new AlertDialog.Builder(this)
+                    .setMessage(String.format(
+                            getResources().getString(R.string.configure_model), modelName))
+                    .setPositiveButton(R.string.configure, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            openSettings();
+                        }
+                    })
+                    .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            dialog.cancel();
+                        }
+                    })
+                    .show();
         } catch (MusInterval.NoteNotExistsException e) {
             showMsg(R.string.mi_not_exists);
         } catch (MusInterval.StartNoteSyntaxException e) {
@@ -500,6 +519,31 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             showMsg(R.string.add_file_error);
         } catch (MusInterval.Exception e) {
             showMsg(R.string.unknown_adding_error);
+        }
+    }
+
+    private void handleCreateModel(String modelName) {
+        final Long newModelId = mAnkiDroid.addNewCustomModel(
+                modelName,
+                MusInterval.Fields.SIGNATURE,
+                MusInterval.Builder.CARD_NAMES,
+                MusInterval.Builder.QFMT,
+                MusInterval.Builder.AFMT,
+                MusInterval.Builder.CSS
+        );
+        if (newModelId != null) {
+            SharedPreferences.Editor preferenceEditor = PreferenceManager.getDefaultSharedPreferences(MainActivity.this).edit();
+            for (int i = 0; i < MusInterval.Fields.SIGNATURE.length; i++) {
+                String fieldKey = MusInterval.Fields.SIGNATURE[i];
+                String fieldPreferenceKey = SettingsFragment.getFieldPreferenceKey(fieldKey);
+                preferenceEditor.putString(fieldPreferenceKey, fieldKey);
+                String modelFieldPreferenceKey = SettingsFragment.getModelFieldPreferenceKey(newModelId, fieldPreferenceKey);
+                preferenceEditor.putString(modelFieldPreferenceKey, fieldKey);
+            }
+            preferenceEditor.apply();
+            showMsg(R.string.create_model_success, modelName);
+        } else {
+            showMsg(R.string.create_model_error);
         }
     }
 
@@ -520,71 +564,4 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private void showQuantityMsg(int msgResId, int quantity, Object ...formatArgs) {
         Toast.makeText(MainActivity.this, getResources().getQuantityString(msgResId, quantity, formatArgs), Toast.LENGTH_LONG).show();
     }
-
-    public static class CreateModelDialogFragment extends DialogFragment {
-        @Override
-        public Dialog onCreateDialog(Bundle savedInstanceState) {
-            final MainActivity mainActivity = (MainActivity) getActivity();
-            final String modelName = getArguments().getString(SettingsFragment.KEY_MODEL_PREFERENCE);
-            return new AlertDialog.Builder(mainActivity)
-                    .setMessage(String.format(
-                            getResources().getString(R.string.create_model),
-                            modelName))
-                    .setPositiveButton(R.string.create, new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int id) {
-                            final Long newModelId = mainActivity.mAnkiDroid.addNewCustomModel(
-                                    modelName,
-                                    MusInterval.Fields.SIGNATURE,
-                                    MusInterval.Builder.CARD_NAMES,
-                                    MusInterval.Builder.QFMT,
-                                    MusInterval.Builder.AFMT,
-                                    MusInterval.Builder.CSS
-                            );
-                            if (newModelId != null) {
-                                SharedPreferences.Editor preferenceEditor = PreferenceManager.getDefaultSharedPreferences(mainActivity).edit();
-                                for (int i = 0; i < MusInterval.Fields.SIGNATURE.length; i++) {
-                                    String fieldKey = MusInterval.Fields.SIGNATURE[i];
-                                    String fieldPreferenceKey = SettingsFragment.getFieldPreferenceKey(fieldKey);
-                                    preferenceEditor.putString(fieldPreferenceKey, fieldKey);
-                                    String modelFieldPreferenceKey = SettingsFragment.getModelFieldPreferenceKey(newModelId, fieldPreferenceKey);
-                                    preferenceEditor.putString(modelFieldPreferenceKey, fieldKey);
-                                }
-                                preferenceEditor.apply();
-                                mainActivity.showMsg(R.string.create_model_success, modelName);
-                            } else {
-                                mainActivity.showMsg(R.string.create_model_error);
-                            }
-                        }
-                    })
-                    .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int id) {
-                            dialog.cancel();
-                        }
-                    })
-                    .create();
-        }
-    }
-
-    public static class ConfigureModelDialogFragment extends DialogFragment {
-        @Override
-        public Dialog onCreateDialog(Bundle savedInstanceState) {
-            final MainActivity mainActivity = (MainActivity) getActivity();
-            return new AlertDialog.Builder(mainActivity)
-                    .setMessage(String.format(
-                            getResources().getString(R.string.configure_model),
-                            getArguments().getString(SettingsFragment.KEY_MODEL_PREFERENCE)))
-                    .setPositiveButton(R.string.configure, new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int id) {
-                            mainActivity.openSettings();
-                        }
-                    })
-                    .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int id) {
-                            dialog.cancel();
-                        }
-                    })
-                    .create();
-        }
-    }
-
 }
