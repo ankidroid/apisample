@@ -21,7 +21,9 @@ import androidx.preference.PreferenceManager;
 
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
@@ -51,6 +53,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private static final int ACTION_SELECT_FILE = 10;
 
     private static final String STATE_REF_DB = "com.ichi2.apisample.uistate";
+    private static final String KEY_BATCH_ADDING_NOTICE_SEEN = "batchAddingNoticeSeen";
 
     private final Map<String, String> fieldLabels = new HashMap<>();
     private final Map<String, String> intervalLabels = new HashMap<>();
@@ -101,6 +104,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     };
 
     private String[] filenames = new String[]{};
+    private Integer permutationsNumber;
 
     private HashSet<String> savedInstruments = new HashSet<>();
 
@@ -268,6 +272,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 selectFileText = res.getQuantityString(R.plurals.select_file, permutationsNumber, permutationsNumber);
             }
             actionSelectFile.setText(selectFileText);
+            this.permutationsNumber = permutationsNumber;
         }
     }
 
@@ -439,22 +444,60 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         actionSelectFile.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                requestPermissions(new String[] {
-                        android.Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                requestPermissions(new String[]{
+                                android.Manifest.permission.WRITE_EXTERNAL_STORAGE},
                         PERMISSIONS_REQUEST_EXTERNAL_STORAGE
                 );
 
-                Intent intent = new Intent()
-                        .setAction(Intent.ACTION_GET_CONTENT)
-                        .setType("audio/*")
-                        .addCategory(Intent.CATEGORY_OPENABLE)
-                        .putExtra(Intent.EXTRA_LOCAL_ONLY, true)
-                        .putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+                if (permutationsNumber == null || permutationsNumber <= 1) {
+                    openChooser();
+                    return;
+                }
 
-                startActivityForResult(Intent.createChooser(intent, actionSelectFile.getText().toString()),
-                        ACTION_SELECT_FILE);
+                SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+                boolean batchNoticeSeen = preferences.getBoolean(KEY_BATCH_ADDING_NOTICE_SEEN, false);
+                if (batchNoticeSeen) {
+                    openChooser();
+                    return;
+                }
+
+                ViewGroup viewGroup = findViewById(R.id.content);
+                View dialogView = LayoutInflater.from(MainActivity.this).inflate(R.layout.dialog_notice, viewGroup, false);
+                TextView textNotice = dialogView.findViewById(R.id.textNotice);
+                final CheckBox checkRemember = dialogView.findViewById(R.id.checkRemember);
+                textNotice.setText(getResources().getString(R.string.batch_adding_notice));
+                new AlertDialog.Builder(MainActivity.this)
+                        .setView(dialogView)
+                        .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                dialogInterface.dismiss();
+                            }
+                        }).setOnDismissListener(new DialogInterface.OnDismissListener() {
+                    @Override
+                    public void onDismiss(DialogInterface dialogInterface) {
+                        if (checkRemember.isChecked()) {
+                            SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(MainActivity.this).edit();
+                            editor.putBoolean(KEY_BATCH_ADDING_NOTICE_SEEN, true);
+                            editor.apply();
+                        }
+                        openChooser();
+                    }
+                }).show();
             }
         });
+    }
+
+    private void openChooser() {
+        Intent intent = new Intent()
+                .setAction(Intent.ACTION_GET_CONTENT)
+                .setType("audio/*")
+                .addCategory(Intent.CATEGORY_OPENABLE)
+                .putExtra(Intent.EXTRA_LOCAL_ONLY, true)
+                .putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+
+        startActivityForResult(Intent.createChooser(intent, actionSelectFile.getText().toString()),
+                ACTION_SELECT_FILE);
     }
 
     @Override
