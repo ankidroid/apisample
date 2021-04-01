@@ -144,9 +144,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         configureAddToAnkiButton();
         configureSettingsButton();
 
-        mAnkiDroid = new AnkiDroidHelper(this);
-
         restoreUiState();
+
+        mAnkiDroid = new AnkiDroidHelper(this);
     }
 
     private void clearAddedInputFilename() {
@@ -154,6 +154,12 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         if (filename.length() > 0 && filename.startsWith("[sound:")) {
             inputFilename.setText("");
         }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        refreshExisting();
     }
 
     private void refreshExisting() {
@@ -400,8 +406,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 android.R.layout.simple_dropdown_item_1line, savedInstruments.toArray(new String[0])));
 
         this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
-
-        refreshExisting();
     }
 
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
