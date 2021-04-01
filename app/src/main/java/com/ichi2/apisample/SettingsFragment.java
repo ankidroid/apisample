@@ -83,7 +83,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
                     }
                     preferencesEditor.apply();
                 }
-                updateFieldsPreferenceEntries((String) newValue);
+                updateFieldsPreferenceEntries((String) newValue, true);
                 return true;
             }
         });
@@ -113,7 +113,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             fieldListPreference.setSummaryProvider(ListPreference.SimpleSummaryProvider.getInstance());
             fieldsPreferenceCategory.addPreference(fieldListPreference);
         }
-        updateFieldsPreferenceEntries(modelListPreference.getValue());
+        updateFieldsPreferenceEntries(modelListPreference.getValue(), false);
 
         setPreferenceScreen(preferenceScreen);
     }
@@ -126,7 +126,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         return String.format(TEMPLATE_KEY_MODEL_FIELD_PREFERENCE, fieldPreferenceKey, modelId);
     }
 
-    private void updateFieldsPreferenceEntries(String modelName) {
+    private void updateFieldsPreferenceEntries(String modelName, boolean modelChanged) {
         Long modelId = helper.findModelIdByName(modelName);
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
         String[] fieldList = modelId != null ? helper.getFieldList(modelId) : new String[]{};
@@ -136,16 +136,20 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         for (int i = 0; i < MusInterval.Fields.SIGNATURE.length; i++) {
             String fieldKey = MusInterval.Fields.SIGNATURE[i];
             String fieldPreferenceKey = getFieldPreferenceKey(fieldKey);
-            String modelFieldPreference = "";
-            if (modelId != null) {
-                String modelFieldPreferenceKey = getModelFieldPreferenceKey(modelId, fieldPreferenceKey);
-                modelFieldPreference = preferences.getString(modelFieldPreferenceKey, "");
+            String value = "";
+            if (modelChanged) {
+                if (modelId != null) {
+                    String modelFieldPreferenceKey = getModelFieldPreferenceKey(modelId, fieldPreferenceKey);
+                    value = preferences.getString(modelFieldPreferenceKey, "");
+                }
+            } else {
+                value = preferences.getString(fieldPreferenceKey, "");
             }
             ListPreference fieldListPreference = preferenceScreen.findPreference(fieldPreferenceKey);
             if (fieldListPreference != null) {
                 fieldListPreference.setEntries(entries);
                 fieldListPreference.setEntryValues(entries);
-                fieldListPreference.setValue(modelFieldPreference);
+                fieldListPreference.setValue(value);
             }
         }
     }
