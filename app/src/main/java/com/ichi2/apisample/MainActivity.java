@@ -305,7 +305,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 }
                 try {
                     final int count = getMusInterval().markExistingNotes();
-                    showMsg(getResources().getQuantityString(R.plurals.mi_marked_result, count, count));
+                    showQuantityMsg(R.plurals.mi_marked_result, count, count);
                     refreshExisting();
                 } catch (MusInterval.Exception e) {
                     processMusIntervalException(e);
@@ -473,7 +473,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             f.setArguments(args);
             f.show(getFragmentManager(), "createModelDialog");
         } catch (MusInterval.NotEnoughFieldsException e) {
-            showMsg(String.format(getResources().getString(R.string.invalid_model), e.getModelName()));
+            showMsg(R.string.invalid_model, e.getModelName());
         } catch (MusInterval.ModelNotConfiguredException e) {
             DialogFragment f = new ConfigureModelDialogFragment();
             Bundle args = new Bundle();
@@ -489,7 +489,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         } catch (MusInterval.AddToAnkiException e) {
             showMsg(R.string.add_card_error);
         } catch (MusInterval.MandatoryFieldEmptyException e) {
-            showMsg(String.format(getResources().getString(R.string.mandatory_field_empty), fieldLabels.get(e.getField())));
+            showMsg(R.string.mandatory_field_empty, fieldLabels.get(e.getField()));
         } catch (MusInterval.SoundAlreadyAddedException e) {
             showMsg(R.string.already_added);
         } catch (MusInterval.AddSoundFileException e) {
@@ -509,12 +509,12 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
     }
 
-    private void showMsg(int msgResId) {
-        Toast.makeText(MainActivity.this, getResources().getString(msgResId), Toast.LENGTH_LONG).show();
+    private void showMsg(int msgResId, Object ...formatArgs) {
+        Toast.makeText(MainActivity.this, getResources().getString(msgResId, formatArgs), Toast.LENGTH_LONG).show();
     }
 
-    private void showMsg(final String message) {
-        Toast.makeText(MainActivity.this, message, Toast.LENGTH_LONG).show();
+    private void showQuantityMsg(int msgResId, int quantity, Object ...formatArgs) {
+        Toast.makeText(MainActivity.this, getResources().getQuantityString(msgResId, quantity, formatArgs), Toast.LENGTH_LONG).show();
     }
 
     public static class CreateModelDialogFragment extends DialogFragment {
@@ -546,12 +546,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                                     preferenceEditor.putString(modelFieldPreferenceKey, fieldKey);
                                 }
                                 preferenceEditor.apply();
-                                mainActivity.showMsg(
-                                        String.format(
-                                                getResources().getString(R.string.create_model_success),
-                                                modelName
-                                        )
-                                );
+                                mainActivity.showMsg(R.string.create_model_success, modelName);
                             } else {
                                 mainActivity.showMsg(R.string.create_model_error);
                             }
