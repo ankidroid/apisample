@@ -1,5 +1,6 @@
 package com.ichi2.apisample;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -216,6 +217,27 @@ public class MusInterval {
     public static class ValidationException extends Exception {}
     public static class StartNoteSyntaxException extends ValidationException {}
     public static class TempoValueException extends ValidationException {}
+    public static class ModelValidationException extends ValidationException {
+        private String modelName;
+
+        public ModelValidationException(String modelName) {
+            super();
+            this.modelName = modelName;
+        }
+
+        public String getModelName() {
+            return modelName;
+        }
+    }
+    public static class ModelDoesNotExistException extends ModelValidationException {
+        public ModelDoesNotExistException(String modelName) { super(modelName); }
+    }
+    public static class NotEnoughFieldsException extends ModelValidationException {
+        public NotEnoughFieldsException(String modelName) { super(modelName); }
+    }
+    public static class ModelNotConfiguredException extends ModelValidationException {
+        public ModelNotConfiguredException(String modelName) { super(modelName); }
+    }
 
     private final AnkiDroidHelper helper;
 
@@ -262,6 +284,26 @@ public class MusInterval {
     }
 
     protected void validateFields() throws ValidationException {
+        if (modelId == null) {
+            throw new ModelDoesNotExistException(modelName);
+        }
+        final ArrayList<String> modelOwnFields = new ArrayList<>(Arrays.asList(helper.getFieldList(modelId)));
+        if (modelOwnFields.size() < Fields.SIGNATURE.length) {
+            throw new NotEnoughFieldsException(modelName);
+        }
+        ArrayList<String> takenFields = new ArrayList<>();
+        for (String fieldKey : Fields.SIGNATURE) {
+            if (modelFields.containsKey(fieldKey)) {
+                String field = modelFields.get(fieldKey);
+                if (!modelOwnFields.contains(field) || takenFields.contains(field)) {
+                    throw new ModelNotConfiguredException(modelName);
+                }
+                takenFields.add(field);
+            } else {
+                throw new ModelNotConfiguredException(modelName);
+            }
+        }
+
         if (!startNote.isEmpty() && !startNote.matches("[A-Ga-g]#?[0-8]")) {
             throw new StartNoteSyntaxException();
         }
