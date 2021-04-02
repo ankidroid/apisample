@@ -114,8 +114,8 @@
     <string name="interval_not_selected">At least one interval must be selected</string>
     <string name="batch_adding_notice">
         When adding multiple music intervals at once, the selected set of sound files must obey the following rules:\n
-        1. The number of files must be equal to the number of unique interval permutations for chosen field values.\n
-        2. The sorting of sound files must first order by octave, then by note, then by interval.
+        1. The number of files must be equal to the number of unique interval permutations for the chosen field values;.\n
+        2. The sound files, when sorted, must be ordered firstly by octave, then by note, then by interval.
     </string>
     <string name="do_not_show">Don\'t show this message</string>
 
