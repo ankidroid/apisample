@@ -10,9 +10,13 @@ import androidx.preference.Preference;
 import androidx.preference.PreferenceCategory;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceScreen;
+import androidx.preference.SwitchPreference;
 
 public class SettingsFragment extends PreferenceFragmentCompat {
+    public static final String KEY_VERSION_FIELD_SWITCH = "preference_version_field_switch";
     private static final String FIELDS_PREFERENCE_CATEGORY_KEY = "fields";
+
+    public static final boolean DEFAULT_VERSION_FIELD_SWITCH = true;
 
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
@@ -71,6 +75,13 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             fieldListPreference.setEntryValues(entries);
             fieldsPreferenceCategory.addPreference(fieldListPreference);
         }
+
+        SwitchPreference versionFieldSwitchPreference = new SwitchPreference(context);
+        versionFieldSwitchPreference.setKey(KEY_VERSION_FIELD_SWITCH);
+        versionFieldSwitchPreference.setTitle(R.string.version_field_switch_preference_title);
+        versionFieldSwitchPreference.setSummary(R.string.version_field_switch_preference_summary);
+        versionFieldSwitchPreference.setDefaultValue(DEFAULT_VERSION_FIELD_SWITCH);
+        preferenceScreen.addPreference(versionFieldSwitchPreference);
 
         setPreferenceScreen(preferenceScreen);
     }
