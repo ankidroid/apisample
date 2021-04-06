@@ -434,7 +434,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 radioDirection instanceof RadioButton && radioDirectionId != -1 ?
                         ((RadioButton) radioDirection).getText().toString() :
                         anyStr;
-
         final int radioTimingId = radioGroupTiming.getCheckedRadioButtonId();
         final View radioTiming = findViewById(radioTimingId);
         final String timingStr =
@@ -443,15 +442,17 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                         anyStr;
 
         final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        final boolean versionField = sharedPreferences.getBoolean(SettingsFragment.KEY_VERSION_FIELD_SWITCH, SettingsFragment.DEFAULT_VERSION_FIELD_SWITCH);
+        String[] signature = MusInterval.Fields.getSignature(versionField);
         final Map<String, String> storedFields = new HashMap<>();
-        for (String fieldKey : MusInterval.Fields.SIGNATURE) {
+        for (String fieldKey : signature) {
             String fieldPreferenceKey = SettingsFragment.getFieldPreferenceKey(fieldKey);
             storedFields.put(fieldKey, sharedPreferences.getString(fieldPreferenceKey, ""));
         }
         final String storedDeck = sharedPreferences.getString(SettingsFragment.KEY_DECK_PREFERENCE, MusInterval.Builder.DEFAULT_DECK_NAME);
         final String storedModel = sharedPreferences.getString(SettingsFragment.KEY_MODEL_PREFERENCE, MusInterval.Builder.DEFAULT_MODEL_NAME);
 
-        return new MusInterval.Builder(mAnkiDroid)
+        MusInterval.Builder builder = new MusInterval.Builder(mAnkiDroid)
                 .deck(storedDeck)
                 .model(storedModel)
                 .model_fields(storedFields)
@@ -461,8 +462,11 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 .timing(!timingStr.equals(anyStr) ? timingStr : "")
                 .interval(selectInterval.getSelectedItem().toString())
                 .tempo(seekTempo.getProgress() > 0 ? Integer.toString(seekTempo.getProgress()) : "")
-                .instrument(inputInstrument.getText().toString())
-                .build();
+                .instrument(inputInstrument.getText().toString());
+        if (versionField) {
+            builder.version(BuildConfig.VERSION_NAME);
+        }
+        return builder.build();
     }
 
     private void processMusIntervalException(MusInterval.Exception miException) {
@@ -523,9 +527,10 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     }
 
     private void handleCreateModel(String modelName) {
+        final String[] signature = MusInterval.Fields.getSignature(SettingsFragment.DEFAULT_VERSION_FIELD_SWITCH);
         final Long newModelId = mAnkiDroid.addNewCustomModel(
                 modelName,
-                MusInterval.Fields.SIGNATURE,
+                signature,
                 MusInterval.Builder.CARD_NAMES,
                 MusInterval.Builder.QFMT,
                 MusInterval.Builder.AFMT,
@@ -533,8 +538,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         );
         if (newModelId != null) {
             SharedPreferences.Editor preferenceEditor = PreferenceManager.getDefaultSharedPreferences(MainActivity.this).edit();
-            for (int i = 0; i < MusInterval.Fields.SIGNATURE.length; i++) {
-                String fieldKey = MusInterval.Fields.SIGNATURE[i];
+            for (String fieldKey : signature) {
                 String fieldPreferenceKey = SettingsFragment.getFieldPreferenceKey(fieldKey);
                 preferenceEditor.putString(fieldPreferenceKey, fieldKey);
                 String modelFieldPreferenceKey = SettingsFragment.getModelFieldPreferenceKey(newModelId, fieldPreferenceKey);
