@@ -286,8 +286,16 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
         @Override
         public boolean onLongClick(View view) {
+            boolean allChecked = true;
             for (CheckBox check : checks) {
-                check.setChecked(true);
+                if (!check.isChecked()) {
+                    allChecked = false;
+                    break;
+                }
+            }
+            final boolean value = !allChecked;
+            for (CheckBox check : checks) {
+                check.setChecked(value);
             }
             return true;
         }
