@@ -108,6 +108,7 @@
     <string name="unknown_adding_error">Failed to add music interval to AnkiDroid</string>
     <string name="additional_filenames">\u0020+ %d more</string>
     <string name="filenames_list_item">%d. %s</string>
+    <string name="filenames_list_item_with_key">%d. %s (%s, %s)</string>
     <string name="filenames_list_separator">\n</string>
     <string name="note_not_selected">At least one note must be selected</string>
     <string name="octave_not_selected">At least one octave must be selected</string>

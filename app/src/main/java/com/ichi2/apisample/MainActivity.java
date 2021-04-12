@@ -172,11 +172,18 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             public void onClick(View view) {
                 if (filenames.length > 1) {
                     StringBuilder msg = new StringBuilder();
+                    final String[][] orderedPermutationKeys = getOrderedPermutationKeys();
                     for (int i = 0; i < filenames.length; i++) {
                         if (msg.length() > 0) {
                             msg.append(getString(R.string.filenames_list_separator));
                         }
-                        msg.append(getString(R.string.filenames_list_item, i + 1, filenames[i]));
+                        if (i < orderedPermutationKeys.length) {
+                            final String startNote = orderedPermutationKeys[i][1] + orderedPermutationKeys[i][0];
+                            final String interval = orderedPermutationKeys[i][2];
+                            msg.append(getString(R.string.filenames_list_item_with_key, i + 1, filenames[i], startNote, interval));
+                        } else {
+                            msg.append(getString(R.string.filenames_list_item, i + 1, filenames[i]));
+                        }
                     }
                     new AlertDialog.Builder(MainActivity.this)
                             .setMessage(msg)
@@ -217,6 +224,31 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         mAnkiDroid = new AnkiDroidHelper(this);
 
         restoreUiState();
+    }
+
+    private String[][] getOrderedPermutationKeys() {
+        final String[] selectedNotes = getCheckedTexts(checkNotes);
+        final String[] selectedOctaves = getCheckedTexts(checkOctaves);
+        final String[] selectedIntervals = getCheckedTexts(checkIntervals);
+        ArrayList<String[]> orderedPermutationKeys = new ArrayList<>();
+        for (String octave : selectedOctaves) {
+            for (String note : selectedNotes) {
+                for (String interval : selectedIntervals) {
+                    orderedPermutationKeys.add(new String[]{octave, note, interval});
+                }
+            }
+        }
+        return orderedPermutationKeys.toArray(new String[0][]);
+    }
+
+    private String[] getCheckedTexts(CheckBox[] checkBoxes) {
+        ArrayList<String> texts = new ArrayList<>();
+        for (CheckBox check : checkBoxes) {
+            if (check.isChecked()) {
+                texts.add(check.getText().toString());
+            }
+        }
+        return texts.toArray(new String[0]);
     }
 
     private void clearAddedFilenames() {
