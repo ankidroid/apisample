@@ -2,8 +2,6 @@ package com.ichi2.apisample;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
-import android.app.Dialog;
-import android.app.DialogFragment;
 import android.content.ClipData;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -329,6 +327,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     protected void onResume() {
         super.onResume();
         refreshExisting();
+        refreshPermutations();
+        refreshFilenameText();
     }
 
     private void refreshExisting() {
