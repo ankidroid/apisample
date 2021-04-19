@@ -278,7 +278,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 );
 
                 Intent intent = new Intent()
-                        .setAction(Intent.ACTION_GET_CONTENT)
+                        .setAction(Intent.ACTION_OPEN_DOCUMENT)
                         .setType("audio/*")
                         .addCategory(Intent.CATEGORY_OPENABLE)
                         .putExtra(Intent.EXTRA_LOCAL_ONLY, true);
@@ -295,6 +295,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
         if (requestCode == ACTION_SELECT_FILE && resultCode == RESULT_OK) {
             final Uri selectedFile = data.getData();
+            getContentResolver().takePersistableUriPermission(selectedFile, Intent.FLAG_GRANT_READ_URI_PERMISSION);
             inputFilename.setText(selectedFile.toString());
         }
     }
