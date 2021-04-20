@@ -370,6 +370,8 @@ public class MusInterval {
         if (modelId != null) {
             Map<String, String> data = getCollectedData();
             data.remove(modelFields.get(Fields.SOUND)); // sound field should not be compared in existing data
+            data.remove(MusInterval.Fields.SOUND_SMALLER);
+            data.remove(MusInterval.Fields.SOUND_LARGER);
             data.remove(modelFields.get(Fields.VERSION));
 
             return helper.findNotes(modelId, data);
