@@ -346,26 +346,17 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
     @Override
     public void promptAddDuplicate(LinkedList<Map<String, String>> existingNotesData, final DuplicateAddingHandler handler) {
-        Resources res = getResources();
-        String msg;
-        int existingCount = existingNotesData.size();
-        if (existingCount == 1) {
-            msg = res.getQuantityString(R.plurals.duplicate_warning, existingCount);
-        } else {
-            msg = res.getQuantityString(R.plurals.duplicate_warning, existingCount, existingCount);
-        }
+        final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+        final boolean tagDuplicates = sharedPreferences.getBoolean(SettingsFragment.KEY_TAG_DUPLICATES_SWITCH, SettingsFragment.DEFAULT_TAG_DUPLICATES_SWITCH);
+        final String duplicateTag = sharedPreferences.getString(SettingsFragment.KEY_DUPLICATE_TAG_PREFERENCE, SettingsFragment.DEFAULT_DUPLICATE_TAG);
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this)
-                .setMessage(msg)
                 .setPositiveButton(R.string.add_anyway, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
                         try {
                             MusInterval newMi = handler.add();
-                            final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
-                            final boolean tagDuplicates = sharedPreferences.getBoolean(SettingsFragment.KEY_TAG_DUPLICATES_SWITCH, SettingsFragment.DEFAULT_TAG_DUPLICATES_SWITCH);
                             if (tagDuplicates) {
-                                final String duplicateTag = sharedPreferences.getString(SettingsFragment.KEY_DUPLICATE_TAG_PREFERENCE, SettingsFragment.DEFAULT_DUPLICATE_TAG);
-                                newMi.tagExistingNotes(duplicateTag);
+                               handler.tag(duplicateTag);
                             }
                             handleAddToAnki(newMi);
                         } catch (MusInterval.Exception e) {
@@ -389,7 +380,11 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                         }
                     }
                 });
+        Resources res = getResources();
+        String msg;
+        int existingCount = existingNotesData.size();
         if (existingCount == 1) {
+            msg = res.getQuantityString(R.plurals.duplicate_warning, existingCount);
             builder.setNegativeButton(R.string.replace_existing, new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialogInterface, int i) {
@@ -411,7 +406,21 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     }
                 }
             });
+        } else {
+            msg = res.getQuantityString(R.plurals.duplicate_warning, existingCount, existingCount);
         }
+        if (existingCount > 1) {
+            if (tagDuplicates) {
+                try {
+                    handler.tag(duplicateTag);
+                } catch (MusInterval.Exception e) {
+                    processMusIntervalException(e);
+                } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
+                    processInvalidAnkiDatabase(e);
+                }
+            }
+        }
+        builder.setMessage(msg);
         builder.show();
     }
 

@@ -386,7 +386,7 @@ public class MusInterval {
         return tagExistingNotes("marked");
     }
 
-    public int tagExistingNotes(String tag) throws NoteNotExistsException, AnkiDroidHelper.InvalidAnkiDatabaseException {
+    private int tagExistingNotes(String tag) throws NoteNotExistsException, AnkiDroidHelper.InvalidAnkiDatabaseException {
         final LinkedList<Map<String, String>> notes = getExistingNotes();
         int updated = 0;
 
@@ -482,6 +482,11 @@ public class MusInterval {
                 @Override
                 public int mark() throws NoteNotExistsException, AnkiDroidHelper.InvalidAnkiDatabaseException {
                     return markExistingNotes();
+                }
+
+                @Override
+                public int tag(String tag) throws NoteNotExistsException, AnkiDroidHelper.InvalidAnkiDatabaseException {
+                    return tagExistingNotes(tag);
                 }
             });
             return null;

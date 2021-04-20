@@ -405,7 +405,7 @@ public class MusIntervalTest {
         final String tempo = "80";
         final String instrument = "guitar";
 
-        AnkiDroidHelper helper = mock(AnkiDroidHelper.class);
+        AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
         // model ok
         doReturn(modelId).when(helper).findModelIdByName(defaultModelName);
         doReturn(SIGNATURE).when(helper).getFieldList(eq(modelId));
@@ -1910,5 +1910,10 @@ public class MusIntervalTest {
                 .model(defaultModelName)
                 .model_fields(modelFields)
                 .build();
+    }
+
+    @Test
+    public void add_Duplicate_shouldReturnNull() {
+
     }
 }
