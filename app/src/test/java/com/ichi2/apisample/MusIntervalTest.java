@@ -1724,12 +1724,22 @@ public class MusIntervalTest {
             }
         }).when(helper).updateNote(eq(modelId), any(Long.class), any(Map.class));
 
-        for (int i = 0; i < musIntervals.length; i++) {
-            musIntervalsAdded.add(musIntervals[i].addToAnki(null));
+        DuplicateAddingPrompter prompter = mock(DuplicateAddingPrompter.class);
+        doAnswer(new Answer() {
+            @Override
+            public Object answer(InvocationOnMock invocation) throws Throwable {
+                musIntervalsAdded.add(((DuplicateAddingHandler) invocation.getArgument(1)).add());
+                return null;
+            }
+        }).when(prompter).promptAddDuplicate(any(LinkedList.class), any(DuplicateAddingHandler.class));
+
+        musIntervalsAdded.add(musIntervals[0].addToAnki(null));
+        for (int i = 1; i < musIntervals.length; i++) {
+            musIntervals[i].addToAnki(prompter);
         }
-        MusInterval musIntervalSmallerAdded = musIntervalSmaller.addToAnki(null);
+        MusInterval musIntervalSmallerAdded = musIntervalSmaller.addToAnki(prompter);
         assertEquals(musIntervalsAdded.getLast().sound, musIntervalSmallerAdded.soundLarger);
-        MusInterval musIntervalLargerAdded = musIntervalLarger.addToAnki(null);
+        MusInterval musIntervalLargerAdded = musIntervalLarger.addToAnki(prompter);
         assertEquals(musIntervalsAdded.getLast().sound, musIntervalLargerAdded.soundSmaller);
     }
 
