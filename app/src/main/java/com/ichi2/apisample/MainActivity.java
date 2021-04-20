@@ -360,7 +360,13 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
                         try {
-                            MusInterval newMi = handler.add(); //duplication
+                            MusInterval newMi = handler.add();
+                            final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+                            final boolean tagDuplicates = sharedPreferences.getBoolean(SettingsFragment.KEY_TAG_DUPLICATES_SWITCH, SettingsFragment.DEFAULT_TAG_DUPLICATES_SWITCH);
+                            if (tagDuplicates) {
+                                final String duplicateTag = sharedPreferences.getString(SettingsFragment.KEY_DUPLICATE_TAG_PREFERENCE, SettingsFragment.DEFAULT_DUPLICATE_TAG);
+                                newMi.tagExistingNotes(duplicateTag);
+                            }
                             handleAddToAnki(newMi);
                         } catch (MusInterval.Exception e) {
                             processMusIntervalException(e);

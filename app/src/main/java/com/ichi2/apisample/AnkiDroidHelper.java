@@ -19,7 +19,9 @@ import com.ichi2.anki.api.AddContentApi;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -296,6 +298,11 @@ public class AnkiDroidHelper {
             fieldValues[i] = data.getOrDefault(fieldNames[i], "");
         }
         return mApi.updateNoteFields(noteId, fieldValues);
+    }
+
+    public boolean updateNoteTags(long noteId, String tagsField) {
+        String[] tags = tagsField.split(" ");
+        return mApi.updateNoteTags(noteId, new HashSet<>(Arrays.asList(tags)));
     }
 
     public int addTagToNote(long noteId, String tags) {

@@ -383,6 +383,10 @@ public class MusInterval {
      * Does not add the tag if it already exists in a note.
      */
     public int markExistingNotes() throws NoteNotExistsException, AnkiDroidHelper.InvalidAnkiDatabaseException {
+        return tagExistingNotes("marked");
+    }
+
+    public int tagExistingNotes(String tag) throws NoteNotExistsException, AnkiDroidHelper.InvalidAnkiDatabaseException {
         final LinkedList<Map<String, String>> notes = getExistingNotes();
         int updated = 0;
 
@@ -397,8 +401,8 @@ public class MusInterval {
                 tags = " ";
             }
 
-            if (!tags.contains(" marked ")) {
-                tags = tags + "marked ";
+            if (!tags.contains(String.format(" %s ", tag))) {
+                tags = tags + String.format("%s ", tag);
 
                 if (note.get("id") != null) {
                     updated += helper.addTagToNote(Long.parseLong(note.get("id")), tags);

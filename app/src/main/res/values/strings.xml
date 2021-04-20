@@ -89,4 +89,8 @@
     <string name="version_field_list_preference_title">App version</string>
     <string name="version_field_switch_preference_title">Version stamp</string>
     <string name="version_field_switch_preference_summary">Log app version for added notes in a separate field</string>
+    <string name="duplicate_tag_edit_text_preference_title">Duplicate tag</string>
+    <string name="duplicate_tag_edit_text_preference_dialog_title">Duplicate tag</string>
+    <string name="tag_duplicates_preference_title">Tag duplicates</string>
+    <string name="tag_duplicates_preference_summary">Mark identical intervals with special tag</string>
 </resources>
