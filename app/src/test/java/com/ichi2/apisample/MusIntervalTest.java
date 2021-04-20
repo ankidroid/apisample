@@ -2001,4 +2001,236 @@ public class MusIntervalTest {
         assertNull(duplicateMusIntervalAdded);
         assertTrue(addedNoteIds.contains(duplicateNoteId));
     }
+
+    @Test
+    public void add_Duplicate_handlerShouldBeAbleToMark() throws MusInterval.Exception, AnkiDroidHelper.InvalidAnkiDatabaseException {
+        final long deckId = new Random().nextLong();
+        final long modelId = new Random().nextLong();
+        final long noteId = new Random().nextLong();
+
+        final AnkiDroidHelper helper = mock(AnkiDroidHelper.class);
+        doReturn(modelId).when(helper).findModelIdByName(defaultModelName);
+        doReturn(SIGNATURE).when(helper).getFieldList(eq(modelId));
+        doReturn(deckId).when(helper).findDeckIdByName(defaultDeckName);
+        doAnswer(new Answer<String>() {
+            @Override
+            public String answer(InvocationOnMock invocation) {
+                return invocation.getArgument(0);
+            }
+        }).when(helper).addFileToAnkiMedia(any(String.class));
+        doReturn(noteId).when(helper).addNote(eq(modelId), eq(deckId), any(Map.class), nullable(Set.class));
+
+        final MusInterval musInterval = new MusInterval.Builder(helper)
+                .model(defaultModelName)
+                .deck(defaultDeckName)
+                .sound("/path/to/file.mp3")
+                .start_note(defaultStartNote)
+                .direction(MusInterval.Fields.Direction.ASC)
+                .timing(MusInterval.Fields.Timing.MELODIC)
+                .interval(MusInterval.Fields.Interval.VALUES[1])
+                .tempo("90")
+                .instrument("violin")
+                .build();
+
+        final MusInterval duplicateMusInterval = new MusInterval.Builder(helper)
+                .model(defaultModelName)
+                .deck(defaultDeckName)
+                .sound("/path/to/duplicate.mp3")
+                .start_note(defaultStartNote)
+                .direction(MusInterval.Fields.Direction.ASC)
+                .timing(MusInterval.Fields.Timing.MELODIC)
+                .interval(MusInterval.Fields.Interval.VALUES[1])
+                .tempo("90")
+                .instrument("violin")
+                .build();
+
+        DuplicateAddingPrompter prompter = mock(DuplicateAddingPrompter.class);
+
+        doReturn(new LinkedList<Map<String, String>>()).when(helper).findNotes(eq(modelId), any(Map.class));
+        final MusInterval musIntervalAdded = musInterval.addToAnki(prompter);
+        assertNotNull(musIntervalAdded);
+
+        final LinkedList<String> tags = new LinkedList<>();
+
+        doReturn(new LinkedList<Map<String, String>>() {{
+            add(new HashMap<String, String>(musIntervalAdded.getCollectedData()) {{
+                put("id", String.valueOf(noteId));
+                put("tags", "");
+            }});
+        }}).when(helper).findNotes(eq(modelId), any(Map.class));
+        doAnswer(new Answer() {
+            @Override
+            public Object answer(InvocationOnMock invocation) throws Throwable {
+                ((DuplicateAddingHandler) invocation.getArgument(1)).mark();
+                return null;
+            }
+        }).when(prompter).promptAddDuplicate(any(LinkedList.class), any(DuplicateAddingHandler.class));
+        doAnswer(new Answer() {
+            @Override
+            public Integer answer(InvocationOnMock invocation) throws Throwable {
+                tags.add((String) invocation.getArgument(1));
+                return 1;
+            }
+        }).when(helper).addTagToNote(eq(noteId), any(String.class));
+
+        MusInterval duplicateMusIntervalAdded = duplicateMusInterval.addToAnki(prompter);
+        assertNull(duplicateMusIntervalAdded);
+        assertTrue(tags.contains("marked "));
+    }
+
+    @Test
+    public void add_Duplicate_handlerShouldBeAbleToTag() throws MusInterval.Exception, AnkiDroidHelper.InvalidAnkiDatabaseException {
+        final long deckId = new Random().nextLong();
+        final long modelId = new Random().nextLong();
+        final long noteId = new Random().nextLong();
+
+        final AnkiDroidHelper helper = mock(AnkiDroidHelper.class);
+        doReturn(modelId).when(helper).findModelIdByName(defaultModelName);
+        doReturn(SIGNATURE).when(helper).getFieldList(eq(modelId));
+        doReturn(deckId).when(helper).findDeckIdByName(defaultDeckName);
+        doAnswer(new Answer<String>() {
+            @Override
+            public String answer(InvocationOnMock invocation) {
+                return invocation.getArgument(0);
+            }
+        }).when(helper).addFileToAnkiMedia(any(String.class));
+        doReturn(noteId).when(helper).addNote(eq(modelId), eq(deckId), any(Map.class), nullable(Set.class));
+
+        final MusInterval musInterval = new MusInterval.Builder(helper)
+                .model(defaultModelName)
+                .deck(defaultDeckName)
+                .sound("/path/to/file.mp3")
+                .start_note(defaultStartNote)
+                .direction(MusInterval.Fields.Direction.ASC)
+                .timing(MusInterval.Fields.Timing.MELODIC)
+                .interval(MusInterval.Fields.Interval.VALUES[1])
+                .tempo("90")
+                .instrument("violin")
+                .build();
+
+        final MusInterval duplicateMusInterval = new MusInterval.Builder(helper)
+                .model(defaultModelName)
+                .deck(defaultDeckName)
+                .sound("/path/to/duplicate.mp3")
+                .start_note(defaultStartNote)
+                .direction(MusInterval.Fields.Direction.ASC)
+                .timing(MusInterval.Fields.Timing.MELODIC)
+                .interval(MusInterval.Fields.Interval.VALUES[1])
+                .tempo("90")
+                .instrument("violin")
+                .build();
+
+        DuplicateAddingPrompter prompter = mock(DuplicateAddingPrompter.class);
+
+        doReturn(new LinkedList<Map<String, String>>()).when(helper).findNotes(eq(modelId), any(Map.class));
+        final MusInterval musIntervalAdded = musInterval.addToAnki(prompter);
+        assertNotNull(musIntervalAdded);
+
+        final String duplicateTag = "duplicate";
+        final LinkedList<String> tags = new LinkedList<>();
+
+        doReturn(new LinkedList<Map<String, String>>() {{
+            add(new HashMap<String, String>(musIntervalAdded.getCollectedData()) {{
+                put("id", String.valueOf(noteId));
+                put("tags", "");
+            }});
+        }}).when(helper).findNotes(eq(modelId), any(Map.class));
+        doAnswer(new Answer() {
+            @Override
+            public Object answer(InvocationOnMock invocation) throws Throwable {
+                ((DuplicateAddingHandler) invocation.getArgument(1)).tag(duplicateTag);
+                return null;
+            }
+        }).when(prompter).promptAddDuplicate(any(LinkedList.class), any(DuplicateAddingHandler.class));
+        doAnswer(new Answer() {
+            @Override
+            public Integer answer(InvocationOnMock invocation) throws Throwable {
+                tags.add((String) invocation.getArgument(1));
+                return 1;
+            }
+        }).when(helper).addTagToNote(eq(noteId), any(String.class));
+
+        MusInterval duplicateMusIntervalAdded = duplicateMusInterval.addToAnki(prompter);
+        assertNull(duplicateMusIntervalAdded);
+        assertTrue(tags.contains(String.format("%s ", duplicateTag)));
+    }
+
+    @Test
+    public void add_Duplicate_handlerShouldBeAbleToReplace() throws MusInterval.Exception, AnkiDroidHelper.InvalidAnkiDatabaseException {
+        final long deckId = new Random().nextLong();
+        final long modelId = new Random().nextLong();
+        final long noteId = new Random().nextLong();
+
+        final AnkiDroidHelper helper = mock(AnkiDroidHelper.class);
+        doReturn(modelId).when(helper).findModelIdByName(defaultModelName);
+        doReturn(SIGNATURE).when(helper).getFieldList(eq(modelId));
+        doReturn(deckId).when(helper).findDeckIdByName(defaultDeckName);
+        doAnswer(new Answer<String>() {
+            @Override
+            public String answer(InvocationOnMock invocation) {
+                return invocation.getArgument(0);
+            }
+        }).when(helper).addFileToAnkiMedia(any(String.class));
+        doReturn(noteId).when(helper).addNote(eq(modelId), eq(deckId), any(Map.class), nullable(Set.class));
+
+        final String sound = "/path/to/file.mp3";
+        final MusInterval musInterval = new MusInterval.Builder(helper)
+                .model(defaultModelName)
+                .deck(defaultDeckName)
+                .sound(sound)
+                .start_note(defaultStartNote)
+                .direction(MusInterval.Fields.Direction.ASC)
+                .timing(MusInterval.Fields.Timing.MELODIC)
+                .interval(MusInterval.Fields.Interval.VALUES[1])
+                .tempo("90")
+                .instrument("violin")
+                .build();
+
+        final String duplicateSound = "/path/to/duplicate.mp3";
+        final MusInterval duplicateMusInterval = new MusInterval.Builder(helper)
+                .model(defaultModelName)
+                .deck(defaultDeckName)
+                .sound(duplicateSound)
+                .start_note(defaultStartNote)
+                .direction(MusInterval.Fields.Direction.ASC)
+                .timing(MusInterval.Fields.Timing.MELODIC)
+                .interval(MusInterval.Fields.Interval.VALUES[1])
+                .tempo("90")
+                .instrument("violin")
+                .build();
+
+        DuplicateAddingPrompter prompter = mock(DuplicateAddingPrompter.class);
+
+        doReturn(new LinkedList<Map<String, String>>()).when(helper).findNotes(eq(modelId), any(Map.class));
+        final MusInterval musIntervalAdded = musInterval.addToAnki(prompter);
+        final Map<String, String> addedData = musIntervalAdded.getCollectedData(sound);
+        assertNotNull(musIntervalAdded);
+        assertEquals(String.format("[sound:%s]", sound), addedData.get(MusInterval.Fields.SOUND));
+
+        doReturn(new LinkedList<Map<String, String>>() {{
+            add(new HashMap<String, String>(musIntervalAdded.getCollectedData()) {{
+                put("id", String.valueOf(noteId));
+                put("tags", "");
+            }});
+        }}).when(helper).findNotes(eq(modelId), any(Map.class));
+        doAnswer(new Answer() {
+            @Override
+            public Object answer(InvocationOnMock invocation) throws Throwable {
+                ((DuplicateAddingHandler) invocation.getArgument(1)).replace();
+                return null;
+            }
+        }).when(prompter).promptAddDuplicate(any(LinkedList.class), any(DuplicateAddingHandler.class));
+        doAnswer(new Answer() {
+            @Override
+            public Boolean answer(InvocationOnMock invocation) throws Throwable {
+                Map<String, String> data = (Map<String, String>) invocation.getArgument(2);
+                addedData.put(MusInterval.Fields.SOUND, data.get(MusInterval.Fields.SOUND));
+                return true;
+            }
+        }).when(helper).updateNote(eq(modelId), eq(noteId), any(Map.class));
+
+        MusInterval duplicateMusIntervalAdded = duplicateMusInterval.addToAnki(prompter);
+        assertNull(duplicateMusIntervalAdded);
+        assertEquals(String.format("[sound:%s]", duplicateSound), addedData.get(MusInterval.Fields.SOUND));
+    }
 }
