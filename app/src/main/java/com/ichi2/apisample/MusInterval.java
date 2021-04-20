@@ -1,5 +1,7 @@
 package com.ichi2.apisample;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
@@ -20,6 +22,7 @@ public class MusInterval {
         public static final String INTERVAL = "interval";
         public static final String TEMPO = "tempo";
         public static final String INSTRUMENT = "instrument";
+        public static final String VERSION = "MI2A_version";
 
         public static class Direction {
             public static final String ASC = "ascending";
@@ -41,17 +44,23 @@ public class MusInterval {
             public static final int MAX_VALUE = 200;
         }
 
-        public static final String[] SIGNATURE = new String[] {
-                SOUND,
-                SOUND_SMALLER,
-                SOUND_LARGER,
-                START_NOTE,
-                DIRECTION,
-                TIMING,
-                INTERVAL,
-                TEMPO,
-                INSTRUMENT
-        };
+        public static String[] getSignature(boolean versionField) {
+            ArrayList<String> signature = new ArrayList<String>() {{
+                add(SOUND);
+                add(SOUND_SMALLER);
+                add(SOUND_LARGER);
+                add(START_NOTE);
+                add(DIRECTION);
+                add(TIMING);
+                add(INTERVAL);
+                add(TEMPO);
+                add(INSTRUMENT);
+            }};
+            if (versionField) {
+                signature.add(VERSION);
+            }
+            return signature.toArray(new String[0]);
+        }
     }
 
     public static class Builder {
@@ -112,6 +121,7 @@ public class MusInterval {
             put(Fields.INTERVAL, Fields.INTERVAL);
             put(Fields.TEMPO, Fields.TEMPO);
             put(Fields.INSTRUMENT, Fields.INSTRUMENT);
+            put(Fields.VERSION, Fields.VERSION);
         }};
         private String mDeckName = DEFAULT_DECK_NAME;
         private String mSound = "";
@@ -123,6 +133,7 @@ public class MusInterval {
         private String mInterval = "";
         private String mTempo = "";
         private String mInstrument = "";
+        private String mVersion = "";
 
         public Builder(final AnkiDroidHelper helper) {
             mHelper = helper;
@@ -191,6 +202,11 @@ public class MusInterval {
             mInstrument = is;
             return this;
         }
+
+        public Builder version(String vs) {
+            mVersion = vs;
+            return this;
+        }
     }
 
     abstract static class Exception extends Throwable {}
@@ -215,6 +231,27 @@ public class MusInterval {
     public static class ValidationException extends Exception {}
     public static class StartNoteSyntaxException extends ValidationException {}
     public static class TempoValueException extends ValidationException {}
+    public static class ModelValidationException extends ValidationException {
+        private String modelName;
+
+        public ModelValidationException(String modelName) {
+            super();
+            this.modelName = modelName;
+        }
+
+        public String getModelName() {
+            return modelName;
+        }
+    }
+    public static class ModelDoesNotExistException extends ModelValidationException {
+        public ModelDoesNotExistException(String modelName) { super(modelName); }
+    }
+    public static class NotEnoughFieldsException extends ModelValidationException {
+        public NotEnoughFieldsException(String modelName) { super(modelName); }
+    }
+    public static class ModelNotConfiguredException extends ModelValidationException {
+        public ModelNotConfiguredException(String modelName) { super(modelName); }
+    }
 
     private final AnkiDroidHelper helper;
 
@@ -234,6 +271,7 @@ public class MusInterval {
     public final String interval;
     public final String tempo;
     public final String instrument;
+    public final String version;
 
     /**
      * Construct an object using builder class.
@@ -256,11 +294,34 @@ public class MusInterval {
         interval = builder.mInterval.trim();
         tempo = builder.mTempo.trim();
         instrument = builder.mInstrument.trim();
+        version = builder.mVersion;
 
         validateFields();
     }
 
     protected void validateFields() throws ValidationException {
+        String[] signature = Fields.getSignature(!version.isEmpty());
+
+        if (modelId == null) {
+            throw new ModelDoesNotExistException(modelName);
+        }
+        final ArrayList<String> modelOwnFields = new ArrayList<>(Arrays.asList(helper.getFieldList(modelId)));
+        if (modelOwnFields.size() < signature.length) {
+            throw new NotEnoughFieldsException(modelName);
+        }
+        ArrayList<String> takenFields = new ArrayList<>();
+        for (String fieldKey : signature) {
+            if (modelFields.containsKey(fieldKey)) {
+                String field = modelFields.get(fieldKey);
+                if (!modelOwnFields.contains(field) || takenFields.contains(field)) {
+                    throw new ModelNotConfiguredException(modelName);
+                }
+                takenFields.add(field);
+            } else {
+                throw new ModelNotConfiguredException(modelName);
+            }
+        }
+
         if (!startNote.isEmpty() && !startNote.matches("[A-Ga-g]#?[0-8]")) {
             throw new StartNoteSyntaxException();
         }
@@ -309,6 +370,7 @@ public class MusInterval {
         if (modelId != null) {
             Map<String, String> data = getCollectedData();
             data.remove(modelFields.get(Fields.SOUND)); // sound field should not be compared in existing data
+            data.remove(modelFields.get(Fields.VERSION));
 
             return helper.findNotes(modelId, data);
         } else {
@@ -457,12 +519,16 @@ public class MusInterval {
 
     private Map<String, String> fillSimilarIntervals(Map<String, String> data) throws AnkiDroidHelper.InvalidAnkiDatabaseException {
         Map<String, String> newData = new HashMap<>(data);
-        String soundField = modelFields.get(Fields.SOUND);
-        String sound = newData.remove(soundField);
-        newData.remove(Fields.SOUND_SMALLER);
-        newData.remove(Fields.SOUND_LARGER);
-        String intervalField = modelFields.get(Fields.INTERVAL);
-        String interval = newData.get(intervalField);
+        final String soundField = modelFields.get(Fields.SOUND);
+        final String soundSmallerField = modelFields.get(Fields.SOUND_SMALLER);
+        final String soundLargerField = modelFields.get(Fields.SOUND_LARGER);
+        final String intervalField = modelFields.get(Fields.INTERVAL);
+        final String versionField = modelFields.get(Fields.VERSION);
+        final String sound = newData.remove(soundField);
+        newData.remove(soundSmallerField);
+        newData.remove(soundLargerField);
+        final String interval = newData.get(intervalField);
+        final String version = newData.remove(versionField);
         int intervalIdx = 0;
         for (int i = 1; i < Fields.Interval.VALUES.length; i++) {
             if (Fields.Interval.VALUES[i].equals(interval)) {
@@ -484,7 +550,7 @@ public class MusInterval {
                         maxId = id;
                         maxIdIdx = i;
                     }
-                    smallerIntervalData.put(Fields.SOUND_LARGER, sound);
+                    smallerIntervalData.put(soundLargerField, sound);
                     helper.updateNote(modelId, id, smallerIntervalData);
                 }
                 soundSmaller = smallerIntervals.get(maxIdIdx).get(soundField);
@@ -504,16 +570,17 @@ public class MusInterval {
                         maxId = id;
                         maxIdIdx = i;
                     }
-                    largerIntervalData.put(Fields.SOUND_SMALLER, sound);
+                    largerIntervalData.put(soundSmallerField, sound);
                     helper.updateNote(modelId, id, largerIntervalData);
                 }
                 soundLarger = largerIntervals.get(maxIdIdx).get(soundField);
             }
         }
         newData.put(soundField, sound);
+        newData.put(soundSmallerField, soundSmaller);
+        newData.put(soundLargerField, soundLarger);
         newData.put(intervalField, interval);
-        newData.put(modelFields.get(Fields.SOUND_SMALLER), soundSmaller);
-        newData.put(modelFields.get(Fields.SOUND_LARGER), soundLarger);
+        newData.put(versionField, version);
         return newData;
     }
 
@@ -535,6 +602,9 @@ public class MusInterval {
         data.put(modelFields.get(Fields.INTERVAL), interval);
         data.put(modelFields.get(Fields.TEMPO), tempo);
         data.put(modelFields.get(Fields.INSTRUMENT), instrument);
+        if (!version.isEmpty()) {
+            data.put(modelFields.get(Fields.VERSION), version);
+        }
         return data;
     }
 }
