@@ -1,6 +1,5 @@
 package com.ichi2.apisample;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
@@ -353,7 +352,7 @@ public class MusInterval {
      * Also creates a deck if not yet created, but fails if model not found.
      * @return New MusInterval instance (with some of the fields updated)
      */
-    public MusInterval addToAnki()
+    public MusInterval addToAnki(DuplicateAddingPrompter prompter)
             throws  CreateDeckException, AddToAnkiException, MandatoryFieldEmptyException,
             SoundAlreadyAddedException, AddSoundFileException, ValidationException,
             AnkiDroidHelper.InvalidAnkiDatabaseException {
@@ -380,27 +379,69 @@ public class MusInterval {
                 throw new MandatoryFieldEmptyException(field.getKey());
             }
         }
-
         if (sound.startsWith("[sound:")) {
             throw new SoundAlreadyAddedException();
         }
 
-        String newSound = helper.addFileToAnkiMedia(sound);
+        final LinkedList<Map<String, String>> existingNotesData = getExistingNotes();
+        if (existingNotesData.size() > 0) {
+            prompter.promptAddDuplicate(existingNotesData, new DuplicateAddingHandler() {
+                @Override
+                public MusInterval add() throws AddSoundFileException, AddToAnkiException,
+                        AnkiDroidHelper.InvalidAnkiDatabaseException, ValidationException {
+                    return addToAnki();
+                }
 
+                @Override
+                public MusInterval replace() throws AnkiDroidHelper.InvalidAnkiDatabaseException,
+                        AddSoundFileException, ValidationException {
+                    if (existingNotesData.size() != 1) {
+                        throw new IllegalStateException("Replacing more than 1 existing notes is not supported.");
+                    }
+                    Map<String, String> existingData = existingNotesData.getFirst();
+
+                    String newSound = helper.addFileToAnkiMedia(sound);
+                    if (newSound == null || newSound.isEmpty()) {
+                        throw new AddSoundFileException();
+                    }
+
+                    Map<String, String> data = getCollectedData(newSound);
+                    data = fillSimilarIntervals(data);
+
+                    helper.updateNote(modelId, Long.parseLong(existingData.get("id")), data);
+
+                    return getMusIntervalFromData(data);
+                }
+
+                @Override
+                public int mark() throws NoteNotExistsException, AnkiDroidHelper.InvalidAnkiDatabaseException {
+                    return markExistingNotes();
+                }
+            });
+            return null;
+        }
+        return addToAnki();
+    }
+
+    private MusInterval addToAnki() throws AddSoundFileException,
+            AddToAnkiException, AnkiDroidHelper.InvalidAnkiDatabaseException, ValidationException {
+        String newSound = helper.addFileToAnkiMedia(sound);
         if (newSound == null || newSound.isEmpty()) {
             throw new AddSoundFileException();
         }
 
         Map<String, String> data = getCollectedData(newSound);
-
         data = fillSimilarIntervals(data);
 
         Long noteId = helper.addNote(modelId, deckId, data, null);
-
         if (noteId == null) {
             throw new AddToAnkiException();
         }
 
+        return getMusIntervalFromData(data);
+    }
+
+    private MusInterval getMusIntervalFromData(Map<String, String> data) throws ValidationException {
         return new Builder(helper)
                 .sound(data.get(modelFields.get(Fields.SOUND)))
                 .sound_smaller(data.get(modelFields.get(Fields.SOUND_SMALLER)))

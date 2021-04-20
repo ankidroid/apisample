@@ -43,6 +43,10 @@
         <item quantity="one">One music interval successfully marked</item>
         <item quantity="other">%d music intervals successfully marked</item>
     </plurals>
+    <plurals name="duplicate_warning">
+        <item quantity="one">One music interval with the same parameters already exists in Anki database</item>
+        <item quantity="other">%d music intervals with the same parameters already exist in Anki database</item>
+    </plurals>
     <string name="create_model">Note type \"%s\" is not found. Create it?</string>
     <string name="configure_model">The \"%s\" note type settings are invalid. You need to configure fields to continue using it.</string>
     <string name="create">Create</string>
@@ -57,8 +61,12 @@
     <string name="mandatory_field_empty">Mandatory field \"%s\" is empty</string>
     <string name="already_added">Music interval seems to be already added to AnkiDroid (try to select sound file)</string>
     <string name="item_added">Music interval successfully added to AnkiDroid</string>
+    <string name="item_replaced">Music interval successfully replaced</string>
     <string name="add_file_error">Failed to add file to AnkiDroid media</string>
     <string name="unknown_adding_error">Failed to add music interval to AnkiDroid</string>
+    <string name="add_anyway">Add anyway</string>
+    <string name="mark_existing">Mark existing</string>
+    <string name="replace_existing">Replace</string>
 
     <string name="InvalidAnkiDatabase_fieldAndFieldNameCountMismatch">Invalid Anki Database: field and field name count mismatches</string>
     <string name="InvalidAnkiDatabase_unknownError">Invalid Anki Database: unknown error</string>

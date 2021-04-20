@@ -39,10 +39,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Map;
 
 
-public class MainActivity extends AppCompatActivity implements ActivityCompat.OnRequestPermissionsResultCallback {
+public class MainActivity extends AppCompatActivity implements ActivityCompat.OnRequestPermissionsResultCallback, DuplicateAddingPrompter {
 
     private static final int AD_PERM_REQUEST = 0;
     private static final int PERMISSIONS_REQUEST_EXTERNAL_STORAGE = 1;
@@ -343,16 +344,10 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     return;
                 }
                 try {
-                    MusInterval newMi = getMusInterval().addToAnki();
-                    inputFilename.setText(newMi.sound);
-                    inputStartNote.setText(newMi.startNote);
-
-                    savedStartNotes.add(newMi.startNote);
-                    savedInstruments.add(newMi.instrument);
-
-                    refreshExisting();
-
-                    showMsg(R.string.item_added);
+                    MusInterval newMi = getMusInterval().addToAnki(MainActivity.this);
+                    if (newMi != null) {
+                        handleAddToAnki(newMi);
+                    }
                 } catch (MusInterval.Exception e) {
                     processMusIntervalException(e);
                 } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
@@ -360,6 +355,83 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 }
             }
         });
+    }
+
+    @Override
+    public void promptAddDuplicate(LinkedList<Map<String, String>> existingNotesData, final DuplicateAddingHandler handler) {
+        Resources res = getResources();
+        String msg;
+        int existingCount = existingNotesData.size();
+        if (existingCount == 1) {
+            msg = res.getQuantityString(R.plurals.duplicate_warning, existingCount);
+        } else {
+            msg = res.getQuantityString(R.plurals.duplicate_warning, existingCount, existingCount);
+        }
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this)
+                .setMessage(msg)
+                .setPositiveButton(R.string.add_anyway, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        try {
+                            MusInterval newMi = handler.add(); //duplication
+                            handleAddToAnki(newMi);
+                        } catch (MusInterval.Exception e) {
+                            processMusIntervalException(e);
+                        } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
+                            processInvalidAnkiDatabase(e);
+                        }
+                    }
+                })
+                .setNeutralButton(R.string.mark_existing, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        try {
+                            final int count = handler.mark();
+                            showMsg(getResources().getQuantityString(R.plurals.mi_marked_result, count, count));
+                            refreshExisting();
+                        } catch (MusInterval.Exception e) {
+                            processMusIntervalException(e);
+                        } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
+                            processInvalidAnkiDatabase(e);
+                        }
+                    }
+                });
+        if (existingCount == 1) {
+            builder.setNegativeButton(R.string.replace_existing, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    try {
+                        MusInterval newMi = handler.replace();
+                        inputFilename.setText(newMi.sound);
+                        inputStartNote.setText(newMi.startNote);
+
+                        savedStartNotes.add(newMi.startNote);
+                        savedInstruments.add(newMi.instrument);
+
+                        refreshExisting();
+
+                        showMsg(R.string.item_replaced);
+                    } catch (MusInterval.Exception e) {
+                        processMusIntervalException(e);
+                    } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
+                        processInvalidAnkiDatabase(e);
+                    }
+                }
+            });
+        }
+        builder.show();
+    }
+
+    private void handleAddToAnki(MusInterval newMi) {
+        inputFilename.setText(newMi.sound);
+        inputStartNote.setText(newMi.startNote);
+
+        savedStartNotes.add(newMi.startNote);
+        savedInstruments.add(newMi.instrument);
+
+        refreshExisting();
+
+        showMsg(R.string.item_added);
     }
 
     private void configureSettingsButton() {

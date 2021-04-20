@@ -376,7 +376,7 @@ public class MusIntervalTest {
                 .deck(defaultDeckName)
                 .build();
 
-        mi.addToAnki();
+        mi.addToAnki(null);
     }
 
     @Test(expected = MusInterval.AddToAnkiException.class)
@@ -393,7 +393,7 @@ public class MusIntervalTest {
         final String tempo = "80";
         final String instrument = "guitar";
 
-        AnkiDroidHelper helper = mock(AnkiDroidHelper.class, new ThrowsExceptionClass(IllegalArgumentException.class));
+        AnkiDroidHelper helper = mock(AnkiDroidHelper.class);
         // model ok
         doReturn(modelId).when(helper).findModelIdByName(defaultModelName);
         // create deck
@@ -402,7 +402,7 @@ public class MusIntervalTest {
         doNothing().when(helper).storeDeckReference(defaultDeckName, deckId);
 
         doReturn(newSound).when(helper).addFileToAnkiMedia(sound);
-        doReturn(null).when(helper).findNotes(eq(modelId), any(Map.class));
+        doReturn(new LinkedList<Map<String, String>>()).when(helper).findNotes(eq(modelId), any(Map.class));
         doAnswer(new Answer<Long>() {
             @Override
             public Long answer(InvocationOnMock invocation) {
@@ -444,7 +444,7 @@ public class MusIntervalTest {
                 .instrument(instrument)
                 .build();
 
-        mi.addToAnki();
+        mi.addToAnki(null);
     }
 
     @Test
@@ -513,7 +513,7 @@ public class MusIntervalTest {
                 .instrument(instrument)
                 .build();
 
-        mi.addToAnki(); // should not throw any exception
+        mi.addToAnki(null); // should not throw any exception
     }
 
     @Test
@@ -580,7 +580,7 @@ public class MusIntervalTest {
                 .instrument(instrument)
                 .build();
 
-        mi.addToAnki(); // should not throw any exception
+        mi.addToAnki(null); // should not throw any exception
     }
 
     @Test
@@ -616,7 +616,7 @@ public class MusIntervalTest {
                 .instrument(instrument)
                 .build();
 
-        MusInterval mi2 = mi.addToAnki(); // should not throw any exception
+        MusInterval mi2 = mi.addToAnki(null); // should not throw any exception
 
         // everything should be the same, except "sound" field
         assertNotEquals(mi.sound, mi2.sound);
@@ -656,7 +656,7 @@ public class MusIntervalTest {
                 .instrument("violin")
                 .build();
 
-        MusInterval mi2 = mi.addToAnki(); // should not throw any exception
+        MusInterval mi2 = mi.addToAnki(null); // should not throw any exception
 
         // c#2 should be fixed to C#2
         assertEquals(mi.startNote.toUpperCase(), mi2.startNote);
@@ -690,7 +690,7 @@ public class MusIntervalTest {
                 .instrument("violin")
                 .build();
 
-        MusInterval mi2 = mi.addToAnki(); // should not throw any exception
+        MusInterval mi2 = mi.addToAnki(null); // should not throw any exception
 
         assertFalse(mi2.sound.isEmpty());
         assertNotEquals(sound, mi2.sound);
@@ -727,7 +727,7 @@ public class MusIntervalTest {
                 .instrument("violin")
                 .build();
 
-        MusInterval mi2 = mi.addToAnki(); // should not throw any exception
+        MusInterval mi2 = mi.addToAnki(null); // should not throw any exception
 
         assertFalse(mi2.sound.isEmpty());
         assertNotEquals(sound, mi2.sound);
@@ -751,7 +751,7 @@ public class MusIntervalTest {
                 .sound("") // should not be empty on adding
                 .build();
 
-        mi.addToAnki(); // should throw exception
+        mi.addToAnki(null); // should throw exception
     }
 
     @Test(expected = MusInterval.MandatoryFieldEmptyException.class)
@@ -770,7 +770,7 @@ public class MusIntervalTest {
                 .start_note("")// should not be empty on adding
                 .build();
 
-        mi.addToAnki(); // should throw exception
+        mi.addToAnki(null); // should throw exception
     }
 
     @Test(expected = MusInterval.MandatoryFieldEmptyException.class)
@@ -790,7 +790,7 @@ public class MusIntervalTest {
                 .interval("") // should not be empty on adding
                 .build();
 
-        mi.addToAnki(); // should throw exception
+        mi.addToAnki(null); // should throw exception
     }
 
     @Test
@@ -846,8 +846,8 @@ public class MusIntervalTest {
                 .instrument("violin")
                 .build();
 
-        MusInterval mi1_2 = mi1.addToAnki();
-        MusInterval mi2_2 = mi2.addToAnki();
+        MusInterval mi1_2 = mi1.addToAnki(null);
+        MusInterval mi2_2 = mi2.addToAnki(null);
 
         assertNotEquals(mi1_2.sound, mi2_2.sound);
     }
@@ -878,7 +878,7 @@ public class MusIntervalTest {
                 .instrument("violin")
                 .build();
 
-        mi.addToAnki(); // should throw exception
+        mi.addToAnki(null); // should throw exception
     }
 
     @Test(expected = MusInterval.NoteNotExistsException.class)
@@ -1468,11 +1468,11 @@ public class MusIntervalTest {
             }
         }).when(helper).updateNote(eq(modelId), any(Long.class), any(Map.class));
 
-        musIntervalsAdded.add(musIntervals[0].addToAnki());
+        musIntervalsAdded.add(musIntervals[0].addToAnki(null));
         assertEquals("", musIntervalsAdded.get(0).soundSmaller);
         assertEquals("", musIntervalsAdded.get(0).soundLarger);
         for (int i = 1; i < musIntervals.length; i++) {
-            musIntervalsAdded.add(musIntervals[i].addToAnki());
+            musIntervalsAdded.add(musIntervals[i].addToAnki(null));
             assertEquals(musIntervalsAdded.get(i - 1).sound, musIntervalsAdded.get(i).soundSmaller);
             assertEquals(musIntervalsAdded.get(i).sound, musIntervalsAdded.get(i - 1).soundLarger);
         }
@@ -1564,7 +1564,7 @@ public class MusIntervalTest {
         }).when(helper).updateNote(eq(modelId), any(Long.class), any(Map.class));
 
         for (int i = 0; i < musIntervals.length; i++) {
-            musIntervalsAdded.add(musIntervals[i].addToAnki());
+            musIntervalsAdded.add(musIntervals[i].addToAnki(null));
             assertEquals("", musIntervals[i].soundSmaller);
             assertEquals("", musIntervals[i].soundLarger);
         }
@@ -1679,11 +1679,11 @@ public class MusIntervalTest {
         }).when(helper).updateNote(eq(modelId), any(Long.class), any(Map.class));
 
         for (int i = 0; i < musIntervals.length; i++) {
-            musIntervalsAdded.add(musIntervals[i].addToAnki());
+            musIntervalsAdded.add(musIntervals[i].addToAnki(null));
         }
-        MusInterval musIntervalSmallerAdded = musIntervalSmaller.addToAnki();
+        MusInterval musIntervalSmallerAdded = musIntervalSmaller.addToAnki(null);
         assertEquals(musIntervalsAdded.getLast().sound, musIntervalSmallerAdded.soundLarger);
-        MusInterval musIntervalLargerAdded = musIntervalLarger.addToAnki();
+        MusInterval musIntervalLargerAdded = musIntervalLarger.addToAnki(null);
         assertEquals(musIntervalsAdded.getLast().sound, musIntervalLargerAdded.soundSmaller);
     }
 
@@ -1799,13 +1799,13 @@ public class MusIntervalTest {
         }).when(helper).updateNote(eq(modelId), any(Long.class), any(Map.class));
 
 
-        musIntervalsAdded.add(musInterval.addToAnki());
+        musIntervalsAdded.add(musInterval.addToAnki(null));
         for (int i = 0; i < musIntervalsSmaller.length; i++) {
-            MusInterval musIntervalSmallerAdded = musIntervalsSmaller[i].addToAnki();
+            MusInterval musIntervalSmallerAdded = musIntervalsSmaller[i].addToAnki(null);
             assertEquals(musIntervalSmallerAdded.sound, musIntervalsAdded.getFirst().soundSmaller);
         }
         for (int i = 0; i < musIntervalsLarger.length; i++) {
-            MusInterval musIntervalLargerAdded = musIntervalsLarger[i].addToAnki();
+            MusInterval musIntervalLargerAdded = musIntervalsLarger[i].addToAnki(null);
             assertEquals(musIntervalLargerAdded.sound, musIntervalsAdded.getFirst().soundLarger);
         }
     }
