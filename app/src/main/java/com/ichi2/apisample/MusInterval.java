@@ -354,18 +354,6 @@ public class MusInterval {
             }
         }
 
-        if (notes.length < 1) {
-            throw new NoteNotSelectedException();
-        }
-
-        if (octaves.length < 1) {
-            throw new OctaveNotSelectedException();
-        }
-
-        if (intervals.length < 1) {
-            throw new IntervalNotSelectedException();
-        }
-
         if (!tempo.isEmpty()) {
             int tempoInt = Integer.parseInt(tempo);
             if (tempoInt < Fields.Tempo.MIN_VALUE || tempoInt > Fields.Tempo.MAX_VALUE) {
@@ -468,6 +456,16 @@ public class MusInterval {
                 throw new CreateDeckException();
             }
             helper.storeDeckReference(deckName, deckId);
+        }
+
+        if (notes.length < 1) {
+            throw new NoteNotSelectedException();
+        }
+        if (octaves.length < 1) {
+            throw new OctaveNotSelectedException();
+        }
+        if (intervals.length < 1) {
+            throw new IntervalNotSelectedException();
         }
 
         final int permutationsNumber = getPermutationsNumber();
@@ -609,13 +607,14 @@ public class MusInterval {
 
     @SuppressWarnings("unchecked")
     public Map<String, String>[] getCollectedDataSet() {
-        final int permutationsNumber = getPermutationsNumber();
-        Map<String, String>[] miDataSet = new Map[permutationsNumber];
+        final String[] octaves = this.octaves.length > 0 ? this.octaves : new String[]{"%"};
+        final String[] notes = this.notes.length > 0 ? this.notes : new String[]{"%"};
+        final String[] intervals = this.intervals.length > 0 ? this.intervals : new String[]{"%"};
+        Map<String, String>[] miDataSet = new Map[octaves.length * notes.length * intervals.length];
         int i = 0;
         final boolean soundsProvided = sounds != null;
         final boolean soundsSmallerProvided = soundsSmaller != null;
         final boolean soundsLargerProvided = soundsLarger != null;
-        final boolean versionProvided = !version.isEmpty();
         for (String octave : octaves) {
             for (String note : notes) {
                 for (String interval : intervals) {

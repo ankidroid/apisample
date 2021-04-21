@@ -720,7 +720,7 @@ public class MusIntervalTest {
     }
 
     @Test(expected = MusInterval.NoteNotSelectedException.class)
-    public void create_NoNoteSpecified_ShouldFail() throws MusInterval.Exception {
+    public void add_NoNoteSpecified_ShouldFail() throws MusInterval.Exception, AnkiDroidHelper.InvalidAnkiDatabaseException {
         final long deckId = new Random().nextLong();
         final long modelId = new Random().nextLong();
 
@@ -734,11 +734,11 @@ public class MusIntervalTest {
                 .deck(defaultDeckName)
                 .sounds(new String[]{"/path/to/file"})
                 .notes(new String[]{})
-                .build(); // should throw exception
+                .build().addToAnki(); // should throw exception
     }
 
     @Test(expected = MusInterval.OctaveNotSelectedException.class)
-    public void create_NoOctaveSpecified_ShouldFail() throws MusInterval.Exception {
+    public void add_NoOctaveSpecified_ShouldFail() throws MusInterval.Exception, AnkiDroidHelper.InvalidAnkiDatabaseException {
         final long deckId = new Random().nextLong();
         final long modelId = new Random().nextLong();
 
@@ -753,11 +753,11 @@ public class MusIntervalTest {
                 .sounds(new String[]{"/path/to/file"})
                 .notes(new String[]{defaultNote})
                 .octaves(new String[]{})
-                .build(); // should throw exception
+                .build().addToAnki(); // should throw exception
     }
 
     @Test(expected = MusInterval.IntervalNotSelectedException.class)
-    public void create_NoIntervalSpecified_ShouldFail() throws MusInterval.Exception {
+    public void add_NoIntervalSpecified_ShouldFail() throws MusInterval.Exception, AnkiDroidHelper.InvalidAnkiDatabaseException {
         final long deckId = new Random().nextLong();
         final long modelId = new Random().nextLong();
 
@@ -773,7 +773,7 @@ public class MusIntervalTest {
                 .notes(new String[]{defaultNote})
                 .octaves(new String[]{defaultOctave})
                 .intervals(new String[]{}) // should throw exception
-                .build();
+                .build().addToAnki();
     }
 
     @Test
