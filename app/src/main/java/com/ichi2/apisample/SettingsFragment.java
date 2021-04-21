@@ -119,6 +119,19 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             fieldListPreference.setKey(getFieldPreferenceKey(signature[i]));
             fieldListPreference.setTitle(fieldTitles[i]);
             fieldListPreference.setSummaryProvider(ListPreference.SimpleSummaryProvider.getInstance());
+            fieldListPreference.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+                @Override
+                public boolean onPreferenceChange(Preference preference, Object newValue) {
+                    for (String fieldKey : signature) {
+                        String fieldPreferenceKey = getFieldPreferenceKey(fieldKey);
+                        ListPreference fieldListPreference = preferenceScreen.findPreference(fieldPreferenceKey);
+                        if (fieldListPreference != null && fieldListPreference.getValue().equals(newValue)) {
+                            fieldListPreference.setValue("");
+                        }
+                    }
+                    return true;
+                }
+            });
             fieldsPreferenceCategory.addPreference(fieldListPreference);
         }
         if (!versionField) {
