@@ -167,6 +167,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         labelExisting = findViewById(R.id.labelExisting);
         actionMarkExisting = findViewById(R.id.actionMarkExisting);
 
+        restoreUiState();
+
         textFilename.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -222,8 +224,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         configureSettingsButton();
 
         mAnkiDroid = new AnkiDroidHelper(this);
-
-        restoreUiState();
     }
 
     private String[][] getOrderedPermutationKeys() {
