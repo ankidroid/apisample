@@ -35,8 +35,17 @@ public class MusInterval {
         }
 
         public static class Interval {
-            // @todo: Make full list of intervals
-            public static final String[] VALUES = new String[]{"", "min2", "Maj2", "min3", "Maj3"};
+            public static final String[] VALUES = new String[]{
+                    "Uni",
+                    "min2", "Maj2",
+                    "min3", "Maj3",
+                    "P4",
+                    "Tri",
+                    "P5",
+                    "min6", "Maj6",
+                    "min7", "Maj7",
+                    "Oct"
+            };
         }
 
         public static class Tempo {
@@ -124,13 +133,14 @@ public class MusInterval {
             put(Fields.VERSION, Fields.VERSION);
         }};
         private String mDeckName = DEFAULT_DECK_NAME;
-        private String mSound = "";
-        private String mSoundSmaller = "";
-        private String mSoundLarger = "";
-        private String mStartNote = "";
+        private String[] mSounds = new String[]{};
+        private String[] mSoundsSmaller = new String[]{};
+        private String[] mSoundsLarger = new String[]{};
+        private String[] mNotes = new String[]{};
+        private String[] mOctaves = new String[]{};
         private String mDirection = "";
         private String mTiming = "";
-        private String mInterval = "";
+        private String[] mIntervals = new String[]{};
         private String mTempo = "";
         private String mInstrument = "";
         private String mVersion = "";
@@ -158,23 +168,28 @@ public class MusInterval {
             return this;
         }
 
-        public Builder sound(String sd) {
-            mSound = sd;
+        public Builder sounds(String[] sds) {
+            mSounds = sds;
             return this;
         }
 
-        public Builder sound_smaller(String sds) {
-            mSoundSmaller = sds;
+        public Builder sounds_smaller(String[] sdss) {
+            mSoundsSmaller = sdss;
             return this;
         }
 
-        public Builder sound_larger(String sdl) {
-            mSoundLarger = sdl;
+        public Builder sounds_larger(String[] sdls) {
+            mSoundsLarger = sdls;
             return this;
         }
 
-        public Builder start_note(String sn) {
-            mStartNote = sn;
+        public Builder notes(String[] nts) {
+            mNotes = nts;
+            return this;
+        }
+
+        public Builder octaves(String[] ocs) {
+            mOctaves = ocs;
             return this;
         }
 
@@ -188,8 +203,8 @@ public class MusInterval {
             return this;
         }
 
-        public Builder interval(String in) {
-            mInterval = in;
+        public Builder intervals(String[] ins) {
+            mIntervals = ins;
             return this;
         }
 
@@ -213,8 +228,21 @@ public class MusInterval {
     public static class CreateDeckException extends Exception {}
     public static class AddToAnkiException extends Exception {}
     public static class NoteNotExistsException extends Exception {}
+    public static class UnexpectedSoundsAmountException extends Exception {
+        private final int expectedAmount;
+        private final int providedAmount;
+
+        public UnexpectedSoundsAmountException(int expectedAmount, int providedAmount) {
+            this.expectedAmount = expectedAmount;
+            this.providedAmount = providedAmount;
+        }
+
+        public int getExpectedAmount() { return expectedAmount; }
+
+        public int getProvidedAmount() { return providedAmount; }
+    }
     public static class MandatoryFieldEmptyException extends Exception {
-        private String field;
+        private final String field;
 
         public MandatoryFieldEmptyException(String field) {
             super();
@@ -229,7 +257,9 @@ public class MusInterval {
     public static class AddSoundFileException extends Exception {}
 
     public static class ValidationException extends Exception {}
-    public static class StartNoteSyntaxException extends ValidationException {}
+    public static class NoteNotSelectedException extends ValidationException {}
+    public static class OctaveNotSelectedException extends ValidationException {}
+    public static class IntervalNotSelectedException extends ValidationException {}
     public static class TempoValueException extends ValidationException {}
     public static class ModelValidationException extends ValidationException {
         private String modelName;
@@ -262,13 +292,14 @@ public class MusInterval {
     private Long deckId;
 
     // Data of model's fields
-    public final String sound;
-    public final String soundSmaller;
-    public final String soundLarger;
-    public final String startNote;
+    public final String[] sounds;
+    public final String[] soundsSmaller;
+    public final String[] soundsLarger;
+    public final String[] notes;
+    public final String[] octaves;
     public final String direction;
     public final String timing;
-    public final String interval;
+    public final String[] intervals;
     public final String tempo;
     public final String instrument;
     public final String version;
@@ -285,13 +316,14 @@ public class MusInterval {
         deckName = builder.mDeckName;
         deckId = helper.findDeckIdByName(builder.mDeckName);
 
-        sound = builder.mSound.trim();
-        soundSmaller = builder.mSoundSmaller;
-        soundLarger = builder.mSoundLarger;
-        startNote = builder.mStartNote.trim();
+        sounds = builder.mSounds;
+        soundsSmaller = builder.mSoundsSmaller;
+        soundsLarger = builder.mSoundsLarger;
+        notes = builder.mNotes;
+        octaves = builder.mOctaves;
         direction = builder.mDirection.trim().toLowerCase();
         timing = builder.mTiming.trim().toLowerCase();
-        interval = builder.mInterval.trim();
+        intervals = builder.mIntervals;
         tempo = builder.mTempo.trim();
         instrument = builder.mInstrument.trim();
         version = builder.mVersion;
@@ -322,8 +354,16 @@ public class MusInterval {
             }
         }
 
-        if (!startNote.isEmpty() && !startNote.matches("[A-Ga-g]#?[0-8]")) {
-            throw new StartNoteSyntaxException();
+        if (notes.length < 1) {
+            throw new NoteNotSelectedException();
+        }
+
+        if (octaves.length < 1) {
+            throw new OctaveNotSelectedException();
+        }
+
+        if (intervals.length < 1) {
+            throw new IntervalNotSelectedException();
         }
 
         if (!tempo.isEmpty()) {
@@ -368,11 +408,14 @@ public class MusInterval {
      */
     private LinkedList<Map<String, String>> getExistingNotes() throws AnkiDroidHelper.InvalidAnkiDatabaseException {
         if (modelId != null) {
-            Map<String, String> data = getCollectedData();
-            data.remove(modelFields.get(Fields.SOUND)); // sound field should not be compared in existing data
-            data.remove(modelFields.get(Fields.VERSION));
-
-            return helper.findNotes(modelId, data);
+            Map<String, String>[] dataSet = getCollectedDataSet();
+            for (Map<String, String> data : dataSet) {
+                data.remove(modelFields.get(Fields.SOUND));
+                data.remove(modelFields.get(Fields.SOUND_SMALLER));
+                data.remove(modelFields.get(Fields.SOUND_LARGER));
+                data.remove(modelFields.get(Fields.VERSION));
+            }
+            return helper.findNotes(modelId, dataSet);
         } else {
             return new LinkedList<>();
         }
@@ -415,9 +458,9 @@ public class MusInterval {
      * @return New MusInterval instance (with some of the fields updated)
      */
     public MusInterval addToAnki()
-            throws  CreateDeckException, AddToAnkiException, MandatoryFieldEmptyException,
-            SoundAlreadyAddedException, AddSoundFileException, ValidationException,
-            AnkiDroidHelper.InvalidAnkiDatabaseException {
+            throws CreateDeckException, AddToAnkiException, UnexpectedSoundsAmountException,
+            MandatoryFieldEmptyException, SoundAlreadyAddedException, AddSoundFileException,
+            ValidationException, AnkiDroidHelper.InvalidAnkiDatabaseException {
 
         if (deckId == null) {
             deckId = helper.addNewDeck(deckName);
@@ -427,12 +470,16 @@ public class MusInterval {
             helper.storeDeckReference(deckName, deckId);
         }
 
+        final int permutationsNumber = getPermutationsNumber();
+        final boolean soundsProvided = sounds != null;
+        if (!soundsProvided || sounds.length != permutationsNumber) {
+            final int providedAmount = soundsProvided ? sounds.length : 0;
+            throw new UnexpectedSoundsAmountException(permutationsNumber, providedAmount);
+        }
+
         final Map<String, String> fields = new HashMap<String, String>() {{
-            put(Fields.SOUND, sound);
-            put(Fields.START_NOTE, startNote);
             put(Fields.DIRECTION, direction);
             put(Fields.TIMING, timing);
-            put(Fields.INTERVAL, interval);
             put(Fields.TEMPO, tempo);
             put(Fields.INSTRUMENT, instrument);
         }};
@@ -442,60 +489,74 @@ public class MusInterval {
             }
         }
 
-        if (sound.startsWith("[sound:")) {
-            throw new SoundAlreadyAddedException();
-        }
+        Map<String, String>[] miDataSet = getCollectedDataSet();
+        String soundField = modelFields.get(Fields.SOUND);
+        String soundSmallerField = modelFields.get(Fields.SOUND_SMALLER);
+        String soundLargerField = modelFields.get(Fields.SOUND_LARGER);
+        String[] addedSounds = new String[miDataSet.length];
+        String[] soundsSmaller = new String[miDataSet.length];
+        String[] soundsLarger = new String[miDataSet.length];
+        int i = 0;
+        for (Map<String, String> miData : miDataSet) {
+            String sound = miData.get(soundField);
+            if (sound.startsWith("[sound:")) {
+                throw new SoundAlreadyAddedException();
+            }
+            String newSound = helper.addFileToAnkiMedia(sound);
+            if (newSound == null || newSound.isEmpty()) {
+                throw new AddSoundFileException();
+            }
+            newSound = String.format("[sound:%s]", newSound);
+            miData.put(soundField, newSound);
+            addedSounds[i] = newSound;
 
-        String newSound = helper.addFileToAnkiMedia(sound);
+            miData = fillSimilarIntervals(miData);
+            soundsSmaller[i] = miData.get(soundSmallerField);
+            soundsLarger[i] = miData.get(soundLargerField);
 
-        if (newSound == null || newSound.isEmpty()) {
-            throw new AddSoundFileException();
-        }
+            Long noteId = helper.addNote(modelId, deckId, miData, null);
 
-        Map<String, String> data = getCollectedData(newSound);
-
-        data = fillSimilarIntervals(data);
-
-        Long noteId = helper.addNote(modelId, deckId, data, null);
-
-        if (noteId == null) {
-            throw new AddToAnkiException();
+            if (noteId == null) {
+                throw new AddToAnkiException();
+            }
+            i++;
         }
 
         return new Builder(helper)
-                .sound(data.get(modelFields.get(Fields.SOUND)))
-                .sound_smaller(data.get(modelFields.get(Fields.SOUND_SMALLER)))
-                .sound_larger(data.get(modelFields.get(Fields.SOUND_LARGER)))
-                .start_note(data.get(modelFields.get(Fields.START_NOTE)))
-                .direction(data.get(modelFields.get(Fields.DIRECTION)))
-                .timing(data.get(modelFields.get(Fields.TIMING)))
-                .interval(data.get(modelFields.get(Fields.INTERVAL)))
-                .tempo(data.get(modelFields.get(Fields.TEMPO)))
-                .instrument(data.get(modelFields.get(Fields.INSTRUMENT)))
+                .sounds(addedSounds)
+                .sounds_smaller(soundsSmaller)
+                .sounds_larger(soundsLarger)
+                .notes(notes)
+                .octaves(octaves)
+                .direction(direction)
+                .timing(timing)
+                .intervals(intervals)
+                .tempo(tempo)
+                .instrument(instrument)
                 .build();
     }
 
     private Map<String, String> fillSimilarIntervals(Map<String, String> data) throws AnkiDroidHelper.InvalidAnkiDatabaseException {
         Map<String, String> newData = new HashMap<>(data);
-        final String soundField = modelFields.get(Fields.SOUND);
+        String soundField = modelFields.get(Fields.SOUND);
         final String soundSmallerField = modelFields.get(Fields.SOUND_SMALLER);
         final String soundLargerField = modelFields.get(Fields.SOUND_LARGER);
         final String intervalField = modelFields.get(Fields.INTERVAL);
         final String versionField = modelFields.get(Fields.VERSION);
-        final String sound = newData.remove(soundField);
+        String sound = newData.remove(soundField);
         newData.remove(soundSmallerField);
         newData.remove(soundLargerField);
         final String interval = newData.get(intervalField);
         final String version = newData.remove(versionField);
-        int intervalIdx = 0;
-        for (int i = 1; i < Fields.Interval.VALUES.length; i++) {
+        int intervalIdx = -1;
+        for (int i = 0; i < Fields.Interval.VALUES.length; i++) {
             if (Fields.Interval.VALUES[i].equals(interval)) {
                 intervalIdx = i;
                 break;
             }
         }
         String soundSmaller = "";
-        if (intervalIdx > 1) {
+        if (intervalIdx > 0) {
             newData.put(intervalField, Fields.Interval.VALUES[intervalIdx - 1]);
             LinkedList<Map<String, String>> smallerIntervals = helper.findNotes(modelId, newData);
             if (smallerIntervals != null && smallerIntervals.size() >= 1) {
@@ -542,27 +603,45 @@ public class MusInterval {
         return newData;
     }
 
-    /**
-     * Get the music interval data in one map.
-     */
-    public Map<String, String> getCollectedData() {
-        return getCollectedData(this.sound);
+    public int getPermutationsNumber() {
+        return notes.length * octaves.length * intervals.length;
     }
 
-    public Map<String, String> getCollectedData(String sound) {
-        Map<String, String> data = new HashMap<>();
-        data.put(modelFields.get(Fields.SOUND), "[sound:" + sound + "]");
-        data.put(modelFields.get(Fields.SOUND_SMALLER), soundSmaller);
-        data.put(modelFields.get(Fields.SOUND_LARGER), soundLarger);
-        data.put(modelFields.get(Fields.START_NOTE), startNote.toUpperCase());
-        data.put(modelFields.get(Fields.DIRECTION), direction);
-        data.put(modelFields.get(Fields.TIMING), timing);
-        data.put(modelFields.get(Fields.INTERVAL), interval);
-        data.put(modelFields.get(Fields.TEMPO), tempo);
-        data.put(modelFields.get(Fields.INSTRUMENT), instrument);
-        if (!version.isEmpty()) {
-            data.put(modelFields.get(Fields.VERSION), version);
+    @SuppressWarnings("unchecked")
+    public Map<String, String>[] getCollectedDataSet() {
+        final int permutationsNumber = getPermutationsNumber();
+        Map<String, String>[] miDataSet = new Map[permutationsNumber];
+        int i = 0;
+        final boolean soundsProvided = sounds != null;
+        final boolean soundsSmallerProvided = soundsSmaller != null;
+        final boolean soundsLargerProvided = soundsLarger != null;
+        final boolean versionProvided = !version.isEmpty();
+        for (String octave : octaves) {
+            for (String note : notes) {
+                for (String interval : intervals) {
+                    Map<String, String> miData = new HashMap<>();
+                    String sound = soundsProvided && sounds.length > i ? sounds[i] : "";
+                    miData.put(modelFields.get(Fields.SOUND), sound);
+                    String soundSmaller = soundsSmallerProvided && soundsSmaller.length > i ? soundsSmaller[i] : "";
+                    miData.put(modelFields.get(Fields.SOUND_SMALLER), soundSmaller);
+                    String soundLarger = soundsLargerProvided && soundsLarger.length > i ? soundsLarger[i] : "";
+                    miData.put(modelFields.get(Fields.SOUND_LARGER), soundLarger);
+                    miData.put(modelFields.get(Fields.START_NOTE), note + octave);
+                    miData.put(modelFields.get(Fields.DIRECTION), direction);
+                    miData.put(modelFields.get(Fields.TIMING), timing);
+                    miData.put(modelFields.get(Fields.INTERVAL), interval);
+                    miData.put(modelFields.get(Fields.TEMPO), tempo);
+                    miData.put(modelFields.get(Fields.INSTRUMENT), instrument);
+                    miDataSet[i] = miData;
+                    i++;
+                }
+            }
         }
-        return data;
+        if (!version.isEmpty()) {
+            for (Map<String, String> miData : miDataSet) {
+                miData.put(modelFields.get(Fields.VERSION), version);
+            }
+        }
+        return miDataSet;
     }
 }
