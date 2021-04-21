@@ -289,7 +289,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         } finally {
             Resources res = getResources();
             String selectFileText;
-            if (permutationsNumber == 1) {
+            if (permutationsNumber <= 1) {
+                permutationsNumber = 1;
                 selectFileText = res.getQuantityString(R.plurals.select_file, permutationsNumber);
             } else {
                 selectFileText = res.getQuantityString(R.plurals.select_file, permutationsNumber, permutationsNumber);
@@ -866,6 +867,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 preferenceEditor.putString(modelFieldPreferenceKey, fieldKey);
             }
             preferenceEditor.apply();
+            refreshExisting();
+            refreshPermutations();
             showMsg(R.string.create_model_success, modelName);
         } else {
             showMsg(R.string.create_model_error);
