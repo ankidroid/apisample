@@ -52,8 +52,21 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private static final String STATE_REF_DB = "com.ichi2.apisample.uistate";
     private static final String KEY_BATCH_ADDING_NOTICE_SEEN = "batchAddingNoticeSeen";
 
-    private final Map<String, String> fieldLabels = new HashMap<>();
-    private final Map<String, String> intervalLabels = new HashMap<>();
+    private final Map<String, Integer> fieldLabelStringIds = new HashMap<String, Integer>() {{
+        put(MusInterval.Fields.DIRECTION, R.string.direction);
+        put(MusInterval.Fields.TIMING, R.string.timing);
+        put(MusInterval.Fields.TEMPO, R.string.tempo);
+        put(MusInterval.Fields.INSTRUMENT, R.string.instrument);
+    }};
+
+    {
+        Set<String> keys = fieldLabelStringIds.keySet();
+        for (String field : MusInterval.Fields.MANDATORY) {
+            if (!keys.contains(field)) {
+                throw new AssertionError();
+            }
+        }
+    }
 
     private TextView textFilename;
     private Button actionSelectFile;
@@ -100,6 +113,17 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             R.id.checkIntervalP8
     };
 
+    private final Map<Integer, String> checkIntervalIdValues = new HashMap<>();
+
+    {
+        if (checkIntervalIds.length != MusInterval.Fields.Interval.VALUES.length) {
+            throw new AssertionError();
+        }
+        for (int i = 0; i < MusInterval.Fields.Interval.VALUES.length; i++) {
+            checkIntervalIdValues.put(checkIntervalIds[i], MusInterval.Fields.Interval.VALUES[i]);
+        }
+    }
+
     private String[] filenames = new String[]{};
     private Integer permutationsNumber;
 
@@ -109,34 +133,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        fieldLabels.put(MusInterval.Fields.DIRECTION, getResources().getString(R.string.direction));
-        fieldLabels.put(MusInterval.Fields.TIMING, getResources().getString(R.string.timing));
-        fieldLabels.put(MusInterval.Fields.INTERVAL, getResources().getString(R.string.interval));
-        fieldLabels.put(MusInterval.Fields.TEMPO, getResources().getString(R.string.tempo));
-        fieldLabels.put(MusInterval.Fields.INSTRUMENT, getResources().getString(R.string.instrument));
-
-        final String[] intervalLabels = new String[]{
-                getString(R.string.interval_P1),
-                getString(R.string.interval_m2),
-                getString(R.string.interval_M2),
-                getString(R.string.interval_m3),
-                getString(R.string.interval_M3),
-                getString(R.string.interval_P4),
-                getString(R.string.interval_TT),
-                getString(R.string.interval_P5),
-                getString(R.string.interval_m6),
-                getString(R.string.interval_M6),
-                getString(R.string.interval_m7),
-                getString(R.string.interval_M7),
-                getString(R.string.interval_P8)
-        };
-        if (intervalLabels.length != MusInterval.Fields.Interval.VALUES.length) {
-            throw new AssertionError();
-        }
-        for (int i = 0; i < MusInterval.Fields.Interval.VALUES.length; i++) {
-            this.intervalLabels.put(intervalLabels[i], MusInterval.Fields.Interval.VALUES[i]);
-        }
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -745,7 +741,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 .octaves(getCheckedValues(checkOctaves))
                 .direction(!directionStr.equals(anyStr) ? directionStr : "")
                 .timing(!timingStr.equals(anyStr) ? timingStr : "")
-                .intervals(getCheckedValues(checkIntervals, intervalLabels))
+                .intervals(getCheckedValues(checkIntervals, checkIntervalIdValues))
                 .tempo(seekTempo.getProgress() > 0 ? Integer.toString(seekTempo.getProgress()) : "")
                 .instrument(inputInstrument.getText().toString());
         if (versionField) {
@@ -758,13 +754,13 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         return getCheckedValues(checkBoxes, null);
     }
 
-    private static String[] getCheckedValues(CheckBox[] checkBoxes, Map<String, String> valueLabels) {
+    private static String[] getCheckedValues(CheckBox[] checkBoxes, Map<Integer, String> checkIdValues) {
         ArrayList<String> valuesList = new ArrayList<>();
         for (CheckBox checkBox : checkBoxes) {
             if (checkBox.isChecked()) {
                 String value = checkBox.getText().toString();
-                if (valueLabels != null) {
-                    value = valueLabels.get(value);
+                if (checkIdValues != null) {
+                    value = checkIdValues.get(checkBox.getId());
                 }
                 valuesList.add(value);
             }
@@ -821,9 +817,17 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             showMsg(R.string.invalid_model, e.getModelName());
         } catch (MusInterval.ModelNotConfiguredException e) {
             final String modelName = e.getModelName();
+            StringBuilder fieldsStr = new StringBuilder();
+            ArrayList<String> invalidModelFields = e.getInvalidModelFields();
+            for (String field : invalidModelFields) {
+                if (fieldsStr.length() != 0) {
+                    fieldsStr.append(", ");
+                }
+                fieldsStr.append(String.format("\"%s\"", SettingsFragment.getFieldPreferenceLabelString(field, this)));
+            }
             new AlertDialog.Builder(this)
-                    .setMessage(String.format(
-                            getResources().getString(R.string.configure_model), modelName))
+                    .setMessage(
+                            getResources().getQuantityString(R.plurals.invalid_model_fields, invalidModelFields.size(), modelName, fieldsStr.toString()))
                     .setPositiveButton(R.string.configure, new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
                             openSettings();
@@ -842,7 +846,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         } catch (MusInterval.AddToAnkiException e) {
             showMsg(R.string.add_card_error);
         } catch (MusInterval.MandatoryFieldEmptyException e) {
-            showMsg(R.string.mandatory_field_empty, fieldLabels.get(e.getField()));
+            Integer resId = fieldLabelStringIds.get(e.getField());
+            String fieldStr = resId != null ? getResources().getString(resId) : "";
+            showMsg(R.string.mandatory_field_empty, fieldStr);
         } catch (MusInterval.SoundAlreadyAddedException e) {
             showMsg(R.string.already_added);
         } catch (MusInterval.AddSoundFileException e) {

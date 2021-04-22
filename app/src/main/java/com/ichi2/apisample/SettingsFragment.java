@@ -2,7 +2,6 @@ package com.ichi2.apisample;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.content.res.Resources;
 import android.os.Bundle;
 
 import androidx.preference.DropDownPreference;
@@ -15,8 +14,10 @@ import androidx.preference.PreferenceScreen;
 import androidx.preference.SwitchPreference;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class SettingsFragment extends PreferenceFragmentCompat {
     public static final String KEY_DECK_PREFERENCE = "preference_deck";
@@ -28,6 +29,28 @@ public class SettingsFragment extends PreferenceFragmentCompat {
     private static final String TEMPLATE_KEY_MODEL_FIELD_PREFERENCE = "%s_%s_model";
 
     public static final boolean DEFAULT_VERSION_FIELD_SWITCH = true;
+
+    private static Map<String, Integer> fieldPreferenceLabelStringIds = new HashMap<String, Integer>() {{
+        put(MusInterval.Fields.SOUND, R.string.sound_field_list_preference_title);
+        put(MusInterval.Fields.SOUND_SMALLER, R.string.sound_smaller_field_list_preference_title);
+        put(MusInterval.Fields.SOUND_LARGER, R.string.sound_larger_field_list_preference_title);
+        put(MusInterval.Fields.START_NOTE, R.string.start_note_field_list_preference_title);
+        put(MusInterval.Fields.DIRECTION, R.string.direction_field_list_preference_title);
+        put(MusInterval.Fields.TIMING, R.string.timing_field_list_preference_title);
+        put(MusInterval.Fields.INTERVAL, R.string.interval_field_list_preference_title);
+        put(MusInterval.Fields.TEMPO, R.string.tempo_field_list_preference_title);
+        put(MusInterval.Fields.INSTRUMENT, R.string.instrument_field_list_preference_title);
+        put(MusInterval.Fields.VERSION, R.string.version_field_list_preference_title);
+    }};
+
+    static {
+        Set<String> keys = fieldPreferenceLabelStringIds.keySet();
+        for (String field : MusInterval.Fields.getSignature(true)) {
+            if (!keys.contains(field)) {
+                throw new AssertionError();
+            }
+        }
+    }
 
     private Context context;
     private PreferenceScreen preferenceScreen;
@@ -96,28 +119,15 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
         final boolean versionField = preferences.getBoolean(KEY_VERSION_FIELD_SWITCH, DEFAULT_VERSION_FIELD_SWITCH);
         final String[] signature = MusInterval.Fields.getSignature(true);
-        Resources res = getResources();
-        String[] fieldTitles = new String[]{
-                res.getString(R.string.sound_field_list_preference_title),
-                res.getString(R.string.sound_smaller_field_list_preference_title),
-                res.getString(R.string.sound_larger_field_list_preference_title),
-                res.getString(R.string.start_note_field_list_preference_title),
-                res.getString(R.string.direction_field_list_preference_title),
-                res.getString(R.string.timing_field_list_preference_title),
-                res.getString(R.string.interval_field_list_preference_title),
-                res.getString(R.string.tempo_field_list_preference_title),
-                res.getString(R.string.instrument_field_list_preference_title),
-                res.getString(R.string.version_field_list_preference_title),
-        };
         PreferenceCategory fieldsPreferenceCategory = new PreferenceCategory(context);
         fieldsPreferenceCategory.setKey(KEY_FIELDS_PREFERENCE_CATEGORY);
         fieldsPreferenceCategory.setTitle(R.string.fields_preference_category_title);
         fieldsPreferenceCategory.setInitialExpandedChildrenCount(0);
         preferenceScreen.addPreference(fieldsPreferenceCategory);
-        for (int i = 0; i < signature.length; i++) {
+        for (String fieldKey : signature) {
             ListPreference fieldListPreference = new DropDownPreference(context);
-            fieldListPreference.setKey(getFieldPreferenceKey(signature[i]));
-            fieldListPreference.setTitle(fieldTitles[i]);
+            fieldListPreference.setKey(getFieldPreferenceKey(fieldKey));
+            fieldListPreference.setTitle(getFieldPreferenceLabelString(fieldKey, context));
             fieldListPreference.setSummaryProvider(ListPreference.SimpleSummaryProvider.getInstance());
             fieldsPreferenceCategory.addPreference(fieldListPreference);
         }
@@ -164,6 +174,11 @@ public class SettingsFragment extends PreferenceFragmentCompat {
 
     public static String getModelFieldPreferenceKey(long modelId, String fieldPreferenceKey) {
         return String.format(TEMPLATE_KEY_MODEL_FIELD_PREFERENCE, fieldPreferenceKey, modelId);
+    }
+
+    public static String getFieldPreferenceLabelString(String fieldKey, Context context) {
+        Integer resId = fieldPreferenceLabelStringIds.get(fieldKey);
+        return resId != null ? context.getResources().getString(resId) : "";
     }
 
     private void updateFieldsPreferenceEntries(String modelName, String[] signature, boolean modelChanged) {
