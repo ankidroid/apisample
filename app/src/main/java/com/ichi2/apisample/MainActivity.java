@@ -361,6 +361,11 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         refreshExisting();
         refreshPermutations();
         refreshFilenameText();
+        try {
+            getMusInterval();
+        } catch (MusInterval.Exception e) {
+            processMusIntervalException(e);
+        }
     }
 
     private void refreshExisting() {
