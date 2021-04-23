@@ -6,6 +6,7 @@
     <string name="str_no">No</string>
 
     <!-- MainActivity labels, fields and buttons -->
+    <string name="switch_batch">Enable batch adding</string>
     <string name="label_filename">Filename</string>
     <string name="start_note">Start note</string>
     <string name="note_c">C</string>
@@ -27,7 +28,7 @@
     <string name="octave_4">4</string>
     <string name="octave_5">5</string>
     <string name="octave_6">6</string>
-    <string name="radio_any">Any</string>
+    <string name="any">Any</string>
     <string name="direction">Direction</string>
     <string name="direction_asc">Ascending</string>
     <string name="direction_desc">Descending</string>
@@ -48,7 +49,6 @@
     <string name="interval_m7">m7</string>
     <string name="interval_M7">M7</string>
     <string name="interval_P8">P8</string>
-
     <string name="tempo">Tempo</string>
     <string name="instrument">Instrument</string>
     <string name="action_clear_all">Clear all fields</string>
@@ -110,9 +110,9 @@
     <string name="filenames_list_item">%d. %s</string>
     <string name="filenames_list_item_with_key">%d. %s (%s, %s)</string>
     <string name="filenames_list_separator">\n</string>
-    <string name="note_not_selected">At least one note must be selected</string>
-    <string name="octave_not_selected">At least one octave must be selected</string>
-    <string name="interval_not_selected">At least one interval must be selected</string>
+    <string name="note_not_selected">At least one specific note must be selected</string>
+    <string name="octave_not_selected">At least one specific octave must be selected</string>
+    <string name="interval_not_selected">At least one specific interval must be selected</string>
     <string name="batch_adding_notice">
         When adding multiple music intervals at once, the selected set of sound files must obey the following rules:\n
         1. The number of files must be equal to the number of unique interval permutations for the chosen field values.\n

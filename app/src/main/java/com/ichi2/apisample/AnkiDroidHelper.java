@@ -232,6 +232,10 @@ public class AnkiDroidHelper {
 
     public LinkedList<Map<String, String>> findNotes(long modelId, Map<String, String>[] dataSet)
             throws InvalidAnkiDatabase_fieldAndFieldNameCountMismatchException {
+        if (dataSet.length == 0) {
+            return new LinkedList<>();
+        }
+
         String[] fieldNames = getFieldList(modelId);
 
         StringBuilder dataCondition = new StringBuilder();
