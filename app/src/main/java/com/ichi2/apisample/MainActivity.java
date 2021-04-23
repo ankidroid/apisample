@@ -56,6 +56,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private final Map<String, String> fieldLabels = new HashMap<>();
     private final Map<String, String> intervalLabels = new HashMap<>();
 
+    private SwitchCompat switchBatch;
     private TextView textFilename;
     private Button actionSelectFile;
     private CheckBox checkNoteAny;
@@ -147,7 +148,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         Toolbar main_toolbar = findViewById(R.id.main_toolbar);
         setSupportActionBar(main_toolbar);
 
-        SwitchCompat switchBatch = findViewById(R.id.switchBatch);
+        switchBatch = findViewById(R.id.switchBatch);
         textFilename = findViewById(R.id.textFilename);
         actionSelectFile = findViewById(R.id.actionSelectFile);
         checkNoteAny = findViewById(R.id.checkNoteAny);
@@ -680,15 +681,19 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     protected void onPause() {
         final SharedPreferences.Editor uiDbEditor = getSharedPreferences(STATE_REF_DB, Context.MODE_PRIVATE).edit();
 
+        uiDbEditor.putBoolean("switchBatch", switchBatch.isChecked());
         uiDbEditor.putStringSet("selectedFilenames", new HashSet<>(Arrays.asList(filenames)));
+        uiDbEditor.putBoolean("checkNoteAny", checkNoteAny.isChecked());
         for (int i = 0; i < checkNoteIds.length; i++) {
             uiDbEditor.putBoolean(String.valueOf(checkNoteIds[i]), checkNotes[i].isChecked());
         }
+        uiDbEditor.putBoolean("checkOctaveAny", checkOctaveAny.isChecked());
         for (int i = 0; i < checkOctaveIds.length; i++) {
             uiDbEditor.putBoolean(String.valueOf(checkOctaveIds[i]), checkOctaves[i].isChecked());
         }
         uiDbEditor.putInt("radioGroupDirection", radioGroupDirection.getCheckedRadioButtonId());
         uiDbEditor.putInt("radioGroupTiming", radioGroupTiming.getCheckedRadioButtonId());
+        uiDbEditor.putBoolean("checkIntervalAny", checkIntervalAny.isChecked());
         for (int i = 0; i < checkIntervalIds.length; i++) {
             uiDbEditor.putBoolean(String.valueOf(checkIntervalIds[i]), checkIntervals[i].isChecked());
         }
@@ -702,17 +707,21 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
     protected void restoreUiState() {
         final SharedPreferences uiDb = getSharedPreferences(STATE_REF_DB, Context.MODE_PRIVATE);
+        switchBatch.setChecked(uiDb.getBoolean("switchBatch", false));
         Set<String> storedFilenames = uiDb.getStringSet("selectedFilenames", new HashSet<String>());
         filenames = storedFilenames.toArray(new String[0]);
         refreshFilenameText();
+        checkNoteAny.setChecked(uiDb.getBoolean("checkNoteAny", false));
         for (int i = 0; i < checkNoteIds.length; i++) {
             checkNotes[i].setChecked(uiDb.getBoolean(String.valueOf(checkNoteIds[i]), false));
         }
+        checkOctaveAny.setChecked(uiDb.getBoolean("checkOctaveAny", false));
         for (int i = 0; i < checkOctaveIds.length; i++) {
             checkOctaves[i].setChecked(uiDb.getBoolean(String.valueOf(checkOctaveIds[i]), false));
         }
         radioGroupDirection.check(uiDb.getInt("radioGroupDirection", findViewById(R.id.radioDirectionAny).getId()));
         radioGroupTiming.check(uiDb.getInt("radioGroupTiming", findViewById(R.id.radioTimingAny).getId()));
+        checkIntervalAny.setChecked(uiDb.getBoolean("checkIntervalAny", false));
         for (int i = 0; i < checkIntervalIds.length; i++) {
             checkIntervals[i].setChecked(uiDb.getBoolean(String.valueOf(checkIntervalIds[i]), false));
         }
