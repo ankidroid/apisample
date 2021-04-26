@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
+import android.net.Uri;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -576,7 +577,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
     private void openChooser() {
         Intent intent = new Intent()
-                .setAction(Intent.ACTION_GET_CONTENT)
+                .setAction(Intent.ACTION_OPEN_DOCUMENT)
                 .setType("audio/*")
                 .addCategory(Intent.CATEGORY_OPENABLE)
                 .putExtra(Intent.EXTRA_LOCAL_ONLY, true)
@@ -596,10 +597,14 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 ClipData clipData = data.getClipData();
                 if (clipData != null) {
                     for (int i = 0; i < clipData.getItemCount(); i++) {
-                        filenamesList.add(clipData.getItemAt(i).getUri().toString());
+                        Uri uri = clipData.getItemAt(i).getUri();
+                        getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                        filenamesList.add(uri.toString());
                     }
                 } else {
-                    filenamesList.add(data.getData().toString());
+                    Uri uri = data.getData();
+                    getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    filenamesList.add(uri.toString());
                 }
             }
             filenames = filenamesList.toArray(new String[0]);
