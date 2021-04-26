@@ -446,7 +446,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             textExisting = existingCount == 0 ?
                     textFound :
                     textFound + textMarked;
-        } catch (MusInterval.ValidationException | AnkiDroidHelper.InvalidAnkiDatabaseException e) {
+        } catch (Throwable e) {
             textExisting = ""; // might wanna set some error message here
         } finally {
             labelExisting.setText(textExisting);
@@ -623,6 +623,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     processMusIntervalException(e);
                 } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
                     processInvalidAnkiDatabase(e);
+                } catch (Throwable e) {
+                    processUnknownException(e);
                 }
             }
         });
@@ -653,6 +655,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     processMusIntervalException(e);
                 } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
                     processInvalidAnkiDatabase(e);
+                } catch (Throwable e) {
+                    processUnknownException(e);
                 }
             }
         });
@@ -1040,10 +1044,14 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         try {
             throw invalidAnkiDatabaseException;
         } catch (AnkiDroidHelper.InvalidAnkiDatabase_fieldAndFieldNameCountMismatchException e) {
-            showMsg(R.string.InvalidAnkiDatabase_unknownError);
-        } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
             showMsg(R.string.InvalidAnkiDatabase_fieldAndFieldNameCountMismatch);
+        } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
+            showMsg(R.string.InvalidAnkiDatabase_unknownError);
         }
+    }
+
+    private void processUnknownException(Throwable e) {
+        showMsg(R.string.unknown_error);
     }
 
     private void showMsg(int msgResId, Object ...formatArgs) {

@@ -126,6 +126,7 @@
     <string name="add_anyway">Add anyway</string>
     <string name="mark_existing">Mark existing</string>
     <string name="replace_existing">Replace</string>
+    <string name="unknown_error">Unknown error (try to open AnkiDroid to see what\'s wrong)</string>
 
     <string name="InvalidAnkiDatabase_fieldAndFieldNameCountMismatch">Invalid Anki Database: field and field name count mismatches</string>
     <string name="InvalidAnkiDatabase_unknownError">Invalid Anki Database: unknown error</string>
