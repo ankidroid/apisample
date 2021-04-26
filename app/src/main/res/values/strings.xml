@@ -6,10 +6,29 @@
     <string name="str_no">No</string>
 
     <!-- MainActivity labels, fields and buttons -->
+    <string name="switch_batch">Enable batch adding</string>
     <string name="label_filename">Filename</string>
-    <string name="select_filename">Select file</string>
     <string name="start_note">Start note</string>
-    <string name="radio_any">Any</string>
+    <string name="note_c">C</string>
+    <string name="note_c_sharp">C#</string>
+    <string name="note_d">D</string>
+    <string name="note_d_sharp">D#</string>
+    <string name="note_e">E</string>
+    <string name="note_f">F</string>
+    <string name="note_f_sharp">F#</string>
+    <string name="note_g">G</string>
+    <string name="note_g_sharp">G#</string>
+    <string name="note_a">A</string>
+    <string name="note_a_sharp">A#</string>
+    <string name="note_b">B</string>
+    <string name="octave">Octave</string>
+    <string name="octave_1">1</string>
+    <string name="octave_2">2</string>
+    <string name="octave_3">3</string>
+    <string name="octave_4">4</string>
+    <string name="octave_5">5</string>
+    <string name="octave_6">6</string>
+    <string name="any">Any</string>
     <string name="direction">Direction</string>
     <string name="direction_asc">Ascending</string>
     <string name="direction_desc">Descending</string>
@@ -17,6 +36,19 @@
     <string name="timing_melodic">Melodic</string>
     <string name="timing_harmonic">Harmonic</string>
     <string name="interval">Interval</string>
+    <string name="interval_P1">P1</string>
+    <string name="interval_m2">m2</string>
+    <string name="interval_M2">M2</string>
+    <string name="interval_m3">m3</string>
+    <string name="interval_M3">M3</string>
+    <string name="interval_P4">P4</string>
+    <string name="interval_TT">TT</string>
+    <string name="interval_P5">P5</string>
+    <string name="interval_m6">m6</string>
+    <string name="interval_M6">M6</string>
+    <string name="interval_m7">m7</string>
+    <string name="interval_M7">M7</string>
+    <string name="interval_P8">P8</string>
     <string name="tempo">Tempo</string>
     <string name="instrument">Instrument</string>
     <string name="action_clear_all">Clear all fields</string>
@@ -39,9 +71,28 @@
     <string name="fs_permission_denied">Could not get permission to access a filesystem</string>
     <string name="mi_not_exists">Music interval not found</string>
     <plurals name="mi_marked_result">
-        <item quantity="zero">Nothing was marked</item>
         <item quantity="one">One music interval successfully marked</item>
         <item quantity="other">%d music intervals successfully marked</item>
+    </plurals>
+    <plurals name="mi_added">
+        <item quantity="one">Music interval has been successfully added to AnkiDroid</item>
+        <item quantity="other">%d music intervals have been successfully added to AnkiDroid</item>
+    </plurals>
+    <plurals name="select_file">
+        <item quantity="one">Select file</item>
+        <item quantity="other">Select %d files</item>
+    </plurals>
+    <plurals name="sound_not_provided">
+        <item quantity="one">Sound file must be provided</item>
+        <item quantity="other">%d sound files must be provided</item>
+    </plurals>
+    <plurals name="unexpected_sounds_amount">
+        <item quantity="one">Single sound file must be provided (got %d)</item>
+        <item quantity="other">%d sound files must be provided (got %d)</item>
+    </plurals>
+    <plurals name="duplicate_warning">
+        <item quantity="one">One music interval with parameters (%s, %s, %s, %s, %s, %s) already exists in Anki database</item>
+        <item quantity="other">%d music intervals with parameters (%s, %s, %s, %s, %s, %s) already exist in Anki database</item>
     </plurals>
     <string name="create_model">Note type \"%s\" is not found. Create it?</string>
     <string name="configure_model">The \"%s\" note type settings are invalid. You need to configure fields to continue using it</string>
@@ -56,9 +107,25 @@
     <string name="add_card_error">Music interval adding to AnkiDroid failed</string>
     <string name="mandatory_field_empty">Mandatory field \"%s\" is empty</string>
     <string name="already_added">Music interval seems to be already added to AnkiDroid (try to select sound file)</string>
-    <string name="item_added">Music interval successfully added to AnkiDroid</string>
+    <string name="item_replaced">Music interval successfully replaced. Please run "Check media" in AnkiDroid to find and delete the orphaned old sound file</string>
     <string name="add_file_error">Failed to add file to AnkiDroid media</string>
     <string name="unknown_adding_error">Failed to add music interval to AnkiDroid</string>
+    <string name="additional_filenames">\u0020+ %d more</string>
+    <string name="filenames_list_item">%d. %s</string>
+    <string name="filenames_list_item_with_key">%d. %s (%s, %s)</string>
+    <string name="filenames_list_separator">\n</string>
+    <string name="note_not_selected">At least one specific note must be selected</string>
+    <string name="octave_not_selected">At least one specific octave must be selected</string>
+    <string name="interval_not_selected">At least one specific interval must be selected</string>
+    <string name="batch_adding_notice">
+        When adding multiple music intervals at once, the selected set of sound files must obey the following rules:\n
+        1. The number of files must be equal to the number of unique interval permutations for the chosen field values.\n
+        2. The sound files, when sorted, must be ordered firstly by octave, then by note, then by interval.
+    </string>
+    <string name="do_not_show">Don\'t show this message</string>
+    <string name="add_anyway">Add anyway</string>
+    <string name="mark_existing">Mark existing</string>
+    <string name="replace_existing">Replace</string>
     <string name="unknown_error">Unknown error (try to open AnkiDroid to see what\'s wrong)</string>
 
     <string name="InvalidAnkiDatabase_fieldAndFieldNameCountMismatch">Invalid Anki Database: field and field name count mismatches</string>
@@ -82,4 +149,8 @@
     <string name="version_field_list_preference_title">App version</string>
     <string name="version_field_switch_preference_title">Version stamp</string>
     <string name="version_field_switch_preference_summary">Log app version for added notes in a separate field</string>
+    <string name="duplicate_tag_edit_text_preference_title">Duplicate tag</string>
+    <string name="duplicate_tag_edit_text_preference_dialog_title">Duplicate tag</string>
+    <string name="tag_duplicates_preference_title">Tag duplicates</string>
+    <string name="tag_duplicates_preference_summary">Mark identical intervals with special tag</string>
 </resources>

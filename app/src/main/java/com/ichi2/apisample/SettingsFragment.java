@@ -6,6 +6,7 @@ import android.content.res.Resources;
 import android.os.Bundle;
 
 import androidx.preference.DropDownPreference;
+import androidx.preference.EditTextPreference;
 import androidx.preference.ListPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceCategory;
@@ -15,6 +16,8 @@ import androidx.preference.PreferenceScreen;
 import androidx.preference.SwitchPreference;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -22,12 +25,16 @@ public class SettingsFragment extends PreferenceFragmentCompat {
     public static final String KEY_DECK_PREFERENCE = "preference_deck";
     public static final String KEY_MODEL_PREFERENCE = "preference_model";
     public static final String KEY_VERSION_FIELD_SWITCH = "preference_version_field_switch";
+    public static final String KEY_TAG_DUPLICATES_SWITCH = "preference_tag_duplicates_switch";
+    public static final String KEY_DUPLICATE_TAG_PREFERENCE = "preference_duplicate_tag";
     private static final String KEY_FIELDS_PREFERENCE_CATEGORY = "preference_fields";
 
     private static final String TEMPLATE_KEY_FIELD_PREFERENCE = "preference_%s_field";
     private static final String TEMPLATE_KEY_MODEL_FIELD_PREFERENCE = "%s_%s_model";
 
     public static final boolean DEFAULT_VERSION_FIELD_SWITCH = true;
+    public static final boolean DEFAULT_TAG_DUPLICATES_SWITCH = true;
+    public static final String DEFAULT_DUPLICATE_TAG = "MI2A_duplicate";
 
     private Context context;
     private PreferenceScreen preferenceScreen;
@@ -119,6 +126,19 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             fieldListPreference.setKey(getFieldPreferenceKey(signature[i]));
             fieldListPreference.setTitle(fieldTitles[i]);
             fieldListPreference.setSummaryProvider(ListPreference.SimpleSummaryProvider.getInstance());
+            fieldListPreference.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+                @Override
+                public boolean onPreferenceChange(Preference preference, Object newValue) {
+                    for (String fieldKey : signature) {
+                        String fieldPreferenceKey = getFieldPreferenceKey(fieldKey);
+                        ListPreference fieldListPreference = preferenceScreen.findPreference(fieldPreferenceKey);
+                        if (fieldListPreference != null && fieldListPreference.getValue().equals(newValue)) {
+                            fieldListPreference.setValue("");
+                        }
+                    }
+                    return true;
+                }
+            });
             fieldsPreferenceCategory.addPreference(fieldListPreference);
         }
         if (!versionField) {
@@ -155,6 +175,32 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         });
         preferenceScreen.addPreference(versionFieldSwitchPreference);
 
+        SwitchPreference tagDuplicatesSwitchPreference = new SwitchPreference(context);
+        tagDuplicatesSwitchPreference.setKey(KEY_TAG_DUPLICATES_SWITCH);
+        tagDuplicatesSwitchPreference.setTitle(R.string.tag_duplicates_preference_title);
+        tagDuplicatesSwitchPreference.setSummary(R.string.tag_duplicates_preference_summary);
+        tagDuplicatesSwitchPreference.setDefaultValue(DEFAULT_TAG_DUPLICATES_SWITCH);
+        tagDuplicatesSwitchPreference.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
+                EditTextPreference duplicateTagPreference = preferenceScreen.findPreference(KEY_DUPLICATE_TAG_PREFERENCE);
+                if (duplicateTagPreference != null) {
+                    duplicateTagPreference.setVisible((boolean) newValue);
+                }
+                return true;
+            }
+        });
+        preferenceScreen.addPreference(tagDuplicatesSwitchPreference);
+
+        EditTextPreference duplicateTagPreference = new EditTextPreference(context);
+        duplicateTagPreference.setKey(KEY_DUPLICATE_TAG_PREFERENCE);
+        duplicateTagPreference.setDefaultValue(DEFAULT_DUPLICATE_TAG);
+        duplicateTagPreference.setTitle(R.string.duplicate_tag_edit_text_preference_title);
+        duplicateTagPreference.setSummaryProvider(EditTextPreference.SimpleSummaryProvider.getInstance());
+        duplicateTagPreference.setDialogTitle(R.string.duplicate_tag_edit_text_preference_dialog_title);
+        duplicateTagPreference.setOnPreferenceChangeListener(new TagPreferenceChangeListener(context, helper, KEY_DUPLICATE_TAG_PREFERENCE, DEFAULT_DUPLICATE_TAG));
+        preferenceScreen.addPreference(duplicateTagPreference);
+
         setPreferenceScreen(preferenceScreen);
     }
 
@@ -190,6 +236,42 @@ public class SettingsFragment extends PreferenceFragmentCompat {
                 fieldListPreference.setEntryValues(entries);
                 fieldListPreference.setValue(value);
             }
+        }
+    }
+
+    private static class TagPreferenceChangeListener implements Preference.OnPreferenceChangeListener {
+        private final Context context;
+        private final AnkiDroidHelper helper;
+        private final String key;
+        private final String defaultValue;
+
+        public TagPreferenceChangeListener(Context context, AnkiDroidHelper helper, String key, String defaultValue) {
+            super();
+            this.context = context;
+            this.helper = helper;
+            this.key = key;
+            this.defaultValue = defaultValue;
+        }
+
+        @Override
+        public boolean onPreferenceChange(Preference preference, Object newValue) {
+            try {
+                SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+                final long modelId = helper.findModelIdByName(MusInterval.Builder.DEFAULT_MODEL_NAME);
+                LinkedList<Map<String, String>> notesData = helper.findNotes(modelId, new HashMap<String, String>());
+                final String currValue = sharedPreferences.getString(key, defaultValue);
+                for (Map<String, String> noteData : notesData) {
+                    String tags = noteData.get("tags");
+                    String currValueStr = String.format(" %s ", currValue);
+                    if (tags.contains(currValueStr)) {
+                        long id = Long.parseLong(noteData.get("id"));
+                        helper.updateNoteTags(id, tags.replace(currValueStr, String.format(" %s ", newValue)));
+                    }
+                }
+            } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
+                return false;
+            }
+            return true;
         }
     }
 }
