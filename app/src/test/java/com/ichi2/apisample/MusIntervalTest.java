@@ -1676,7 +1676,7 @@ public class MusIntervalTest {
                 musIntervalsAdded.add(((DuplicateAddingHandler) invocation.getArgument(1)).add());
                 return null;
             }
-        }).when(prompter).promptAddDuplicate(any(LinkedList.class), any(DuplicateAddingHandler.class));
+        }).when(prompter).promptAddDuplicate(any(MusInterval[].class), any(DuplicateAddingHandler.class));
 
         musIntervalsAdded.add(musIntervals[0].addToAnki(null));
         for (int i = 1; i < musIntervals.length; i++) {
@@ -1957,7 +1957,7 @@ public class MusIntervalTest {
                 ((DuplicateAddingHandler) invocation.getArgument(1)).add();
                 return null;
             }
-        }).when(prompter).promptAddDuplicate(any(LinkedList.class), any(DuplicateAddingHandler.class));
+        }).when(prompter).promptAddDuplicate(any(MusInterval[].class), any(DuplicateAddingHandler.class));
 
         MusInterval duplicateMusIntervalAdded = duplicateMusInterval.addToAnki(prompter);
         assertArrayEquals(duplicateMusIntervalAdded.sounds, new String[]{});
@@ -2029,7 +2029,7 @@ public class MusIntervalTest {
                 ((DuplicateAddingHandler) invocation.getArgument(1)).mark();
                 return null;
             }
-        }).when(prompter).promptAddDuplicate(any(LinkedList.class), any(DuplicateAddingHandler.class));
+        }).when(prompter).promptAddDuplicate(any(MusInterval[].class), any(DuplicateAddingHandler.class));
         doAnswer(new Answer() {
             @Override
             public Integer answer(InvocationOnMock invocation) {
@@ -2109,7 +2109,7 @@ public class MusIntervalTest {
                 ((DuplicateAddingHandler) invocation.getArgument(1)).tag(duplicateTag);
                 return null;
             }
-        }).when(prompter).promptAddDuplicate(any(LinkedList.class), any(DuplicateAddingHandler.class));
+        }).when(prompter).promptAddDuplicate(any(MusInterval[].class), any(DuplicateAddingHandler.class));
         doAnswer(new Answer() {
             @Override
             public Integer answer(InvocationOnMock invocation) {
@@ -2190,7 +2190,7 @@ public class MusIntervalTest {
                 ((DuplicateAddingHandler) invocation.getArgument(1)).replace();
                 return null;
             }
-        }).when(prompter).promptAddDuplicate(any(LinkedList.class), any(DuplicateAddingHandler.class));
+        }).when(prompter).promptAddDuplicate(any(MusInterval[].class), any(DuplicateAddingHandler.class));
         doAnswer(new Answer() {
             @Override
             public Boolean answer(InvocationOnMock invocation) {

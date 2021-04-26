@@ -515,7 +515,11 @@ public class MusInterval {
 
             final LinkedList<Map<String, String>> existingNotesData = getExistingNotes(miData);
             if (existingNotesData.size() > 0) {
-                prompter.promptAddDuplicate(existingNotesData, new DuplicateAddingHandler() {
+                MusInterval[] existingMis = new MusInterval[existingNotesData.size()];
+                for (int i = 0; i < existingNotesData.size(); i++) {
+                    existingMis[i] = getMusIntervalFromData(existingNotesData.get(i));
+                }
+                prompter.promptAddDuplicate(existingMis, new DuplicateAddingHandler() {
                     @Override
                     public MusInterval add() throws AddSoundFileException, AddToAnkiException,
                             AnkiDroidHelper.InvalidAnkiDatabaseException, ValidationException {
@@ -570,7 +574,10 @@ public class MusInterval {
             }
         }
 
-        return new Builder(helper)
+        Builder builder = new Builder(helper)
+                .deck(deckName)
+                .model(modelName)
+                .model_fields(modelFields)
                 .sounds(addedSounds.toArray(new String[0]))
                 .sounds_smaller(soundsSmaller.toArray(new String[0]))
                 .sounds_larger(soundsLarger.toArray(new String[0]))
@@ -580,8 +587,11 @@ public class MusInterval {
                 .timing(timing)
                 .intervals(intervals)
                 .tempo(tempo)
-                .instrument(instrument)
-                .build();
+                .instrument(instrument);
+        if (!version.isEmpty()) {
+            builder.version(version);
+        }
+        return builder.build();
     }
 
     private MusInterval addToAnki(Map<String, String> data) throws AddSoundFileException,
@@ -612,7 +622,10 @@ public class MusInterval {
             note = startNote.substring(0, startNote.length() - 1);
             octave = startNote.substring(startNote.length() - 1);
         }
-        return new Builder(helper)
+        Builder builder = new Builder(helper)
+                .deck(deckName)
+                .model(modelName)
+                .model_fields(modelFields)
                 .sounds(new String[]{data.get(modelFields.get(Fields.SOUND))})
                 .sounds_smaller(new String[]{data.get(modelFields.get(Fields.SOUND_SMALLER))})
                 .sounds_larger(new String[]{data.get(modelFields.get(Fields.SOUND_LARGER))})
@@ -622,8 +635,11 @@ public class MusInterval {
                 .timing(data.get(modelFields.get(Fields.TIMING)))
                 .intervals(new String[]{data.get(modelFields.get(Fields.INTERVAL))})
                 .tempo(data.get(modelFields.get(Fields.TEMPO)))
-                .instrument(data.get(modelFields.get(Fields.INSTRUMENT)))
-                .build();
+                .instrument(data.get(modelFields.get(Fields.INSTRUMENT)));
+        if (!version.isEmpty()) {
+            builder.version(version);
+        }
+        return builder.build();
     }
 
     private Map<String, String> fillSimilarIntervals(Map<String, String> data) throws AnkiDroidHelper.InvalidAnkiDatabaseException {

@@ -71,7 +71,6 @@
     <string name="fs_permission_denied">Could not get permission to access a filesystem</string>
     <string name="mi_not_exists">Music interval not found</string>
     <plurals name="mi_marked_result">
-        <item quantity="zero">Nothing was marked</item>
         <item quantity="one">One music interval successfully marked</item>
         <item quantity="other">%d music intervals successfully marked</item>
     </plurals>
@@ -92,8 +91,8 @@
         <item quantity="other">%d sound files must be provided (got %d)</item>
     </plurals>
     <plurals name="duplicate_warning">
-        <item quantity="one">One music interval with the same parameters already exists in Anki database</item>
-        <item quantity="other">%d music intervals with the same parameters already exist in Anki database</item>
+        <item quantity="one">One music interval with parameters (%s, %s, %s, %s, %s, %s) already exists in Anki database</item>
+        <item quantity="other">%d music intervals with parameters (%s, %s, %s, %s, %s, %s) already exist in Anki database</item>
     </plurals>
     <string name="create_model">Note type \"%s\" is not found. Create it?</string>
     <string name="configure_model">The \"%s\" note type settings are invalid. You need to configure fields to continue using it</string>

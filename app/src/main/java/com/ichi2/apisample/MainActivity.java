@@ -39,7 +39,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 
@@ -186,7 +185,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                         if (msg.length() > 0) {
                             msg.append(getString(R.string.filenames_list_separator));
                         }
-                        if (i < orderedPermutationKeys.length) {
+                        // @todo: update filename field values signature
+                        if (i < orderedPermutationKeys.length && !filenames[i].startsWith("[sound:")) {
                             final String startNote = orderedPermutationKeys[i][1] + orderedPermutationKeys[i][0];
                             final String interval = orderedPermutationKeys[i][2];
                             msg.append(getString(R.string.filenames_list_item_with_key, i + 1, filenames[i], startNote, interval));
@@ -646,7 +646,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     final int nAdded = newMi.sounds.length;
                     if (nAdded == 1) {
                         showQuantityMsg(R.plurals.mi_added, nAdded);
-                    } else {
+                    } else if (nAdded > 1) {
                         showQuantityMsg(R.plurals.mi_added, nAdded, nAdded);
                     }
                 } catch (MusInterval.Exception e) {
@@ -659,7 +659,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     }
 
     @Override
-    public void promptAddDuplicate(LinkedList<Map<String, String>> existingNotesData, final DuplicateAddingHandler handler) {
+    public void promptAddDuplicate(MusInterval[] existingMis, final DuplicateAddingHandler handler) {
         final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
         final boolean tagDuplicates = sharedPreferences.getBoolean(SettingsFragment.KEY_TAG_DUPLICATES_SWITCH, SettingsFragment.DEFAULT_TAG_DUPLICATES_SWITCH);
         final String duplicateTag = sharedPreferences.getString(SettingsFragment.KEY_DUPLICATE_TAG_PREFERENCE, SettingsFragment.DEFAULT_DUPLICATE_TAG);
@@ -670,7 +670,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                         try {
                             MusInterval newMi = handler.add();
                             if (tagDuplicates) {
-                               handler.tag(duplicateTag);
+                                handler.tag(duplicateTag);
                             }
                             String[] tempFilenames = new String[filenames.length + 1];
                             System.arraycopy(filenames, 0, tempFilenames, 0, filenames.length);
@@ -686,8 +686,13 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                             processInvalidAnkiDatabase(e);
                         }
                     }
-                })
-                .setNeutralButton(R.string.mark_existing, new DialogInterface.OnClickListener() {
+                });
+        int existingCount = existingMis.length;
+        MusInterval existingMi = existingMis[0];
+        try {
+            int markedCount = existingMi.getExistingMarkedNotesCount();
+            if (existingCount > markedCount) {
+                builder.setNeutralButton(R.string.mark_existing, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
                         try {
@@ -701,11 +706,20 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                         }
                     }
                 });
+            }
+        } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
+        }
         Resources res = getResources();
         String msg;
-        int existingCount = existingNotesData.size();
         if (existingCount == 1) {
-            msg = res.getQuantityString(R.plurals.duplicate_warning, existingCount);
+            msg = res.getQuantityString(
+                    R.plurals.duplicate_warning, existingCount,
+                    existingMi.notes[0] + existingMi.octaves[0],
+                    existingMi.direction,
+                    existingMi.timing,
+                    existingMi.intervals[0],
+                    existingMi.tempo,
+                    existingMi.instrument);
             builder.setNegativeButton(R.string.replace_existing, new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialogInterface, int i) {
@@ -727,7 +741,14 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 }
             });
         } else {
-            msg = res.getQuantityString(R.plurals.duplicate_warning, existingCount, existingCount);
+            msg = res.getQuantityString(R.plurals.duplicate_warning, existingCount,
+                    existingCount,
+                    existingMi.notes[0] + existingMi.octaves[0],
+                    existingMi.direction,
+                    existingMi.timing,
+                    existingMi.intervals[0],
+                    existingMi.tempo,
+                    existingMi.instrument);
         }
         if (existingCount > 1) {
             if (tagDuplicates) {
