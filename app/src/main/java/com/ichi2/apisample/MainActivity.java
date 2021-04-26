@@ -672,13 +672,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                             if (tagDuplicates) {
                                 handler.tag(duplicateTag);
                             }
-                            String[] tempFilenames = new String[filenames.length + 1];
-                            System.arraycopy(filenames, 0, tempFilenames, 0, filenames.length);
-                            tempFilenames[tempFilenames.length - 1] = newMi.sounds[0];
-                            filenames = tempFilenames;
-                            refreshFilenameText();
-                            savedInstruments.add(newMi.instrument);
-                            refreshExisting();
+                            handleInsertion(newMi);
                             showQuantityMsg(R.plurals.mi_added, 1);
                         } catch (MusInterval.Exception e) {
                             processMusIntervalException(e);
@@ -725,13 +719,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 public void onClick(DialogInterface dialogInterface, int i) {
                     try {
                         MusInterval newMi = handler.replace();
-                        String[] tempFilenames = new String[filenames.length + 1];
-                        System.arraycopy(filenames, 0, tempFilenames, 0, filenames.length);
-                        tempFilenames[tempFilenames.length - 1] = newMi.sounds[0];
-                        filenames = tempFilenames;
-                        refreshFilenameText();
-                        savedInstruments.add(newMi.instrument);
-                        refreshExisting();
+                        handleInsertion(newMi);
                         showMsg(R.string.item_replaced);
                     } catch (MusInterval.Exception e) {
                         processMusIntervalException(e);
@@ -763,6 +751,16 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
         builder.setMessage(msg);
         builder.show();
+    }
+
+    private void handleInsertion(MusInterval newMi) {
+        String[] tempFilenames = new String[filenames.length + 1];
+        System.arraycopy(filenames, 0, tempFilenames, 0, filenames.length);
+        tempFilenames[tempFilenames.length - 1] = newMi.sounds[0];
+        filenames = tempFilenames;
+        refreshFilenameText();
+        savedInstruments.add(newMi.instrument);
+        refreshExisting();
     }
 
     private void configureSettingsButton() {
