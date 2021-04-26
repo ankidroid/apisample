@@ -7,7 +7,9 @@ public interface DuplicateAddingHandler {
     MusInterval replace() throws AnkiDroidHelper.InvalidAnkiDatabaseException,
             MusInterval.AddSoundFileException, MusInterval.ValidationException;
 
-    int mark() throws MusInterval.NoteNotExistsException, AnkiDroidHelper.InvalidAnkiDatabaseException;
+    int mark() throws MusInterval.NoteNotExistsException, MusInterval.ValidationException,
+            AnkiDroidHelper.InvalidAnkiDatabaseException;
 
-    int tag(String tag) throws MusInterval.NoteNotExistsException, AnkiDroidHelper.InvalidAnkiDatabaseException;
+    int tag(String tag) throws MusInterval.NoteNotExistsException, MusInterval.ValidationException,
+            AnkiDroidHelper.InvalidAnkiDatabaseException;
 }
