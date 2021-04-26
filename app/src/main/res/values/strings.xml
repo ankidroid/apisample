@@ -71,7 +71,6 @@
     <string name="fs_permission_denied">Could not get permission to access a filesystem</string>
     <string name="mi_not_exists">Music interval not found</string>
     <plurals name="mi_marked_result">
-        <item quantity="zero">Nothing was marked</item>
         <item quantity="one">One music interval successfully marked</item>
         <item quantity="other">%d music intervals successfully marked</item>
     </plurals>
@@ -91,6 +90,10 @@
         <item quantity="one">Single sound file must be provided (got %d)</item>
         <item quantity="other">%d sound files must be provided (got %d)</item>
     </plurals>
+    <plurals name="duplicate_warning">
+        <item quantity="one">One music interval with parameters (%s, %s, %s, %s, %s, %s) already exists in Anki database</item>
+        <item quantity="other">%d music intervals with parameters (%s, %s, %s, %s, %s, %s) already exist in Anki database</item>
+    </plurals>
     <string name="create_model">Note type \"%s\" is not found. Create it?</string>
     <string name="configure_model">The \"%s\" note type settings are invalid. You need to configure fields to continue using it</string>
     <string name="create">Create</string>
@@ -104,6 +107,7 @@
     <string name="add_card_error">Music interval adding to AnkiDroid failed</string>
     <string name="mandatory_field_empty">Mandatory field \"%s\" is empty</string>
     <string name="already_added">Music interval seems to be already added to AnkiDroid (try to select sound file)</string>
+    <string name="item_replaced">Music interval successfully replaced. Please run "Check media" in AnkiDroid to find and delete the orphaned old sound file</string>
     <string name="add_file_error">Failed to add file to AnkiDroid media</string>
     <string name="unknown_adding_error">Failed to add music interval to AnkiDroid</string>
     <string name="additional_filenames">\u0020+ %d more</string>
@@ -119,6 +123,9 @@
         2. The sound files, when sorted, must be ordered firstly by octave, then by note, then by interval.
     </string>
     <string name="do_not_show">Don\'t show this message</string>
+    <string name="add_anyway">Add anyway</string>
+    <string name="mark_existing">Mark existing</string>
+    <string name="replace_existing">Replace</string>
 
     <string name="InvalidAnkiDatabase_fieldAndFieldNameCountMismatch">Invalid Anki Database: field and field name count mismatches</string>
     <string name="InvalidAnkiDatabase_unknownError">Invalid Anki Database: unknown error</string>
@@ -141,4 +148,8 @@
     <string name="version_field_list_preference_title">App version</string>
     <string name="version_field_switch_preference_title">Version stamp</string>
     <string name="version_field_switch_preference_summary">Log app version for added notes in a separate field</string>
+    <string name="duplicate_tag_edit_text_preference_title">Duplicate tag</string>
+    <string name="duplicate_tag_edit_text_preference_dialog_title">Duplicate tag</string>
+    <string name="tag_duplicates_preference_title">Tag duplicates</string>
+    <string name="tag_duplicates_preference_summary">Mark identical intervals with special tag</string>
 </resources>

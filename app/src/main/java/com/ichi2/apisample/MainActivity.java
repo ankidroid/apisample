@@ -43,7 +43,7 @@ import java.util.Map;
 import java.util.Set;
 
 
-public class MainActivity extends AppCompatActivity implements ActivityCompat.OnRequestPermissionsResultCallback {
+public class MainActivity extends AppCompatActivity implements ActivityCompat.OnRequestPermissionsResultCallback, DuplicateAddingPrompter {
 
     private static final int AD_PERM_REQUEST = 0;
     private static final int PERMISSIONS_REQUEST_EXTERNAL_STORAGE = 1;
@@ -185,7 +185,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                         if (msg.length() > 0) {
                             msg.append(getString(R.string.filenames_list_separator));
                         }
-                        if (i < orderedPermutationKeys.length) {
+                        // @todo: update filename field values signature
+                        if (i < orderedPermutationKeys.length && !filenames[i].startsWith("[sound:")) {
                             final String startNote = orderedPermutationKeys[i][1] + orderedPermutationKeys[i][0];
                             final String interval = orderedPermutationKeys[i][2];
                             msg.append(getString(R.string.filenames_list_item_with_key, i + 1, filenames[i], startNote, interval));
@@ -637,18 +638,16 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     return;
                 }
                 try {
-                    MusInterval mi = getMusInterval();
-                    final int nMis = mi.getPermutationsNumber();
-                    MusInterval newMi = mi.addToAnki();
+                    MusInterval newMi = getMusInterval().addToAnki(MainActivity.this);
                     filenames = newMi.sounds;
                     refreshFilenameText();
                     savedInstruments.add(newMi.instrument);
                     refreshExisting();
-                    String msg;
-                    if (nMis == 1) {
-                        showQuantityMsg(R.plurals.mi_added, nMis);
-                    } else {
-                        showQuantityMsg(R.plurals.mi_added, nMis, nMis);
+                    final int nAdded = newMi.sounds.length;
+                    if (nAdded == 1) {
+                        showQuantityMsg(R.plurals.mi_added, nAdded);
+                    } else if (nAdded > 1) {
+                        showQuantityMsg(R.plurals.mi_added, nAdded, nAdded);
                     }
                 } catch (MusInterval.Exception e) {
                     processMusIntervalException(e);
@@ -657,6 +656,111 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 }
             }
         });
+    }
+
+    @Override
+    public void promptAddDuplicate(MusInterval[] existingMis, final DuplicateAddingHandler handler) {
+        final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+        final boolean tagDuplicates = sharedPreferences.getBoolean(SettingsFragment.KEY_TAG_DUPLICATES_SWITCH, SettingsFragment.DEFAULT_TAG_DUPLICATES_SWITCH);
+        final String duplicateTag = sharedPreferences.getString(SettingsFragment.KEY_DUPLICATE_TAG_PREFERENCE, SettingsFragment.DEFAULT_DUPLICATE_TAG);
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this)
+                .setPositiveButton(R.string.add_anyway, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        try {
+                            MusInterval newMi = handler.add();
+                            if (tagDuplicates) {
+                                handler.tag(duplicateTag);
+                            }
+                            handleInsertion(newMi);
+                            showQuantityMsg(R.plurals.mi_added, 1);
+                        } catch (MusInterval.Exception e) {
+                            processMusIntervalException(e);
+                        } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
+                            processInvalidAnkiDatabase(e);
+                        }
+                    }
+                });
+        int existingCount = existingMis.length;
+        MusInterval existingMi = existingMis[0];
+        try {
+            int markedCount = existingMi.getExistingMarkedNotesCount();
+            if (existingCount > markedCount) {
+                builder.setNeutralButton(R.string.mark_existing, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        try {
+                            final int count = handler.mark();
+                            showQuantityMsg(R.plurals.mi_marked_result, count, count);
+                            refreshExisting();
+                        } catch (MusInterval.Exception e) {
+                            processMusIntervalException(e);
+                        } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
+                            processInvalidAnkiDatabase(e);
+                        }
+                    }
+                });
+            }
+        } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
+        }
+        Resources res = getResources();
+        String msg;
+        if (existingCount == 1) {
+            msg = res.getQuantityString(
+                    R.plurals.duplicate_warning, existingCount,
+                    existingMi.notes[0] + existingMi.octaves[0],
+                    existingMi.direction,
+                    existingMi.timing,
+                    existingMi.intervals[0],
+                    existingMi.tempo,
+                    existingMi.instrument);
+            builder.setNegativeButton(R.string.replace_existing, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    try {
+                        MusInterval newMi = handler.replace();
+                        handleInsertion(newMi);
+                        showMsg(R.string.item_replaced);
+                    } catch (MusInterval.Exception e) {
+                        processMusIntervalException(e);
+                    } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
+                        processInvalidAnkiDatabase(e);
+                    }
+                }
+            });
+        } else {
+            msg = res.getQuantityString(R.plurals.duplicate_warning, existingCount,
+                    existingCount,
+                    existingMi.notes[0] + existingMi.octaves[0],
+                    existingMi.direction,
+                    existingMi.timing,
+                    existingMi.intervals[0],
+                    existingMi.tempo,
+                    existingMi.instrument);
+        }
+        if (existingCount > 1) {
+            if (tagDuplicates) {
+                try {
+                    handler.tag(duplicateTag);
+                } catch (MusInterval.Exception e) {
+                    processMusIntervalException(e);
+                } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
+                    processInvalidAnkiDatabase(e);
+                }
+            }
+        }
+        builder.setMessage(msg);
+        builder.show();
+    }
+
+    private void handleInsertion(MusInterval newMi) {
+        String[] tempFilenames = new String[filenames.length + 1];
+        System.arraycopy(filenames, 0, tempFilenames, 0, filenames.length);
+        tempFilenames[tempFilenames.length - 1] = newMi.sounds[0];
+        filenames = tempFilenames;
+        refreshFilenameText();
+        savedInstruments.add(newMi.instrument);
+        refreshExisting();
     }
 
     private void configureSettingsButton() {
