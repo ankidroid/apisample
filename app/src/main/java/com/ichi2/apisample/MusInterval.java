@@ -118,6 +118,7 @@ public class MusInterval {
                 "</script>\n" +
                 "\n";
         public static final String[] AFMT = {AFMT1};
+        private static final String[] EMPTY_SELECTION = new String[]{"%"};
         private final AnkiDroidHelper mHelper;
         private String mModelName = DEFAULT_MODEL_NAME;
         private Map<String, String> mModelFields = new HashMap<String, String>() {{
@@ -354,18 +355,6 @@ public class MusInterval {
             }
         }
 
-        if (notes.length < 1) {
-            throw new NoteNotSelectedException();
-        }
-
-        if (octaves.length < 1) {
-            throw new OctaveNotSelectedException();
-        }
-
-        if (intervals.length < 1) {
-            throw new IntervalNotSelectedException();
-        }
-
         if (!tempo.isEmpty()) {
             int tempoInt = Integer.parseInt(tempo);
             if (tempoInt < Fields.Tempo.MIN_VALUE || tempoInt > Fields.Tempo.MAX_VALUE) {
@@ -468,6 +457,16 @@ public class MusInterval {
                 throw new CreateDeckException();
             }
             helper.storeDeckReference(deckName, deckId);
+        }
+
+        if (notes == null || notes.length == 0) {
+            throw new NoteNotSelectedException();
+        }
+        if (octaves == null || octaves.length == 0) {
+            throw new OctaveNotSelectedException();
+        }
+        if (intervals == null || intervals.length == 0) {
+            throw new IntervalNotSelectedException();
         }
 
         final int permutationsNumber = getPermutationsNumber();
@@ -604,18 +603,21 @@ public class MusInterval {
     }
 
     public int getPermutationsNumber() {
-        return notes.length * octaves.length * intervals.length;
+        return (notes != null ? notes.length : 0)
+                * (octaves != null ? octaves.length : 0)
+                * (intervals != null ? intervals.length : 0);
     }
 
     @SuppressWarnings("unchecked")
     public Map<String, String>[] getCollectedDataSet() {
-        final int permutationsNumber = getPermutationsNumber();
-        Map<String, String>[] miDataSet = new Map[permutationsNumber];
+        final String[] octaves = this.octaves != null ? this.octaves : Builder.EMPTY_SELECTION;
+        final String[] notes = this.notes != null ? this.notes : Builder.EMPTY_SELECTION;
+        final String[] intervals = this.intervals != null ? this.intervals : Builder.EMPTY_SELECTION;
+        Map<String, String>[] miDataSet = new Map[octaves.length * notes.length * intervals.length];
         int i = 0;
         final boolean soundsProvided = sounds != null;
         final boolean soundsSmallerProvided = soundsSmaller != null;
         final boolean soundsLargerProvided = soundsLarger != null;
-        final boolean versionProvided = !version.isEmpty();
         for (String octave : octaves) {
             for (String note : notes) {
                 for (String interval : intervals) {

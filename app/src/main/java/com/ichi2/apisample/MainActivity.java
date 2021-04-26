@@ -12,6 +12,7 @@ import android.content.res.Resources;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.widget.SwitchCompat;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.appcompat.app.AppCompatActivity;
@@ -55,12 +56,16 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private final Map<String, String> fieldLabels = new HashMap<>();
     private final Map<String, String> intervalLabels = new HashMap<>();
 
+    private SwitchCompat switchBatch;
     private TextView textFilename;
     private Button actionSelectFile;
+    private CheckBox checkNoteAny;
     private CheckBox[] checkNotes;
+    private CheckBox checkOctaveAny;
     private CheckBox[] checkOctaves;
     private RadioGroup radioGroupDirection;
     private RadioGroup radioGroupTiming;
+    private CheckBox checkIntervalAny;
     private CheckBox[] checkIntervals;
     private SeekBar seekTempo;
     private AutoCompleteTextView inputInstrument;
@@ -143,21 +148,22 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         Toolbar main_toolbar = findViewById(R.id.main_toolbar);
         setSupportActionBar(main_toolbar);
 
+        switchBatch = findViewById(R.id.switchBatch);
         textFilename = findViewById(R.id.textFilename);
         actionSelectFile = findViewById(R.id.actionSelectFile);
-        TextView labelNote = findViewById(R.id.labelNote);
+        checkNoteAny = findViewById(R.id.checkNoteAny);
         checkNotes = new CheckBox[checkNoteIds.length];
         for (int i = 0; i < checkNoteIds.length; i++) {
             checkNotes[i] = findViewById(checkNoteIds[i]);
         }
-        TextView labelOctave = findViewById(R.id.labelOctave);
+        checkOctaveAny = findViewById(R.id.checkOctaveAny);
         checkOctaves = new CheckBox[checkOctaveIds.length];
         for (int i = 0; i < checkOctaveIds.length; i++) {
             checkOctaves[i] = findViewById(checkOctaveIds[i]);
         }
         radioGroupDirection = findViewById(R.id.radioGroupDirection);
         radioGroupTiming = findViewById(R.id.radioGroupTiming);
-        TextView labelInterval = findViewById(R.id.labelInterval);
+        checkIntervalAny = findViewById(R.id.checkIntervalAny);
         checkIntervals = new CheckBox[checkIntervalIds.length];
         for (int i = 0; i < checkIntervalIds.length; i++) {
             checkIntervals[i] = findViewById(checkIntervalIds[i]);
@@ -199,22 +205,34 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 }
             }
         });
-        labelNote.setOnLongClickListener(new OnFieldCheckLabelLongClickListener(checkNotes));
+        boolean enableMultiple = switchBatch.isChecked();
+        final OnFieldCheckChangeListener onNoteCheckChangeListener = new OnFieldCheckChangeListener(checkNotes, checkNoteAny, enableMultiple);
+        checkNoteAny.setOnCheckedChangeListener(onNoteCheckChangeListener);
         for (CheckBox checkNote : checkNotes) {
-            checkNote.setOnCheckedChangeListener(new OnFieldCheckChangeListener());
+            checkNote.setOnCheckedChangeListener(onNoteCheckChangeListener);
         }
-        labelOctave.setOnLongClickListener(new OnFieldCheckLabelLongClickListener(checkOctaves));
+        final OnFieldCheckChangeListener onOctaveCheckChangeListener = new OnFieldCheckChangeListener(checkOctaves, checkOctaveAny, enableMultiple);
+        checkOctaveAny.setOnCheckedChangeListener(onOctaveCheckChangeListener);
         for (CheckBox checkOctave : checkOctaves) {
-            checkOctave.setOnCheckedChangeListener(new OnFieldCheckChangeListener());
+            checkOctave.setOnCheckedChangeListener(onOctaveCheckChangeListener);
         }
         radioGroupDirection.setOnCheckedChangeListener(new OnFieldRadioChangeListener());
         radioGroupTiming.setOnCheckedChangeListener(new OnFieldRadioChangeListener());
-        labelInterval.setOnLongClickListener(new OnFieldCheckLabelLongClickListener(checkIntervals));
+        final OnFieldCheckChangeListener onIntervalCheckChangeListener = new OnFieldCheckChangeListener(checkIntervals, checkIntervalAny, enableMultiple);
+        checkIntervalAny.setOnCheckedChangeListener(onIntervalCheckChangeListener);
         for (CheckBox checkInterval : checkIntervals) {
-            checkInterval.setOnCheckedChangeListener(new OnFieldCheckChangeListener());
+            checkInterval.setOnCheckedChangeListener(onIntervalCheckChangeListener);
         }
         seekTempo.setOnSeekBarChangeListener(new OnFieldSeekChangeListener());
         inputInstrument.addTextChangedListener(new FieldInputTextWatcher());
+        switchBatch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                onNoteCheckChangeListener.setEnableMultiple(b);
+                onOctaveCheckChangeListener.setEnableMultiple(b);
+                onIntervalCheckChangeListener.setEnableMultiple(b);
+            }
+        });
 
         configureTempoButtons();
         configureClearAllButton();
@@ -289,7 +307,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         } finally {
             Resources res = getResources();
             String selectFileText;
-            if (permutationsNumber == 1) {
+            if (permutationsNumber <= 1) {
+                permutationsNumber = 1;
                 selectFileText = res.getQuantityString(R.plurals.select_file, permutationsNumber);
             } else {
                 selectFileText = res.getQuantityString(R.plurals.select_file, permutationsNumber, permutationsNumber);
@@ -299,37 +318,64 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
     }
 
-    private static class OnFieldCheckLabelLongClickListener implements View.OnLongClickListener {
-        private final CheckBox[] checks;
-
-        public OnFieldCheckLabelLongClickListener(CheckBox[] checks) {
-            super();
-            this.checks = checks;
-        }
-
-        @Override
-        public boolean onLongClick(View view) {
-            boolean allChecked = true;
-            for (CheckBox check : checks) {
-                if (!check.isChecked()) {
-                    allChecked = false;
-                    break;
-                }
-            }
-            final boolean value = !allChecked;
-            for (CheckBox check : checks) {
-                check.setChecked(value);
-            }
-            return true;
-        }
-    }
-
     private class OnFieldCheckChangeListener implements CompoundButton.OnCheckedChangeListener {
+        private final CheckBox[] checkBoxes;
+        private final CheckBox checkBoxAny;
+        private boolean enableMultiple;
+
+        public OnFieldCheckChangeListener(CheckBox[] checkBoxes, CheckBox checkBoxAny, boolean enableMultiple) {
+            this.checkBoxes = checkBoxes;
+            this.checkBoxAny = checkBoxAny;
+            this.enableMultiple = enableMultiple;
+        }
+
         @Override
         public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+            if (compoundButton.getId() == checkBoxAny.getId()) {
+                if (b) {
+                    for (CheckBox checkBox : checkBoxes) {
+                        checkBox.setChecked(false);
+                    }
+                } else if (enableMultiple) {
+                    for (CheckBox checkBox : checkBoxes) {
+                        if (checkBox.isChecked()) {
+                            return;
+                        }
+                    }
+                    for (CheckBox checkBox : checkBoxes) {
+                        checkBox.setChecked(true);
+                    }
+                }
+            } else if (b) {
+                checkBoxAny.setChecked(false);
+                if (!enableMultiple) {
+                    for (CheckBox checkBox : checkBoxes) {
+                        if (checkBox.getId() != compoundButton.getId()) {
+                            checkBox.setChecked(false);
+                        }
+                    }
+                }
+            }
             clearAddedFilenames();
             refreshExisting();
             refreshPermutations();
+        }
+
+        public void setEnableMultiple(boolean enableMultiple) {
+            if (!enableMultiple) {
+                ArrayList<CheckBox> checked = new ArrayList<>();
+                for (CheckBox checkBox : checkBoxes) {
+                    if (checkBox.isChecked()) {
+                        checked.add(checkBox);
+                    }
+                }
+                if (checked.size() > 1) {
+                    for (CheckBox checkBox : checked) {
+                        checkBox.setChecked(false);
+                    }
+                }
+            }
+            this.enableMultiple = enableMultiple;
         }
     }
 
@@ -635,15 +681,19 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     protected void onPause() {
         final SharedPreferences.Editor uiDbEditor = getSharedPreferences(STATE_REF_DB, Context.MODE_PRIVATE).edit();
 
+        uiDbEditor.putBoolean("switchBatch", switchBatch.isChecked());
         uiDbEditor.putStringSet("selectedFilenames", new HashSet<>(Arrays.asList(filenames)));
+        uiDbEditor.putBoolean("checkNoteAny", checkNoteAny.isChecked());
         for (int i = 0; i < checkNoteIds.length; i++) {
             uiDbEditor.putBoolean(String.valueOf(checkNoteIds[i]), checkNotes[i].isChecked());
         }
+        uiDbEditor.putBoolean("checkOctaveAny", checkOctaveAny.isChecked());
         for (int i = 0; i < checkOctaveIds.length; i++) {
             uiDbEditor.putBoolean(String.valueOf(checkOctaveIds[i]), checkOctaves[i].isChecked());
         }
         uiDbEditor.putInt("radioGroupDirection", radioGroupDirection.getCheckedRadioButtonId());
         uiDbEditor.putInt("radioGroupTiming", radioGroupTiming.getCheckedRadioButtonId());
+        uiDbEditor.putBoolean("checkIntervalAny", checkIntervalAny.isChecked());
         for (int i = 0; i < checkIntervalIds.length; i++) {
             uiDbEditor.putBoolean(String.valueOf(checkIntervalIds[i]), checkIntervals[i].isChecked());
         }
@@ -657,17 +707,21 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
     protected void restoreUiState() {
         final SharedPreferences uiDb = getSharedPreferences(STATE_REF_DB, Context.MODE_PRIVATE);
+        switchBatch.setChecked(uiDb.getBoolean("switchBatch", false));
         Set<String> storedFilenames = uiDb.getStringSet("selectedFilenames", new HashSet<String>());
         filenames = storedFilenames.toArray(new String[0]);
         refreshFilenameText();
+        checkNoteAny.setChecked(uiDb.getBoolean("checkNoteAny", false));
         for (int i = 0; i < checkNoteIds.length; i++) {
             checkNotes[i].setChecked(uiDb.getBoolean(String.valueOf(checkNoteIds[i]), false));
         }
+        checkOctaveAny.setChecked(uiDb.getBoolean("checkOctaveAny", false));
         for (int i = 0; i < checkOctaveIds.length; i++) {
             checkOctaves[i].setChecked(uiDb.getBoolean(String.valueOf(checkOctaveIds[i]), false));
         }
         radioGroupDirection.check(uiDb.getInt("radioGroupDirection", findViewById(R.id.radioDirectionAny).getId()));
         radioGroupTiming.check(uiDb.getInt("radioGroupTiming", findViewById(R.id.radioTimingAny).getId()));
+        checkIntervalAny.setChecked(uiDb.getBoolean("checkIntervalAny", false));
         for (int i = 0; i < checkIntervalIds.length; i++) {
             checkIntervals[i].setChecked(uiDb.getBoolean(String.valueOf(checkIntervalIds[i]), false));
         }
@@ -705,7 +759,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     }
 
     private MusInterval getMusInterval() throws MusInterval.ValidationException {
-        final String anyStr = getResources().getString(R.string.radio_any);
+        final String anyStr = getResources().getString(R.string.any);
 
         final int radioDirectionId = radioGroupDirection.getCheckedRadioButtonId();
         final View radioDirection = findViewById(radioDirectionId);
@@ -731,16 +785,20 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         final String storedDeck = sharedPreferences.getString(SettingsFragment.KEY_DECK_PREFERENCE, MusInterval.Builder.DEFAULT_DECK_NAME);
         final String storedModel = sharedPreferences.getString(SettingsFragment.KEY_MODEL_PREFERENCE, MusInterval.Builder.DEFAULT_MODEL_NAME);
 
+        String[] notes = !checkNoteAny.isChecked() ? getCheckedValues(checkNotes) : null;
+        String[] octaves = !checkOctaveAny.isChecked() ? getCheckedValues(checkOctaves) : null;
+        String[] intervals = !checkIntervalAny.isChecked() ? getCheckedValues(checkIntervals, intervalLabels) : null;
+
         MusInterval.Builder builder = new MusInterval.Builder(mAnkiDroid)
                 .deck(storedDeck)
                 .model(storedModel)
                 .model_fields(storedFields)
                 .sounds(filenames)
-                .notes(getCheckedValues(checkNotes))
-                .octaves(getCheckedValues(checkOctaves))
+                .notes(notes)
+                .octaves(octaves)
                 .direction(!directionStr.equals(anyStr) ? directionStr : "")
                 .timing(!timingStr.equals(anyStr) ? timingStr : "")
-                .intervals(getCheckedValues(checkIntervals, intervalLabels))
+                .intervals(intervals)
                 .tempo(seekTempo.getProgress() > 0 ? Integer.toString(seekTempo.getProgress()) : "")
                 .instrument(inputInstrument.getText().toString());
         if (versionField) {
@@ -866,6 +924,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 preferenceEditor.putString(modelFieldPreferenceKey, fieldKey);
             }
             preferenceEditor.apply();
+            refreshExisting();
+            refreshPermutations();
             showMsg(R.string.create_model_success, modelName);
         } else {
             showMsg(R.string.create_model_error);
