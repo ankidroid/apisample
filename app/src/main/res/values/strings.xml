@@ -55,6 +55,7 @@
     <string name="action_mark">Mark %d</string>
     <string name="action_add_to_anki">Add to AnkiDroid</string>
     <string name="open_settings">Settings…</string>
+    <string name="action_check_integrity">Check integrity</string>
     <plurals name="mi_found">
         <item quantity="one">Found 1 music interval</item>
         <item quantity="other">Found %d music intervals</item>
@@ -98,6 +99,34 @@
         <item quantity="one">One music interval with parameters (%s, %s, %s, %s, %s, %s) already exists in Anki database</item>
         <item quantity="other">%d music intervals with parameters (%s, %s, %s, %s, %s, %s) already exist in Anki database</item>
     </plurals>
+    <plurals name="integrity_corrupted">
+        <item quantity="one">Found one corrupted note and marked it with \"%s\" tag</item>
+        <item quantity="other">Found %d corrupted notes and marked them with \"%s\" tag</item>
+    </plurals>
+    <plurals name="integrity_suspicious">
+        <item quantity="one">Found one suspicious note (invalid link fields) and marked it with \"%s\" tag</item>
+        <item quantity="other">Found %d suspicious notes (invalid link fields) and marked them with \"%s\" tag</item>
+    </plurals>
+    <plurals name="integrity_corrupted_fixed">
+        <item quantity="one">One note previously tagged as corrupted has been fixed</item>
+        <item quantity="other">%d notes previously tagged as corrupted have been fixed</item>
+    </plurals>
+    <plurals name="integrity_suspicious_fixed">
+        <item quantity="one">One note previously tagged as suspicious has been fixed</item>
+        <item quantity="other">%d notes previously tagged as suspicious have been fixed</item>
+    </plurals>
+    <plurals name="invalid_fields">
+        <item quantity="one">Invalid value of \%s\ field</item>
+        <item quantity="other">Invalid values of \%s\ fields </item>
+    </plurals>
+    <plurals name="empty_mandatory_fields">
+        <item quantity="one">Mandatory field \%s\ is empty</item>
+        <item quantity="other">Mandatory fields \%s\ are empty</item>
+    </plurals>
+    <plurals name="integrity_links">
+        <item quantity="one">Fixed one link field</item>
+        <item quantity="other">Fixed %d link fields</item>
+    </plurals>
     <string name="create_model">Note type \"%s\" is not found. Create it?</string>
     <string name="create">Create</string>
     <string name="configure">Configure</string>
@@ -105,7 +134,7 @@
     <string name="ok">OK</string>
     <string name="create_model_success">Successfully created note type \"%s\"</string>
     <string name="create_model_error">Could not create note type</string>
-    <string name="invalid_model">Too few fields in existing \"%s\" note type</string>
+    <string name="invalid_model">Too few fields in existing \"%s\" note type. Please add additional fields in AnkiDroid or choose another model</string>
     <string name="create_deck_error">Could not create deck \"%s\"</string>
     <string name="add_card_error">Music interval adding to AnkiDroid failed</string>
     <string name="mandatory_field_empty">Mandatory field \"%s\" is empty</string>
@@ -113,13 +142,11 @@
     <string name="item_replaced">Music interval successfully replaced. Please run "Check media" in AnkiDroid to find and delete the orphaned old sound file</string>
     <string name="add_file_error">Failed to add file to AnkiDroid media</string>
     <string name="unknown_adding_error">Failed to add music interval to AnkiDroid</string>
-    <string name="additional_filenames">\u0020+ %d more</string>
+    <string name="additional_filenames">\u0020+ %d more...</string>
     <string name="filenames_list_item">%d. %s</string>
     <string name="filenames_list_item_with_key">%d. %s (%s, %s)</string>
     <string name="filenames_list_separator">\n</string>
-    <string name="note_not_selected">At least one specific note must be selected</string>
-    <string name="octave_not_selected">At least one specific octave must be selected</string>
-    <string name="interval_not_selected">At least one specific interval must be selected</string>
+    <string name="empty_mandatory_selection">At least one specific option must be selected for field \"%s\"</string>
     <string name="batch_adding_notice">
         When adding multiple music intervals at once, the selected set of sound files must obey the following rules:\n
         1. The number of files must be equal to the number of unique interval permutations for the chosen field values.\n
@@ -130,11 +157,14 @@
     <string name="mark_existing">Mark existing</string>
     <string name="replace_existing">Replace</string>
     <string name="unknown_error">Unknown error (try to open AnkiDroid to see what\'s wrong)</string>
+    <string name="integrity_check_completed">Integrity check completed (%d notes)</string>
+    <string name="integrity_ok">No issues have been found</string>
+    <string name="integrity_invalid">%d invalid</string>
+    <string name="integrity_empty">%d empty</string>
+    <string name="fix_link_confirmation_remember_answer">Remember answer</string>
 
     <string name="InvalidAnkiDatabase_fieldAndFieldNameCountMismatch">Invalid Anki Database: field and field name count mismatches</string>
     <string name="InvalidAnkiDatabase_unknownError">Invalid Anki Database: unknown error</string>
-
-    <string name="invalid_start_note">Invalid syntax of start note</string>
 
     <!-- SettingsActivity labels, fields and buttons -->
     <string name="deck_preference_title">Deck</string>
@@ -156,4 +186,8 @@
     <string name="duplicate_tag_edit_text_preference_dialog_title">Duplicate tag</string>
     <string name="tag_duplicates_preference_title">Tag duplicates</string>
     <string name="tag_duplicates_preference_summary">Mark identical intervals with special tag</string>
+    <string name="corrupted_tag_edit_text_preference_title">Corrupted note tag</string>
+    <string name="corrupted_tag_edit_text_preference_dialog_title">Added to notes with empty/invalid fields upon running integrity check</string>
+    <string name="suspicious_tag_edit_text_preference_title">Suspicious note tag</string>
+    <string name="suspicious_tag_edit_text_preference_dialog_title">Added to notes that point or are being pointed by broken links</string>
 </resources>

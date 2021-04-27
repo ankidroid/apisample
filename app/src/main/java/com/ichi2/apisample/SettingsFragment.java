@@ -27,6 +27,8 @@ public class SettingsFragment extends PreferenceFragmentCompat {
     public static final String KEY_VERSION_FIELD_SWITCH = "preference_version_field_switch";
     public static final String KEY_TAG_DUPLICATES_SWITCH = "preference_tag_duplicates_switch";
     public static final String KEY_DUPLICATE_TAG_PREFERENCE = "preference_duplicate_tag";
+    public static final String KEY_CORRUPTED_TAG_PREFERENCE = "preference_invalid_tag";
+    public static final String KEY_SUSPICIOUS_TAG_PREFERENCE = "preference_suspicious_tag";
     private static final String KEY_FIELDS_PREFERENCE_CATEGORY = "preference_fields";
 
     private static final String TEMPLATE_KEY_FIELD_PREFERENCE = "preference_%s_field";
@@ -34,7 +36,9 @@ public class SettingsFragment extends PreferenceFragmentCompat {
 
     public static final boolean DEFAULT_VERSION_FIELD_SWITCH = true;
     public static final boolean DEFAULT_TAG_DUPLICATES_SWITCH = true;
-    public static final String DEFAULT_DUPLICATE_TAG = "MI2A_duplicate";
+    public static final String DEFAULT_DUPLICATE_TAG = "mi2a_duplicate";
+    public static final String DEFAULT_CORRUPTED_TAG = "mi2a_corrupted";
+    public static final String DEFAULT_SUSPICIOUS_TAG = "mi2a_suspicious";
 
     private static Map<String, Integer> fieldPreferenceLabelStringIds = new HashMap<String, Integer>() {{
         put(MusInterval.Fields.SOUND, R.string.sound_field_list_preference_title);
@@ -210,6 +214,24 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         duplicateTagPreference.setOnPreferenceChangeListener(new TagPreferenceChangeListener(context, helper, KEY_DUPLICATE_TAG_PREFERENCE, DEFAULT_DUPLICATE_TAG));
         preferenceScreen.addPreference(duplicateTagPreference);
 
+        EditTextPreference corruptedTagPreference = new EditTextPreference(context);
+        corruptedTagPreference.setKey(KEY_CORRUPTED_TAG_PREFERENCE);
+        corruptedTagPreference.setDefaultValue(DEFAULT_CORRUPTED_TAG);
+        corruptedTagPreference.setTitle(R.string.corrupted_tag_edit_text_preference_title);
+        corruptedTagPreference.setSummaryProvider(EditTextPreference.SimpleSummaryProvider.getInstance());
+        corruptedTagPreference.setDialogTitle(R.string.corrupted_tag_edit_text_preference_dialog_title);
+        corruptedTagPreference.setOnPreferenceChangeListener(new TagPreferenceChangeListener(context, helper, KEY_CORRUPTED_TAG_PREFERENCE, DEFAULT_CORRUPTED_TAG));
+        preferenceScreen.addPreference(corruptedTagPreference);
+
+        EditTextPreference suspiciousTagPreference = new EditTextPreference(context);
+        suspiciousTagPreference.setKey(KEY_SUSPICIOUS_TAG_PREFERENCE);
+        suspiciousTagPreference.setDefaultValue(DEFAULT_SUSPICIOUS_TAG);
+        suspiciousTagPreference.setTitle(R.string.suspicious_tag_edit_text_preference_title);
+        suspiciousTagPreference.setSummaryProvider(EditTextPreference.SimpleSummaryProvider.getInstance());
+        suspiciousTagPreference.setDialogTitle(R.string.suspicious_tag_edit_text_preference_dialog_title);
+        suspiciousTagPreference.setOnPreferenceChangeListener(new TagPreferenceChangeListener(context, helper, KEY_SUSPICIOUS_TAG_PREFERENCE, DEFAULT_SUSPICIOUS_TAG));
+        preferenceScreen.addPreference(suspiciousTagPreference);
+
         setPreferenceScreen(preferenceScreen);
     }
 
@@ -252,7 +274,6 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             }
         }
     }
-
     private static class TagPreferenceChangeListener implements Preference.OnPreferenceChangeListener {
         private final Context context;
         private final AnkiDroidHelper helper;
@@ -274,12 +295,13 @@ public class SettingsFragment extends PreferenceFragmentCompat {
                 final long modelId = helper.findModelIdByName(MusInterval.Builder.DEFAULT_MODEL_NAME);
                 LinkedList<Map<String, String>> notesData = helper.findNotes(modelId, new HashMap<String, String>());
                 final String currValue = sharedPreferences.getString(key, defaultValue);
+                String currValueCheckStr = String.format(" %s ", currValue).toLowerCase();
+                String newValueAddStr = String.format("%s ", newValue).toLowerCase();
                 for (Map<String, String> noteData : notesData) {
-                    String tags = noteData.get("tags");
-                    String currValueStr = String.format(" %s ", currValue);
-                    if (tags.contains(currValueStr)) {
-                        long id = Long.parseLong(noteData.get("id"));
-                        helper.updateNoteTags(id, tags.replace(currValueStr, String.format(" %s ", newValue)));
+                    String tags = noteData.get(AnkiDroidHelper.KEY_TAGS).toLowerCase();
+                    if (tags.contains(currValueCheckStr)) {
+                        long id = Long.parseLong(noteData.get(AnkiDroidHelper.KEY_ID));
+                        helper.updateNoteTags(id, tags.replace(currValueCheckStr, String.format(" %s ", newValueAddStr)));
                     }
                 }
             } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
