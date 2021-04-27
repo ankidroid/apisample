@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Set;
 
 
 public class MusInterval {
@@ -70,6 +71,10 @@ public class MusInterval {
             }
             return signature.toArray(new String[0]);
         }
+
+        public static String[] MANDATORY = new String[]{
+                DIRECTION, TIMING, TEMPO, INSTRUMENT
+        };
     }
 
     public static class Builder {
@@ -281,7 +286,15 @@ public class MusInterval {
         public NotEnoughFieldsException(String modelName) { super(modelName); }
     }
     public static class ModelNotConfiguredException extends ModelValidationException {
-        public ModelNotConfiguredException(String modelName) { super(modelName); }
+        private ArrayList<String> invalidModelFields;
+        public ModelNotConfiguredException(String modelName, ArrayList<String> invalidModelFields) {
+            super(modelName);
+            this.invalidModelFields = invalidModelFields;
+        }
+
+        public ArrayList<String> getInvalidModelFields() {
+            return invalidModelFields;
+        }
     }
 
     private final AnkiDroidHelper helper;
@@ -342,17 +355,19 @@ public class MusInterval {
         if (modelOwnFields.size() < signature.length) {
             throw new NotEnoughFieldsException(modelName);
         }
-        ArrayList<String> takenFields = new ArrayList<>();
+        ArrayList<String> invalidModelFields = new ArrayList<>();
         for (String fieldKey : signature) {
             if (modelFields.containsKey(fieldKey)) {
                 String field = modelFields.get(fieldKey);
-                if (!modelOwnFields.contains(field) || takenFields.contains(field)) {
-                    throw new ModelNotConfiguredException(modelName);
+                if (!modelOwnFields.contains(field)) {
+                    invalidModelFields.add(fieldKey);
                 }
-                takenFields.add(field);
             } else {
-                throw new ModelNotConfiguredException(modelName);
+                invalidModelFields.add(fieldKey);
             }
+        }
+        if (!invalidModelFields.isEmpty()) {
+            throw new ModelNotConfiguredException(modelName, invalidModelFields);
         }
 
         if (!tempo.isEmpty()) {
@@ -493,6 +508,12 @@ public class MusInterval {
             put(Fields.TEMPO, tempo);
             put(Fields.INSTRUMENT, instrument);
         }};
+        Set<String> keys = fields.keySet();
+        for (String field : Fields.MANDATORY) {
+            if (!keys.contains(field)) {
+                throw new AssertionError();
+            }
+        }
         for (Map.Entry<String, String> field : fields.entrySet()) {
             if (field.getValue().isEmpty()) {
                 throw new MandatoryFieldEmptyException(field.getKey());
