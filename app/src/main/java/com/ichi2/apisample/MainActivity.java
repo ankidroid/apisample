@@ -243,6 +243,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         configureMarkExistingButton();
         configureAddToAnkiButton();
         configureSettingsButton();
+        configureCheckIntegrityButton();
 
         mAnkiDroid = new AnkiDroidHelper(this);
     }
