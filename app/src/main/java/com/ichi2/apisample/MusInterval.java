@@ -48,6 +48,15 @@ public class MusInterval {
                     "min7", "Maj7",
                     "Oct"
             };
+
+            private static int getIndex(String value) {
+                for (int i = 0; i < VALUES.length; i++) {
+                    if (VALUES[i].equalsIgnoreCase(value)) {
+                        return i;
+                    }
+                }
+                return -1;
+            }
         }
 
         public static class Tempo {
@@ -73,13 +82,7 @@ public class MusInterval {
             return signature.toArray(new String[0]);
         }
 
-        private static Map<String, Validator> VALIDATORS = new HashMap<String, Validator>() {{
-            put(SOUND, new Validator() {
-                @Override
-                public boolean isValid(String value) {
-                    return value.startsWith("[sound:") && value.endsWith("]");
-                }
-            });
+        private static final Map<String, Validator> VALIDATORS = new HashMap<String, Validator>() {{
             put(START_NOTE, new Validator() {
                 @Override
                 public boolean isValid(String value) {
@@ -413,10 +416,10 @@ public class MusInterval {
         instrument = builder.mInstrument.trim();
         version = builder.mVersion;
 
-        validateFields();
+        validateModel();
     }
 
-    protected void validateFields() throws ModelValidationException {
+    protected void validateModel() throws ModelValidationException {
         String[] signature = Fields.getSignature(!version.isEmpty());
 
         if (modelId == null) {
@@ -463,7 +466,8 @@ public class MusInterval {
         int result = 0;
 
         for (Map<String, String> note : getExistingNotes()) {
-            if (note.get(AnkiDroidHelper.KEY_TAGS) != null && note.get(AnkiDroidHelper.KEY_TAGS).contains(" marked ")) {
+            String tags = note.get(AnkiDroidHelper.KEY_TAGS);
+            if (tags != null && tags.toLowerCase().contains(" marked ")) {
                 ++result;
             }
         }
@@ -736,6 +740,7 @@ public class MusInterval {
         return builder.build();
     }
 
+    // @todo: refactor
     public IntegritySummary checkIntegrity(String corruptedTag, String suspiciousTag) throws AnkiDroidHelper.InvalidAnkiDatabaseException {
         LinkedList<Map<String, String>> allNotesData = helper.findNotes(modelId, new HashMap<String, String>());
 
@@ -813,13 +818,7 @@ public class MusInterval {
 
         for (Map<String, String> noteData : correctNotesData) {
             String interval = noteData.get(intervalField);
-            int intervalIdx = 0;
-            for (int i = 0; i < Fields.Interval.VALUES.length; i++) {
-                if (Fields.Interval.VALUES[i].equals(interval)) {
-                    intervalIdx = i;
-                    break;
-                }
-            }
+            int intervalIdx = Fields.Interval.getIndex(interval);
             Map<String, String> keyData = getLinkIdentityData(noteData);
             boolean suspicious = false;
             String soundSmaller = noteData.getOrDefault(soundSmallerField, "");
@@ -828,7 +827,7 @@ public class MusInterval {
                 if (smallerNoteData != null) {
                     String smallerInterval = smallerNoteData.getOrDefault(intervalField, "");
                     Map<String, String> smallerNoteKeyData = getLinkIdentityData(smallerNoteData);
-                    if (!keyData.equals(smallerNoteKeyData) || intervalIdx <= 0 ||
+                    if (!isEqualData(keyData, smallerNoteKeyData) || intervalIdx <= 0 ||
                             !Fields.Interval.VALUES[intervalIdx - 1].equalsIgnoreCase(smallerInterval)) {
                         if (!suspiciousNotesData.contains(smallerNoteData)) {
                             suspiciousNotesData.add(smallerNoteData);
@@ -845,7 +844,7 @@ public class MusInterval {
                 if (largerNoteData != null) {
                     String largerInterval = largerNoteData.getOrDefault(intervalField, "");
                     Map<String, String> largerNoteKeyData = getLinkIdentityData(largerNoteData);
-                    if (!keyData.equals(largerNoteKeyData) || intervalIdx >= Fields.Interval.VALUES.length - 1 ||
+                    if (!isEqualData(keyData, largerNoteKeyData) || intervalIdx >= Fields.Interval.VALUES.length - 1 ||
                             !Fields.Interval.VALUES[intervalIdx + 1].equalsIgnoreCase(largerInterval)) {
                         if (!suspiciousNotesData.contains(largerNoteData)) {
                             suspiciousNotesData.add(largerNoteData);
@@ -905,6 +904,19 @@ public class MusInterval {
         );
     }
 
+    private static boolean isEqualData(Map<String, String> data1, Map<String, String> data2) {
+        Set<String> keySet = data1.keySet();
+        if (!keySet.equals(data2.keySet())) {
+            return false;
+        }
+        for (String key : keySet) {
+            if (!data1.getOrDefault(key, "").equalsIgnoreCase(data2.getOrDefault(key, ""))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     private Map<String, String> getLinkIdentityData(Map<String, String> data) {
         return new HashMap<String, String>(data) {{
             remove(modelFields.get(Fields.SOUND));
@@ -928,13 +940,7 @@ public class MusInterval {
         String soundLarger = data.remove(soundLargerField);
         final String interval = data.get(intervalField);
         final String version = data.remove(versionField);
-        int intervalIdx = -1;
-        for (int i = 0; i < Fields.Interval.VALUES.length; i++) {
-            if (Fields.Interval.VALUES[i].equals(interval)) {
-                intervalIdx = i;
-                break;
-            }
-        }
+        int intervalIdx = Fields.Interval.getIndex(interval);
         int updatedLinks = 0;
         if (intervalIdx > 0) {
             data.put(intervalField, Fields.Interval.VALUES[intervalIdx - 1]);

@@ -295,8 +295,8 @@ public class SettingsFragment extends PreferenceFragmentCompat {
                 final long modelId = helper.findModelIdByName(MusInterval.Builder.DEFAULT_MODEL_NAME);
                 LinkedList<Map<String, String>> notesData = helper.findNotes(modelId, new HashMap<String, String>());
                 final String currValue = sharedPreferences.getString(key, defaultValue);
-                String currValueCheckStr = String.format(" %s ", currValue);
-                String newValueAddStr = String.format("%s ", newValue);
+                String currValueCheckStr = String.format(" %s ", currValue).toLowerCase();
+                String newValueAddStr = String.format("%s ", newValue).toLowerCase();
                 for (Map<String, String> noteData : notesData) {
                     String tags = noteData.get(AnkiDroidHelper.KEY_TAGS).toLowerCase();
                     if (tags.contains(currValueCheckStr)) {
