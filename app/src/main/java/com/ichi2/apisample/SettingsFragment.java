@@ -36,9 +36,9 @@ public class SettingsFragment extends PreferenceFragmentCompat {
 
     public static final boolean DEFAULT_VERSION_FIELD_SWITCH = true;
     public static final boolean DEFAULT_TAG_DUPLICATES_SWITCH = true;
-    public static final String DEFAULT_DUPLICATE_TAG = "MI2A_duplicate";
-    public static final String DEFAULT_CORRUPTED_TAG = "MI2A_corrupted";
-    public static final String DEFAULT_SUSPICIOUS_TAG = "MI2A_suspicious";
+    public static final String DEFAULT_DUPLICATE_TAG = "mi2a_duplicate";
+    public static final String DEFAULT_CORRUPTED_TAG = "mi2a_corrupted";
+    public static final String DEFAULT_SUSPICIOUS_TAG = "mi2a_suspicious";
 
     private static Map<String, Integer> fieldPreferenceLabelStringIds = new HashMap<String, Integer>() {{
         put(MusInterval.Fields.SOUND, R.string.sound_field_list_preference_title);
@@ -295,12 +295,13 @@ public class SettingsFragment extends PreferenceFragmentCompat {
                 final long modelId = helper.findModelIdByName(MusInterval.Builder.DEFAULT_MODEL_NAME);
                 LinkedList<Map<String, String>> notesData = helper.findNotes(modelId, new HashMap<String, String>());
                 final String currValue = sharedPreferences.getString(key, defaultValue);
+                String currValueCheckStr = String.format(" %s ", currValue);
+                String newValueAddStr = String.format("%s ", newValue);
                 for (Map<String, String> noteData : notesData) {
-                    String tags = noteData.get(AnkiDroidHelper.KEY_TAGS);
-                    String currValueStr = String.format(" %s ", currValue);
-                    if (tags.contains(currValueStr)) {
+                    String tags = noteData.get(AnkiDroidHelper.KEY_TAGS).toLowerCase();
+                    if (tags.contains(currValueCheckStr)) {
                         long id = Long.parseLong(noteData.get(AnkiDroidHelper.KEY_ID));
-                        helper.updateNoteTags(id, tags.replace(currValueStr, String.format(" %s ", newValue)));
+                        helper.updateNoteTags(id, tags.replace(currValueCheckStr, String.format(" %s ", newValueAddStr)));
                     }
                 }
             } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {

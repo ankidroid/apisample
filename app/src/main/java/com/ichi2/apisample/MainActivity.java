@@ -89,6 +89,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private CheckBox checkIntervalAny;
     private CheckBox[] checkIntervals;
     private SeekBar seekTempo;
+    private TextView labelTempoValue;
     private AutoCompleteTextView inputInstrument;
     private TextView labelExisting;
     private Button actionMarkExisting;
@@ -172,6 +173,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             checkIntervals[i] = findViewById(checkIntervalIds[i]);
         }
         seekTempo = findViewById(R.id.seekTempo);
+        labelTempoValue = findViewById(R.id.labelTempoValue);
         inputInstrument = findViewById(R.id.inputInstrument);
         labelExisting = findViewById(R.id.labelExisting);
         actionMarkExisting = findViewById(R.id.actionMarkExisting);
@@ -958,6 +960,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             checkIntervals[i].setChecked(uiDb.getBoolean(String.valueOf(checkIntervalIds[i]), false));
         }
         seekTempo.setProgress(Integer.parseInt(uiDb.getString("inputTempo", "0")));
+        labelTempoValue.setText(String.valueOf(seekTempo.getProgress()));
         inputInstrument.setText(uiDb.getString("inputInstrument", ""));
 
         savedInstruments = (HashSet<String>) uiDb.getStringSet("savedInstruments", new HashSet<String>());
@@ -1061,7 +1064,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         try {
             throw miException;
         } catch (MusInterval.MandatorySelectionEmptyException e) {
-            showMsg(R.string.empty_mandatory_selection, singularFieldLabelStringIds.get(e.getField()));
+            showMsg(R.string.empty_mandatory_selection, getString(selectionFieldLabelStringIds.get(e.getField())));
         } catch (MusInterval.UnexpectedSoundsAmountException e) {
             final int expected = e.getExpectedAmount();
             final int provided = e.getProvidedAmount();
@@ -1131,7 +1134,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         } catch (MusInterval.AddToAnkiException e) {
             showMsg(R.string.add_card_error);
         } catch (MusInterval.MandatoryFieldEmptyException e) {
-            showMsg(R.string.mandatory_field_empty, singularFieldLabelStringIds.get(e.getField()));
+            showMsg(R.string.mandatory_field_empty, getString(singularFieldLabelStringIds.get(e.getField())));
         } catch (MusInterval.SoundAlreadyAddedException e) {
             showMsg(R.string.already_added);
         } catch (MusInterval.AddSoundFileException e) {

@@ -469,11 +469,11 @@
                 android:orientation="horizontal">
 
                 <Button
-                    android:id="@+id/actionMarkExisting"
+                    android:id="@+id/actionClearAll"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="0.5"
-                    android:text="@string/action_mark" />
+                    android:text="@string/action_clear_all" />
 
                 <Button
                     android:id="@+id/actionAddToAnki"
@@ -497,11 +497,11 @@
                     android:text="@string/action_check_integrity" />
 
                 <Button
-                    android:id="@+id/actionClearAll"
+                    android:id="@+id/actionMarkExisting"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="0.5"
-                    android:text="@string/action_clear_all" />
+                    android:text="@string/action_mark" />
 
             </LinearLayout>
 

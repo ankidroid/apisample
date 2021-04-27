@@ -74,9 +74,12 @@ public class MusInterval {
         }
 
         private static Map<String, Validator> VALIDATORS = new HashMap<String, Validator>() {{
-            put(SOUND, new SoundValidator());
-            put(SOUND_SMALLER, new SoundValidator());
-            put(SOUND_LARGER, new SoundValidator());
+            put(SOUND, new Validator() {
+                @Override
+                public boolean isValid(String value) {
+                    return value.startsWith("[sound:") && value.endsWith("]");
+                }
+            });
             put(START_NOTE, new Validator() {
                 @Override
                 public boolean isValid(String value) {
@@ -121,13 +124,6 @@ public class MusInterval {
 
         private interface Validator {
             boolean isValid(String value);
-        }
-
-        private static class SoundValidator implements Validator {
-            @Override
-            public boolean isValid(String value) {
-                return value.isEmpty() || value.startsWith("[sound:") && value.endsWith("]");
-            }
         }
 
         private static String[] MANDATORY = new String[]{
@@ -361,7 +357,7 @@ public class MusInterval {
         public NotEnoughFieldsException(String modelName) { super(modelName); }
     }
     public static class ModelNotConfiguredException extends ModelValidationException {
-        private ArrayList<String> invalidModelFields;
+        private final ArrayList<String> invalidModelFields;
         public ModelNotConfiguredException(String modelName, ArrayList<String> invalidModelFields) {
             super(modelName);
             this.invalidModelFields = invalidModelFields;
@@ -517,6 +513,8 @@ public class MusInterval {
             throw new NoteNotExistsException();
         }
 
+        tag = tag.toLowerCase();
+
         for (Map<String, String> note : notes) {
             String tags = note.get(AnkiDroidHelper.KEY_TAGS);
 
@@ -524,11 +522,15 @@ public class MusInterval {
                 tags = " ";
             }
 
+            tags = tags.toLowerCase();
+
             if (!tags.contains(String.format(" %s ", tag))) {
                 tags = tags + String.format("%s ", tag);
 
-                if (note.get("id") != null) {
-                    updated += helper.addTagToNote(Long.parseLong(note.get(AnkiDroidHelper.KEY_ID)), tags);
+                String id = note.get(AnkiDroidHelper.KEY_ID);
+
+                if (id != null) {
+                    updated += helper.addTagToNote(Long.parseLong(id), tags);
                 }
             }
         }
@@ -753,7 +755,9 @@ public class MusInterval {
 
         LinkedList<Map<String, String>> searchResult = getExistingNotes();
 
-        final String corruptedTagStr = String.format(" %s ", corruptedTag);
+        corruptedTag = corruptedTag.toLowerCase();
+        final String corruptedTagCheckStr = String.format(" %s ", corruptedTag);
+        final String corruptedTagAddStr = String.format("%s ", corruptedTag);
 
         int fixedCorruptedNotesCount = 0;
         int fixedSuspiciousNotesCount = 0;
@@ -789,17 +793,17 @@ public class MusInterval {
             }
 
             long noteId = Long.parseLong(noteData.get(AnkiDroidHelper.KEY_ID));
-            String noteTags = noteData.get(AnkiDroidHelper.KEY_TAGS);
-            boolean hasCorruptedTag = noteTags.contains(corruptedTagStr);
+            String noteTags = noteData.get(AnkiDroidHelper.KEY_TAGS).toLowerCase();
+            boolean hasCorruptedTag = noteTags.contains(corruptedTagCheckStr);
             if (corrupted) {
                 if (!hasCorruptedTag) {
-                    helper.addTagToNote(noteId, corruptedTagStr);
+                    helper.addTagToNote(noteId, noteTags + corruptedTagAddStr);
                 }
                 corruptedNotesData.add(noteData);
                 continue;
             }
             if (hasCorruptedTag) {
-                helper.updateNoteTags(noteId, noteTags.replace(corruptedTagStr, " "));
+                helper.updateNoteTags(noteId, noteTags.replace(corruptedTagCheckStr, " "));
                 fixedCorruptedNotesCount++;
             }
             correctNotesData.add(noteData);
@@ -859,13 +863,15 @@ public class MusInterval {
             }
         }
 
-        final String suspiciousTagStr = String.format(" %s ", suspiciousTag);
+        suspiciousTag = suspiciousTag.toLowerCase();
+        final String suspiciousTagCheckStr = String.format(" %s ", suspiciousTag);
+        final String suspiciousTagAddStr = String.format("%s ", suspiciousTag);
 
         int filledLinksCount = 0;
         for (Map<String, String> noteData : correctNotesData) {
             long noteId = Long.parseLong((noteData.get(AnkiDroidHelper.KEY_ID)));
-            String noteTags = noteData.get(AnkiDroidHelper.KEY_TAGS);
-            boolean hasSuspiciousTag = noteTags.contains(suspiciousTagStr);
+            String noteTags = noteData.get(AnkiDroidHelper.KEY_TAGS).toLowerCase();
+            boolean hasSuspiciousTag = noteTags.contains(suspiciousTagCheckStr);
             if (!suspiciousNotesData.contains(noteData)) {
                 Map<String, String> noteFieldsData = new HashMap<String, String>(noteData) {{
                     remove(AnkiDroidHelper.KEY_ID);
@@ -877,12 +883,12 @@ public class MusInterval {
                     filledLinksCount += updatedLinks;
                 }
                 if (hasSuspiciousTag) {
-                    helper.updateNoteTags(noteId, noteTags.replace(suspiciousTag, " "));
+                    helper.updateNoteTags(noteId, noteTags.replace(suspiciousTagCheckStr, " "));
                     fixedSuspiciousNotesCount++;
                 }
             } else {
                 if (!hasSuspiciousTag) {
-                    helper.addTagToNote(noteId, suspiciousTagStr);
+                    helper.addTagToNote(noteId, suspiciousTagAddStr);
                 }
             }
         }
