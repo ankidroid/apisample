@@ -70,6 +70,73 @@ public class MusInterval {
             }
             return signature.toArray(new String[0]);
         }
+
+        public static Map<String, Validator> VALIDATORS = new HashMap<String, Validator>() {{
+            put(SOUND, new SoundValidator());
+            put(SOUND_SMALLER, new SoundValidator());
+            put(SOUND_LARGER, new SoundValidator());
+            put(START_NOTE, new Validator() {
+                @Override
+                public boolean isValid(String value) {
+                    return value.matches("[A-Ga-g]#?[0-8]");
+                }
+            });
+            put(DIRECTION, new Validator() {
+                @Override
+                public boolean isValid(String value) {
+                    return value.equalsIgnoreCase(Fields.Direction.ASC)
+                            || value.equalsIgnoreCase(Fields.Direction.DESC);
+                }
+            });
+            put(TIMING, new Validator() {
+                @Override
+                public boolean isValid(String value) {
+                    return value.equalsIgnoreCase(Fields.Timing.MELODIC)
+                            || value.equalsIgnoreCase(Fields.Timing.HARMONIC);
+                }
+            });
+            put(INTERVAL, new Validator() {
+                @Override
+                public boolean isValid(String value) {
+                    boolean valid = false;
+                    for (int i = 0; i < Fields.Interval.VALUES.length; i++) {
+                        if (Fields.Interval.VALUES[i].equalsIgnoreCase(value)) {
+                            valid = true;
+                            break;
+                        }
+                    }
+                    return valid;
+                }
+            });
+            put(TEMPO, new Validator() {
+                @Override
+                public boolean isValid(String value) {
+                    int intVal = Integer.parseInt(value);
+                    return intVal >= Tempo.MIN_VALUE && intVal <= Tempo.MAX_VALUE;
+                }
+            });
+        }};
+
+        private interface Validator {
+            boolean isValid(String value);
+        }
+
+        private static class SoundValidator implements Validator {
+            @Override
+            public boolean isValid(String value) {
+                return value.isEmpty() || value.startsWith("[sound:") && value.endsWith("]");
+            }
+        }
+
+        public static String[] MANDATORY = new String[]{
+                SOUND,
+                START_NOTE,
+                DIRECTION,
+                TIMING,
+                INTERVAL,
+                TEMPO,
+                INSTRUMENT
+        };
     }
 
     public static class Builder {
@@ -262,7 +329,7 @@ public class MusInterval {
     public static class OctaveNotSelectedException extends ValidationException {}
     public static class IntervalNotSelectedException extends ValidationException {}
     public static class ModelValidationException extends ValidationException {
-        private String modelName;
+        private final String modelName;
 
         public ModelValidationException(String modelName) {
             super();
@@ -376,7 +443,7 @@ public class MusInterval {
         int result = 0;
 
         for (Map<String, String> note : getExistingNotes()) {
-            if (note.get("tags") != null && note.get("tags").contains(" marked ")) {
+            if (note.get(AnkiDroidHelper.KEY_TAGS) != null && note.get(AnkiDroidHelper.KEY_TAGS).contains(" marked ")) {
                 ++result;
             }
         }
@@ -427,7 +494,7 @@ public class MusInterval {
         }
 
         for (Map<String, String> note : notes) {
-            String tags = note.get("tags");
+            String tags = note.get(AnkiDroidHelper.KEY_TAGS);
 
             if (tags == null) {
                 tags = " ";
@@ -437,7 +504,7 @@ public class MusInterval {
                 tags = tags + String.format("%s ", tag);
 
                 if (note.get("id") != null) {
-                    updated += helper.addTagToNote(Long.parseLong(note.get("id")), tags);
+                    updated += helper.addTagToNote(Long.parseLong(note.get(AnkiDroidHelper.KEY_ID)), tags);
                 }
             }
         }
@@ -537,7 +604,7 @@ public class MusInterval {
                         Map<String, String> newData = new HashMap<>(miData);
                         fillSimilarIntervals(newData, true);
 
-                        helper.updateNote(modelId, Long.parseLong(existingData.get("id")), newData);
+                        helper.updateNote(modelId, Long.parseLong(existingData.get(AnkiDroidHelper.KEY_ID)), newData);
 
                         return getMusIntervalFromData(newData);
                     }
@@ -665,93 +732,28 @@ public class MusInterval {
         for (final Map<String, String> noteData : searchResult) {
             boolean corrupted = false;
 
-            String startNote = noteData.get(modelFields.get(Fields.START_NOTE));
-            if (!startNote.isEmpty()) {
-                if (!startNote.matches("[A-Ga-g]#?[0-8]")) {
-                    int cur = invalidFieldsCount.getOrDefault(Fields.START_NOTE, 0);
-                    invalidFieldsCount.put(Fields.START_NOTE, cur + 1);
+            ArrayList<String> emptyFields = new ArrayList<>();
+            for (String fieldKey : Fields.MANDATORY) {
+                String value = noteData.getOrDefault(modelFields.getOrDefault(fieldKey, ""), "");
+                if (value.isEmpty()) {
+                    int curr = emptyFieldsCount.getOrDefault(fieldKey, 0);
+                    emptyFieldsCount.put(fieldKey, curr + 1);
+                    emptyFields.add(fieldKey);
+                }
+            }
+
+            for (Map.Entry<String, Fields.Validator> fieldValidator : Fields.VALIDATORS.entrySet()) {
+                String fieldKey = fieldValidator.getKey();
+                if (emptyFields.contains(fieldKey)) {
+                    continue;
+                }
+                Fields.Validator validator = fieldValidator.getValue();
+                String value = noteData.getOrDefault(modelFields.getOrDefault(fieldKey, ""), "");
+                if (!validator.isValid(value)) {
+                    int curr = invalidFieldsCount.getOrDefault(fieldKey, 0);
+                    invalidFieldsCount.put(fieldKey, curr + 1);
                     corrupted = true;
                 }
-            } else {
-                int cur = emptyFieldsCount.getOrDefault(Fields.START_NOTE, 0);
-                emptyFieldsCount.put(Fields.START_NOTE, cur + 1);
-                corrupted = true;
-            }
-
-            String tempo = noteData.get(modelFields.get(Fields.TEMPO));
-            if (!tempo.isEmpty()) {
-                int tempoInt = Integer.parseInt(tempo);
-                if (tempoInt < Fields.Tempo.MIN_VALUE || tempoInt > Fields.Tempo.MAX_VALUE) {
-                    int cur = invalidFieldsCount.getOrDefault(Fields.TEMPO, 0);
-                    invalidFieldsCount.put(Fields.TEMPO, cur + 1);
-                    corrupted = true;
-                }
-            } else {
-                int cur = emptyFieldsCount.getOrDefault(Fields.TEMPO, 0);
-                emptyFieldsCount.put(Fields.TEMPO, cur + 1);
-                corrupted = true;
-            }
-
-            String direction = noteData.get(modelFields.get(Fields.DIRECTION));
-            if (!direction.isEmpty()) {
-                if (!direction.equalsIgnoreCase(Fields.Direction.ASC)
-                        && !direction.equalsIgnoreCase(Fields.Direction.DESC)) {
-                    int cur = invalidFieldsCount.getOrDefault(Fields.DIRECTION, 0);
-                    invalidFieldsCount.put(Fields.DIRECTION, cur + 1);
-                    corrupted = true;
-                }
-            } else {
-                int cur = emptyFieldsCount.getOrDefault(Fields.DIRECTION, 0);
-                emptyFieldsCount.put(Fields.DIRECTION, cur + 1);
-                corrupted = true;
-            }
-
-            String interval = noteData.get(modelFields.get(Fields.INTERVAL));
-            if (!interval.isEmpty()) {
-                boolean valid = false;
-                for (int i = 0; i < Fields.Interval.VALUES.length; i++) {
-                    if (Fields.Interval.VALUES[i].equalsIgnoreCase(interval)) {
-                        valid = true;
-                        break;
-                    }
-                }
-                if (!valid) {
-                    int cur = invalidFieldsCount.getOrDefault(Fields.INTERVAL, 0);
-                    invalidFieldsCount.put(Fields.INTERVAL, cur + 1);
-                    corrupted = true;
-                }
-            } else {
-                int cur = emptyFieldsCount.getOrDefault(Fields.INTERVAL, 0);
-                emptyFieldsCount.put(Fields.INTERVAL, cur + 1);
-                corrupted = true;
-            }
-
-            String timing = noteData.get(modelFields.get(Fields.TIMING));
-            if (!timing.isEmpty()) {
-                if (!timing.equalsIgnoreCase(Fields.Timing.MELODIC)
-                        && !timing.equalsIgnoreCase(Fields.Timing.HARMONIC)) {
-                    int cur = invalidFieldsCount.getOrDefault(Fields.TIMING, 0);
-                    invalidFieldsCount.put(Fields.TIMING, cur + 1);
-                    corrupted = true;
-                }
-            } else {
-                int cur = emptyFieldsCount.getOrDefault(Fields.TIMING, 0);
-                emptyFieldsCount.put(Fields.TIMING, cur + 1);
-                corrupted = true;
-            }
-
-            String instrument = noteData.get(modelFields.get(Fields.INSTRUMENT));
-            if (instrument.isEmpty()) {
-                int cur = emptyFieldsCount.getOrDefault(Fields.INSTRUMENT, 0);
-                emptyFieldsCount.put(Fields.INSTRUMENT, cur + 1);
-                corrupted = true;
-            }
-
-            String sound = noteData.get(modelFields.get(Fields.SOUND));
-            if (sound.isEmpty()) {
-                int cur = emptyFieldsCount.getOrDefault(Fields.SOUND, 0);
-                emptyFieldsCount.put(Fields.SOUND, cur + 1);
-                corrupted = true;
             }
 
             long noteId = Long.parseLong(noteData.get(AnkiDroidHelper.KEY_ID));
