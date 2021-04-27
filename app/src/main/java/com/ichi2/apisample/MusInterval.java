@@ -759,7 +759,6 @@ public class MusInterval {
         int fixedSuspiciousNotesCount = 0;
 
         final String intervalField = modelFields.get(MusInterval.Fields.INTERVAL);
-        final String versionField = modelFields.get(MusInterval.Fields.VERSION);
 
         for (final Map<String, String> noteData : searchResult) {
             boolean corrupted = false;
@@ -771,6 +770,7 @@ public class MusInterval {
                     int curr = emptyFieldsCount.getOrDefault(fieldKey, 0);
                     emptyFieldsCount.put(fieldKey, curr + 1);
                     emptyFields.add(fieldKey);
+                    corrupted = true;
                 }
             }
 
@@ -816,30 +816,14 @@ public class MusInterval {
                     break;
                 }
             }
-            Map<String, String> keyData = new HashMap<String, String>(noteData) {{
-                remove(soundField);
-                remove(soundSmallerField);
-                remove(soundLargerField);
-                remove(intervalField);
-                remove(versionField);
-                remove(AnkiDroidHelper.KEY_ID);
-                remove(AnkiDroidHelper.KEY_TAGS);
-            }};
+            Map<String, String> keyData = getLinkIdentityData(noteData);
             boolean suspicious = false;
             String soundSmaller = noteData.getOrDefault(soundSmallerField, "");
             if (!soundSmaller.isEmpty()) {
                 Map<String, String> smallerNoteData = soundDict.getOrDefault(soundSmaller, null);
                 if (smallerNoteData != null) {
                     String smallerInterval = smallerNoteData.getOrDefault(intervalField, "");
-                    Map<String, String> smallerNoteKeyData = new HashMap<String, String>(smallerNoteData) {{
-                        remove(soundField);
-                        remove(soundSmallerField);
-                        remove(soundLargerField);
-                        remove(intervalField);
-                        remove(versionField);
-                        remove(AnkiDroidHelper.KEY_ID);
-                        remove(AnkiDroidHelper.KEY_TAGS);
-                    }};
+                    Map<String, String> smallerNoteKeyData = getLinkIdentityData(smallerNoteData);
                     if (!keyData.equals(smallerNoteKeyData) || intervalIdx <= 0 ||
                             !Fields.Interval.VALUES[intervalIdx - 1].equalsIgnoreCase(smallerInterval)) {
                         if (!suspiciousNotesData.contains(smallerNoteData)) {
@@ -856,15 +840,7 @@ public class MusInterval {
                 Map<String, String> largerNoteData = soundDict.getOrDefault(soundLarger, null);
                 if (largerNoteData != null) {
                     String largerInterval = largerNoteData.getOrDefault(intervalField, "");
-                    Map<String, String> largerNoteKeyData = new HashMap<String, String>(largerNoteData) {{
-                        remove(soundField);
-                        remove(soundSmallerField);
-                        remove(soundLargerField);
-                        remove(intervalField);
-                        remove(versionField);
-                        remove(AnkiDroidHelper.KEY_ID);
-                        remove(AnkiDroidHelper.KEY_TAGS);
-                    }};
+                    Map<String, String> largerNoteKeyData = getLinkIdentityData(largerNoteData);
                     if (!keyData.equals(largerNoteKeyData) || intervalIdx >= Fields.Interval.VALUES.length - 1 ||
                             !Fields.Interval.VALUES[intervalIdx + 1].equalsIgnoreCase(largerInterval)) {
                         if (!suspiciousNotesData.contains(largerNoteData)) {
@@ -921,6 +897,18 @@ public class MusInterval {
                 fixedSuspiciousNotesCount,
                 filledLinksCount
         );
+    }
+
+    private Map<String, String> getLinkIdentityData(Map<String, String> data) {
+        return new HashMap<String, String>(data) {{
+            remove(modelFields.get(Fields.SOUND));
+            remove(modelFields.get(Fields.SOUND_SMALLER));
+            remove(modelFields.get(Fields.SOUND_LARGER));
+            remove(modelFields.get(Fields.INTERVAL));
+            remove(modelFields.get(Fields.VERSION));
+            remove(AnkiDroidHelper.KEY_ID);
+            remove(AnkiDroidHelper.KEY_TAGS);
+        }};
     }
 
     private int fillSimilarIntervals(Map<String, String> data, boolean updateReverse) throws AnkiDroidHelper.InvalidAnkiDatabaseException {
