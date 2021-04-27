@@ -40,7 +40,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 
@@ -55,20 +54,26 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private static final String STATE_REF_DB = "com.ichi2.apisample.uistate";
     private static final String KEY_BATCH_ADDING_NOTICE_SEEN = "batchAddingNoticeSeen";
 
-    //
-    private final Map<String, Integer> fieldLabelStringIds = new HashMap<String, Integer>() {{
+    private final Map<String, Integer> singularFieldLabelStringIds = new HashMap<String, Integer>() {{
         put(MusInterval.Fields.DIRECTION, R.string.direction);
         put(MusInterval.Fields.TIMING, R.string.timing);
         put(MusInterval.Fields.TEMPO, R.string.tempo);
         put(MusInterval.Fields.INSTRUMENT, R.string.instrument);
     }};
-
     {
-        Set<String> keys = fieldLabelStringIds.keySet();
-        for (String field : MusInterval.Builder.MANDATORY_ADDING) {
-            if (!keys.contains(field)) {
-                throw new AssertionError();
-            }
+        if (!singularFieldLabelStringIds.keySet().equals(MusInterval.Builder.ADDING_MANDATORY_SINGULAR_KEYS)) {
+            throw new AssertionError();
+        }
+    }
+
+    private final Map<String, Integer> selectionFieldLabelStringIds = new HashMap<String, Integer>() {{
+        put(MusInterval.Builder.KEY_NOTES, R.string.start_note);
+        put(MusInterval.Builder.KEY_OCTAVES, R.string.octave);
+        put(MusInterval.Builder.KEY_INTERVALS, R.string.interval);
+    }};
+    {
+        if (!selectionFieldLabelStringIds.keySet().equals(MusInterval.Builder.ADDING_MANDATORY_SELECTION_KEYS)) {
+            throw new AssertionError();
         }
     }
 
@@ -122,7 +127,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     };
 
     private final Map<Integer, String> checkIntervalIdValues = new HashMap<>();
-
     {
         if (checkIntervalIds.length != MusInterval.Fields.Interval.VALUES.length) {
             throw new AssertionError();
@@ -304,7 +308,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             }
             permutationsNumber = getMusInterval().getPermutationsNumber();
 
-        } catch (MusInterval.ValidationException e) {
+        } catch (MusInterval.ModelValidationException e) {
         } finally {
             Resources res = getResources();
             String selectFileText;
@@ -488,7 +492,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             @Override
             public void onClick(View v) {
                 final int progress = seekTempo.getProgress();
-                if (progress > 0) {
+                if (progress > MusInterval.Fields.Tempo.MIN_VALUE) {
                     seekTempo.setProgress(progress - 1);
                 }
             }
@@ -499,7 +503,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             @Override
             public void onClick(View v) {
                 final int progress = seekTempo.getProgress();
-                if (progress < 200) { // @fixme Use some constant probably
+                if (progress < MusInterval.Fields.Tempo.MAX_VALUE) {
                     seekTempo.setProgress(progress + 1);
                 }
             }
@@ -986,7 +990,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
     }
 
-    private MusInterval getMusInterval() throws MusInterval.ValidationException {
+    private MusInterval getMusInterval() throws MusInterval.ModelValidationException {
         final String anyStr = getResources().getString(R.string.any);
 
         final int radioDirectionId = radioGroupDirection.getCheckedRadioButtonId();
@@ -1056,12 +1060,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private void processMusIntervalException(MusInterval.Exception miException) {
         try {
             throw miException;
-        } catch (MusInterval.NoteNotSelectedException e) {
-            showMsg(R.string.note_not_selected);
-        } catch (MusInterval.OctaveNotSelectedException e) {
-            showMsg(R.string.octave_not_selected);
-        } catch (MusInterval.IntervalNotSelectedException e) {
-            showMsg(R.string.interval_not_selected);
+        } catch (MusInterval.MandatorySelectionEmptyException e) {
+            showMsg(R.string.empty_mandatory_selection, singularFieldLabelStringIds.get(e.getField()));
         } catch (MusInterval.UnexpectedSoundsAmountException e) {
             final int expected = e.getExpectedAmount();
             final int provided = e.getProvidedAmount();
@@ -1131,9 +1131,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         } catch (MusInterval.AddToAnkiException e) {
             showMsg(R.string.add_card_error);
         } catch (MusInterval.MandatoryFieldEmptyException e) {
-            Integer resId = fieldLabelStringIds.get(e.getField());
-            String fieldStr = resId != null ? getResources().getString(resId) : "";
-            showMsg(R.string.mandatory_field_empty, fieldStr);
+            showMsg(R.string.mandatory_field_empty, singularFieldLabelStringIds.get(e.getField()));
         } catch (MusInterval.SoundAlreadyAddedException e) {
             showMsg(R.string.already_added);
         } catch (MusInterval.AddSoundFileException e) {

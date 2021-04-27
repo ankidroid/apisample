@@ -146,9 +146,7 @@
     <string name="filenames_list_item">%d. %s</string>
     <string name="filenames_list_item_with_key">%d. %s (%s, %s)</string>
     <string name="filenames_list_separator">\n</string>
-    <string name="note_not_selected">At least one specific note must be selected</string>
-    <string name="octave_not_selected">At least one specific octave must be selected</string>
-    <string name="interval_not_selected">At least one specific interval must be selected</string>
+    <string name="empty_mandatory_selection">At least one specific option must be selected for field \"%s\"</string>
     <string name="batch_adding_notice">
         When adding multiple music intervals at once, the selected set of sound files must obey the following rules:\n
         1. The number of files must be equal to the number of unique interval permutations for the chosen field values.\n
