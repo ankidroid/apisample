@@ -2,8 +2,7 @@ package com.ichi2.apisample;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
-import android.app.Dialog;
-import android.app.DialogFragment;
+import android.content.ClipData;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -14,6 +13,7 @@ import android.net.Uri;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.widget.SwitchCompat;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.appcompat.app.AppCompatActivity;
@@ -21,17 +21,18 @@ import androidx.preference.PreferenceManager;
 
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
-import android.widget.EditText;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.SeekBar;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -41,42 +42,107 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Set;
 
 
-public class MainActivity extends AppCompatActivity implements ActivityCompat.OnRequestPermissionsResultCallback {
+public class MainActivity extends AppCompatActivity implements ActivityCompat.OnRequestPermissionsResultCallback, DuplicateAddingPrompter {
 
     private static final int AD_PERM_REQUEST = 0;
     private static final int PERMISSIONS_REQUEST_EXTERNAL_STORAGE = 1;
-    private static final int AD_PERM_REQUEST_VALID = 2;
 
     private static final int ACTION_SELECT_FILE = 10;
 
     private static final String STATE_REF_DB = "com.ichi2.apisample.uistate";
+    private static final String KEY_BATCH_ADDING_NOTICE_SEEN = "batchAddingNoticeSeen";
 
     private final Map<String, String> fieldLabels = new HashMap<>();
+    private final Map<String, String> intervalLabels = new HashMap<>();
 
-    private EditText inputFilename;
-    private AutoCompleteTextView inputStartNote;
+    private SwitchCompat switchBatch;
+    private TextView textFilename;
+    private Button actionSelectFile;
+    private CheckBox checkNoteAny;
+    private CheckBox[] checkNotes;
+    private CheckBox checkOctaveAny;
+    private CheckBox[] checkOctaves;
     private RadioGroup radioGroupDirection;
     private RadioGroup radioGroupTiming;
-    private Spinner selectInterval;
+    private CheckBox checkIntervalAny;
+    private CheckBox[] checkIntervals;
     private SeekBar seekTempo;
     private AutoCompleteTextView inputInstrument;
+    private TextView labelExisting;
+    private Button actionMarkExisting;
 
-    private HashSet<String> savedStartNotes = new HashSet<>();
+    private final int[] checkNoteIds = new int[]{
+            R.id.checkNoteC, R.id.checkNoteCSharp,
+            R.id.checkNoteD, R.id.checkNoteDSharp,
+            R.id.checkNoteE,
+            R.id.checkNoteF, R.id.checkNoteFSharp,
+            R.id.checkNoteG, R.id.checkNoteGSharp,
+            R.id.checkNoteA, R.id.checkNoteASharp,
+            R.id.checkNoteB
+    };
+    private final int[] checkOctaveIds = new int[]{
+            R.id.checkOctave1,
+            R.id.checkOctave2,
+            R.id.checkOctave3,
+            R.id.checkOctave4,
+            R.id.checkOctave5,
+            R.id.checkOctave6
+    };
+    private final int[] checkIntervalIds = new int[]{
+            R.id.checkIntervalP1,
+            R.id.checkIntervalm2,
+            R.id.checkIntervalM2,
+            R.id.checkIntervalm3,
+            R.id.checkIntervalM3,
+            R.id.checkIntervalP4,
+            R.id.checkIntervalTT,
+            R.id.checkIntervalP5,
+            R.id.checkIntervalm6,
+            R.id.checkIntervalM6,
+            R.id.checkIntervalm7,
+            R.id.checkIntervalM7,
+            R.id.checkIntervalP8
+    };
+
+    private String[] filenames = new String[]{};
+    private Integer permutationsNumber;
+
     private HashSet<String> savedInstruments = new HashSet<>();
 
     private AnkiDroidHelper mAnkiDroid;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        fieldLabels.put(MusInterval.Fields.SOUND, getResources().getString(R.string.label_filename));
-        fieldLabels.put(MusInterval.Fields.START_NOTE, getResources().getString(R.string.start_note));
         fieldLabels.put(MusInterval.Fields.DIRECTION, getResources().getString(R.string.direction));
         fieldLabels.put(MusInterval.Fields.TIMING, getResources().getString(R.string.timing));
         fieldLabels.put(MusInterval.Fields.INTERVAL, getResources().getString(R.string.interval));
         fieldLabels.put(MusInterval.Fields.TEMPO, getResources().getString(R.string.tempo));
         fieldLabels.put(MusInterval.Fields.INSTRUMENT, getResources().getString(R.string.instrument));
+
+        final String[] intervalLabels = new String[]{
+                getString(R.string.interval_P1),
+                getString(R.string.interval_m2),
+                getString(R.string.interval_M2),
+                getString(R.string.interval_m3),
+                getString(R.string.interval_M3),
+                getString(R.string.interval_P4),
+                getString(R.string.interval_TT),
+                getString(R.string.interval_P5),
+                getString(R.string.interval_m6),
+                getString(R.string.interval_M6),
+                getString(R.string.interval_m7),
+                getString(R.string.interval_M7),
+                getString(R.string.interval_P8)
+        };
+        if (intervalLabels.length != MusInterval.Fields.Interval.VALUES.length) {
+            throw new AssertionError();
+        }
+        for (int i = 0; i < MusInterval.Fields.Interval.VALUES.length; i++) {
+            this.intervalLabels.put(intervalLabels[i], MusInterval.Fields.Interval.VALUES[i]);
+        }
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -84,78 +150,311 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         Toolbar main_toolbar = findViewById(R.id.main_toolbar);
         setSupportActionBar(main_toolbar);
 
-        inputFilename = findViewById(R.id.inputFilename);
-        inputStartNote = findViewById(R.id.inputStartNote);
+        switchBatch = findViewById(R.id.switchBatch);
+        textFilename = findViewById(R.id.textFilename);
+        actionSelectFile = findViewById(R.id.actionSelectFile);
+        checkNoteAny = findViewById(R.id.checkNoteAny);
+        checkNotes = new CheckBox[checkNoteIds.length];
+        for (int i = 0; i < checkNoteIds.length; i++) {
+            checkNotes[i] = findViewById(checkNoteIds[i]);
+        }
+        checkOctaveAny = findViewById(R.id.checkOctaveAny);
+        checkOctaves = new CheckBox[checkOctaveIds.length];
+        for (int i = 0; i < checkOctaveIds.length; i++) {
+            checkOctaves[i] = findViewById(checkOctaveIds[i]);
+        }
         radioGroupDirection = findViewById(R.id.radioGroupDirection);
         radioGroupTiming = findViewById(R.id.radioGroupTiming);
-        selectInterval = findViewById(R.id.selectInterval);
+        checkIntervalAny = findViewById(R.id.checkIntervalAny);
+        checkIntervals = new CheckBox[checkIntervalIds.length];
+        for (int i = 0; i < checkIntervalIds.length; i++) {
+            checkIntervals[i] = findViewById(checkIntervalIds[i]);
+        }
         seekTempo = findViewById(R.id.seekTempo);
         inputInstrument = findViewById(R.id.inputInstrument);
+        labelExisting = findViewById(R.id.labelExisting);
+        actionMarkExisting = findViewById(R.id.actionMarkExisting);
 
-        inputStartNote.addTextChangedListener(new FieldInputTextWatcher());
-        radioGroupDirection.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(RadioGroup radioGroup, int i) {
-                clearAddedInputFilename();
-            }
-        });
-        radioGroupTiming.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(RadioGroup radioGroup, int i) {
-                clearAddedInputFilename();
-            }
-        });
-        selectInterval.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                clearAddedInputFilename();
-            }
+        restoreUiState();
 
+        textFilename.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onNothingSelected(AdapterView<?> adapterView) { }
-        });
-        seekTempo.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @SuppressLint("SetTextI18n")
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                TextView label = findViewById(R.id.labelTempoValue);
-                label.setText(Integer.toString(seekBar.getProgress()));
-                clearAddedInputFilename();
+            public void onClick(View view) {
+                if (filenames.length > 1) {
+                    StringBuilder msg = new StringBuilder();
+                    final String[][] orderedPermutationKeys = getOrderedPermutationKeys();
+                    for (int i = 0; i < filenames.length; i++) {
+                        if (msg.length() > 0) {
+                            msg.append(getString(R.string.filenames_list_separator));
+                        }
+                        // @todo: update filename field values signature
+                        if (i < orderedPermutationKeys.length && !filenames[i].startsWith("[sound:")) {
+                            final String startNote = orderedPermutationKeys[i][1] + orderedPermutationKeys[i][0];
+                            final String interval = orderedPermutationKeys[i][2];
+                            msg.append(getString(R.string.filenames_list_item_with_key, i + 1, filenames[i], startNote, interval));
+                        } else {
+                            msg.append(getString(R.string.filenames_list_item, i + 1, filenames[i]));
+                        }
+                    }
+                    new AlertDialog.Builder(MainActivity.this)
+                            .setMessage(msg)
+                            .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    dialogInterface.dismiss();
+                                }
+                            })
+                            .show();
+                }
             }
-
-            @Override public void onStartTrackingTouch(SeekBar seekBar) { }
-            @Override public void onStopTrackingTouch(SeekBar seekBar) { }
         });
+        boolean enableMultiple = switchBatch.isChecked();
+        final OnFieldCheckChangeListener onNoteCheckChangeListener = new OnFieldCheckChangeListener(checkNotes, checkNoteAny, enableMultiple);
+        checkNoteAny.setOnCheckedChangeListener(onNoteCheckChangeListener);
+        for (CheckBox checkNote : checkNotes) {
+            checkNote.setOnCheckedChangeListener(onNoteCheckChangeListener);
+        }
+        final OnFieldCheckChangeListener onOctaveCheckChangeListener = new OnFieldCheckChangeListener(checkOctaves, checkOctaveAny, enableMultiple);
+        checkOctaveAny.setOnCheckedChangeListener(onOctaveCheckChangeListener);
+        for (CheckBox checkOctave : checkOctaves) {
+            checkOctave.setOnCheckedChangeListener(onOctaveCheckChangeListener);
+        }
+        radioGroupDirection.setOnCheckedChangeListener(new OnFieldRadioChangeListener());
+        radioGroupTiming.setOnCheckedChangeListener(new OnFieldRadioChangeListener());
+        final OnFieldCheckChangeListener onIntervalCheckChangeListener = new OnFieldCheckChangeListener(checkIntervals, checkIntervalAny, enableMultiple);
+        checkIntervalAny.setOnCheckedChangeListener(onIntervalCheckChangeListener);
+        for (CheckBox checkInterval : checkIntervals) {
+            checkInterval.setOnCheckedChangeListener(onIntervalCheckChangeListener);
+        }
+        seekTempo.setOnSeekBarChangeListener(new OnFieldSeekChangeListener());
         inputInstrument.addTextChangedListener(new FieldInputTextWatcher());
-
-        final ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
-                android.R.layout.simple_spinner_dropdown_item,
-                MusInterval.Fields.Interval.VALUES);
-        selectInterval.setAdapter(adapter);
+        switchBatch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                onNoteCheckChangeListener.setEnableMultiple(b);
+                onOctaveCheckChangeListener.setEnableMultiple(b);
+                onIntervalCheckChangeListener.setEnableMultiple(b);
+            }
+        });
 
         configureTempoButtons();
         configureClearAllButton();
         configureSelectFileButton();
-        configureCheckExistenceButton();
+        configureMarkExistingButton();
         configureAddToAnkiButton();
         configureSettingsButton();
-        configureCheckIntegrityButton();
-
-        restoreUiState();
 
         mAnkiDroid = new AnkiDroidHelper(this);
+    }
 
-        if (mAnkiDroid.shouldRequestPermission()) {
-            mAnkiDroid.requestPermission(this, AD_PERM_REQUEST_VALID);
-        } else if (!doesModelExist() || !doesModelHaveEnoughFields() || !doesModelHaveStoredFields()) {
-            validateModel();
+    private String[][] getOrderedPermutationKeys() {
+        final String[] selectedNotes = getCheckedTexts(checkNotes);
+        final String[] selectedOctaves = getCheckedTexts(checkOctaves);
+        final String[] selectedIntervals = getCheckedTexts(checkIntervals);
+        ArrayList<String[]> orderedPermutationKeys = new ArrayList<>();
+        for (String octave : selectedOctaves) {
+            for (String note : selectedNotes) {
+                for (String interval : selectedIntervals) {
+                    orderedPermutationKeys.add(new String[]{octave, note, interval});
+                }
+            }
+        }
+        return orderedPermutationKeys.toArray(new String[0][]);
+    }
+
+    private String[] getCheckedTexts(CheckBox[] checkBoxes) {
+        ArrayList<String> texts = new ArrayList<>();
+        for (CheckBox check : checkBoxes) {
+            if (check.isChecked()) {
+                texts.add(check.getText().toString());
+            }
+        }
+        return texts.toArray(new String[0]);
+    }
+
+    private void clearAddedFilenames() {
+        ArrayList<String> unAddedFilenames = new ArrayList<>();
+        for (String filename : filenames) {
+            if (!filename.startsWith("[sound:")) {
+                unAddedFilenames.add(filename);
+            }
+        }
+        filenames = unAddedFilenames.toArray(new String[0]);
+        refreshFilenameText();
+    }
+
+    private void refreshFilenameText() {
+        StringBuilder text = new StringBuilder();
+        if (filenames.length > 0) {
+            text.append(filenames[0]);
+            if (filenames.length > 1) {
+                text.append(getString(R.string.additional_filenames, filenames.length - 1));
+            }
+        }
+        textFilename.setText(text);
+    }
+
+    private void refreshPermutations() {
+        if (mAnkiDroid == null) {
+            return;
+        }
+        int permutationsNumber = 1;
+        try {
+            if (mAnkiDroid.shouldRequestPermission()) {
+                mAnkiDroid.requestPermission(MainActivity.this, AD_PERM_REQUEST);
+                return;
+            }
+            permutationsNumber = getMusInterval().getPermutationsNumber();
+
+        } catch (MusInterval.ValidationException e) {
+        } finally {
+            Resources res = getResources();
+            String selectFileText;
+            if (permutationsNumber <= 1) {
+                permutationsNumber = 1;
+                selectFileText = res.getQuantityString(R.plurals.select_file, permutationsNumber);
+            } else {
+                selectFileText = res.getQuantityString(R.plurals.select_file, permutationsNumber, permutationsNumber);
+            }
+            actionSelectFile.setText(selectFileText);
+            this.permutationsNumber = permutationsNumber;
         }
     }
 
-    private void clearAddedInputFilename() {
-        String filename = MainActivity.this.inputFilename.getText().toString();
-        if (filename.length() > 0 && filename.startsWith("[sound:")) {
-            inputFilename.setText("");
+    private class OnFieldCheckChangeListener implements CompoundButton.OnCheckedChangeListener {
+        private final CheckBox[] checkBoxes;
+        private final CheckBox checkBoxAny;
+        private boolean enableMultiple;
+
+        public OnFieldCheckChangeListener(CheckBox[] checkBoxes, CheckBox checkBoxAny, boolean enableMultiple) {
+            this.checkBoxes = checkBoxes;
+            this.checkBoxAny = checkBoxAny;
+            this.enableMultiple = enableMultiple;
+        }
+
+        @Override
+        public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+            if (compoundButton.getId() == checkBoxAny.getId()) {
+                if (b) {
+                    for (CheckBox checkBox : checkBoxes) {
+                        checkBox.setChecked(false);
+                    }
+                } else if (enableMultiple) {
+                    for (CheckBox checkBox : checkBoxes) {
+                        if (checkBox.isChecked()) {
+                            return;
+                        }
+                    }
+                    for (CheckBox checkBox : checkBoxes) {
+                        checkBox.setChecked(true);
+                    }
+                }
+            } else if (b) {
+                checkBoxAny.setChecked(false);
+                if (!enableMultiple) {
+                    for (CheckBox checkBox : checkBoxes) {
+                        if (checkBox.getId() != compoundButton.getId()) {
+                            checkBox.setChecked(false);
+                        }
+                    }
+                }
+            }
+            clearAddedFilenames();
+            refreshExisting();
+            refreshPermutations();
+        }
+
+        public void setEnableMultiple(boolean enableMultiple) {
+            if (!enableMultiple) {
+                ArrayList<CheckBox> checked = new ArrayList<>();
+                for (CheckBox checkBox : checkBoxes) {
+                    if (checkBox.isChecked()) {
+                        checked.add(checkBox);
+                    }
+                }
+                if (checked.size() > 1) {
+                    for (CheckBox checkBox : checked) {
+                        checkBox.setChecked(false);
+                    }
+                }
+            }
+            this.enableMultiple = enableMultiple;
+        }
+    }
+
+    private class OnFieldRadioChangeListener implements RadioGroup.OnCheckedChangeListener {
+        @Override
+        public void onCheckedChanged(RadioGroup radioGroup, int i) {
+            clearAddedFilenames();
+            refreshExisting();
+        }
+    }
+
+    private class OnFieldSeekChangeListener implements SeekBar.OnSeekBarChangeListener {
+        @SuppressLint("SetTextI18n")
+        @Override
+        public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+            TextView label = findViewById(R.id.labelTempoValue);
+            label.setText(Integer.toString(seekBar.getProgress()));
+            clearAddedFilenames();
+            refreshExisting();
+        }
+
+        @Override public void onStartTrackingTouch(SeekBar seekBar) { }
+        @Override public void onStopTrackingTouch(SeekBar seekBar) { }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        refreshExisting();
+        refreshPermutations();
+        refreshFilenameText();
+    }
+
+    private void refreshExisting() {
+        if (mAnkiDroid == null) {
+            return;
+        }
+        String textExisting = "";
+        int existingCount = 0;
+        int markedCount = 0;
+        try {
+            if (mAnkiDroid.shouldRequestPermission()) {
+                mAnkiDroid.requestPermission(MainActivity.this, AD_PERM_REQUEST);
+                return;
+            }
+            MusInterval mi = getMusInterval();
+            existingCount = mi.getExistingNotesCount();
+            markedCount = mi.getExistingMarkedNotesCount();
+            Resources res = getResources();
+            String textFound;
+            String textMarked;
+            if (existingCount == 1) {
+                textFound = res.getQuantityString(R.plurals.mi_found, existingCount);
+                if (markedCount == 1) {
+                    textMarked = res.getString(R.string.mi_found_one_marked);
+                } else {
+                    textMarked = res.getString(R.string.mi_found_one_unmarked);
+                }
+            } else {
+                textFound = res.getQuantityString(R.plurals.mi_found, existingCount, existingCount);
+                if (markedCount == 1) {
+                    textMarked = res.getQuantityString(R.plurals.mi_found_other_marked, markedCount);
+                } else {
+                    textMarked = res.getQuantityString(R.plurals.mi_found_other_marked, markedCount, markedCount);
+                }
+            }
+            textExisting = existingCount == 0 ?
+                    textFound :
+                    textFound + textMarked;
+        } catch (Throwable e) {
+            textExisting = ""; // might wanna set some error message here
+        } finally {
+            labelExisting.setText(textExisting);
+            final int unmarkedCount = existingCount - markedCount;
+            actionMarkExisting.setText(getString(R.string.action_mark, unmarkedCount));
+            actionMarkExisting.setEnabled(unmarkedCount > 0);
         }
     }
 
@@ -171,7 +470,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
             String curr = charSequence.toString();
             if (!curr.equalsIgnoreCase(prev)) {
-                clearAddedInputFilename();
+                clearAddedFilenames();
+                refreshExisting();
             }
         }
 
@@ -208,11 +508,19 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         actionClearAll.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                inputFilename.setText("");
-                inputStartNote.setText("");
+                filenames = new String[]{};
+                textFilename.setText("");
+                for (CheckBox checkNote : checkNotes) {
+                    checkNote.setChecked(false);
+                }
+                for (CheckBox checkOctave : checkOctaves) {
+                    checkOctave.setChecked(false);
+                }
                 radioGroupDirection.check(findViewById(R.id.radioDirectionAny).getId());
                 radioGroupTiming.check(findViewById(R.id.radioTimingAny).getId());
-                selectInterval.setSelection(0);
+                for (CheckBox checkInterval : checkIntervals) {
+                    checkInterval.setChecked(false);
+                }
                 seekTempo.setProgress(0);
                 inputInstrument.setText("");
             }
@@ -224,21 +532,60 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         actionSelectFile.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                requestPermissions(new String[] {
-                        android.Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                requestPermissions(new String[]{
+                                android.Manifest.permission.WRITE_EXTERNAL_STORAGE},
                         PERMISSIONS_REQUEST_EXTERNAL_STORAGE
                 );
 
-                Intent intent = new Intent()
-                        .setAction(Intent.ACTION_GET_CONTENT)
-                        .setType("audio/*")
-                        .addCategory(Intent.CATEGORY_OPENABLE)
-                        .putExtra(Intent.EXTRA_LOCAL_ONLY, true);
+                if (permutationsNumber == null || permutationsNumber <= 1) {
+                    openChooser();
+                    return;
+                }
 
-                startActivityForResult(Intent.createChooser(intent, getResources().getText(R.string.select_filename)),
-                        ACTION_SELECT_FILE);
+                SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+                boolean batchNoticeSeen = preferences.getBoolean(KEY_BATCH_ADDING_NOTICE_SEEN, false);
+                if (batchNoticeSeen) {
+                    openChooser();
+                    return;
+                }
+
+                ViewGroup viewGroup = findViewById(R.id.content);
+                View dialogView = LayoutInflater.from(MainActivity.this).inflate(R.layout.dialog_notice, viewGroup, false);
+                TextView textNotice = dialogView.findViewById(R.id.textNotice);
+                final CheckBox checkRemember = dialogView.findViewById(R.id.checkRemember);
+                textNotice.setText(getResources().getString(R.string.batch_adding_notice));
+                new AlertDialog.Builder(MainActivity.this)
+                        .setView(dialogView)
+                        .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                dialogInterface.dismiss();
+                            }
+                        }).setOnDismissListener(new DialogInterface.OnDismissListener() {
+                    @Override
+                    public void onDismiss(DialogInterface dialogInterface) {
+                        if (checkRemember.isChecked()) {
+                            SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(MainActivity.this).edit();
+                            editor.putBoolean(KEY_BATCH_ADDING_NOTICE_SEEN, true);
+                            editor.apply();
+                        }
+                        openChooser();
+                    }
+                }).show();
             }
         });
+    }
+
+    private void openChooser() {
+        Intent intent = new Intent()
+                .setAction(Intent.ACTION_OPEN_DOCUMENT)
+                .setType("audio/*")
+                .addCategory(Intent.CATEGORY_OPENABLE)
+                .putExtra(Intent.EXTRA_LOCAL_ONLY, true)
+                .putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+
+        startActivityForResult(Intent.createChooser(intent, actionSelectFile.getText().toString()),
+                ACTION_SELECT_FILE);
     }
 
     @Override
@@ -246,65 +593,44 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         super.onActivityResult(requestCode, resultCode, data);
 
         if (requestCode == ACTION_SELECT_FILE && resultCode == RESULT_OK) {
-            final Uri selectedFile = data.getData();
-            inputFilename.setText(selectedFile.toString());
+            ArrayList<String> filenamesList = new ArrayList<>();
+            if (data != null) {
+                ClipData clipData = data.getClipData();
+                if (clipData != null) {
+                    for (int i = 0; i < clipData.getItemCount(); i++) {
+                        Uri uri = clipData.getItemAt(i).getUri();
+                        getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                        filenamesList.add(uri.toString());
+                    }
+                } else {
+                    Uri uri = data.getData();
+                    getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    filenamesList.add(uri.toString());
+                }
+            }
+            filenames = filenamesList.toArray(new String[0]);
+            refreshFilenameText();
         }
     }
 
-    private void configureCheckExistenceButton() {
-        final AlertDialog.Builder markNoteDialog = new AlertDialog.Builder(this);
-        markNoteDialog
-                .setPositiveButton(R.string.str_yes, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        try {
-                            final int count = getMusInterval().markExistingNotes();
-                            showMsg(getResources().getQuantityString(R.plurals.mi_marked, count, count));
-                        } catch (MusInterval.Exception e) {
-                            processMusIntervalException(e);
-                        } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
-                            processInvalidAnkiDatabase(e);
-                        }
-                    }
-                })
-                .setNegativeButton(R.string.str_no, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        dialog.cancel();
-                    }
-                });
-
-        final Button actionCheckExistence = findViewById(R.id.actionCheckExistence);
-        actionCheckExistence.setOnClickListener(new View.OnClickListener() {
+    private void configureMarkExistingButton() {
+        actionMarkExisting.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (mAnkiDroid.shouldRequestPermission()) {
                     mAnkiDroid.requestPermission(MainActivity.this, AD_PERM_REQUEST);
                     return;
                 }
-                if (!doesModelExist() || !doesModelHaveEnoughFields() || !doesModelHaveStoredFields()) {
-                    validateModel();
-                    return;
-                }
                 try {
-                    final MusInterval mi = getMusInterval();
-                    final int count = mi.getExistingNotesCount();
-
-                    if (count > 0) {
-                        final int marked = mi.getExistingMarkedNotesCount();
-
-                        if (count == marked) {
-                            showMsg(getResources().getQuantityString(R.plurals.mi_exists_marked, count, count));
-                        } else if (marked == 0) {
-                            markNoteDialog.setMessage(getResources().getQuantityString(R.plurals.mi_exists_ask_mark, count, count)).show();
-                        } else {
-                            markNoteDialog.setMessage(getResources().getQuantityString(R.plurals.mi_exists_partially_marked_ask_mark, marked, count, marked)).show();
-                        }
-                    } else {
-                        showMsg(R.string.mi_not_exists);
-                    }
+                    final int count = getMusInterval().markExistingNotes();
+                    showQuantityMsg(R.plurals.mi_marked_result, count, count);
+                    refreshExisting();
                 } catch (MusInterval.Exception e) {
                     processMusIntervalException(e);
                 } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
                     processInvalidAnkiDatabase(e);
+                } catch (Throwable e) {
+                    processUnknownException(e);
                 }
             }
         });
@@ -319,26 +645,132 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     mAnkiDroid.requestPermission(MainActivity.this, AD_PERM_REQUEST);
                     return;
                 }
-                if (!doesModelExist() || !doesModelHaveEnoughFields() || !doesModelHaveStoredFields()) {
-                    validateModel();
-                    return;
-                }
                 try {
-                    MusInterval newMi = getMusInterval().addToAnki();
-                    inputFilename.setText(newMi.sound);
-                    inputStartNote.setText(newMi.startNote);
-
-                    savedStartNotes.add(newMi.startNote);
+                    MusInterval newMi = getMusInterval().addToAnki(MainActivity.this);
+                    filenames = newMi.sounds;
+                    refreshFilenameText();
                     savedInstruments.add(newMi.instrument);
+                    refreshExisting();
+                    final int nAdded = newMi.sounds.length;
+                    if (nAdded == 1) {
+                        showQuantityMsg(R.plurals.mi_added, nAdded);
+                    } else if (nAdded > 1) {
+                        showQuantityMsg(R.plurals.mi_added, nAdded, nAdded);
+                    }
+                } catch (MusInterval.Exception e) {
+                    processMusIntervalException(e);
+                } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
+                    processInvalidAnkiDatabase(e);
+                } catch (Throwable e) {
+                    processUnknownException(e);
+                }
+            }
+        });
+    }
 
-                    showMsg(R.string.item_added);
+    @Override
+    public void promptAddDuplicate(MusInterval[] existingMis, final DuplicateAddingHandler handler) {
+        final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+        final boolean tagDuplicates = sharedPreferences.getBoolean(SettingsFragment.KEY_TAG_DUPLICATES_SWITCH, SettingsFragment.DEFAULT_TAG_DUPLICATES_SWITCH);
+        final String duplicateTag = sharedPreferences.getString(SettingsFragment.KEY_DUPLICATE_TAG_PREFERENCE, SettingsFragment.DEFAULT_DUPLICATE_TAG);
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this)
+                .setPositiveButton(R.string.add_anyway, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        try {
+                            MusInterval newMi = handler.add();
+                            if (tagDuplicates) {
+                                handler.tag(duplicateTag);
+                            }
+                            handleInsertion(newMi);
+                            showQuantityMsg(R.plurals.mi_added, 1);
+                        } catch (MusInterval.Exception e) {
+                            processMusIntervalException(e);
+                        } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
+                            processInvalidAnkiDatabase(e);
+                        }
+                    }
+                });
+        int existingCount = existingMis.length;
+        MusInterval existingMi = existingMis[0];
+        try {
+            int markedCount = existingMi.getExistingMarkedNotesCount();
+            if (existingCount > markedCount) {
+                builder.setNeutralButton(R.string.mark_existing, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        try {
+                            final int count = handler.mark();
+                            showQuantityMsg(R.plurals.mi_marked_result, count, count);
+                            refreshExisting();
+                        } catch (MusInterval.Exception e) {
+                            processMusIntervalException(e);
+                        } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
+                            processInvalidAnkiDatabase(e);
+                        }
+                    }
+                });
+            }
+        } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
+        }
+        Resources res = getResources();
+        String msg;
+        if (existingCount == 1) {
+            msg = res.getQuantityString(
+                    R.plurals.duplicate_warning, existingCount,
+                    existingMi.notes[0] + existingMi.octaves[0],
+                    existingMi.direction,
+                    existingMi.timing,
+                    existingMi.intervals[0],
+                    existingMi.tempo,
+                    existingMi.instrument);
+            builder.setNegativeButton(R.string.replace_existing, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    try {
+                        MusInterval newMi = handler.replace();
+                        handleInsertion(newMi);
+                        showMsg(R.string.item_replaced);
+                    } catch (MusInterval.Exception e) {
+                        processMusIntervalException(e);
+                    } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
+                        processInvalidAnkiDatabase(e);
+                    }
+                }
+            });
+        } else {
+            msg = res.getQuantityString(R.plurals.duplicate_warning, existingCount,
+                    existingCount,
+                    existingMi.notes[0] + existingMi.octaves[0],
+                    existingMi.direction,
+                    existingMi.timing,
+                    existingMi.intervals[0],
+                    existingMi.tempo,
+                    existingMi.instrument);
+        }
+        if (existingCount > 1) {
+            if (tagDuplicates) {
+                try {
+                    handler.tag(duplicateTag);
                 } catch (MusInterval.Exception e) {
                     processMusIntervalException(e);
                 } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
                     processInvalidAnkiDatabase(e);
                 }
             }
-        });
+        }
+        builder.setMessage(msg);
+        builder.show();
+    }
+
+    private void handleInsertion(MusInterval newMi) {
+        String[] tempFilenames = new String[filenames.length + 1];
+        System.arraycopy(filenames, 0, tempFilenames, 0, filenames.length);
+        tempFilenames[tempFilenames.length - 1] = newMi.sounds[0];
+        filenames = tempFilenames;
+        refreshFilenameText();
+        savedInstruments.add(newMi.instrument);
+        refreshExisting();
     }
 
     private void configureSettingsButton() {
@@ -348,14 +780,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             public void onClick(View view) {
                 if (mAnkiDroid.shouldRequestPermission()) {
                     mAnkiDroid.requestPermission(MainActivity.this, AD_PERM_REQUEST);
-                    return;
-                }
-                if (!doesModelExist()) {
-                    DialogFragment f = new CreateModelDialogFragment();
-                    f.show(getFragmentManager(), "createModelDialog");
-                    return;
-                } else if (!doesModelHaveEnoughFields()) {
-                    showMsg(String.format(getResources().getString(R.string.invalid_model), MusInterval.Builder.DEFAULT_MODEL_NAME));
                     return;
                 }
                 openSettings();
@@ -374,10 +798,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             public void onClick(View v) {
                 if (mAnkiDroid.shouldRequestPermission()) {
                     mAnkiDroid.requestPermission(MainActivity.this, AD_PERM_REQUEST);
-                    return;
-                }
-                if (!doesModelExist() || !doesModelHaveEnoughFields() || !doesModelHaveStoredFields()) {
-                    validateModel();
                     return;
                 }
                 try {
@@ -408,7 +828,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                             report.append(res.getQuantityString(R.plurals.integrity_corrupted, corruptedNotesCount, corruptedNotesCount, corruptedTag));
                         }
                         report.append("\n");
-                        for (String field : MusInterval.Fields.SIGNATURE) {
+                        for (String field : MusInterval.Fields.getSignature(false)) {
                             final int invalidCount = invalidFieldsCount.getOrDefault(field, 0);
                             final int emptyCount = emptyFieldsCount.getOrDefault(field, 0);
                             final int corruptedCount = invalidCount + emptyCount;
@@ -482,99 +902,77 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         });
     }
 
-    private Long findModel() {
-        return mAnkiDroid.findModelIdByName(MusInterval.Builder.DEFAULT_MODEL_NAME);
-    }
-
-    private boolean doesModelExist() {
-        return findModel() != null;
-    }
-
-    private boolean doesModelHaveEnoughFields() {
-        return mAnkiDroid.getFieldList(findModel()).length >= MusInterval.Fields.SIGNATURE.length;
-    }
-
-    private boolean doesModelHaveStoredFields() {
-        final ArrayList<String> existingModelFields = new ArrayList<>(Arrays.asList(mAnkiDroid.getFieldList(findModel())));
-        final String[] storedFields = new String[MusInterval.Fields.SIGNATURE.length];
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        for (int i = 0; i < MusInterval.Fields.SIGNATURE.length; i++) {
-            storedFields[i] = sharedPreferences.getString(MusInterval.Fields.SIGNATURE[i], MusInterval.Fields.SIGNATURE[i]);
-        }
-        ArrayList<String> takenFields = new ArrayList<>();
-        for (String field : storedFields) {
-            if (!existingModelFields.contains(field) || takenFields.contains(field)) {
-                return false;
-            }
-            takenFields.add(field);
-        }
-        return true;
-    }
-
-    private void validateModel() {
-        Long modelId = findModel();
-        if (modelId == null) {
-            DialogFragment f = new CreateModelDialogFragment();
-            f.show(getFragmentManager(), "createModelDialog");
-        } else if (!doesModelHaveEnoughFields()) {
-            showMsg(String.format(getResources().getString(R.string.invalid_model), MusInterval.Builder.DEFAULT_MODEL_NAME));
-        } else if (!doesModelHaveStoredFields()) {
-            DialogFragment f = new ConfigureModelDialogFragment();
-            f.show(getFragmentManager(), "configureModelDialog");
-        }
-    }
-
     @Override
     protected void onPause() {
-        final SharedPreferences uiDb = getSharedPreferences(STATE_REF_DB, Context.MODE_PRIVATE);
-        uiDb.edit()
-                .putString("inputFilename", inputFilename.getText().toString())
-                .putString("inputStartNote", inputStartNote.getText().toString())
-                .putInt("radioGroupDirection", radioGroupDirection.getCheckedRadioButtonId())
-                .putInt("radioGroupTiming", radioGroupTiming.getCheckedRadioButtonId())
-                .putInt("selectInterval", selectInterval.getSelectedItemPosition())
-                .putString("inputTempo", Integer.toString(seekTempo.getProgress()))
-                .putString("inputInstrument", inputInstrument.getText().toString())
-                .putStringSet("savedStartNotes", savedStartNotes)
-                .putStringSet("savedInstruments", savedInstruments)
-                .apply();
+        final SharedPreferences.Editor uiDbEditor = getSharedPreferences(STATE_REF_DB, Context.MODE_PRIVATE).edit();
+
+        uiDbEditor.putBoolean("switchBatch", switchBatch.isChecked());
+        uiDbEditor.putStringSet("selectedFilenames", new HashSet<>(Arrays.asList(filenames)));
+        uiDbEditor.putBoolean("checkNoteAny", checkNoteAny.isChecked());
+        for (int i = 0; i < checkNoteIds.length; i++) {
+            uiDbEditor.putBoolean(String.valueOf(checkNoteIds[i]), checkNotes[i].isChecked());
+        }
+        uiDbEditor.putBoolean("checkOctaveAny", checkOctaveAny.isChecked());
+        for (int i = 0; i < checkOctaveIds.length; i++) {
+            uiDbEditor.putBoolean(String.valueOf(checkOctaveIds[i]), checkOctaves[i].isChecked());
+        }
+        uiDbEditor.putInt("radioGroupDirection", radioGroupDirection.getCheckedRadioButtonId());
+        uiDbEditor.putInt("radioGroupTiming", radioGroupTiming.getCheckedRadioButtonId());
+        uiDbEditor.putBoolean("checkIntervalAny", checkIntervalAny.isChecked());
+        for (int i = 0; i < checkIntervalIds.length; i++) {
+            uiDbEditor.putBoolean(String.valueOf(checkIntervalIds[i]), checkIntervals[i].isChecked());
+        }
+        uiDbEditor.putString("inputTempo", Integer.toString(seekTempo.getProgress()));
+        uiDbEditor.putString("inputInstrument", inputInstrument.getText().toString());
+        uiDbEditor.putStringSet("savedInstruments", savedInstruments);
+        uiDbEditor.apply();
 
         super.onPause();
     }
 
     protected void restoreUiState() {
         final SharedPreferences uiDb = getSharedPreferences(STATE_REF_DB, Context.MODE_PRIVATE);
-        inputFilename.setText(uiDb.getString("inputFilename", ""));
-        inputStartNote.setText(uiDb.getString("inputStartNote", ""));
+        switchBatch.setChecked(uiDb.getBoolean("switchBatch", false));
+        Set<String> storedFilenames = uiDb.getStringSet("selectedFilenames", new HashSet<String>());
+        filenames = storedFilenames.toArray(new String[0]);
+        refreshFilenameText();
+        checkNoteAny.setChecked(uiDb.getBoolean("checkNoteAny", false));
+        for (int i = 0; i < checkNoteIds.length; i++) {
+            checkNotes[i].setChecked(uiDb.getBoolean(String.valueOf(checkNoteIds[i]), false));
+        }
+        checkOctaveAny.setChecked(uiDb.getBoolean("checkOctaveAny", false));
+        for (int i = 0; i < checkOctaveIds.length; i++) {
+            checkOctaves[i].setChecked(uiDb.getBoolean(String.valueOf(checkOctaveIds[i]), false));
+        }
         radioGroupDirection.check(uiDb.getInt("radioGroupDirection", findViewById(R.id.radioDirectionAny).getId()));
         radioGroupTiming.check(uiDb.getInt("radioGroupTiming", findViewById(R.id.radioTimingAny).getId()));
-        selectInterval.setSelection(uiDb.getInt("selectInterval", 0));
+        checkIntervalAny.setChecked(uiDb.getBoolean("checkIntervalAny", false));
+        for (int i = 0; i < checkIntervalIds.length; i++) {
+            checkIntervals[i].setChecked(uiDb.getBoolean(String.valueOf(checkIntervalIds[i]), false));
+        }
         seekTempo.setProgress(Integer.parseInt(uiDb.getString("inputTempo", "0")));
         inputInstrument.setText(uiDb.getString("inputInstrument", ""));
-
-        savedStartNotes = (HashSet<String>) uiDb.getStringSet("savedStartNotes", new HashSet<String>());
-        inputStartNote.setAdapter(new ArrayAdapter<>(this,
-                android.R.layout.simple_dropdown_item_1line, savedStartNotes.toArray(new String[0])));
 
         savedInstruments = (HashSet<String>) uiDb.getStringSet("savedInstruments", new HashSet<String>());
         inputInstrument.setAdapter(new ArrayAdapter<>(this,
                 android.R.layout.simple_dropdown_item_1line, savedInstruments.toArray(new String[0])));
 
         this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
+
+        refreshExisting();
+        refreshPermutations();
     }
 
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         switch (requestCode) {
-            case AD_PERM_REQUEST_VALID:
-                if (grantResults.length > 0 && grantResults[0] != PackageManager.PERMISSION_GRANTED) {
-                    showMsg(R.string.anki_permission_denied);
-                } else if (!doesModelExist() || !doesModelHaveEnoughFields() || !doesModelHaveStoredFields()) {
-                    validateModel();
-                }
-                break;
             case AD_PERM_REQUEST: {
-                if (grantResults.length > 0 && grantResults[0] != PackageManager.PERMISSION_GRANTED) {
-                    showMsg(R.string.anki_permission_denied);
+                if (grantResults.length > 0) {
+                    if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                        refreshExisting();
+                        refreshPermutations();
+                    } else {
+                        showMsg(R.string.anki_permission_denied);
+                    }
                 }
             }
             case PERMISSIONS_REQUEST_EXTERNAL_STORAGE: {
@@ -585,50 +983,144 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
     }
 
-    private MusInterval getMusInterval() throws MusInterval.InvalidFieldsException {
-        final String anyStr = getResources().getString(R.string.radio_any);
+    private MusInterval getMusInterval() throws MusInterval.ValidationException {
+        final String anyStr = getResources().getString(R.string.any);
 
         final int radioDirectionId = radioGroupDirection.getCheckedRadioButtonId();
-        final RadioButton radioDirection = findViewById(radioDirectionId);
-        final String directionStr = radioDirectionId != -1  && radioDirection != null ?
-                radioDirection.getText().toString() : anyStr;
-
+        final View radioDirection = findViewById(radioDirectionId);
+        final String directionStr =
+                radioDirection instanceof RadioButton && radioDirectionId != -1 ?
+                        ((RadioButton) radioDirection).getText().toString() :
+                        anyStr;
         final int radioTimingId = radioGroupTiming.getCheckedRadioButtonId();
-        final RadioButton radioTiming = findViewById(radioTimingId);
-        final String timingStr = radioTimingId != -1 && radioTiming != null ?
-                radioTiming.getText().toString() : anyStr;
+        final View radioTiming = findViewById(radioTimingId);
+        final String timingStr =
+                radioTiming instanceof RadioButton && radioTimingId != -1 ?
+                        ((RadioButton) radioTiming).getText().toString() :
+                        anyStr;
 
         final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        final boolean versionField = sharedPreferences.getBoolean(SettingsFragment.KEY_VERSION_FIELD_SWITCH, SettingsFragment.DEFAULT_VERSION_FIELD_SWITCH);
+        String[] signature = MusInterval.Fields.getSignature(versionField);
         final Map<String, String> storedFields = new HashMap<>();
-        for (String field : MusInterval.Fields.SIGNATURE) {
-            storedFields.put(field, sharedPreferences.getString(field, field));
+        for (String fieldKey : signature) {
+            String fieldPreferenceKey = SettingsFragment.getFieldPreferenceKey(fieldKey);
+            storedFields.put(fieldKey, sharedPreferences.getString(fieldPreferenceKey, ""));
         }
+        final String storedDeck = sharedPreferences.getString(SettingsFragment.KEY_DECK_PREFERENCE, MusInterval.Builder.DEFAULT_DECK_NAME);
+        final String storedModel = sharedPreferences.getString(SettingsFragment.KEY_MODEL_PREFERENCE, MusInterval.Builder.DEFAULT_MODEL_NAME);
 
-        return new MusInterval.Builder(mAnkiDroid)
+        String[] notes = !checkNoteAny.isChecked() ? getCheckedValues(checkNotes) : null;
+        String[] octaves = !checkOctaveAny.isChecked() ? getCheckedValues(checkOctaves) : null;
+        String[] intervals = !checkIntervalAny.isChecked() ? getCheckedValues(checkIntervals, intervalLabels) : null;
+
+        MusInterval.Builder builder = new MusInterval.Builder(mAnkiDroid)
+                .deck(storedDeck)
+                .model(storedModel)
                 .model_fields(storedFields)
-                .sound(inputFilename.getText().toString())
-                .start_note(inputStartNote.getText().toString())
+                .sounds(filenames)
+                .notes(notes)
+                .octaves(octaves)
                 .direction(!directionStr.equals(anyStr) ? directionStr : "")
                 .timing(!timingStr.equals(anyStr) ? timingStr : "")
-                .interval(selectInterval.getSelectedItem().toString())
+                .intervals(intervals)
                 .tempo(seekTempo.getProgress() > 0 ? Integer.toString(seekTempo.getProgress()) : "")
-                .instrument(inputInstrument.getText().toString())
-                .build();
+                .instrument(inputInstrument.getText().toString());
+        if (versionField) {
+            builder.version(BuildConfig.VERSION_NAME);
+        }
+        return builder.build();
+    }
+
+    private static String[] getCheckedValues(CheckBox[] checkBoxes) {
+        return getCheckedValues(checkBoxes, null);
+    }
+
+    private static String[] getCheckedValues(CheckBox[] checkBoxes, Map<String, String> valueLabels) {
+        ArrayList<String> valuesList = new ArrayList<>();
+        for (CheckBox checkBox : checkBoxes) {
+            if (checkBox.isChecked()) {
+                String value = checkBox.getText().toString();
+                if (valueLabels != null) {
+                    value = valueLabels.get(value);
+                }
+                valuesList.add(value);
+            }
+        }
+        return valuesList.toArray(new String[0]);
     }
 
     private void processMusIntervalException(MusInterval.Exception miException) {
         try {
             throw miException;
+        } catch (MusInterval.NoteNotSelectedException e) {
+            showMsg(R.string.note_not_selected);
+        } catch (MusInterval.OctaveNotSelectedException e) {
+            showMsg(R.string.octave_not_selected);
+        } catch (MusInterval.IntervalNotSelectedException e) {
+            showMsg(R.string.interval_not_selected);
+        } catch (MusInterval.UnexpectedSoundsAmountException e) {
+            final int expected = e.getExpectedAmount();
+            final int provided = e.getProvidedAmount();
+            final boolean expectedSingle = expected == 1;
+            Resources res = getResources();
+            String msg;
+            if (provided == 0) {
+                if (expectedSingle) {
+                    showQuantityMsg(R.plurals.sound_not_provided, expected);
+                } else {
+                    showQuantityMsg(R.plurals.sound_not_provided, expected, expected);
+                }
+            } else {
+                if (expectedSingle) {
+                    showQuantityMsg(R.plurals.unexpected_sounds_amount, expected, provided);
+                } else {
+                    showQuantityMsg(R.plurals.unexpected_sounds_amount, expected, expected, provided);
+                }
+            }
+        } catch (MusInterval.ModelDoesNotExistException e) {
+            final String modelName = e.getModelName();
+            new AlertDialog.Builder(this)
+                    .setMessage(String.format(
+                            getResources().getString(R.string.create_model),
+                            modelName))
+                    .setPositiveButton(R.string.create, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            handleCreateModel(modelName);
+                        }
+                    })
+                    .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            dialog.cancel();
+                        }
+                    })
+                    .show();
+        } catch (MusInterval.NotEnoughFieldsException e) {
+            showMsg(R.string.invalid_model, e.getModelName());
+        } catch (MusInterval.ModelNotConfiguredException e) {
+            final String modelName = e.getModelName();
+            new AlertDialog.Builder(this)
+                    .setMessage(String.format(
+                            getResources().getString(R.string.configure_model), modelName))
+                    .setPositiveButton(R.string.configure, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            openSettings();
+                        }
+                    })
+                    .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            dialog.cancel();
+                        }
+                    })
+                    .show();
         } catch (MusInterval.NoteNotExistsException e) {
             showMsg(R.string.mi_not_exists);
-        } catch (MusInterval.MandatoryFieldsEmptyException e) {
-            showMsg(getFieldsValidationMessage(e.getFields(), R.plurals.empty_mandatory_fields));
-        } catch (MusInterval.InvalidFieldsException e) {
-            showMsg(getFieldsValidationMessage(e.getFields(), R.plurals.invalid_fields));
         } catch (MusInterval.CreateDeckException e) {
             showMsg(R.string.create_deck_error);
         } catch (MusInterval.AddToAnkiException e) {
             showMsg(R.string.add_card_error);
+        } catch (MusInterval.MandatoryFieldEmptyException e) {
+            showMsg(R.string.mandatory_field_empty, fieldLabels.get(e.getField()));
         } catch (MusInterval.SoundAlreadyAddedException e) {
             showMsg(R.string.already_added);
         } catch (MusInterval.AddSoundFileException e) {
@@ -638,93 +1130,52 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
     }
 
-    private String getFieldsValidationMessage(LinkedList<String> fields, int msgId) {
-        StringBuilder labelsJoined = new StringBuilder(fieldLabels.get(fields.getFirst()));
-        int nFields = fields.size();
-        for (int i = 1; i < nFields; i++) {
-            labelsJoined.append(String.format(", %s", fieldLabels.get(fields.get(i))));
+    private void handleCreateModel(String modelName) {
+        final String[] signature = MusInterval.Fields.getSignature(SettingsFragment.DEFAULT_VERSION_FIELD_SWITCH);
+        final Long newModelId = mAnkiDroid.addNewCustomModel(
+                modelName,
+                signature,
+                MusInterval.Builder.CARD_NAMES,
+                MusInterval.Builder.QFMT,
+                MusInterval.Builder.AFMT,
+                MusInterval.Builder.CSS
+        );
+        if (newModelId != null) {
+            SharedPreferences.Editor preferenceEditor = PreferenceManager.getDefaultSharedPreferences(MainActivity.this).edit();
+            for (String fieldKey : signature) {
+                String fieldPreferenceKey = SettingsFragment.getFieldPreferenceKey(fieldKey);
+                preferenceEditor.putString(fieldPreferenceKey, fieldKey);
+                String modelFieldPreferenceKey = SettingsFragment.getModelFieldPreferenceKey(newModelId, fieldPreferenceKey);
+                preferenceEditor.putString(modelFieldPreferenceKey, fieldKey);
+            }
+            preferenceEditor.apply();
+            refreshExisting();
+            refreshPermutations();
+            showMsg(R.string.create_model_success, modelName);
+        } else {
+            showMsg(R.string.create_model_error);
         }
-        return getResources().getQuantityString(msgId, nFields, labelsJoined.toString());
     }
 
     private void processInvalidAnkiDatabase(AnkiDroidHelper.InvalidAnkiDatabaseException invalidAnkiDatabaseException) {
         try {
             throw invalidAnkiDatabaseException;
         } catch (AnkiDroidHelper.InvalidAnkiDatabase_fieldAndFieldNameCountMismatchException e) {
-            showMsg(R.string.InvalidAnkiDatabase_unknownError);
-        } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
             showMsg(R.string.InvalidAnkiDatabase_fieldAndFieldNameCountMismatch);
+        } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
+            showMsg(R.string.InvalidAnkiDatabase_unknownError);
         }
     }
 
-    private void showMsg(int msgResId) {
-        Toast.makeText(MainActivity.this, getResources().getString(msgResId), Toast.LENGTH_LONG).show();
+    private void processUnknownException(Throwable e) {
+        showMsg(R.string.unknown_error);
     }
 
-    private void showMsg(final String message) {
-        Toast.makeText(MainActivity.this, message, Toast.LENGTH_LONG).show();
+    private void showMsg(int msgResId, Object ...formatArgs) {
+        Toast.makeText(MainActivity.this, getResources().getString(msgResId, formatArgs), Toast.LENGTH_LONG).show();
     }
 
-    public static class CreateModelDialogFragment extends DialogFragment {
-        @Override
-        public Dialog onCreateDialog(Bundle savedInstanceState) {
-            final MainActivity mainActivity = (MainActivity) getActivity();
-            return new AlertDialog.Builder(mainActivity)
-                    .setMessage(String.format(
-                            getResources().getString(R.string.create_model),
-                            MusInterval.Builder.DEFAULT_MODEL_NAME))
-                    .setPositiveButton(R.string.create, new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int id) {
-                            mainActivity.handleCreateModel();
-                        }
-                    })
-                    .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int id) {
-                            dialog.cancel();
-                        }
-                    })
-                    .create();
-        }
+    private void showQuantityMsg(int msgResId, int quantity, Object ...formatArgs) {
+        Toast.makeText(MainActivity.this, getResources().getQuantityString(msgResId, quantity, formatArgs), Toast.LENGTH_LONG).show();
     }
-
-    public static class ConfigureModelDialogFragment extends DialogFragment {
-        @Override
-        public Dialog onCreateDialog(Bundle savedInstanceState) {
-            final MainActivity mainActivity = (MainActivity) getActivity();
-            return new AlertDialog.Builder(mainActivity)
-                    .setMessage(String.format(
-                            getResources().getString(R.string.configure_model),
-                            MusInterval.Builder.DEFAULT_MODEL_NAME))
-                    .setPositiveButton(R.string.configure, new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int id) {
-                            mainActivity.openSettings();
-                        }
-                    })
-                    .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int id) {
-                            dialog.cancel();
-                        }
-                    })
-                    .create();
-        }
-    }
-
-    private void handleCreateModel() {
-        String modelName = MusInterval.Builder.DEFAULT_MODEL_NAME;
-        final Long newModelId = mAnkiDroid.addNewCustomModel(
-                modelName,
-                MusInterval.Fields.SIGNATURE,
-                MusInterval.Builder.CARD_NAMES,
-                MusInterval.Builder.QFMT,
-                MusInterval.Builder.AFMT,
-                MusInterval.Builder.CSS);
-        if (newModelId != null) {
-            showMsg(String.format(
-                    getResources().getString(R.string.create_model_success),
-                    modelName));
-        } else {
-            showMsg(R.string.create_model_error);
-        }
-    }
-
 }
