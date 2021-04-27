@@ -6,6 +6,7 @@
     <string name="str_no">No</string>
 
     <!-- MainActivity labels, fields and buttons -->
+    <string name="switch_batch">Enable batch adding</string>
     <string name="label_filename">Filename</string>
     <string name="start_note">Start note</string>
     <string name="note_c">C</string>
@@ -27,7 +28,7 @@
     <string name="octave_4">4</string>
     <string name="octave_5">5</string>
     <string name="octave_6">6</string>
-    <string name="radio_any">Any</string>
+    <string name="any">Any</string>
     <string name="direction">Direction</string>
     <string name="direction_asc">Ascending</string>
     <string name="direction_desc">Descending</string>
@@ -48,7 +49,6 @@
     <string name="interval_m7">m7</string>
     <string name="interval_M7">M7</string>
     <string name="interval_P8">P8</string>
-
     <string name="tempo">Tempo</string>
     <string name="instrument">Instrument</string>
     <string name="action_clear_all">Clear all fields</string>
@@ -71,7 +71,6 @@
     <string name="fs_permission_denied">Could not get permission to access a filesystem</string>
     <string name="mi_not_exists">Music interval not found</string>
     <plurals name="mi_marked_result">
-        <item quantity="zero">Nothing was marked</item>
         <item quantity="one">One music interval successfully marked</item>
         <item quantity="other">%d music intervals successfully marked</item>
     </plurals>
@@ -95,6 +94,10 @@
         <item quantity="one">The \"%s\" note type settings are invalid. You need to configure the %s field to continue using it</item>
         <item quantity="other">The \"%s\" note type settings are invalid. You need to configure the fields %s to continue using it</item>
     </plurals>
+    <plurals name="duplicate_warning">
+        <item quantity="one">One music interval with parameters (%s, %s, %s, %s, %s, %s) already exists in Anki database</item>
+        <item quantity="other">%d music intervals with parameters (%s, %s, %s, %s, %s, %s) already exist in Anki database</item>
+    </plurals>
     <string name="create_model">Note type \"%s\" is not found. Create it?</string>
     <string name="create">Create</string>
     <string name="configure">Configure</string>
@@ -107,21 +110,26 @@
     <string name="add_card_error">Music interval adding to AnkiDroid failed</string>
     <string name="mandatory_field_empty">Mandatory field \"%s\" is empty</string>
     <string name="already_added">Music interval seems to be already added to AnkiDroid (try to select sound file)</string>
+    <string name="item_replaced">Music interval successfully replaced. Please run "Check media" in AnkiDroid to find and delete the orphaned old sound file</string>
     <string name="add_file_error">Failed to add file to AnkiDroid media</string>
     <string name="unknown_adding_error">Failed to add music interval to AnkiDroid</string>
     <string name="additional_filenames">\u0020+ %d more</string>
     <string name="filenames_list_item">%d. %s</string>
     <string name="filenames_list_item_with_key">%d. %s (%s, %s)</string>
     <string name="filenames_list_separator">\n</string>
-    <string name="note_not_selected">At least one note must be selected</string>
-    <string name="octave_not_selected">At least one octave must be selected</string>
-    <string name="interval_not_selected">At least one interval must be selected</string>
+    <string name="note_not_selected">At least one specific note must be selected</string>
+    <string name="octave_not_selected">At least one specific octave must be selected</string>
+    <string name="interval_not_selected">At least one specific interval must be selected</string>
     <string name="batch_adding_notice">
         When adding multiple music intervals at once, the selected set of sound files must obey the following rules:\n
         1. The number of files must be equal to the number of unique interval permutations for the chosen field values.\n
         2. The sound files, when sorted, must be ordered firstly by octave, then by note, then by interval.
     </string>
     <string name="do_not_show">Don\'t show this message</string>
+    <string name="add_anyway">Add anyway</string>
+    <string name="mark_existing">Mark existing</string>
+    <string name="replace_existing">Replace</string>
+    <string name="unknown_error">Unknown error (try to open AnkiDroid to see what\'s wrong)</string>
 
     <string name="InvalidAnkiDatabase_fieldAndFieldNameCountMismatch">Invalid Anki Database: field and field name count mismatches</string>
     <string name="InvalidAnkiDatabase_unknownError">Invalid Anki Database: unknown error</string>
@@ -144,4 +152,8 @@
     <string name="version_field_list_preference_title">App version</string>
     <string name="version_field_switch_preference_title">Version stamp</string>
     <string name="version_field_switch_preference_summary">Log app version for added notes in a separate field</string>
+    <string name="duplicate_tag_edit_text_preference_title">Duplicate tag</string>
+    <string name="duplicate_tag_edit_text_preference_dialog_title">Duplicate tag</string>
+    <string name="tag_duplicates_preference_title">Tag duplicates</string>
+    <string name="tag_duplicates_preference_summary">Mark identical intervals with special tag</string>
 </resources>
