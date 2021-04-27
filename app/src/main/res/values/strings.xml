@@ -91,6 +91,10 @@
         <item quantity="one">Single sound file must be provided (got %d)</item>
         <item quantity="other">%d sound files must be provided (got %d)</item>
     </plurals>
+    <plurals name="invalid_model_fields">
+        <item quantity="one">The \"%s\" note type settings are invalid. You need to configure the %s field to continue using it</item>
+        <item quantity="other">The \"%s\" note type settings are invalid. You need to configure the fields %s to continue using it</item>
+    </plurals>
     <plurals name="duplicate_warning">
         <item quantity="one">One music interval with parameters (%s, %s, %s, %s, %s, %s) already exists in Anki database</item>
         <item quantity="other">%d music intervals with parameters (%s, %s, %s, %s, %s, %s) already exist in Anki database</item>
@@ -124,7 +128,6 @@
         <item quantity="other">Fixed %d link fields</item>
     </plurals>
     <string name="create_model">Note type \"%s\" is not found. Create it?</string>
-    <string name="configure_model">The \"%s\" note type settings are invalid. You need to configure fields to continue using it</string>
     <string name="create">Create</string>
     <string name="configure">Configure</string>
     <string name="cancel">Cancel</string>

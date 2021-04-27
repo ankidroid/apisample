@@ -1823,29 +1823,6 @@ public class MusIntervalTest {
                 .build();
     }
 
-    @Test(expected = MusInterval.ModelNotConfiguredException.class)
-    public void create_DuplicateModelFields_shouldFail() throws MusInterval.ValidationException {
-        long modelId = new Random().nextLong();
-        AnkiDroidHelper helper = mock(AnkiDroidHelper.class);
-        doReturn(modelId).when(helper).findModelIdByName(eq(defaultModelName));
-        doReturn(SIGNATURE).when(helper).getFieldList(eq(modelId));
-        Map<String, String> modelFields = new HashMap<String, String>() {{
-            put(MusInterval.Fields.SOUND, MusInterval.Fields.SOUND);
-            put(MusInterval.Fields.SOUND_SMALLER, MusInterval.Fields.SOUND);
-            put(MusInterval.Fields.SOUND_LARGER, MusInterval.Fields.SOUND_LARGER);
-            put(MusInterval.Fields.START_NOTE, MusInterval.Fields.START_NOTE);
-            put(MusInterval.Fields.DIRECTION, MusInterval.Fields.DIRECTION);
-            put(MusInterval.Fields.TIMING, MusInterval.Fields.TIMING);
-            put(MusInterval.Fields.INTERVAL, MusInterval.Fields.INTERVAL);
-            put(MusInterval.Fields.TEMPO, MusInterval.Fields.TEMPO);
-            put(MusInterval.Fields.INSTRUMENT, MusInterval.Fields.INSTRUMENT);
-        }};
-        new MusInterval.Builder(helper)
-                .model(defaultModelName)
-                .model_fields(modelFields)
-                .build();
-    }
-
     @SuppressWarnings({"unchecked"})
     @Test
     public void add_Duplicate_handlerShouldBeAbleToAdd() throws MusInterval.Exception, AnkiDroidHelper.InvalidAnkiDatabaseException {
