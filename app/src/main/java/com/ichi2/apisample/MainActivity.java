@@ -292,6 +292,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             getMusInterval();
         } catch (MusInterval.Exception e) {
             processMusIntervalException(e);
+        } catch (Throwable e) {
+            processUnknownException(e);
         }
     }
 
@@ -801,6 +803,14 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 if (mAnkiDroid.shouldRequestPermission()) {
                     mAnkiDroid.requestPermission(MainActivity.this, AD_PERM_REQUEST);
                     return;
+                }
+                try {
+                    getMusInterval();
+                } catch (Throwable e) {
+                    if (!(e instanceof MusInterval.ModelValidationException)) {
+                        processUnknownException(e);
+                        return;
+                    }
                 }
                 openSettings();
             }

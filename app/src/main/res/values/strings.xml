@@ -158,7 +158,7 @@
     <string name="add_anyway">Add anyway</string>
     <string name="mark_existing">Mark existing</string>
     <string name="replace_existing">Replace</string>
-    <string name="unknown_error">Unknown error (try to open AnkiDroid to see what\'s wrong)</string>
+    <string name="unknown_error">Unknown error (try opening AnkiDroid to see what\'s wrong)</string>
     <string name="integrity_check_completed">Integrity check completed (%d notes)</string>
     <string name="integrity_ok">No issues have been found</string>
     <string name="integrity_invalid">%d invalid</string>
