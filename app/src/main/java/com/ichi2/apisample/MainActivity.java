@@ -51,6 +51,11 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
     private static final int ACTION_SELECT_FILE = 10;
 
+    private static final String TAG_APPLICATION = "mi2a";
+    private static final String TAG_DUPLICATE = "duplicate";
+    private static final String TAG_CORRUPTED = "corrupted";
+    private static final String TAG_SUSPICIOUS = "suspicious";
+
     private static final String STATE_REF_DB = "com.ichi2.apisample.uistate";
     private static final String KEY_BATCH_ADDING_NOTICE_SEEN = "batchAddingNoticeSeen";
 
@@ -652,7 +657,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     public void promptAddDuplicate(MusInterval[] existingMis, final DuplicateAddingHandler handler) {
         final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
         final boolean tagDuplicates = sharedPreferences.getBoolean(SettingsFragment.KEY_TAG_DUPLICATES_SWITCH, SettingsFragment.DEFAULT_TAG_DUPLICATES_SWITCH);
-        final String duplicateTag = sharedPreferences.getString(SettingsFragment.KEY_DUPLICATE_TAG_PREFERENCE, SettingsFragment.DEFAULT_DUPLICATE_TAG);
+        final String duplicateTag = TAG_APPLICATION + AnkiDroidHelper.HIERARCHICAL_TAG_SEPARATOR + TAG_DUPLICATE;
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this)
                 .setPositiveButton(R.string.add_anyway, new DialogInterface.OnClickListener() {
                     @Override
@@ -789,9 +794,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     return;
                 }
                 try {
-                    final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
-                    final String corruptedTag = sharedPreferences.getString(SettingsFragment.KEY_CORRUPTED_TAG_PREFERENCE, SettingsFragment.DEFAULT_CORRUPTED_TAG);
-                    final String suspiciousTag = sharedPreferences.getString(SettingsFragment.KEY_SUSPICIOUS_TAG_PREFERENCE, SettingsFragment.DEFAULT_SUSPICIOUS_TAG);
+                    final String corruptedTag = TAG_APPLICATION + AnkiDroidHelper.HIERARCHICAL_TAG_SEPARATOR + TAG_CORRUPTED;
+                    final String suspiciousTag = TAG_APPLICATION + AnkiDroidHelper.HIERARCHICAL_TAG_SEPARATOR + TAG_SUSPICIOUS;
 
                     MusInterval mi = getMusInterval();
                     MusInterval.IntegritySummary integritySummary = mi.checkIntegrity(corruptedTag, suspiciousTag);
