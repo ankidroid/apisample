@@ -1,7 +1,6 @@
 package com.ichi2.apisample;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.ClipData;
 import android.content.Context;
@@ -31,9 +30,9 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
-import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -89,8 +88,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private RadioGroup radioGroupTiming;
     private CheckBox checkIntervalAny;
     private CheckBox[] checkIntervals;
-    private SeekBar seekTempo;
-    private TextView labelTempoValue;
+    private EditText inputTempo;
     private AutoCompleteTextView inputInstrument;
     private TextView labelExisting;
     private Button actionMarkExisting;
@@ -173,8 +171,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         for (int i = 0; i < checkIntervalIds.length; i++) {
             checkIntervals[i] = findViewById(checkIntervalIds[i]);
         }
-        seekTempo = findViewById(R.id.seekTempo);
-        labelTempoValue = findViewById(R.id.labelTempoValue);
+        inputTempo = findViewById(R.id.inputTempo);
         inputInstrument = findViewById(R.id.inputInstrument);
         labelExisting = findViewById(R.id.labelExisting);
         actionMarkExisting = findViewById(R.id.actionMarkExisting);
@@ -230,7 +227,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         for (CheckBox checkInterval : checkIntervals) {
             checkInterval.setOnCheckedChangeListener(onIntervalCheckChangeListener);
         }
-        seekTempo.setOnSeekBarChangeListener(new OnFieldSeekChangeListener());
+        inputTempo.addTextChangedListener(new FieldInputTextWatcher());
         inputInstrument.addTextChangedListener(new FieldInputTextWatcher());
         switchBatch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -241,7 +238,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             }
         });
 
-        configureTempoButtons();
         configureClearAllButton();
         configureSelectFileButton();
         configureMarkExistingButton();
@@ -438,20 +434,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
     }
 
-    private class OnFieldSeekChangeListener implements SeekBar.OnSeekBarChangeListener {
-        @SuppressLint("SetTextI18n")
-        @Override
-        public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-            TextView label = findViewById(R.id.labelTempoValue);
-            label.setText(Integer.toString(seekBar.getProgress()));
-            clearAddedFilenames();
-            refreshExisting();
-        }
-
-        @Override public void onStartTrackingTouch(SeekBar seekBar) { }
-        @Override public void onStopTrackingTouch(SeekBar seekBar) { }
-    }
-
     private class FieldInputTextWatcher implements TextWatcher {
         private String prev;
 
@@ -495,30 +477,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         textFilename.setText(text);
     }
 
-    private void configureTempoButtons() {
-        final Button actionTempoMinus = findViewById(R.id.actionTempoMinus);
-        actionTempoMinus.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                final int progress = seekTempo.getProgress();
-                if (progress > MusInterval.Fields.Tempo.MIN_VALUE) {
-                    seekTempo.setProgress(progress - 1);
-                }
-            }
-        });
-
-        final Button actionTempoPlus = findViewById(R.id.actionTempoPlus);
-        actionTempoPlus.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                final int progress = seekTempo.getProgress();
-                if (progress < MusInterval.Fields.Tempo.MAX_VALUE) {
-                    seekTempo.setProgress(progress + 1);
-                }
-            }
-        });
-    }
-
     private void configureClearAllButton() {
         final Button actionClearAll = findViewById(R.id.actionClearAll);
         actionClearAll.setOnClickListener(new View.OnClickListener() {
@@ -537,7 +495,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 for (CheckBox checkInterval : checkIntervals) {
                     checkInterval.setChecked(false);
                 }
-                seekTempo.setProgress(0);
+                inputTempo.setText("");
                 inputInstrument.setText("");
             }
         });
@@ -952,7 +910,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         for (int i = 0; i < checkIntervalIds.length; i++) {
             uiDbEditor.putBoolean(String.valueOf(checkIntervalIds[i]), checkIntervals[i].isChecked());
         }
-        uiDbEditor.putString("inputTempo", Integer.toString(seekTempo.getProgress()));
+        uiDbEditor.putString("inputTempo", inputTempo.getText().toString());
         uiDbEditor.putString("inputInstrument", inputInstrument.getText().toString());
         uiDbEditor.putStringSet("savedInstruments", savedInstruments);
         uiDbEditor.apply();
@@ -980,10 +938,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         for (int i = 0; i < checkIntervalIds.length; i++) {
             checkIntervals[i].setChecked(uiDb.getBoolean(String.valueOf(checkIntervalIds[i]), false));
         }
-        seekTempo.setProgress(Integer.parseInt(uiDb.getString("inputTempo", "0")));
-        labelTempoValue.setText(String.valueOf(seekTempo.getProgress()));
+        inputTempo.setText(uiDb.getString("inputTempo", ""));
         inputInstrument.setText(uiDb.getString("inputInstrument", ""));
-
         savedInstruments = (HashSet<String>) uiDb.getStringSet("savedInstruments", new HashSet<String>());
         inputInstrument.setAdapter(new ArrayAdapter<>(this,
                 android.R.layout.simple_dropdown_item_1line, savedInstruments.toArray(new String[0])));
@@ -1057,7 +1013,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 .direction(!directionStr.equals(anyStr) ? directionStr : "")
                 .timing(!timingStr.equals(anyStr) ? timingStr : "")
                 .intervals(intervals)
-                .tempo(seekTempo.getProgress() > 0 ? Integer.toString(seekTempo.getProgress()) : "")
+                .tempo(inputTempo.getText().toString())
                 .instrument(inputInstrument.getText().toString());
         if (versionField) {
             builder.version(BuildConfig.VERSION_NAME);

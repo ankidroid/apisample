@@ -59,11 +59,6 @@ public class MusInterval {
             }
         }
 
-        public static class Tempo {
-            public static final int MIN_VALUE = 0;
-            public static final int MAX_VALUE = 200;
-        }
-
         public static String[] getSignature(boolean versionField) {
             ArrayList<String> signature = new ArrayList<String>() {{
                 add(SOUND);
@@ -119,8 +114,7 @@ public class MusInterval {
             put(TEMPO, new Validator() {
                 @Override
                 public boolean isValid(String value) {
-                    int intVal = Integer.parseInt(value);
-                    return intVal >= Tempo.MIN_VALUE && intVal <= Tempo.MAX_VALUE;
+                    return value.matches("^[0-9]*$");
                 }
             });
         }};
@@ -129,7 +123,7 @@ public class MusInterval {
             boolean isValid(String value);
         }
 
-        private static String[] MANDATORY = new String[]{
+        private static final String[] MANDATORY = new String[]{
                 SOUND,
                 START_NOTE,
                 DIRECTION,
