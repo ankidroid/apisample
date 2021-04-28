@@ -1,5 +1,6 @@
 package com.ichi2.apisample;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.ClipData;
@@ -276,41 +277,42 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         return texts.toArray(new String[0]);
     }
 
-    private void clearAddedFilenames() {
-        ArrayList<String> unAddedFilenames = new ArrayList<>();
-        for (String filename : filenames) {
-            if (!filename.startsWith("[sound:")) {
-                unAddedFilenames.add(filename);
-            }
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (mAnkiDroid.shouldRequestPermission()) {
+            mAnkiDroid.requestPermission(MainActivity.this, AD_PERM_REQUEST);
+            return;
         }
-        filenames = unAddedFilenames.toArray(new String[0]);
-        refreshFilenameText();
+        validateModel();
     }
 
-    private void refreshFilenameText() {
-        StringBuilder text = new StringBuilder();
-        if (filenames.length > 0) {
-            text.append(filenames[0]);
-            if (filenames.length > 1) {
-                text.append(getString(R.string.additional_filenames, filenames.length - 1));
-            }
+    private void validateModel() {
+        try {
+            getMusInterval();
+        } catch (MusInterval.Exception e) {
+            processMusIntervalException(e);
+        } catch (Throwable e) {
+            processUnknownException(e);
         }
-        textFilename.setText(text);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        refreshExisting();
+        refreshPermutations();
     }
 
     private void refreshPermutations() {
-        if (mAnkiDroid == null) {
+        if (mAnkiDroid.shouldRequestPermission()) {
             return;
         }
         int permutationsNumber = 1;
         try {
-            if (mAnkiDroid.shouldRequestPermission()) {
-                mAnkiDroid.requestPermission(MainActivity.this, AD_PERM_REQUEST);
-                return;
-            }
             permutationsNumber = getMusInterval().getPermutationsNumber();
 
-        } catch (MusInterval.ModelValidationException e) {
+        } catch (Throwable e) {
         } finally {
             Resources res = getResources();
             String selectFileText;
@@ -322,6 +324,48 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             }
             actionSelectFile.setText(selectFileText);
             this.permutationsNumber = permutationsNumber;
+        }
+    }
+
+    private void refreshExisting() {
+        if (mAnkiDroid.shouldRequestPermission()) {
+            return;
+        }
+        String textExisting = "";
+        int existingCount = 0;
+        int markedCount = 0;
+        try {
+            MusInterval mi = getMusInterval();
+            existingCount = mi.getExistingNotesCount();
+            markedCount = mi.getExistingMarkedNotesCount();
+            Resources res = getResources();
+            String textFound;
+            String textMarked;
+            if (existingCount == 1) {
+                textFound = res.getQuantityString(R.plurals.mi_found, existingCount);
+                if (markedCount == 1) {
+                    textMarked = res.getString(R.string.mi_found_one_marked);
+                } else {
+                    textMarked = res.getString(R.string.mi_found_one_unmarked);
+                }
+            } else {
+                textFound = res.getQuantityString(R.plurals.mi_found, existingCount, existingCount);
+                if (markedCount == 1) {
+                    textMarked = res.getQuantityString(R.plurals.mi_found_other_marked, markedCount);
+                } else {
+                    textMarked = res.getQuantityString(R.plurals.mi_found_other_marked, markedCount, markedCount);
+                }
+            }
+            textExisting = existingCount == 0 ?
+                    textFound :
+                    textFound + textMarked;
+        } catch (Throwable e) {
+            textExisting = ""; // might wanna set some error message here
+        } finally {
+            labelExisting.setText(textExisting);
+            final int unmarkedCount = existingCount - markedCount;
+            actionMarkExisting.setText(getString(R.string.action_mark_n, unmarkedCount));
+            actionMarkExisting.setEnabled(unmarkedCount > 0);
         }
     }
 
@@ -408,65 +452,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         @Override public void onStopTrackingTouch(SeekBar seekBar) { }
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        refreshExisting();
-        refreshPermutations();
-        refreshFilenameText();
-        try {
-            getMusInterval();
-        } catch (MusInterval.Exception e) {
-            processMusIntervalException(e);
-        }
-    }
-
-    private void refreshExisting() {
-        if (mAnkiDroid == null) {
-            return;
-        }
-        String textExisting = "";
-        int existingCount = 0;
-        int markedCount = 0;
-        try {
-            if (mAnkiDroid.shouldRequestPermission()) {
-                mAnkiDroid.requestPermission(MainActivity.this, AD_PERM_REQUEST);
-                return;
-            }
-            MusInterval mi = getMusInterval();
-            existingCount = mi.getExistingNotesCount();
-            markedCount = mi.getExistingMarkedNotesCount();
-            Resources res = getResources();
-            String textFound;
-            String textMarked;
-            if (existingCount == 1) {
-                textFound = res.getQuantityString(R.plurals.mi_found, existingCount);
-                if (markedCount == 1) {
-                    textMarked = res.getString(R.string.mi_found_one_marked);
-                } else {
-                    textMarked = res.getString(R.string.mi_found_one_unmarked);
-                }
-            } else {
-                textFound = res.getQuantityString(R.plurals.mi_found, existingCount, existingCount);
-                if (markedCount == 1) {
-                    textMarked = res.getQuantityString(R.plurals.mi_found_other_marked, markedCount);
-                } else {
-                    textMarked = res.getQuantityString(R.plurals.mi_found_other_marked, markedCount, markedCount);
-                }
-            }
-            textExisting = existingCount == 0 ?
-                    textFound :
-                    textFound + textMarked;
-        } catch (Throwable e) {
-            textExisting = ""; // might wanna set some error message here
-        } finally {
-            labelExisting.setText(textExisting);
-            final int unmarkedCount = existingCount - markedCount;
-            actionMarkExisting.setText(getString(R.string.action_mark, unmarkedCount));
-            actionMarkExisting.setEnabled(unmarkedCount > 0);
-        }
-    }
-
     private class FieldInputTextWatcher implements TextWatcher {
         private String prev;
 
@@ -486,6 +471,28 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
         @Override
         public void afterTextChanged(Editable editable) { }
+    }
+
+    private void clearAddedFilenames() {
+        ArrayList<String> unAddedFilenames = new ArrayList<>();
+        for (String filename : filenames) {
+            if (!filename.startsWith("[sound:")) {
+                unAddedFilenames.add(filename);
+            }
+        }
+        filenames = unAddedFilenames.toArray(new String[0]);
+        refreshFilenameText();
+    }
+
+    private void refreshFilenameText() {
+        StringBuilder text = new StringBuilder();
+        if (filenames.length > 0) {
+            text.append(filenames[0]);
+            if (filenames.length > 1) {
+                text.append(getString(R.string.additional_filenames, filenames.length - 1));
+            }
+        }
+        textFilename.setText(text);
     }
 
     private void configureTempoButtons() {
@@ -541,48 +548,54 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         actionSelectFile.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                requestPermissions(new String[]{
-                                android.Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                        PERMISSIONS_REQUEST_EXTERNAL_STORAGE
-                );
-
-                if (permutationsNumber == null || permutationsNumber <= 1) {
-                    openChooser();
+                if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                    requestPermissions(new String[]{
+                                    Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                            PERMISSIONS_REQUEST_EXTERNAL_STORAGE
+                    );
                     return;
                 }
-
-                SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
-                boolean batchNoticeSeen = preferences.getBoolean(KEY_BATCH_ADDING_NOTICE_SEEN, false);
-                if (batchNoticeSeen) {
-                    openChooser();
-                    return;
-                }
-
-                ViewGroup viewGroup = findViewById(R.id.content);
-                View dialogView = LayoutInflater.from(MainActivity.this).inflate(R.layout.dialog_notice, viewGroup, false);
-                TextView textNotice = dialogView.findViewById(R.id.textNotice);
-                final CheckBox checkRemember = dialogView.findViewById(R.id.checkRemember);
-                textNotice.setText(getResources().getString(R.string.batch_adding_notice));
-                new AlertDialog.Builder(MainActivity.this)
-                        .setView(dialogView)
-                        .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialogInterface, int i) {
-                                dialogInterface.dismiss();
-                            }
-                        }).setOnDismissListener(new DialogInterface.OnDismissListener() {
-                    @Override
-                    public void onDismiss(DialogInterface dialogInterface) {
-                        if (checkRemember.isChecked()) {
-                            SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(MainActivity.this).edit();
-                            editor.putBoolean(KEY_BATCH_ADDING_NOTICE_SEEN, true);
-                            editor.apply();
-                        }
-                        openChooser();
-                    }
-                }).show();
+                handleSelectFile();
             }
         });
+    }
+
+    private void handleSelectFile() {
+        if (permutationsNumber == null || permutationsNumber <= 1) {
+            openChooser();
+            return;
+        }
+
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+        boolean batchNoticeSeen = preferences.getBoolean(KEY_BATCH_ADDING_NOTICE_SEEN, false);
+        if (batchNoticeSeen) {
+            openChooser();
+            return;
+        }
+
+        ViewGroup viewGroup = findViewById(R.id.content);
+        View dialogView = LayoutInflater.from(MainActivity.this).inflate(R.layout.dialog_notice, viewGroup, false);
+        TextView textNotice = dialogView.findViewById(R.id.textNotice);
+        final CheckBox checkRemember = dialogView.findViewById(R.id.checkRemember);
+        textNotice.setText(getResources().getString(R.string.batch_adding_notice));
+        new AlertDialog.Builder(MainActivity.this)
+                .setView(dialogView)
+                .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        dialogInterface.dismiss();
+                    }
+                }).setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialogInterface) {
+                if (checkRemember.isChecked()) {
+                    SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(MainActivity.this).edit();
+                    editor.putBoolean(KEY_BATCH_ADDING_NOTICE_SEEN, true);
+                    editor.apply();
+                }
+                openChooser();
+            }
+        }).show();
     }
 
     private void openChooser() {
@@ -791,6 +804,14 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     mAnkiDroid.requestPermission(MainActivity.this, AD_PERM_REQUEST);
                     return;
                 }
+                try {
+                    getMusInterval();
+                } catch (Throwable e) {
+                    if (!(e instanceof MusInterval.ModelValidationException)) {
+                        processUnknownException(e);
+                        return;
+                    }
+                }
                 openSettings();
             }
         });
@@ -968,28 +989,30 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 android.R.layout.simple_dropdown_item_1line, savedInstruments.toArray(new String[0])));
 
         this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
-
-        refreshExisting();
-        refreshPermutations();
     }
 
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         switch (requestCode) {
-            case AD_PERM_REQUEST: {
+            case AD_PERM_REQUEST:
                 if (grantResults.length > 0) {
                     if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                        validateModel();
                         refreshExisting();
                         refreshPermutations();
                     } else {
                         showMsg(R.string.anki_permission_denied);
                     }
                 }
-            }
-            case PERMISSIONS_REQUEST_EXTERNAL_STORAGE: {
-                if (grantResults.length > 0 && grantResults[0] != PackageManager.PERMISSION_GRANTED) {
-                    showMsg(R.string.fs_permission_denied);
+                break;
+            case PERMISSIONS_REQUEST_EXTERNAL_STORAGE:
+                if (grantResults.length > 0) {
+                    if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                        handleSelectFile();
+                    } else {
+                        showMsg(R.string.fs_permission_denied);
+                    }
                 }
-            }
+                break;
         }
     }
 

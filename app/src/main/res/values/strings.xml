@@ -8,6 +8,7 @@
     <!-- MainActivity labels, fields and buttons -->
     <string name="switch_batch">Enable batch adding</string>
     <string name="label_filename">Filename</string>
+    <string name="action_select_file">Select file</string>
     <string name="start_note">Start note</string>
     <string name="note_c">C</string>
     <string name="note_c_sharp">C#</string>
@@ -52,10 +53,15 @@
     <string name="tempo">Tempo</string>
     <string name="instrument">Instrument</string>
     <string name="action_clear_all">Clear all fields</string>
-    <string name="action_mark">Mark %d</string>
+    <string name="action_mark">Mark</string>
+    <string name="action_mark_n">Mark %d</string>
     <string name="action_add_to_anki">Add to AnkiDroid</string>
     <string name="open_settings">Settings…</string>
     <string name="action_check_integrity">Check integrity</string>
+    <plurals name="select_file">
+        <item quantity="one">@string/action_select_file</item>
+        <item quantity="other">Select %d files</item>
+    </plurals>
     <plurals name="mi_found">
         <item quantity="one">Found 1 music interval</item>
         <item quantity="other">Found %d music intervals</item>
@@ -78,10 +84,6 @@
     <plurals name="mi_added">
         <item quantity="one">Music interval has been successfully added to AnkiDroid</item>
         <item quantity="other">%d music intervals have been successfully added to AnkiDroid</item>
-    </plurals>
-    <plurals name="select_file">
-        <item quantity="one">Select file</item>
-        <item quantity="other">Select %d files</item>
     </plurals>
     <plurals name="sound_not_provided">
         <item quantity="one">Sound file must be provided</item>
@@ -156,7 +158,7 @@
     <string name="add_anyway">Add anyway</string>
     <string name="mark_existing">Mark existing</string>
     <string name="replace_existing">Replace</string>
-    <string name="unknown_error">Unknown error (try to open AnkiDroid to see what\'s wrong)</string>
+    <string name="unknown_error">Unknown error (try opening AnkiDroid to see what\'s wrong)</string>
     <string name="integrity_check_completed">Integrity check completed (%d notes)</string>
     <string name="integrity_ok">No issues have been found</string>
     <string name="integrity_invalid">%d invalid</string>

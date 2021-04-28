@@ -66,7 +66,8 @@
                     android:id="@+id/actionSelectFile"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="end" />
+                    android:layout_gravity="end"
+                    android:text="@string/action_select_file" />
             </LinearLayout>
 
             <TextView
