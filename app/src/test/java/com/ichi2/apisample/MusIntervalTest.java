@@ -41,8 +41,8 @@ public class MusIntervalTest {
     final static String startNote2 = note2 + octave2; // C#2
     final static String intervalMin3 = MusInterval.Fields.Interval.VALUES[3]; //m3
     final static String[] SIGNATURE = MusInterval.Fields.getSignature(false);
-    final static String corruptedTag = "corruptedTag";
-    final static String suspiciousTag = "suspiciousTag";
+    final static String corruptedTag = "corrupted";
+    final static String suspiciousTag = "suspicious";
 
     @Test
     @SuppressWarnings("unchecked")
@@ -2272,8 +2272,9 @@ public class MusIntervalTest {
 
         assertEquals(1, is.getNotesCount());
         assertEquals(1, is.getCorruptedNotesCount());
-        assertEquals(new Integer(1), is.getEmptyFieldsCount().get(MusInterval.Fields.START_NOTE));
-        assertEquals(new Integer(1), is.getInvalidFieldsCount().get(MusInterval.Fields.DIRECTION));
+        final Map<String, Integer> corruptedFieldCounts = is.getCorruptedFieldCounts();
+        assertEquals(new Integer(1), corruptedFieldCounts.get(MusInterval.Fields.START_NOTE));
+        assertEquals(new Integer(1), corruptedFieldCounts.get(MusInterval.Fields.DIRECTION));
     }
 
     @Test
@@ -2295,7 +2296,13 @@ public class MusIntervalTest {
             put(MusInterval.Fields.TEMPO, "80");
             put(MusInterval.Fields.INSTRUMENT, "guitar");
             put(AnkiDroidHelper.KEY_ID, String.valueOf(noteId));
-            put(AnkiDroidHelper.KEY_TAGS, String.format(" %s ", corruptedTag)); // ok but has tag
+            put(AnkiDroidHelper.KEY_TAGS, String.format(" %s ",
+                    corruptedTag
+                            + AnkiDroidHelper.HIERARCHICAL_TAG_SEPARATOR
+                            + MusInterval.Fields.START_NOTE
+                            + AnkiDroidHelper.HIERARCHICAL_TAG_SEPARATOR
+                            + new EmptyValidator().getErrorTag()
+            )); // ok but has tag
         }};
 
         final Map<String, String> searchData = new HashMap<String, String>() {{
@@ -2324,7 +2331,7 @@ public class MusIntervalTest {
 
         assertEquals(1, is.getNotesCount());
         assertEquals(0, is.getCorruptedNotesCount());
-        assertEquals(1, is.getFixedCorruptedNotesCount());
+        assertEquals(1, is.getFixedCorruptedFieldsCount());
     }
 
     @Test
@@ -2440,7 +2447,19 @@ public class MusIntervalTest {
             put(MusInterval.Fields.TEMPO, "80");
             put(MusInterval.Fields.INSTRUMENT, "guitar");
             put(AnkiDroidHelper.KEY_ID, String.valueOf(smallerNoteId));
-            put(AnkiDroidHelper.KEY_TAGS, String.format(" %s ", suspiciousTag));
+            put(AnkiDroidHelper.KEY_TAGS, String.format(" %s %s ",
+                    suspiciousTag
+                            + AnkiDroidHelper.HIERARCHICAL_TAG_SEPARATOR
+                            + MusInterval.Fields.SOUND_LARGER
+                            + AnkiDroidHelper.HIERARCHICAL_TAG_SEPARATOR
+                            + RelatedIntervalSoundField.TAG_POINTING,
+                    suspiciousTag
+                            + AnkiDroidHelper.HIERARCHICAL_TAG_SEPARATOR
+                            + MusInterval.Fields.SOUND_SMALLER
+                            + AnkiDroidHelper.HIERARCHICAL_TAG_SEPARATOR
+                            + RelatedIntervalSoundField.TAG_POINTED
+                    )
+            ); // ok but has tags
         }};
         final Map<String, String> noteData = new HashMap<String, String>() {{
             put(MusInterval.Fields.SOUND, noteSound);
@@ -2453,7 +2472,29 @@ public class MusIntervalTest {
             put(MusInterval.Fields.TEMPO, "80");
             put(MusInterval.Fields.INSTRUMENT, "guitar");
             put(AnkiDroidHelper.KEY_ID, String.valueOf(noteId));
-            put(AnkiDroidHelper.KEY_TAGS, String.format(" %s ", suspiciousTag));
+            put(AnkiDroidHelper.KEY_TAGS, String.format(" %s %s %s %s ",
+                    suspiciousTag
+                            + AnkiDroidHelper.HIERARCHICAL_TAG_SEPARATOR
+                            + MusInterval.Fields.SOUND_SMALLER
+                            + AnkiDroidHelper.HIERARCHICAL_TAG_SEPARATOR
+                            + RelatedIntervalSoundField.TAG_POINTING,
+                    suspiciousTag
+                            + AnkiDroidHelper.HIERARCHICAL_TAG_SEPARATOR
+                            + MusInterval.Fields.SOUND_LARGER
+                            + AnkiDroidHelper.HIERARCHICAL_TAG_SEPARATOR
+                            + RelatedIntervalSoundField.TAG_POINTING,
+                    suspiciousTag
+                            + AnkiDroidHelper.HIERARCHICAL_TAG_SEPARATOR
+                            + MusInterval.Fields.SOUND_SMALLER
+                            + AnkiDroidHelper.HIERARCHICAL_TAG_SEPARATOR
+                            + RelatedIntervalSoundField.TAG_POINTED,
+                    suspiciousTag
+                            + AnkiDroidHelper.HIERARCHICAL_TAG_SEPARATOR
+                            + MusInterval.Fields.SOUND_LARGER
+                            + AnkiDroidHelper.HIERARCHICAL_TAG_SEPARATOR
+                            + RelatedIntervalSoundField.TAG_POINTED
+                    )
+            ); // ok but has tags
         }};
         final Map<String, String> largerNoteData = new HashMap<String, String>() {{
             put(MusInterval.Fields.SOUND, largerNoteSound);
@@ -2466,7 +2507,19 @@ public class MusIntervalTest {
             put(MusInterval.Fields.TEMPO, "80");
             put(MusInterval.Fields.INSTRUMENT, "guitar");
             put(AnkiDroidHelper.KEY_ID, String.valueOf(largerNoteId));
-            put(AnkiDroidHelper.KEY_TAGS, String.format(" %s ", suspiciousTag));
+            put(AnkiDroidHelper.KEY_TAGS, String.format(" %s %s ",
+                    suspiciousTag
+                            + AnkiDroidHelper.HIERARCHICAL_TAG_SEPARATOR
+                            + MusInterval.Fields.SOUND_SMALLER
+                            + AnkiDroidHelper.HIERARCHICAL_TAG_SEPARATOR
+                            + RelatedIntervalSoundField.TAG_POINTING,
+                    suspiciousTag
+                            + AnkiDroidHelper.HIERARCHICAL_TAG_SEPARATOR
+                            + MusInterval.Fields.SOUND_LARGER
+                            + AnkiDroidHelper.HIERARCHICAL_TAG_SEPARATOR
+                            + RelatedIntervalSoundField.TAG_POINTED
+                    )
+            ); // ok but has tags
         }};
 
         final Map<String, String> searchData = new HashMap<String, String>() {{
@@ -2497,7 +2550,7 @@ public class MusIntervalTest {
 
         assertEquals(3, is.getNotesCount());
         assertEquals(0, is.getSuspiciousNotesCount());
-        assertEquals(3, is.getFixedSuspiciousNotesCount());
+        assertEquals(8, is.getFixedSuspiciousFieldsCount());
     }
 
     @Test
@@ -2618,7 +2671,7 @@ public class MusIntervalTest {
         MusInterval.IntegritySummary is = mi.checkIntegrity(corruptedTag, suspiciousTag);
 
         assertEquals(3, is.getNotesCount());
-        assertEquals(4, is.getFilledLinksCount());
+        assertEquals(4, is.getAutoFilledRelationsCount());
     }
 
     @Test
@@ -2740,7 +2793,11 @@ public class MusIntervalTest {
         MusInterval.IntegritySummary is = mi.checkIntegrity(corruptedTag, suspiciousTag);
 
         assertEquals(3, is.getNotesCount());
-        assertEquals(0, is.getFilledLinksCount());
+        assertEquals(0, is.getAutoFilledRelationsCount());
         assertEquals(1, is.getSuspiciousNotesCount());
+        Map<String, Integer> suspiciousFieldCounts = is.getSuspiciousFieldCounts();
+        assertEquals(new Integer(1), suspiciousFieldCounts.get(MusInterval.Fields.SOUND_SMALLER));
+        assertEquals(new Integer(1), suspiciousFieldCounts.get(MusInterval.Fields.SOUND_LARGER));
+
     }
 }

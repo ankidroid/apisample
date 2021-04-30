@@ -794,20 +794,20 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     return;
                 }
                 try {
-                    final String corruptedTag = TAG_APPLICATION + AnkiDroidHelper.HIERARCHICAL_TAG_SEPARATOR + TAG_CORRUPTED;
+                    final String invalidTag = TAG_APPLICATION + AnkiDroidHelper.HIERARCHICAL_TAG_SEPARATOR + TAG_CORRUPTED;
                     final String suspiciousTag = TAG_APPLICATION + AnkiDroidHelper.HIERARCHICAL_TAG_SEPARATOR + TAG_SUSPICIOUS;
 
                     MusInterval mi = getMusInterval();
-                    MusInterval.IntegritySummary integritySummary = mi.checkIntegrity(corruptedTag, suspiciousTag);
+                    MusInterval.IntegritySummary integritySummary = mi.checkIntegrity(invalidTag, suspiciousTag);
 
                     int notesCount = integritySummary.getNotesCount();
                     int corruptedNotesCount = integritySummary.getCorruptedNotesCount();
-                    Map<String, Integer> invalidFieldsCount = integritySummary.getInvalidFieldsCount();
-                    Map<String, Integer> emptyFieldsCount = integritySummary.getEmptyFieldsCount();
-                    int fixedCorruptedNotesCount = integritySummary.getFixedCorruptedNotesCount();
+                    Map<String, Integer> corruptedFieldCounts = integritySummary.getCorruptedFieldCounts();
+                    int fixedCorruptedFieldsCount = integritySummary.getFixedCorruptedFieldsCount();
                     int suspiciousNotesCount = integritySummary.getSuspiciousNotesCount();
-                    int fixedSuspiciousNotesCount = integritySummary.getFixedSuspiciousNotesCount();
-                    int filledLinksCount = integritySummary.getFilledLinksCount();
+                    Map<String, Integer> suspiciousFieldCounts = integritySummary.getSuspiciousFieldCounts();
+                    int fixedSuspiciousFieldsCount = integritySummary.getFixedSuspiciousFieldsCount();
+                    int autoFilledRelationsCount = integritySummary.getAutoFilledRelationsCount();
 
                     StringBuilder report = new StringBuilder();
                     Resources res = getResources();
@@ -815,40 +815,27 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     if (corruptedNotesCount > 0) {
                         report.append("\n\n");
                         if (corruptedNotesCount == 1) {
-                            report.append(res.getQuantityString(R.plurals.integrity_corrupted, corruptedNotesCount, corruptedTag));
+                            report.append(res.getQuantityString(R.plurals.integrity_corrupted, corruptedNotesCount, invalidTag));
                         } else {
-                            report.append(res.getQuantityString(R.plurals.integrity_corrupted, corruptedNotesCount, corruptedNotesCount, corruptedTag));
+                            report.append(res.getQuantityString(R.plurals.integrity_corrupted, corruptedNotesCount, corruptedNotesCount, invalidTag));
                         }
                         report.append("\n");
-                        for (String field : MusInterval.Fields.getSignature(false)) {
-                            final int invalidCount = invalidFieldsCount.getOrDefault(field, 0);
-                            final int emptyCount = emptyFieldsCount.getOrDefault(field, 0);
-                            final int corruptedCount = invalidCount + emptyCount;
-                            if (corruptedCount > 0) {
+                        for (Map.Entry<String, Integer> corruptedFieldCount : corruptedFieldCounts.entrySet()) {
+                            String fieldKey = corruptedFieldCount.getKey();
+                            int count = corruptedFieldCount.getValue();
+                            if (count > 0) {
+                                String field = mi.modelFields.getOrDefault(fieldKey, fieldKey);
                                 report.append("\n");
-                                report.append(String.format("%s: ", mi.modelFields.get(field)));
-                                if (invalidCount > 0) {
-                                    report.append(String.format(
-                                            res.getString(R.string.integrity_invalid),
-                                            invalidCount));
-                                }
-                                if (emptyCount > 0) {
-                                    if (invalidCount > 0) {
-                                        report.append(", ");
-                                    }
-                                    report.append(String.format(
-                                            res.getString(R.string.integrity_empty),
-                                            emptyCount));
-                                }
+                                report.append(res.getString(R.string.integrity_field_corrupted, field, count));
                             }
                         }
                     }
-                    if (fixedCorruptedNotesCount > 0) {
+                    if (fixedCorruptedFieldsCount > 0) {
                         report.append("\n\n");
-                        if (fixedCorruptedNotesCount == 1) {
-                            report.append(res.getQuantityString(R.plurals.integrity_corrupted_fixed, fixedCorruptedNotesCount));
+                        if (fixedCorruptedFieldsCount == 1) {
+                            report.append(res.getQuantityString(R.plurals.integrity_corrupted_field_values_fixed, fixedCorruptedFieldsCount));
                         } else {
-                            report.append(res.getQuantityString(R.plurals.integrity_corrupted_fixed, fixedCorruptedNotesCount, fixedCorruptedNotesCount));
+                            report.append(res.getQuantityString(R.plurals.integrity_corrupted_field_values_fixed, fixedCorruptedFieldsCount, fixedCorruptedFieldsCount));
                         }
                     }
                     if (suspiciousNotesCount > 0) {
@@ -858,18 +845,28 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                         } else {
                             report.append(res.getQuantityString(R.plurals.integrity_suspicious, suspiciousNotesCount, suspiciousNotesCount, suspiciousTag));
                         }
-                    }
-                    if (filledLinksCount > 0) {
-                        report.append("\n\n");
-                        report.append(getResources().getQuantityString(R.plurals.integrity_links, filledLinksCount, filledLinksCount));
-                    }
-                    if (fixedSuspiciousNotesCount > 0) {
-                        report.append("\n\n");
-                        if (fixedSuspiciousNotesCount == 1) {
-                            report.append(res.getQuantityString(R.plurals.integrity_suspicious_fixed, fixedSuspiciousNotesCount));
-                        } else {
-                            report.append(res.getQuantityString(R.plurals.integrity_suspicious_fixed, fixedSuspiciousNotesCount, fixedSuspiciousNotesCount));
+                        report.append("\n");
+                        for (Map.Entry<String, Integer> suspiciousFieldCount : suspiciousFieldCounts.entrySet()) {
+                            String fieldKey = suspiciousFieldCount.getKey();
+                            int count = suspiciousFieldCount.getValue();
+                            if (count > 0) {
+                                String field = mi.modelFields.getOrDefault(fieldKey, fieldKey);
+                                report.append("\n");
+                                report.append(res.getString(R.string.integrity_field_suspicious, field, count));
+                            }
                         }
+                    }
+                    if (fixedSuspiciousFieldsCount > 0) {
+                        report.append("\n\n");
+                        if (fixedSuspiciousFieldsCount == 1) {
+                            report.append(res.getQuantityString(R.plurals.integrity_suspicious_field_values_fixed, fixedSuspiciousFieldsCount));
+                        } else {
+                            report.append(res.getQuantityString(R.plurals.integrity_suspicious_field_values_fixed, fixedSuspiciousFieldsCount, fixedSuspiciousFieldsCount));
+                        }
+                    }
+                    if (autoFilledRelationsCount > 0) {
+                        report.append("\n\n");
+                        report.append(getResources().getQuantityString(R.plurals.integrity_links, autoFilledRelationsCount, autoFilledRelationsCount));
                     }
                     if (corruptedNotesCount == 0 && suspiciousNotesCount == 0) {
                         report.append("\n\n");
