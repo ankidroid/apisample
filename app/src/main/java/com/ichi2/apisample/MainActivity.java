@@ -489,17 +489,11 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             public void onClick(View v) {
                 filenames = new String[]{};
                 textFilename.setText("");
-                for (CheckBox checkNote : checkNotes) {
-                    checkNote.setChecked(false);
-                }
-                for (CheckBox checkOctave : checkOctaves) {
-                    checkOctave.setChecked(false);
-                }
+                checkNoteAny.setChecked(true);
+                checkOctaveAny.setChecked(true);
                 radioGroupDirection.check(findViewById(R.id.radioDirectionAny).getId());
                 radioGroupTiming.check(findViewById(R.id.radioTimingAny).getId());
-                for (CheckBox checkInterval : checkIntervals) {
-                    checkInterval.setChecked(false);
-                }
+                checkIntervalAny.setChecked(true);
                 inputTempo.setText("");
                 inputInstrument.setText("");
             }
@@ -925,17 +919,17 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         Set<String> storedFilenames = uiDb.getStringSet("selectedFilenames", new HashSet<String>());
         filenames = storedFilenames.toArray(new String[0]);
         refreshFilenameText();
-        checkNoteAny.setChecked(uiDb.getBoolean("checkNoteAny", false));
+        checkNoteAny.setChecked(uiDb.getBoolean("checkNoteAny", true));
         for (int i = 0; i < checkNoteIds.length; i++) {
             checkNotes[i].setChecked(uiDb.getBoolean(String.valueOf(checkNoteIds[i]), false));
         }
-        checkOctaveAny.setChecked(uiDb.getBoolean("checkOctaveAny", false));
+        checkOctaveAny.setChecked(uiDb.getBoolean("checkOctaveAny", true));
         for (int i = 0; i < checkOctaveIds.length; i++) {
             checkOctaves[i].setChecked(uiDb.getBoolean(String.valueOf(checkOctaveIds[i]), false));
         }
         radioGroupDirection.check(uiDb.getInt("radioGroupDirection", findViewById(R.id.radioDirectionAny).getId()));
         radioGroupTiming.check(uiDb.getInt("radioGroupTiming", findViewById(R.id.radioTimingAny).getId()));
-        checkIntervalAny.setChecked(uiDb.getBoolean("checkIntervalAny", false));
+        checkIntervalAny.setChecked(uiDb.getBoolean("checkIntervalAny", true));
         for (int i = 0; i < checkIntervalIds.length; i++) {
             checkIntervals[i].setChecked(uiDb.getBoolean(String.valueOf(checkIntervalIds[i]), false));
         }
