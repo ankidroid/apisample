@@ -82,6 +82,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
     }
 
+    private final Map<String, String> fieldValidationMessages = new HashMap<>();
+
     private SwitchCompat switchBatch;
     private TextView textFilename;
     private Button actionSelectFile;
@@ -181,6 +183,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         labelExisting = findViewById(R.id.labelExisting);
         actionMarkExisting = findViewById(R.id.actionMarkExisting);
 
+        initFieldValidationMessages();
+
         restoreUiState();
 
         textFilename.setOnClickListener(new View.OnClickListener() {
@@ -243,6 +247,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             }
         });
 
+
+
         configureClearAllButton();
         configureSelectFileButton();
         configureMarkExistingButton();
@@ -251,6 +257,44 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         configureCheckIntegrityButton();
 
         mAnkiDroid = new AnkiDroidHelper(this);
+    }
+
+    private void initFieldValidationMessages() {
+        String[] allowedStartNotes = new String[checkNotes.length * checkOctaves.length];
+        int i = 0;
+        for (CheckBox checkNote : checkNotes) {
+            String note = checkNote.getText().toString();
+            for (CheckBox checkOctave : checkOctaves) {
+                String octave = checkOctave.getText().toString();
+                allowedStartNotes[i] = note + octave;
+                i++;
+            }
+        }
+        String allowedStartNotesStr = joinStrings(", ", allowedStartNotes);
+        String allowedDirectionsStr = String.format("%s, %s", MusInterval.Fields.Direction.ASC, MusInterval.Fields.Direction.DESC);
+        String allowedTimingsStr = String.format("%s, %s", MusInterval.Fields.Timing.MELODIC, MusInterval.Fields.Timing.HARMONIC);
+        String allowedIntervalsStr = joinStrings(", ", MusInterval.Fields.Interval.VALUES);
+
+        fieldValidationMessages.put(MusInterval.Fields.SOUND, getString(R.string.validation_sound));
+        fieldValidationMessages.put(MusInterval.Fields.SOUND_SMALLER, getString(R.string.validation_sound));
+        fieldValidationMessages.put(MusInterval.Fields.SOUND_LARGER, getString(R.string.validation_sound));
+        fieldValidationMessages.put(MusInterval.Fields.START_NOTE, getString(R.string.validation_allowed_values, allowedStartNotesStr));
+        fieldValidationMessages.put(MusInterval.Fields.DIRECTION, getString(R.string.validation_allowed_values, allowedDirectionsStr));
+        fieldValidationMessages.put(MusInterval.Fields.TIMING, getString(R.string.validation_allowed_values, allowedTimingsStr));
+        fieldValidationMessages.put(MusInterval.Fields.INTERVAL, getString(R.string.validation_allowed_values, allowedIntervalsStr));
+        fieldValidationMessages.put(MusInterval.Fields.TEMPO, getString(R.string.validation_range, MusInterval.Fields.Tempo.MIN_VALUE, MusInterval.Fields.Tempo.MAX_VALUE));
+        fieldValidationMessages.put(MusInterval.Fields.INSTRUMENT, getString(R.string.validation_mandatory));
+    }
+
+    private static String joinStrings(String separator, String[] values) {
+        StringBuilder builder = new StringBuilder();
+        for (String value : values) {
+            if (builder.length() > 0) {
+                builder.append(separator);
+            }
+            builder.append(value);
+        }
+        return builder.toString();
     }
 
     private String[][] getOrderedPermutationKeys() {
@@ -813,14 +857,13 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                         } else {
                             report.append(res.getQuantityString(R.plurals.integrity_corrupted, corruptedNotesCount, corruptedNotesCount, invalidTag));
                         }
-                        report.append("\n");
                         for (Map.Entry<String, Integer> corruptedFieldCount : corruptedFieldCounts.entrySet()) {
                             String fieldKey = corruptedFieldCount.getKey();
                             int count = corruptedFieldCount.getValue();
                             if (count > 0) {
                                 String field = mi.modelFields.getOrDefault(fieldKey, fieldKey);
-                                report.append("\n");
-                                report.append(res.getString(R.string.integrity_field_corrupted, field, count));
+                                report.append("\n\n");
+                                report.append(res.getString(R.string.integrity_field_corrupted, field, count, fieldValidationMessages.get(fieldKey)));
                             }
                         }
                     }
@@ -967,7 +1010,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
     }
 
-    private MusInterval getMusInterval() throws MusInterval.ModelValidationException {
+    private MusInterval getMusInterval() throws MusInterval.ModelValidationException, MusInterval.TempoNotInRangeException {
         final String anyStr = getResources().getString(R.string.any);
 
         final int radioDirectionId = radioGroupDirection.getCheckedRadioButtonId();
@@ -1113,6 +1156,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             showMsg(R.string.already_added);
         } catch (MusInterval.AddSoundFileException e) {
             showMsg(R.string.add_file_error);
+        } catch (MusInterval.TempoNotInRangeException e) {
+            showMsg(R.string.tempo_not_in_range, MusInterval.Fields.Tempo.MIN_VALUE, MusInterval.Fields.Tempo.MAX_VALUE);
         } catch (MusInterval.Exception e) {
             showMsg(R.string.unknown_adding_error);
         }

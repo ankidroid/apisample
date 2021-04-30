@@ -165,12 +165,16 @@
     <string name="unknown_error">Unknown error (try opening AnkiDroid to see what\'s wrong)</string>
     <string name="integrity_check_completed">Integrity check completed (%d notes)</string>
     <string name="integrity_ok">No issues have been found</string>
-    <string name="integrity_field_corrupted">%s: %d corrupted</string>
-    <string name="integrity_field_suspicious">%s: %d suspicious</string>
+    <string name="integrity_field_corrupted">- %s: %d corrupted, (%s)</string>
+    <string name="integrity_field_suspicious">- %s: %d suspicious</string>
     <string name="fix_link_confirmation_remember_answer">Remember answer</string>
-
     <string name="InvalidAnkiDatabase_fieldAndFieldNameCountMismatch">Invalid Anki Database: field and field name count mismatches</string>
     <string name="InvalidAnkiDatabase_unknownError">Invalid Anki Database: unknown error</string>
+    <string name="validation_sound">value must represent an AnkiDroid media reference (i. e. \"[sound:example.mp3]\")</string>
+    <string name="validation_allowed_values">allowed values: %s</string>
+    <string name="validation_range">value must an integer between %d and %d</string>
+    <string name="validation_mandatory">value must be present</string>
+    <string name="tempo_not_in_range">Tempo value must be in range of %d to %d (BPM)</string>
 
     <!-- SettingsActivity labels, fields and buttons -->
     <string name="deck_preference_title">Deck</string>

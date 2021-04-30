@@ -74,6 +74,8 @@ public class MusInterval {
         public static class Tempo {
             public static final int MIN_VALUE = 20;
             public static final int MAX_VALUE = 400;
+
+            private static final Validator RANGE_VALIDATOR = new IntegerRangeValidator(Tempo.MIN_VALUE, Tempo.MAX_VALUE);
         }
 
         public static String[] getSignature(boolean versionField) {
@@ -110,7 +112,7 @@ public class MusInterval {
             });
             put(START_NOTE, new Validator[]{
                     VALIDATOR_EMPTY,
-                    new PatternValidator("[A-Ga-g]#?[0-8]")
+                    new PatternValidator("[A-Ga-g]#?[1-6]")
             });
             put(DIRECTION, new Validator[]{
                     VALIDATOR_EMPTY,
@@ -127,28 +129,7 @@ public class MusInterval {
             put(TEMPO, new Validator[]{
                     VALIDATOR_EMPTY,
                     new PatternValidator("^[0-9]*$"),
-                    new Validator() {
-                        @Override
-                        public boolean isValid(String value) {
-                            return Integer.parseInt(value) >= Tempo.MIN_VALUE;
-                        }
-
-                        @Override
-                        public String getErrorTag() {
-                            return "below" + Tempo.MIN_VALUE;
-                        }
-                    },
-                    new Validator() {
-                        @Override
-                        public boolean isValid(String value) {
-                            return Integer.parseInt(value) <= Tempo.MAX_VALUE;
-                        }
-
-                        @Override
-                        public String getErrorTag() {
-                            return "above" + Tempo.MAX_VALUE;
-                        }
-                    }
+                    Tempo.RANGE_VALIDATOR
             });
             put(INSTRUMENT, new Validator[]{
                     VALIDATOR_EMPTY
@@ -248,7 +229,7 @@ public class MusInterval {
             mHelper = helper;
         }
 
-        public MusInterval build() throws ModelValidationException {
+        public MusInterval build() throws ModelValidationException, TempoNotInRangeException {
             return new MusInterval(this);
         }
 
@@ -386,6 +367,7 @@ public class MusInterval {
             return invalidModelFields;
         }
     }
+    public static class TempoNotInRangeException extends Exception { }
 
     private final AnkiDroidHelper helper;
 
@@ -413,7 +395,7 @@ public class MusInterval {
     /**
      * Construct an object using builder class.
      */
-    public MusInterval(Builder builder) throws ModelValidationException {
+    public MusInterval(Builder builder) throws ModelValidationException, TempoNotInRangeException {
         helper = builder.mHelper;
 
         relatedSoundFields = new RelatedIntervalSoundField[]{
@@ -442,7 +424,7 @@ public class MusInterval {
         validateModel();
     }
 
-    protected void validateModel() throws ModelValidationException {
+    protected void validateModel() throws ModelValidationException, TempoNotInRangeException {
         String[] signature = Fields.getSignature(!version.isEmpty());
 
         if (modelId == null) {
@@ -465,6 +447,10 @@ public class MusInterval {
         }
         if (!invalidModelFields.isEmpty()) {
             throw new ModelNotConfiguredException(modelName, invalidModelFields);
+        }
+
+        if (!tempo.isEmpty() && !Fields.Tempo.RANGE_VALIDATOR.isValid(tempo)) {
+            throw new TempoNotInRangeException();
         }
     }
 
@@ -573,7 +559,7 @@ public class MusInterval {
     public MusInterval addToAnki(DuplicateAddingPrompter prompter)
             throws CreateDeckException, AddToAnkiException, UnexpectedSoundsAmountException,
             MandatoryFieldEmptyException, SoundAlreadyAddedException, AddSoundFileException,
-            ModelValidationException, AnkiDroidHelper.InvalidAnkiDatabaseException {
+            ModelValidationException, AnkiDroidHelper.InvalidAnkiDatabaseException, TempoNotInRangeException {
         if (deckId == null) {
             deckId = helper.addNewDeck(deckName);
             if (deckId == null) {
@@ -642,13 +628,13 @@ public class MusInterval {
                 prompter.promptAddDuplicate(existingMis, new DuplicateAddingHandler() {
                     @Override
                     public MusInterval add() throws AddSoundFileException, AddToAnkiException,
-                            AnkiDroidHelper.InvalidAnkiDatabaseException, ModelValidationException {
+                            AnkiDroidHelper.InvalidAnkiDatabaseException, ModelValidationException, TempoNotInRangeException {
                         return addToAnki(miData);
                     }
 
                     @Override
                     public MusInterval replace() throws AnkiDroidHelper.InvalidAnkiDatabaseException,
-                            AddSoundFileException, ModelValidationException {
+                            AddSoundFileException, ModelValidationException, TempoNotInRangeException {
                         if (existingNotesData.size() != 1) {
                             throw new IllegalStateException("Replacing more than 1 existing note is not supported.");
                         }
@@ -674,13 +660,13 @@ public class MusInterval {
 
                     @Override
                     public int mark() throws NoteNotExistsException, ModelValidationException,
-                            AnkiDroidHelper.InvalidAnkiDatabaseException {
+                            AnkiDroidHelper.InvalidAnkiDatabaseException, TempoNotInRangeException {
                         return getMusIntervalFromData(miData).markExistingNotes();
                     }
 
                     @Override
                     public int tag(String tag) throws NoteNotExistsException, ModelValidationException,
-                            AnkiDroidHelper.InvalidAnkiDatabaseException {
+                            AnkiDroidHelper.InvalidAnkiDatabaseException, TempoNotInRangeException {
                         return getMusIntervalFromData(miData).tagExistingNotes(tag);
                     }
                 });
@@ -718,7 +704,7 @@ public class MusInterval {
     }
 
     private MusInterval addToAnki(Map<String, String> data) throws AddSoundFileException,
-            AddToAnkiException, AnkiDroidHelper.InvalidAnkiDatabaseException, ModelValidationException {
+            AddToAnkiException, AnkiDroidHelper.InvalidAnkiDatabaseException, ModelValidationException, TempoNotInRangeException {
         String sound = data.get(modelFields.get(Fields.SOUND));
         String newSound = helper.addFileToAnkiMedia(sound);
         if (newSound == null || newSound.isEmpty()) {
@@ -739,7 +725,7 @@ public class MusInterval {
         return getMusIntervalFromData(data);
     }
 
-    private MusInterval getMusIntervalFromData(Map<String, String> data) throws ModelValidationException {
+    private MusInterval getMusIntervalFromData(Map<String, String> data) throws ModelValidationException, TempoNotInRangeException {
         String startNote = data.get(modelFields.get(Fields.START_NOTE));
         String note = null;
         String octave = null;
