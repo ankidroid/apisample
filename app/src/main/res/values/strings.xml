@@ -102,12 +102,12 @@
         <item quantity="other">%d music intervals with parameters (%s, %s, %s, %s, %s, %s) already exist in Anki database</item>
     </plurals>
     <plurals name="integrity_corrupted">
-        <item quantity="one">Found one corrupted note and marked it with \"%s\" tag</item>
-        <item quantity="other">Found %d corrupted notes and marked them with \"%s\" tag</item>
+        <item quantity="one">Found one corrupted note and marked it using tag starting \"%s\"</item>
+        <item quantity="other">Found %d corrupted notes and marked them using tag starting \"%s\"</item>
     </plurals>
     <plurals name="integrity_suspicious">
-        <item quantity="one">Found one suspicious note (invalid link fields) and marked it with \"%s\" tag</item>
-        <item quantity="other">Found %d suspicious notes (invalid link fields) and marked them with \"%s\" tag</item>
+        <item quantity="one">Found one suspicious note (invalid link fields) and marked it using tag starting with \"%s\"</item>
+        <item quantity="other">Found %d suspicious notes (invalid link fields) and marked them using tag starting with \"%s\"</item>
     </plurals>
     <plurals name="integrity_corrupted_field_values_fixed">
         <item quantity="one">One field value previously tagged as corrupted has been fixed</item>

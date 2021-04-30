@@ -182,10 +182,10 @@ public class MusInterval {
                 "\n" +
                 "<hr id=answer>\n" +
                 "\n" +
-                "<img src=\"_wils_{{start_note}}_{{ascending_descending}}_{{melodic_harmonic}}_{{interval}}.jpg\" onerror=\"this.style.display='none'\"/>\n" +
+                "<img src=\"_wils_{{start_note}}_{{direction}}_{{timing}}_{{interval}}.jpg\" onerror=\"this.style.display='none'\"/>\n" +
                 "<img src=\"_wila_{{interval}}_.jpg\" onerror=\"this.style.display='none'\"/>\n" +
                 "<div id=\"interval_longer_name\" class=\"the_answer\"></div>\n" +
-                "{{start_note}}, {{ascending_descending}}, {{melodic_harmonic}}, <span id=\"interval_short_name\">{{interval}}</span>; {{tempo}}BPM, {{instrument}}\n" +
+                "{{start_note}}, {{direction}}, {{timing}}, <span id=\"interval_short_name\">{{interval}}</span>; {{tempo}}BPM, {{instrument}}\n" +
                 "\n" +
                 "<script>\n" +
                 "function intervalLongerName(intervalShortName) {\n" +
