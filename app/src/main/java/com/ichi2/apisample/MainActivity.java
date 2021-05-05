@@ -56,8 +56,18 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private static final String TAG_CORRUPTED = "corrupted";
     private static final String TAG_SUSPICIOUS = "suspicious";
 
-    private static final String STATE_REF_DB = "com.ichi2.apisample.uistate";
-    private static final String KEY_BATCH_ADDING_NOTICE_SEEN = "batchAddingNoticeSeen";
+    private static final String REF_DB_STATE = "com.ichi2.apisample.uistate";
+    private static final String REF_DB_SWITCH_BATCH = "switchBatch";
+    private static final String REF_DB_SELECTED_FILENAMES = "selectedFilenames";
+    private static final String REF_DB_CHECK_NOTE_ANY = "checkNoteAny";
+    private static final String REF_DB_CHECK_OCTAVE_ANY = "checkOctaveAny";
+    private static final String REF_DB_RADIO_GROUP_DIRECTION = "radioGroupDirection";
+    private static final String REF_DB_RADIO_GROUP_TIMING = "radioGroupTiming";
+    private static final String REF_DB_CHECK_INTERVAL_ANY = "checkIntervalAny";
+    private static final String REF_DB_INPUT_TEMPO = "inputTempo";
+    private static final String REF_DB_INPUT_INSTRUMENT = "inputInstrument";
+    private static final String REF_DB_SAVED_INSTRUMENTS = "savedInstruments";
+    private static final String REF_DB_BATCH_ADDING_NOTICE_SEEN = "batchAddingNoticeSeen";
 
     private final static Map<String, Integer> FIELD_LABEL_STRING_IDS_SINGULAR = new HashMap<String, Integer>() {{
         put(MusInterval.Fields.DIRECTION, R.string.direction);
@@ -567,7 +577,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
 
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
-        boolean batchNoticeSeen = preferences.getBoolean(KEY_BATCH_ADDING_NOTICE_SEEN, false);
+        boolean batchNoticeSeen = preferences.getBoolean(REF_DB_BATCH_ADDING_NOTICE_SEEN, false);
         if (batchNoticeSeen) {
             openChooser();
             return;
@@ -590,7 +600,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             public void onDismiss(DialogInterface dialogInterface) {
                 if (checkRemember.isChecked()) {
                     SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(MainActivity.this).edit();
-                    editor.putBoolean(KEY_BATCH_ADDING_NOTICE_SEEN, true);
+                    editor.putBoolean(REF_DB_BATCH_ADDING_NOTICE_SEEN, true);
                     editor.apply();
                 }
                 openChooser();
@@ -912,55 +922,55 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
     @Override
     protected void onPause() {
-        final SharedPreferences.Editor uiDbEditor = getSharedPreferences(STATE_REF_DB, Context.MODE_PRIVATE).edit();
+        final SharedPreferences.Editor uiDbEditor = getSharedPreferences(REF_DB_STATE, Context.MODE_PRIVATE).edit();
 
-        uiDbEditor.putBoolean("switchBatch", switchBatch.isChecked());
-        uiDbEditor.putStringSet("selectedFilenames", new HashSet<>(Arrays.asList(filenames)));
-        uiDbEditor.putBoolean("checkNoteAny", checkNoteAny.isChecked());
+        uiDbEditor.putBoolean(REF_DB_SWITCH_BATCH, switchBatch.isChecked());
+        uiDbEditor.putStringSet(REF_DB_SELECTED_FILENAMES, new HashSet<>(Arrays.asList(filenames)));
+        uiDbEditor.putBoolean(REF_DB_CHECK_NOTE_ANY, checkNoteAny.isChecked());
         for (int i = 0; i < CHECK_NOTE_IDS.length; i++) {
             uiDbEditor.putBoolean(String.valueOf(CHECK_NOTE_IDS[i]), checkNotes[i].isChecked());
         }
-        uiDbEditor.putBoolean("checkOctaveAny", checkOctaveAny.isChecked());
+        uiDbEditor.putBoolean(REF_DB_CHECK_OCTAVE_ANY, checkOctaveAny.isChecked());
         for (int i = 0; i < CHECK_OCTAVE_IDS.length; i++) {
             uiDbEditor.putBoolean(String.valueOf(CHECK_OCTAVE_IDS[i]), checkOctaves[i].isChecked());
         }
-        uiDbEditor.putInt("radioGroupDirection", radioGroupDirection.getCheckedRadioButtonId());
-        uiDbEditor.putInt("radioGroupTiming", radioGroupTiming.getCheckedRadioButtonId());
-        uiDbEditor.putBoolean("checkIntervalAny", checkIntervalAny.isChecked());
+        uiDbEditor.putInt(REF_DB_RADIO_GROUP_DIRECTION, radioGroupDirection.getCheckedRadioButtonId());
+        uiDbEditor.putInt(REF_DB_RADIO_GROUP_TIMING, radioGroupTiming.getCheckedRadioButtonId());
+        uiDbEditor.putBoolean(REF_DB_CHECK_INTERVAL_ANY, checkIntervalAny.isChecked());
         for (int i = 0; i < CHECK_INTERVAL_IDS.length; i++) {
             uiDbEditor.putBoolean(String.valueOf(CHECK_INTERVAL_IDS[i]), checkIntervals[i].isChecked());
         }
-        uiDbEditor.putString("inputTempo", inputTempo.getText().toString());
-        uiDbEditor.putString("inputInstrument", inputInstrument.getText().toString());
-        uiDbEditor.putStringSet("savedInstruments", savedInstruments);
+        uiDbEditor.putString(REF_DB_INPUT_TEMPO, inputTempo.getText().toString());
+        uiDbEditor.putString(REF_DB_INPUT_INSTRUMENT, inputInstrument.getText().toString());
+        uiDbEditor.putStringSet(REF_DB_SAVED_INSTRUMENTS, savedInstruments);
         uiDbEditor.apply();
 
         super.onPause();
     }
 
     protected void restoreUiState() {
-        final SharedPreferences uiDb = getSharedPreferences(STATE_REF_DB, Context.MODE_PRIVATE);
-        switchBatch.setChecked(uiDb.getBoolean("switchBatch", false));
-        Set<String> storedFilenames = uiDb.getStringSet("selectedFilenames", new HashSet<String>());
+        final SharedPreferences uiDb = getSharedPreferences(REF_DB_STATE, Context.MODE_PRIVATE);
+        switchBatch.setChecked(uiDb.getBoolean(REF_DB_SWITCH_BATCH, false));
+        Set<String> storedFilenames = uiDb.getStringSet(REF_DB_SELECTED_FILENAMES, new HashSet<String>());
         filenames = storedFilenames.toArray(new String[0]);
         refreshFilenameText();
-        checkNoteAny.setChecked(uiDb.getBoolean("checkNoteAny", true));
+        checkNoteAny.setChecked(uiDb.getBoolean(REF_DB_CHECK_NOTE_ANY, true));
         for (int i = 0; i < CHECK_NOTE_IDS.length; i++) {
             checkNotes[i].setChecked(uiDb.getBoolean(String.valueOf(CHECK_NOTE_IDS[i]), false));
         }
-        checkOctaveAny.setChecked(uiDb.getBoolean("checkOctaveAny", true));
+        checkOctaveAny.setChecked(uiDb.getBoolean(REF_DB_CHECK_OCTAVE_ANY, true));
         for (int i = 0; i < CHECK_OCTAVE_IDS.length; i++) {
             checkOctaves[i].setChecked(uiDb.getBoolean(String.valueOf(CHECK_OCTAVE_IDS[i]), false));
         }
-        radioGroupDirection.check(uiDb.getInt("radioGroupDirection", findViewById(R.id.radioDirectionAny).getId()));
-        radioGroupTiming.check(uiDb.getInt("radioGroupTiming", findViewById(R.id.radioTimingAny).getId()));
-        checkIntervalAny.setChecked(uiDb.getBoolean("checkIntervalAny", true));
+        radioGroupDirection.check(uiDb.getInt(REF_DB_RADIO_GROUP_DIRECTION, findViewById(R.id.radioDirectionAny).getId()));
+        radioGroupTiming.check(uiDb.getInt(REF_DB_RADIO_GROUP_TIMING, findViewById(R.id.radioTimingAny).getId()));
+        checkIntervalAny.setChecked(uiDb.getBoolean(REF_DB_CHECK_INTERVAL_ANY, true));
         for (int i = 0; i < CHECK_INTERVAL_IDS.length; i++) {
             checkIntervals[i].setChecked(uiDb.getBoolean(String.valueOf(CHECK_INTERVAL_IDS[i]), false));
         }
-        inputTempo.setText(uiDb.getString("inputTempo", ""));
-        inputInstrument.setText(uiDb.getString("inputInstrument", ""));
-        savedInstruments = (HashSet<String>) uiDb.getStringSet("savedInstruments", new HashSet<String>());
+        inputTempo.setText(uiDb.getString(REF_DB_INPUT_TEMPO, ""));
+        inputInstrument.setText(uiDb.getString(REF_DB_INPUT_INSTRUMENT, ""));
+        savedInstruments = (HashSet<String>) uiDb.getStringSet(REF_DB_SAVED_INSTRUMENTS, new HashSet<String>());
         inputInstrument.setAdapter(new ArrayAdapter<>(this,
                 android.R.layout.simple_dropdown_item_1line, savedInstruments.toArray(new String[0])));
 
