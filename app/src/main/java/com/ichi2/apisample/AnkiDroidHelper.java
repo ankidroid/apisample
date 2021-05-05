@@ -231,15 +231,17 @@ public class AnkiDroidHelper {
         return getApi().addNote(modelId, deckId, result, tags);
     }
 
-    @SuppressWarnings("unchecked")
-    public LinkedList<Map<String, String>> findNotes(long modelId, Map<String, String> data)
+    public LinkedList<Map<String, String>> findNotes(long modelId, final Map<String, String> data)
             throws InvalidAnkiDatabase_fieldAndFieldNameCountMismatchException {
-        return findNotes(modelId, new Map[]{data});
+        ArrayList<Map<String, String>> dataSet = new ArrayList<Map<String, String>>() {{
+            add(data);
+        }};
+        return findNotes(modelId, dataSet);
     }
 
-    public LinkedList<Map<String, String>> findNotes(long modelId, Map<String, String>[] dataSet)
+    public LinkedList<Map<String, String>> findNotes(long modelId, ArrayList<Map<String, String>> dataSet)
             throws InvalidAnkiDatabase_fieldAndFieldNameCountMismatchException {
-        if (dataSet.length == 0) {
+        if (dataSet.size() == 0) {
             return new LinkedList<>();
         }
 

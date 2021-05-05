@@ -444,7 +444,7 @@ public class MusInterval {
     /**
      * Get list of existing (similar or equal) notes. Each note consists of main model fields, id field and tags.
      */
-    private LinkedList<Map<String, String>> getExistingNotes(Map<String, String>[] dataSet) throws AnkiDroidHelper.InvalidAnkiDatabaseException {
+    private LinkedList<Map<String, String>> getExistingNotes(ArrayList<Map<String, String>> dataSet) throws AnkiDroidHelper.InvalidAnkiDatabaseException {
         if (modelId != null) {
             for (Map<String, String> data : dataSet) {
                 data.remove(modelFields.get(Fields.SOUND));
@@ -462,9 +462,11 @@ public class MusInterval {
         return getExistingNotes(getCollectedDataSet());
     }
 
-    @SuppressWarnings("unchecked")
-    private LinkedList<Map<String, String>> getExistingNotes(Map<String, String> data) throws AnkiDroidHelper.InvalidAnkiDatabaseException {
-        return getExistingNotes(new Map[]{new HashMap<>(data)});
+    private LinkedList<Map<String, String>> getExistingNotes(final Map<String, String> data) throws AnkiDroidHelper.InvalidAnkiDatabaseException {
+        ArrayList<Map<String, String>> dataSet = new ArrayList<Map<String, String>>() {{
+            add(new HashMap<>(data));
+        }};
+        return getExistingNotes(dataSet);
     }
 
     /**
@@ -562,7 +564,7 @@ public class MusInterval {
             }
         }
 
-        Map<String, String>[] miDataSet = getCollectedDataSet();
+        ArrayList<Map<String, String>> miDataSet = getCollectedDataSet();
         final String soundField = modelFields.get(Fields.SOUND);
         ArrayList<String> addedSounds = new ArrayList<>();
         ArrayList<String> soundsSmaller = new ArrayList<>();
@@ -877,12 +879,11 @@ public class MusInterval {
                 * (intervals != null ? intervals.length : 0);
     }
 
-    @SuppressWarnings("unchecked")
-    public Map<String, String>[] getCollectedDataSet() {
+    public ArrayList<Map<String, String>> getCollectedDataSet() {
         final String[] octaves = this.octaves != null ? this.octaves : Builder.EMPTY_SELECTION;
         final String[] notes = this.notes != null ? this.notes : Builder.EMPTY_SELECTION;
         final String[] intervals = this.intervals != null ? this.intervals : Builder.EMPTY_SELECTION;
-        Map<String, String>[] miDataSet = new Map[octaves.length * notes.length * intervals.length];
+        ArrayList<Map<String, String>> miDataSet = new ArrayList<>(octaves.length * notes.length * intervals.length);
         int i = 0;
         final boolean soundsProvided = sounds != null;
         final boolean soundsSmallerProvided = soundsSmaller != null;
@@ -903,7 +904,7 @@ public class MusInterval {
                     miData.put(modelFields.get(Fields.INTERVAL), interval);
                     miData.put(modelFields.get(Fields.TEMPO), tempo);
                     miData.put(modelFields.get(Fields.INSTRUMENT), instrument);
-                    miDataSet[i] = miData;
+                    miDataSet.add(miData);
                     i++;
                 }
             }
