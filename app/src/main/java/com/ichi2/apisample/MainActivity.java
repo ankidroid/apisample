@@ -1167,13 +1167,14 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
     private void handleCreateModel(String modelName) {
         final String[] signature = MusInterval.Fields.getSignature(SettingsFragment.DEFAULT_VERSION_FIELD_SWITCH);
+        Resources res = getResources();
         final Long newModelId = mAnkiDroid.addNewCustomModel(
                 modelName,
                 signature,
-                MusInterval.Builder.CARD_NAMES,
-                MusInterval.Builder.QFMT,
-                MusInterval.Builder.AFMT,
-                MusInterval.Builder.CSS
+                res.getStringArray(R.array.card_names),
+                res.getStringArray(R.array.qfmt),
+                res.getStringArray(R.array.afmt),
+                res.getString(R.string.css)
         );
         if (newModelId != null) {
             SharedPreferences.Editor preferenceEditor = PreferenceManager.getDefaultSharedPreferences(MainActivity.this).edit();

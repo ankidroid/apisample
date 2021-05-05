@@ -140,49 +140,6 @@ public class MusInterval {
     public static class Builder {
         public static final String DEFAULT_DECK_NAME = "Music intervals";
         public static final String DEFAULT_MODEL_NAME = "Music.interval";
-        public static final String[] CARD_NAMES = {"Question > Answer"};
-        // CSS to share between all the cards
-        public static final String CSS = ".card {\n" +
-                "  font-family: arial;\n" +
-                "  font-size: 20px;\n" +
-                "  text-align: center;\n" +
-                "  color: black;\n" +
-                "  background-color: white;\n" +
-                "}\n" +
-                "\n" +
-                ".the_answer {\n" +
-                "  font-size:40px;\n" +
-                "  font-face:bold;\n" +
-                "  color:green;\n" +
-                "}";
-        // Template for the question of each card
-        static final String QFMT1 = "{{sound}}\n" +
-                "Which interval is it?";
-        public static final String[] QFMT = {QFMT1};
-        static final String AFMT1 = "{{FrontSide}}\n" +
-                "\n" +
-                "<hr id=answer>\n" +
-                "\n" +
-                "<img src=\"_wils_{{start_note}}_{{direction}}_{{timing}}_{{interval}}.jpg\" onerror=\"this.style.display='none'\"/>\n" +
-                "<img src=\"_wila_{{interval}}_.jpg\" onerror=\"this.style.display='none'\"/>\n" +
-                "<div id=\"interval_longer_name\" class=\"the_answer\"></div>\n" +
-                "{{start_note}}, {{direction}}, {{timing}}, <span id=\"interval_short_name\">{{interval}}</span>; {{tempo}}BPM, {{instrument}}\n" +
-                "\n" +
-                "<script>\n" +
-                "function intervalLongerName(intervalShortName) {\n" +
-                "  var longerName = {\n" +
-                "    'min2': 'minor 2nd',\n" +
-                "    'Maj2': 'Major 2nd'\n" +
-                "  };\n" +
-                "  return longerName[intervalShortName];\n" +
-                "}\n" +
-                "\n" +
-                "document.getElementById(\"interval_longer_name\").innerText =\n" +
-                "    intervalLongerName(document.getElementById(\"interval_short_name\").innerText);\n" +
-                "\n" +
-                "</script>\n" +
-                "\n";
-        public static final String[] AFMT = {AFMT1};
         public static final Set<String> ADDING_MANDATORY_SINGULAR_KEYS = new HashSet<String>() {{
             add(Fields.DIRECTION);
             add(Fields.TIMING);
