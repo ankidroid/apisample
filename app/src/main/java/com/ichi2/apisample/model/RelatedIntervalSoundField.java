@@ -1,4 +1,6 @@
-package com.ichi2.apisample;
+package com.ichi2.apisample.model;
+
+import com.ichi2.apisample.helper.AnkiDroidHelper;
 
 import java.util.HashMap;
 import java.util.HashSet;

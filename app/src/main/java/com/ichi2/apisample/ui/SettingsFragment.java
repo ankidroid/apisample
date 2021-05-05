@@ -1,4 +1,4 @@
-package com.ichi2.apisample;
+package com.ichi2.apisample.ui;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -12,6 +12,10 @@ import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceManager;
 import androidx.preference.PreferenceScreen;
 import androidx.preference.SwitchPreference;
+
+import com.ichi2.apisample.model.MusInterval;
+import com.ichi2.apisample.R;
+import com.ichi2.apisample.helper.AnkiDroidHelper;
 
 import java.util.ArrayList;
 import java.util.Arrays;

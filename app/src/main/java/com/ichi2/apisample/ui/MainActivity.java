@@ -1,4 +1,4 @@
-package com.ichi2.apisample;
+package com.ichi2.apisample.ui;
 
 import android.Manifest;
 import android.app.AlertDialog;
@@ -35,6 +35,14 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.ichi2.apisample.BuildConfig;
+import com.ichi2.apisample.model.DuplicateAddingHandler;
+import com.ichi2.apisample.model.DuplicateAddingPrompter;
+import com.ichi2.apisample.model.NotesIntegrity;
+import com.ichi2.apisample.model.MusInterval;
+import com.ichi2.apisample.R;
+import com.ichi2.apisample.helper.AnkiDroidHelper;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -91,8 +99,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             throw new AssertionError();
         }
     }
-
-    private final static Map<String, String> FIELD_VALIDATION_MESSAGES = new HashMap<>();
 
     private SwitchCompat switchBatch;
     private TextView textFilename;
@@ -193,8 +199,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         labelExisting = findViewById(R.id.labelExisting);
         actionMarkExisting = findViewById(R.id.actionMarkExisting);
 
-        initFieldValidationMessages();
-
         restoreUiState();
 
         textFilename.setOnClickListener(new View.OnClickListener() {
@@ -267,44 +271,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         configureCheckIntegrityButton();
 
         mAnkiDroid = new AnkiDroidHelper(this);
-    }
-
-    private void initFieldValidationMessages() {
-        String[] allowedStartNotes = new String[checkNotes.length * checkOctaves.length];
-        int i = 0;
-        for (CheckBox checkNote : checkNotes) {
-            String note = checkNote.getText().toString();
-            for (CheckBox checkOctave : checkOctaves) {
-                String octave = checkOctave.getText().toString();
-                allowedStartNotes[i] = note + octave;
-                i++;
-            }
-        }
-        String allowedStartNotesStr = joinStrings(", ", allowedStartNotes);
-        String allowedDirectionsStr = String.format("%s, %s", MusInterval.Fields.Direction.ASC, MusInterval.Fields.Direction.DESC);
-        String allowedTimingsStr = String.format("%s, %s", MusInterval.Fields.Timing.MELODIC, MusInterval.Fields.Timing.HARMONIC);
-        String allowedIntervalsStr = joinStrings(", ", MusInterval.Fields.Interval.VALUES);
-
-        FIELD_VALIDATION_MESSAGES.put(MusInterval.Fields.SOUND, getString(R.string.validation_sound));
-        FIELD_VALIDATION_MESSAGES.put(MusInterval.Fields.SOUND_SMALLER, getString(R.string.validation_sound));
-        FIELD_VALIDATION_MESSAGES.put(MusInterval.Fields.SOUND_LARGER, getString(R.string.validation_sound));
-        FIELD_VALIDATION_MESSAGES.put(MusInterval.Fields.START_NOTE, getString(R.string.validation_allowed_values, allowedStartNotesStr));
-        FIELD_VALIDATION_MESSAGES.put(MusInterval.Fields.DIRECTION, getString(R.string.validation_allowed_values, allowedDirectionsStr));
-        FIELD_VALIDATION_MESSAGES.put(MusInterval.Fields.TIMING, getString(R.string.validation_allowed_values, allowedTimingsStr));
-        FIELD_VALIDATION_MESSAGES.put(MusInterval.Fields.INTERVAL, getString(R.string.validation_allowed_values, allowedIntervalsStr));
-        FIELD_VALIDATION_MESSAGES.put(MusInterval.Fields.TEMPO, getString(R.string.validation_range, MusInterval.Fields.Tempo.MIN_VALUE, MusInterval.Fields.Tempo.MAX_VALUE));
-        FIELD_VALIDATION_MESSAGES.put(MusInterval.Fields.INSTRUMENT, getString(R.string.validation_mandatory));
-    }
-
-    private static String joinStrings(String separator, String[] values) {
-        StringBuilder builder = new StringBuilder();
-        for (String value : values) {
-            if (builder.length() > 0) {
-                builder.append(separator);
-            }
-            builder.append(value);
-        }
-        return builder.toString();
     }
 
     private String[][] getOrderedPermutationKeys() {
@@ -826,86 +792,15 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     return;
                 }
                 try {
-                    final String invalidTag = TAG_APPLICATION + AnkiDroidHelper.HIERARCHICAL_TAG_SEPARATOR + TAG_CORRUPTED;
-                    final String suspiciousTag = TAG_APPLICATION + AnkiDroidHelper.HIERARCHICAL_TAG_SEPARATOR + TAG_SUSPICIOUS;
-
                     MusInterval mi = getMusInterval();
-                    MusInterval.IntegritySummary integritySummary = mi.checkIntegrity(invalidTag, suspiciousTag);
-
-                    int notesCount = integritySummary.getNotesCount();
-                    int corruptedNotesCount = integritySummary.getCorruptedNotesCount();
-                    Map<String, Integer> corruptedFieldCounts = integritySummary.getCorruptedFieldCounts();
-                    int fixedCorruptedFieldsCount = integritySummary.getFixedCorruptedFieldsCount();
-                    int suspiciousNotesCount = integritySummary.getSuspiciousNotesCount();
-                    Map<String, Integer> suspiciousFieldCounts = integritySummary.getSuspiciousFieldCounts();
-                    int fixedSuspiciousFieldsCount = integritySummary.getFixedSuspiciousFieldsCount();
-                    int autoFilledRelationsCount = integritySummary.getAutoFilledRelationsCount();
-
-                    StringBuilder report = new StringBuilder();
-                    Resources res = getResources();
-                    report.append(res.getString(R.string.integrity_check_completed, notesCount));
-                    if (corruptedNotesCount > 0) {
-                        report.append("\n\n");
-                        if (corruptedNotesCount == 1) {
-                            report.append(res.getQuantityString(R.plurals.integrity_corrupted, corruptedNotesCount, invalidTag));
-                        } else {
-                            report.append(res.getQuantityString(R.plurals.integrity_corrupted, corruptedNotesCount, corruptedNotesCount, invalidTag));
-                        }
-                        for (Map.Entry<String, Integer> corruptedFieldCount : corruptedFieldCounts.entrySet()) {
-                            String fieldKey = corruptedFieldCount.getKey();
-                            int count = corruptedFieldCount.getValue();
-                            if (count > 0) {
-                                String field = mi.modelFields.getOrDefault(fieldKey, fieldKey);
-                                report.append("\n\n");
-                                report.append(res.getString(R.string.integrity_field_corrupted, field, count, FIELD_VALIDATION_MESSAGES.get(fieldKey)));
-                            }
-                        }
-                    }
-                    if (fixedCorruptedFieldsCount > 0) {
-                        report.append("\n\n");
-                        if (fixedCorruptedFieldsCount == 1) {
-                            report.append(res.getQuantityString(R.plurals.integrity_corrupted_field_values_fixed, fixedCorruptedFieldsCount));
-                        } else {
-                            report.append(res.getQuantityString(R.plurals.integrity_corrupted_field_values_fixed, fixedCorruptedFieldsCount, fixedCorruptedFieldsCount));
-                        }
-                    }
-                    if (suspiciousNotesCount > 0) {
-                        report.append("\n\n");
-                        if (suspiciousNotesCount == 1) {
-                            report.append(res.getQuantityString(R.plurals.integrity_suspicious, suspiciousNotesCount, suspiciousTag));
-                        } else {
-                            report.append(res.getQuantityString(R.plurals.integrity_suspicious, suspiciousNotesCount, suspiciousNotesCount, suspiciousTag));
-                        }
-                        report.append("\n");
-                        for (Map.Entry<String, Integer> suspiciousFieldCount : suspiciousFieldCounts.entrySet()) {
-                            String fieldKey = suspiciousFieldCount.getKey();
-                            int count = suspiciousFieldCount.getValue();
-                            if (count > 0) {
-                                String field = mi.modelFields.getOrDefault(fieldKey, fieldKey);
-                                report.append("\n");
-                                report.append(res.getString(R.string.integrity_field_suspicious, field, count));
-                            }
-                        }
-                    }
-                    if (fixedSuspiciousFieldsCount > 0) {
-                        report.append("\n\n");
-                        if (fixedSuspiciousFieldsCount == 1) {
-                            report.append(res.getQuantityString(R.plurals.integrity_suspicious_field_values_fixed, fixedSuspiciousFieldsCount));
-                        } else {
-                            report.append(res.getQuantityString(R.plurals.integrity_suspicious_field_values_fixed, fixedSuspiciousFieldsCount, fixedSuspiciousFieldsCount));
-                        }
-                    }
-                    if (autoFilledRelationsCount > 0) {
-                        report.append("\n\n");
-                        report.append(getResources().getQuantityString(R.plurals.integrity_links, autoFilledRelationsCount, autoFilledRelationsCount));
-                    }
-                    if (corruptedNotesCount == 0 && suspiciousNotesCount == 0) {
-                        report.append("\n\n");
-                        report.append(res.getString(R.string.integrity_ok));
-                    }
+                    final String corruptedTag = TAG_APPLICATION + AnkiDroidHelper.HIERARCHICAL_TAG_SEPARATOR + TAG_CORRUPTED;
+                    final String suspiciousTag = TAG_APPLICATION + AnkiDroidHelper.HIERARCHICAL_TAG_SEPARATOR + TAG_SUSPICIOUS;
+                    NotesIntegrity integrity = new NotesIntegrity(mAnkiDroid, mi, corruptedTag, suspiciousTag);
+                    NotesIntegrity.Summary summary = integrity.check();
+                    String report = IntegrityReport.build(summary, MainActivity.this);
 
                     new AlertDialog.Builder(MainActivity.this)
-                            .setMessage(report.toString())
+                            .setMessage(report)
                             .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialogInterface, int i) {

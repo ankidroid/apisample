@@ -1,5 +1,13 @@
 package com.ichi2.apisample;
 
+import com.ichi2.apisample.helper.AnkiDroidHelper;
+import com.ichi2.apisample.model.DuplicateAddingHandler;
+import com.ichi2.apisample.model.DuplicateAddingPrompter;
+import com.ichi2.apisample.model.MusInterval;
+import com.ichi2.apisample.model.NotesIntegrity;
+import com.ichi2.apisample.model.RelatedIntervalSoundField;
+import com.ichi2.apisample.validation.EmptyValidator;
+
 import org.junit.Test;
 import org.mockito.internal.stubbing.answers.ThrowsExceptionClass;
 import org.mockito.invocation.InvocationOnMock;
@@ -2270,7 +2278,7 @@ public class MusIntervalTest {
                 .octaves(null)
                 .intervals(null)
                 .build();
-        MusInterval.IntegritySummary is = mi.checkIntegrity(corruptedTag, suspiciousTag);
+        NotesIntegrity.Summary is = new NotesIntegrity(helper, mi, corruptedTag, suspiciousTag).check();
 
         assertEquals(1, is.getNotesCount());
         assertEquals(1, is.getCorruptedNotesCount());
@@ -2331,7 +2339,7 @@ public class MusIntervalTest {
                 .octaves(null)
                 .intervals(null)
                 .build();
-        MusInterval.IntegritySummary is = mi.checkIntegrity(corruptedTag, suspiciousTag);
+        NotesIntegrity.Summary is = new NotesIntegrity(helper, mi, corruptedTag, suspiciousTag).check();
 
         assertEquals(1, is.getNotesCount());
         assertEquals(0, is.getCorruptedNotesCount());
@@ -2420,7 +2428,7 @@ public class MusIntervalTest {
                 .octaves(null)
                 .intervals(null)
                 .build();
-        MusInterval.IntegritySummary is = mi.checkIntegrity(corruptedTag, suspiciousTag);
+        NotesIntegrity.Summary is = new NotesIntegrity(helper, mi, corruptedTag, suspiciousTag).check();
 
         assertEquals(3, is.getNotesCount());
         assertEquals(3, is.getSuspiciousNotesCount());
@@ -2554,7 +2562,7 @@ public class MusIntervalTest {
                 .octaves(null)
                 .intervals(null)
                 .build();
-        MusInterval.IntegritySummary is = mi.checkIntegrity(corruptedTag, suspiciousTag);
+        NotesIntegrity.Summary is = new NotesIntegrity(helper, mi, corruptedTag, suspiciousTag).check();
 
         assertEquals(3, is.getNotesCount());
         assertEquals(0, is.getSuspiciousNotesCount());
@@ -2678,7 +2686,7 @@ public class MusIntervalTest {
                 .octaves(null)
                 .intervals(null)
                 .build();
-        MusInterval.IntegritySummary is = mi.checkIntegrity(corruptedTag, suspiciousTag);
+        NotesIntegrity.Summary is = new NotesIntegrity(helper, mi, corruptedTag, suspiciousTag).check();
 
         assertEquals(3, is.getNotesCount());
         assertEquals(4, is.getAutoFilledRelationsCount());
@@ -2802,7 +2810,7 @@ public class MusIntervalTest {
                 .octaves(null)
                 .intervals(null)
                 .build();
-        MusInterval.IntegritySummary is = mi.checkIntegrity(corruptedTag, suspiciousTag);
+        NotesIntegrity.Summary is = new NotesIntegrity(helper, mi, corruptedTag, suspiciousTag).check();
 
         assertEquals(3, is.getNotesCount());
         assertEquals(0, is.getAutoFilledRelationsCount());

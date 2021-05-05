@@ -1,4 +1,10 @@
-package com.ichi2.apisample;
+package com.ichi2.apisample.model;
+
+import com.ichi2.apisample.helper.AnkiDroidHelper;
+import com.ichi2.apisample.validation.EmptyValidator;
+import com.ichi2.apisample.validation.IntegerRangeValidator;
+import com.ichi2.apisample.validation.PatternValidator;
+import com.ichi2.apisample.validation.Validator;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -25,6 +31,29 @@ public class MusInterval {
         public static final String TEMPO = "tempo";
         public static final String INSTRUMENT = "instrument";
         public static final String VERSION = "mi2a_version";
+
+        public static class StartNote {
+            private static final String[] NOTES = new String[]{
+                    "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"
+            };
+
+            private static final String[] OCTAVES = new String[]{
+                    "1", "2", "3", "4", "5", "6"
+            };
+
+            public static final String[] VALUES = new String[NOTES.length * OCTAVES.length];
+            static {
+                for (int i = 0; i < NOTES.length; i++) {
+                    for (int j = 0; j < OCTAVES.length; j++) {
+                        VALUES[i * OCTAVES.length + j] = NOTES[i] + OCTAVES[j];
+                    }
+                }
+            }
+
+            public static String getValidationPattern() {
+                return "[A-Ga-g]#?[1-6]";
+            }
+        }
 
         public static class Direction {
             public static final String ASC = "ascending";
@@ -99,7 +128,7 @@ public class MusInterval {
         private static final Validator VALIDATOR_EMPTY = new EmptyValidator();
         private static final Validator VALIDATOR_SOUND = new PatternValidator("^$|^\\[sound:.*\\]$");
 
-        private static final Map<String, Validator[]> VALIDATORS = new HashMap<String, Validator[]>() {{
+        static final Map<String, Validator[]> VALIDATORS = new HashMap<String, Validator[]>() {{
             put(SOUND, new Validator[]{
                     VALIDATOR_EMPTY,
                     VALIDATOR_SOUND
@@ -112,7 +141,7 @@ public class MusInterval {
             });
             put(START_NOTE, new Validator[]{
                     VALIDATOR_EMPTY,
-                    new PatternValidator("[A-Ga-g]#?[1-6]")
+                    new PatternValidator(StartNote.getValidationPattern())
             });
             put(DIRECTION, new Validator[]{
                     VALIDATOR_EMPTY,
@@ -261,7 +290,7 @@ public class MusInterval {
         }
     }
 
-    abstract static class Exception extends Throwable {}
+    public abstract static class Exception extends Throwable {}
     public static class CreateDeckException extends Exception {}
     public static class AddToAnkiException extends Exception {}
     public static class NoteNotExistsException extends Exception {}
@@ -328,7 +357,7 @@ public class MusInterval {
 
     private final AnkiDroidHelper helper;
 
-    private final RelatedIntervalSoundField[] relatedSoundFields;
+    final RelatedIntervalSoundField[] relatedSoundFields;
 
     public final String modelName;
     public final Map<String, String> modelFields;
@@ -458,7 +487,7 @@ public class MusInterval {
         }
     }
 
-    private LinkedList<Map<String, String>> getExistingNotes() throws AnkiDroidHelper.InvalidAnkiDatabaseException {
+    LinkedList<Map<String, String>> getExistingNotes() throws AnkiDroidHelper.InvalidAnkiDatabaseException {
         return getExistingNotes(getCollectedDataSet());
     }
 
@@ -712,167 +741,6 @@ public class MusInterval {
         return builder.build();
     }
 
-    // @todo: refactor
-    public IntegritySummary checkIntegrity(String corruptedTag, String suspiciousTag) throws AnkiDroidHelper.InvalidAnkiDatabaseException {
-        final String soundField = modelFields.get(Fields.SOUND);
-
-        LinkedList<Map<String, String>> allNotesData = helper.findNotes(modelId, new HashMap<String, String>());
-        Map<String, Map<String, String>> soundDict = new HashMap<>();
-        for (Map<String, String> noteData : allNotesData) {
-            soundDict.put(noteData.getOrDefault(soundField, ""), noteData);
-        }
-
-        LinkedList<Map<String, String>> searchResult = getExistingNotes();
-
-        ArrayList<Map<String, String>> correctNotesData = new ArrayList<>();
-        int corruptedNotesCount = 0;
-        Map<String, Integer> corruptedFieldCounts = new HashMap<>();
-        int fixedCorruptedFieldsCount = 0;
-
-        for (final Map<String, String> noteData : searchResult) {
-            long noteId = Long.parseLong(noteData.get(AnkiDroidHelper.KEY_ID));
-            String noteTags = noteData.get(AnkiDroidHelper.KEY_TAGS).toLowerCase();
-
-            boolean valid = true;
-            for (Map.Entry<String, Validator[]> fieldValidators : Fields.VALIDATORS.entrySet()) {
-                String fieldKey = fieldValidators.getKey();
-                String value = noteData.getOrDefault(modelFields.getOrDefault(fieldKey, fieldKey), "");
-                for (Validator validator : fieldValidators.getValue()) {
-                    final String errorTag = (
-                            corruptedTag
-                                    + AnkiDroidHelper.HIERARCHICAL_TAG_SEPARATOR
-                                    + fieldKey
-                                    + AnkiDroidHelper.HIERARCHICAL_TAG_SEPARATOR
-                                    + validator.getErrorTag()
-                    ).toLowerCase();
-                    final String errorTagCheckStr = String.format(" %s ", errorTag);
-                    boolean hasErrorTag = noteTags.contains(errorTagCheckStr);
-                    if (!validator.isValid(value)) {
-                        int currentCount = corruptedFieldCounts.getOrDefault(fieldKey, 0);
-                        corruptedFieldCounts.put(fieldKey, currentCount + 1);
-                        if (!hasErrorTag) {
-                            final String errorTagAddStr = String.format("%s", errorTag);
-                            helper.addTagToNote(noteId, noteTags + errorTagAddStr);
-                        }
-                        valid = false;
-                        break;
-                    } else if (hasErrorTag) {
-                        helper.updateNoteTags(noteId, noteTags.replace(errorTagCheckStr, " "));
-                        fixedCorruptedFieldsCount++;
-                    }
-                }
-            }
-
-            if (valid) {
-                correctNotesData.add(noteData);
-            } else {
-                corruptedNotesCount++;
-            }
-        }
-
-        Map<String, Set<Map<String, String>>> suspiciousPointed = new HashMap<>();
-        Map<String, Set<Map<String, String>>> suspiciousPointing = new HashMap<>();
-        for (Map<String, String> noteData : correctNotesData) {
-            for (RelatedIntervalSoundField relatedSoundField : relatedSoundFields) {
-                if (relatedSoundField.isSuspicious(noteData, soundDict, suspiciousPointed)) {
-                    final String fieldKey = relatedSoundField.getFieldKey();
-                    Set<Map<String, String>> fieldPointing = suspiciousPointing.getOrDefault(fieldKey, new HashSet<Map<String, String>>());
-                    fieldPointing.add(noteData);
-                    suspiciousPointing.put(fieldKey, fieldPointing);
-                }
-            }
-        }
-
-        int suspiciousNotesCount = 0;
-        Map<String, Integer> suspiciousFieldCounts = new HashMap<>();
-        int fixedSuspiciousFieldsCount = 0;
-        int autoFilledRelationsCount = 0;
-
-        for (Map<String, String> noteData : correctNotesData) {
-            long noteId = Long.parseLong((noteData.get(AnkiDroidHelper.KEY_ID)));
-            String noteTags = noteData.get(AnkiDroidHelper.KEY_TAGS).toLowerCase();
-            boolean suspicious = false;
-            for (RelatedIntervalSoundField relatedSoundField : relatedSoundFields) {
-                String fieldKey = relatedSoundField.getFieldKey();
-                final String suspiciousBaseTag =
-                        suspiciousTag
-                                + AnkiDroidHelper.HIERARCHICAL_TAG_SEPARATOR
-                                + fieldKey;
-
-                String suspiciousPointingTag = (
-                        suspiciousBaseTag + AnkiDroidHelper.HIERARCHICAL_TAG_SEPARATOR
-                                + RelatedIntervalSoundField.TAG_POINTING
-                ).toLowerCase();
-                final String suspiciousPointingTagCheckStr = String.format(" %s ", suspiciousPointingTag);
-                boolean hasSuspiciousPointingTag = noteTags.contains(suspiciousPointingTagCheckStr);
-                Set<Map<String, String>> suspiciousPointingData = suspiciousPointing.getOrDefault(fieldKey, new HashSet<Map<String, String>>());
-                if (!suspiciousPointingData.contains(noteData)) {
-                    if (hasSuspiciousPointingTag) {
-                        helper.updateNoteTags(noteId, noteTags.replace(suspiciousPointingTagCheckStr, " "));
-                        fixedSuspiciousFieldsCount++;
-                    }
-                } else {
-                    if (!hasSuspiciousPointingTag) {
-                        helper.addTagToNote(noteId, String.format("%s ", suspiciousPointingTag));
-                        int cur = suspiciousFieldCounts.getOrDefault(fieldKey, 0);
-                        suspiciousFieldCounts.put(fieldKey, cur + 1);
-                    }
-                    suspicious = true;
-                }
-
-                String suspiciousPointedTag = (
-                        suspiciousBaseTag
-                                + AnkiDroidHelper.HIERARCHICAL_TAG_SEPARATOR
-                                + RelatedIntervalSoundField.TAG_POINTED
-                ).toLowerCase();
-                final String suspiciousPointedTagCheckStr = String.format(" %s ", suspiciousPointedTag);
-                boolean hasSuspiciousPointedTag = noteTags.contains(suspiciousPointedTagCheckStr);
-                Set<Map<String, String>> suspiciousPointedData = suspiciousPointed.getOrDefault(fieldKey, new HashSet<Map<String, String>>());
-                if (!suspiciousPointedData.contains(noteData)) {
-                    if (hasSuspiciousPointedTag) {
-                        helper.updateNoteTags(noteId, noteTags.replace(suspiciousPointedTagCheckStr, " "));
-                        fixedSuspiciousFieldsCount++;
-                    }
-                } else {
-                    if (!hasSuspiciousPointedTag) {
-                        helper.addTagToNote(noteId, String.format("%s ", suspiciousPointed));
-                        int cur = suspiciousFieldCounts.getOrDefault(fieldKey, 0);
-                        suspiciousFieldCounts.put(fieldKey, cur + 1);
-                    }
-                    suspicious = true;
-                }
-            }
-
-            if (!suspicious) {
-                Map<String, String> noteFieldsData = new HashMap<String, String>(noteData) {{
-                    remove(AnkiDroidHelper.KEY_ID);
-                    remove(AnkiDroidHelper.KEY_TAGS);
-                }};
-                int autoFilledFields = 0;
-                for (RelatedIntervalSoundField relatedIntervalSoundField : relatedSoundFields) {
-                    autoFilledFields += relatedIntervalSoundField.autoFill(noteFieldsData, false);
-                }
-                if (autoFilledFields > 0) {
-                    helper.updateNote(modelId, noteId, noteFieldsData);
-                    autoFilledRelationsCount += autoFilledFields;
-                }
-            } else {
-                suspiciousNotesCount++;
-            }
-        }
-
-        return new IntegritySummary(
-                searchResult.size(),
-                corruptedNotesCount,
-                corruptedFieldCounts,
-                fixedCorruptedFieldsCount,
-                suspiciousNotesCount,
-                suspiciousFieldCounts,
-                fixedSuspiciousFieldsCount,
-                autoFilledRelationsCount
-        );
-    }
-
     public int getPermutationsNumber() {
         return (notes != null ? notes.length : 0)
                 * (octaves != null ? octaves.length : 0)
@@ -915,59 +783,5 @@ public class MusInterval {
             }
         }
         return miDataSet;
-    }
-
-    public static class IntegritySummary {
-        private final int notesCount;
-        private final int corruptedNotesCount;
-        private final Map<String, Integer> corruptedFieldCounts;
-        private final int fixedCorruptedFieldsCount;
-        private final int suspiciousNotesCount;
-        private final Map<String, Integer> suspiciousFieldCounts;
-        private final int fixedSuspiciousFieldsCount;
-        private final int autoFilledRelationsCount;
-
-        public IntegritySummary(int notesCount, int corruptedNotesCount, Map<String, Integer> corruptedFieldCounts, int fixedCorruptedFieldsCount, int suspiciousNotesCount, Map<String, Integer> suspiciousFieldCounts, int fixedSuspiciousFieldsCount, int autoFilledRelationsCount) {
-            this.notesCount = notesCount;
-            this.corruptedNotesCount = corruptedNotesCount;
-            this.corruptedFieldCounts = corruptedFieldCounts;
-            this.fixedCorruptedFieldsCount = fixedCorruptedFieldsCount;
-            this.suspiciousNotesCount = suspiciousNotesCount;
-            this.suspiciousFieldCounts = suspiciousFieldCounts;
-            this.fixedSuspiciousFieldsCount = fixedSuspiciousFieldsCount;
-            this.autoFilledRelationsCount = autoFilledRelationsCount;
-        }
-
-        public int getNotesCount() {
-            return notesCount;
-        }
-
-        public int getCorruptedNotesCount() {
-            return corruptedNotesCount;
-        }
-
-        public Map<String, Integer> getCorruptedFieldCounts() {
-            return corruptedFieldCounts;
-        }
-
-        public int getFixedCorruptedFieldsCount() {
-            return fixedCorruptedFieldsCount;
-        }
-
-        public int getSuspiciousNotesCount() {
-            return suspiciousNotesCount;
-        }
-
-        public Map<String, Integer> getSuspiciousFieldCounts() {
-            return suspiciousFieldCounts;
-        }
-
-        public int getFixedSuspiciousFieldsCount() {
-            return fixedSuspiciousFieldsCount;
-        }
-
-        public int getAutoFilledRelationsCount() {
-            return autoFilledRelationsCount;
-        }
     }
 }

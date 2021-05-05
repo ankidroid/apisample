@@ -1,4 +1,4 @@
-package com.ichi2.apisample;
+package com.ichi2.apisample.helper;
 
 import android.app.Activity;
 import android.content.ContentResolver;
@@ -337,6 +337,6 @@ public class AnkiDroidHelper {
         return mResolver.update(cardUri, values, null, null);
     }
 
-    abstract static class InvalidAnkiDatabaseException extends Throwable {}
-    static class InvalidAnkiDatabase_fieldAndFieldNameCountMismatchException extends InvalidAnkiDatabaseException {}
+    public abstract static class InvalidAnkiDatabaseException extends Throwable {}
+    public static class InvalidAnkiDatabase_fieldAndFieldNameCountMismatchException extends InvalidAnkiDatabaseException {}
 }
