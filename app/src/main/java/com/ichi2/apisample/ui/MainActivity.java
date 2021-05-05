@@ -151,6 +151,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
     private final static Map<Integer, String> CHECK_INTERVAL_ID_VALUES = new HashMap<>();
     static {
+        //noinspection ConstantConditions
         if (CHECK_INTERVAL_IDS.length != MusInterval.Fields.Interval.VALUES.length) {
             throw new AssertionError();
         }
