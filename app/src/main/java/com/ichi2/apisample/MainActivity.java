@@ -335,10 +335,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private void validateModel() {
         try {
             getMusInterval();
-        } catch (MusInterval.Exception e) {
-            processMusIntervalException(e);
         } catch (Throwable e) {
-            processUnknownException(e);
+            handleError(e);
         }
     }
 
@@ -649,12 +647,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     final int count = getMusInterval().markExistingNotes();
                     showQuantityMsg(R.plurals.mi_marked_result, count, count);
                     refreshExisting();
-                } catch (MusInterval.Exception e) {
-                    processMusIntervalException(e);
-                } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
-                    processInvalidAnkiDatabase(e);
                 } catch (Throwable e) {
-                    processUnknownException(e);
+                    handleError(e);
                 }
             }
         });
@@ -681,12 +675,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     } else if (nAdded > 1) {
                         showQuantityMsg(R.plurals.mi_added, nAdded, nAdded);
                     }
-                } catch (MusInterval.Exception e) {
-                    processMusIntervalException(e);
-                } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
-                    processInvalidAnkiDatabase(e);
                 } catch (Throwable e) {
-                    processUnknownException(e);
+                    handleError(e);
                 }
             }
         });
@@ -708,10 +698,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                             }
                             handleInsertion(newMi);
                             showQuantityMsg(R.plurals.mi_added, 1);
-                        } catch (MusInterval.Exception e) {
-                            processMusIntervalException(e);
-                        } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
-                            processInvalidAnkiDatabase(e);
+                        } catch (Throwable e) {
+                            handleError(e);
                         }
                     }
                 });
@@ -727,10 +715,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                             final int count = handler.mark();
                             showQuantityMsg(R.plurals.mi_marked_result, count, count);
                             refreshExisting();
-                        } catch (MusInterval.Exception e) {
-                            processMusIntervalException(e);
-                        } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
-                            processInvalidAnkiDatabase(e);
+                        } catch (Throwable e) {
+                            handleError(e);
                         }
                     }
                 });
@@ -756,10 +742,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                         MusInterval newMi = handler.replace();
                         handleInsertion(newMi);
                         showMsg(R.string.item_replaced);
-                    } catch (MusInterval.Exception e) {
-                        processMusIntervalException(e);
-                    } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
-                        processInvalidAnkiDatabase(e);
+                    } catch (Throwable e) {
+                        handleError(e);
                     }
                 }
             });
@@ -777,10 +761,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             if (tagDuplicates) {
                 try {
                     handler.tag(duplicateTag);
-                } catch (MusInterval.Exception e) {
-                    processMusIntervalException(e);
-                } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
-                    processInvalidAnkiDatabase(e);
+                } catch (Throwable e) {
+                    handleError(e);
                 }
             }
         }
@@ -921,10 +903,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                                 }
                             })
                             .show();
-                } catch (MusInterval.Exception e) {
-                    processMusIntervalException(e);
-                } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
-                    processInvalidAnkiDatabase(e);
+                } catch (Throwable e) {
+                    handleError(e);
                 }
             }
         });
@@ -1077,6 +1057,18 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             }
         }
         return valuesList.toArray(new String[0]);
+    }
+
+    private void handleError(Throwable err) {
+        try {
+            throw err;
+        } catch (MusInterval.Exception e) {
+            processMusIntervalException(e);
+        } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
+            processInvalidAnkiDatabase(e);
+        } catch (Throwable e) {
+            processUnknownException(e);
+        }
     }
 
     private void processMusIntervalException(MusInterval.Exception miException) {
