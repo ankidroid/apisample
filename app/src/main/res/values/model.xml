@@ -13,13 +13,13 @@
         }\n
         \n
         .the_answer {\n
-                font-size:40px;\n
-                font-face:bold;\n
-                color:green;\n
+                font-size: 40px;\n
+                font-face: bold;\n
+                color: green;\n
         }
     </string>
     <string name="qfmt1">
-        {{sound}}\nWhich interval is it?;
+        {{sound}}\nWhich interval is it?
     </string>
     <string-array name="qfmt">
         <item>@string/qfmt1</item>
@@ -45,7 +45,7 @@
             function intervalLongerName(intervalShortName) {\n
               var longerName = {\n
                 \'min2\': \'minor 2nd\',\n
-                \'Maj2\\: \'Major 2nd\'\n
+                \'Maj2\': \'Major 2nd\'\n
               };\n
               return longerName[intervalShortName];\n
             }\n
