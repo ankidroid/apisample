@@ -155,8 +155,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Toolbar main_toolbar = findViewById(R.id.main_toolbar);
-        setSupportActionBar(main_toolbar);
+        Toolbar mainToolbar = findViewById(R.id.main_toolbar);
+        setSupportActionBar(mainToolbar);
 
         switchBatch = findViewById(R.id.switchBatch);
         textFilename = findViewById(R.id.textFilename);
@@ -358,6 +358,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             permutationsNumber = getMusInterval().getPermutationsNumber();
 
         } catch (Throwable e) {
+            // probably best to ignore exceptions here as this function is called silently
         } finally {
             Resources res = getResources();
             String selectFileText;
@@ -735,6 +736,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 });
             }
         } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
+            // simply don't give the option to mark if unable to count existing
         }
         Resources res = getResources();
         String msg;
@@ -1086,8 +1088,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             final int expected = e.getExpectedAmount();
             final int provided = e.getProvidedAmount();
             final boolean expectedSingle = expected == 1;
-            Resources res = getResources();
-            String msg;
             if (provided == 0) {
                 if (expectedSingle) {
                     showQuantityMsg(R.plurals.sound_not_provided, expected);
