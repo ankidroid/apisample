@@ -34,6 +34,8 @@ public class AnkiDroidHelper {
     public static final String KEY_ID = "id";
     public static final String KEY_TAGS = "tags";
 
+    public static final String HIERARCHICAL_TAG_SEPARATOR = "::";
+
     private static final String DECK_REF_DB = "com.ichi2.anki.api.decks";
     private static final String MODEL_REF_DB = "com.ichi2.anki.api.models";
     private static final String FLDS_SEPARATOR = "\u001f";

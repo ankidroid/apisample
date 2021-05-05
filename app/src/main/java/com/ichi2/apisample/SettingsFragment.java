@@ -5,7 +5,6 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import androidx.preference.DropDownPreference;
-import androidx.preference.EditTextPreference;
 import androidx.preference.ListPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceCategory;
@@ -15,20 +14,17 @@ import androidx.preference.PreferenceScreen;
 import androidx.preference.SwitchPreference;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class SettingsFragment extends PreferenceFragmentCompat {
     public static final String KEY_DECK_PREFERENCE = "preference_deck";
     public static final String KEY_MODEL_PREFERENCE = "preference_model";
     public static final String KEY_VERSION_FIELD_SWITCH = "preference_version_field_switch";
     public static final String KEY_TAG_DUPLICATES_SWITCH = "preference_tag_duplicates_switch";
-    public static final String KEY_DUPLICATE_TAG_PREFERENCE = "preference_duplicate_tag";
-    public static final String KEY_CORRUPTED_TAG_PREFERENCE = "preference_invalid_tag";
-    public static final String KEY_SUSPICIOUS_TAG_PREFERENCE = "preference_suspicious_tag";
     private static final String KEY_FIELDS_PREFERENCE_CATEGORY = "preference_fields";
 
     private static final String TEMPLATE_KEY_FIELD_PREFERENCE = "preference_%s_field";
@@ -36,11 +32,8 @@ public class SettingsFragment extends PreferenceFragmentCompat {
 
     public static final boolean DEFAULT_VERSION_FIELD_SWITCH = true;
     public static final boolean DEFAULT_TAG_DUPLICATES_SWITCH = true;
-    public static final String DEFAULT_DUPLICATE_TAG = "mi2a_duplicate";
-    public static final String DEFAULT_CORRUPTED_TAG = "mi2a_corrupted";
-    public static final String DEFAULT_SUSPICIOUS_TAG = "mi2a_suspicious";
 
-    private static Map<String, Integer> fieldPreferenceLabelStringIds = new HashMap<String, Integer>() {{
+    private static final Map<String, Integer> fieldPreferenceLabelStringIds = new HashMap<String, Integer>() {{
         put(MusInterval.Fields.SOUND, R.string.sound_field_list_preference_title);
         put(MusInterval.Fields.SOUND_SMALLER, R.string.sound_smaller_field_list_preference_title);
         put(MusInterval.Fields.SOUND_LARGER, R.string.sound_larger_field_list_preference_title);
@@ -52,13 +45,9 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         put(MusInterval.Fields.INSTRUMENT, R.string.instrument_field_list_preference_title);
         put(MusInterval.Fields.VERSION, R.string.version_field_list_preference_title);
     }};
-
     static {
-        Set<String> keys = fieldPreferenceLabelStringIds.keySet();
-        for (String field : MusInterval.Fields.getSignature(true)) {
-            if (!keys.contains(field)) {
-                throw new AssertionError();
-            }
+        if (!fieldPreferenceLabelStringIds.keySet().equals(new HashSet<>(Arrays.asList(MusInterval.Fields.getSignature(true))))) {
+            throw new AssertionError();
         }
     }
 
@@ -193,44 +182,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         tagDuplicatesSwitchPreference.setTitle(R.string.tag_duplicates_preference_title);
         tagDuplicatesSwitchPreference.setSummary(R.string.tag_duplicates_preference_summary);
         tagDuplicatesSwitchPreference.setDefaultValue(DEFAULT_TAG_DUPLICATES_SWITCH);
-        tagDuplicatesSwitchPreference.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-            @Override
-            public boolean onPreferenceChange(Preference preference, Object newValue) {
-                EditTextPreference duplicateTagPreference = preferenceScreen.findPreference(KEY_DUPLICATE_TAG_PREFERENCE);
-                if (duplicateTagPreference != null) {
-                    duplicateTagPreference.setVisible((boolean) newValue);
-                }
-                return true;
-            }
-        });
         preferenceScreen.addPreference(tagDuplicatesSwitchPreference);
-
-        EditTextPreference duplicateTagPreference = new EditTextPreference(context);
-        duplicateTagPreference.setKey(KEY_DUPLICATE_TAG_PREFERENCE);
-        duplicateTagPreference.setDefaultValue(DEFAULT_DUPLICATE_TAG);
-        duplicateTagPreference.setTitle(R.string.duplicate_tag_edit_text_preference_title);
-        duplicateTagPreference.setSummaryProvider(EditTextPreference.SimpleSummaryProvider.getInstance());
-        duplicateTagPreference.setDialogTitle(R.string.duplicate_tag_edit_text_preference_dialog_title);
-        duplicateTagPreference.setOnPreferenceChangeListener(new TagPreferenceChangeListener(context, helper, KEY_DUPLICATE_TAG_PREFERENCE, DEFAULT_DUPLICATE_TAG));
-        preferenceScreen.addPreference(duplicateTagPreference);
-
-        EditTextPreference corruptedTagPreference = new EditTextPreference(context);
-        corruptedTagPreference.setKey(KEY_CORRUPTED_TAG_PREFERENCE);
-        corruptedTagPreference.setDefaultValue(DEFAULT_CORRUPTED_TAG);
-        corruptedTagPreference.setTitle(R.string.corrupted_tag_edit_text_preference_title);
-        corruptedTagPreference.setSummaryProvider(EditTextPreference.SimpleSummaryProvider.getInstance());
-        corruptedTagPreference.setDialogTitle(R.string.corrupted_tag_edit_text_preference_dialog_title);
-        corruptedTagPreference.setOnPreferenceChangeListener(new TagPreferenceChangeListener(context, helper, KEY_CORRUPTED_TAG_PREFERENCE, DEFAULT_CORRUPTED_TAG));
-        preferenceScreen.addPreference(corruptedTagPreference);
-
-        EditTextPreference suspiciousTagPreference = new EditTextPreference(context);
-        suspiciousTagPreference.setKey(KEY_SUSPICIOUS_TAG_PREFERENCE);
-        suspiciousTagPreference.setDefaultValue(DEFAULT_SUSPICIOUS_TAG);
-        suspiciousTagPreference.setTitle(R.string.suspicious_tag_edit_text_preference_title);
-        suspiciousTagPreference.setSummaryProvider(EditTextPreference.SimpleSummaryProvider.getInstance());
-        suspiciousTagPreference.setDialogTitle(R.string.suspicious_tag_edit_text_preference_dialog_title);
-        suspiciousTagPreference.setOnPreferenceChangeListener(new TagPreferenceChangeListener(context, helper, KEY_SUSPICIOUS_TAG_PREFERENCE, DEFAULT_SUSPICIOUS_TAG));
-        preferenceScreen.addPreference(suspiciousTagPreference);
 
         setPreferenceScreen(preferenceScreen);
     }
@@ -272,42 +224,6 @@ public class SettingsFragment extends PreferenceFragmentCompat {
                 fieldListPreference.setEntryValues(entries);
                 fieldListPreference.setValue(value);
             }
-        }
-    }
-    private static class TagPreferenceChangeListener implements Preference.OnPreferenceChangeListener {
-        private final Context context;
-        private final AnkiDroidHelper helper;
-        private final String key;
-        private final String defaultValue;
-
-        public TagPreferenceChangeListener(Context context, AnkiDroidHelper helper, String key, String defaultValue) {
-            super();
-            this.context = context;
-            this.helper = helper;
-            this.key = key;
-            this.defaultValue = defaultValue;
-        }
-
-        @Override
-        public boolean onPreferenceChange(Preference preference, Object newValue) {
-            try {
-                SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-                final long modelId = helper.findModelIdByName(MusInterval.Builder.DEFAULT_MODEL_NAME);
-                LinkedList<Map<String, String>> notesData = helper.findNotes(modelId, new HashMap<String, String>());
-                final String currValue = sharedPreferences.getString(key, defaultValue);
-                String currValueCheckStr = String.format(" %s ", currValue).toLowerCase();
-                String newValueAddStr = String.format("%s ", newValue).toLowerCase();
-                for (Map<String, String> noteData : notesData) {
-                    String tags = noteData.get(AnkiDroidHelper.KEY_TAGS).toLowerCase();
-                    if (tags.contains(currValueCheckStr)) {
-                        long id = Long.parseLong(noteData.get(AnkiDroidHelper.KEY_ID));
-                        helper.updateNoteTags(id, tags.replace(currValueCheckStr, String.format(" %s ", newValueAddStr)));
-                    }
-                }
-            } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
-                return false;
-            }
-            return true;
         }
     }
 }

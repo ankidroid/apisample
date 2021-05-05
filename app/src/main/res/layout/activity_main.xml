@@ -411,41 +411,12 @@
                 android:layout_height="wrap_content"
                 android:text="@string/tempo" />
 
-            <LinearLayout
+            <EditText
+                android:id="@+id/inputTempo"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <Button
-                    android:id="@+id/actionTempoMinus"
-                    android:layout_width="25dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="-" />
-
-                <SeekBar
-                    android:id="@+id/seekTempo"
-                    android:layout_width="200dp"
-                    android:layout_height="match_parent"
-                    android:max="200"
-                    android:progress="1"
-                    android:textAlignment="textEnd" />
-
-                <Button
-                    android:id="@+id/actionTempoPlus"
-                    android:layout_width="25dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="+" />
-
-                <TextView
-                    android:id="@+id/labelTempoValue"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="0"
-                    android:textAlignment="center" />
-            </LinearLayout>
+                android:ems="10"
+                android:inputType="number" />
 
             <TextView
                 android:id="@+id/labelInstrument"

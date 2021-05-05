@@ -1,7 +1,6 @@
 package com.ichi2.apisample;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.ClipData;
 import android.content.Context;
@@ -31,9 +30,9 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
-import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -51,6 +50,11 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private static final int PERMISSIONS_REQUEST_EXTERNAL_STORAGE = 1;
 
     private static final int ACTION_SELECT_FILE = 10;
+
+    private static final String TAG_APPLICATION = "mi2a";
+    private static final String TAG_DUPLICATE = "duplicate";
+    private static final String TAG_CORRUPTED = "corrupted";
+    private static final String TAG_SUSPICIOUS = "suspicious";
 
     private static final String STATE_REF_DB = "com.ichi2.apisample.uistate";
     private static final String KEY_BATCH_ADDING_NOTICE_SEEN = "batchAddingNoticeSeen";
@@ -78,6 +82,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
     }
 
+    private final Map<String, String> fieldValidationMessages = new HashMap<>();
+
     private SwitchCompat switchBatch;
     private TextView textFilename;
     private Button actionSelectFile;
@@ -89,8 +95,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private RadioGroup radioGroupTiming;
     private CheckBox checkIntervalAny;
     private CheckBox[] checkIntervals;
-    private SeekBar seekTempo;
-    private TextView labelTempoValue;
+    private EditText inputTempo;
     private AutoCompleteTextView inputInstrument;
     private TextView labelExisting;
     private Button actionMarkExisting;
@@ -173,11 +178,12 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         for (int i = 0; i < checkIntervalIds.length; i++) {
             checkIntervals[i] = findViewById(checkIntervalIds[i]);
         }
-        seekTempo = findViewById(R.id.seekTempo);
-        labelTempoValue = findViewById(R.id.labelTempoValue);
+        inputTempo = findViewById(R.id.inputTempo);
         inputInstrument = findViewById(R.id.inputInstrument);
         labelExisting = findViewById(R.id.labelExisting);
         actionMarkExisting = findViewById(R.id.actionMarkExisting);
+
+        initFieldValidationMessages();
 
         restoreUiState();
 
@@ -230,7 +236,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         for (CheckBox checkInterval : checkIntervals) {
             checkInterval.setOnCheckedChangeListener(onIntervalCheckChangeListener);
         }
-        seekTempo.setOnSeekBarChangeListener(new OnFieldSeekChangeListener());
+        inputTempo.addTextChangedListener(new FieldInputTextWatcher());
         inputInstrument.addTextChangedListener(new FieldInputTextWatcher());
         switchBatch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -241,7 +247,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             }
         });
 
-        configureTempoButtons();
+
+
         configureClearAllButton();
         configureSelectFileButton();
         configureMarkExistingButton();
@@ -250,6 +257,44 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         configureCheckIntegrityButton();
 
         mAnkiDroid = new AnkiDroidHelper(this);
+    }
+
+    private void initFieldValidationMessages() {
+        String[] allowedStartNotes = new String[checkNotes.length * checkOctaves.length];
+        int i = 0;
+        for (CheckBox checkNote : checkNotes) {
+            String note = checkNote.getText().toString();
+            for (CheckBox checkOctave : checkOctaves) {
+                String octave = checkOctave.getText().toString();
+                allowedStartNotes[i] = note + octave;
+                i++;
+            }
+        }
+        String allowedStartNotesStr = joinStrings(", ", allowedStartNotes);
+        String allowedDirectionsStr = String.format("%s, %s", MusInterval.Fields.Direction.ASC, MusInterval.Fields.Direction.DESC);
+        String allowedTimingsStr = String.format("%s, %s", MusInterval.Fields.Timing.MELODIC, MusInterval.Fields.Timing.HARMONIC);
+        String allowedIntervalsStr = joinStrings(", ", MusInterval.Fields.Interval.VALUES);
+
+        fieldValidationMessages.put(MusInterval.Fields.SOUND, getString(R.string.validation_sound));
+        fieldValidationMessages.put(MusInterval.Fields.SOUND_SMALLER, getString(R.string.validation_sound));
+        fieldValidationMessages.put(MusInterval.Fields.SOUND_LARGER, getString(R.string.validation_sound));
+        fieldValidationMessages.put(MusInterval.Fields.START_NOTE, getString(R.string.validation_allowed_values, allowedStartNotesStr));
+        fieldValidationMessages.put(MusInterval.Fields.DIRECTION, getString(R.string.validation_allowed_values, allowedDirectionsStr));
+        fieldValidationMessages.put(MusInterval.Fields.TIMING, getString(R.string.validation_allowed_values, allowedTimingsStr));
+        fieldValidationMessages.put(MusInterval.Fields.INTERVAL, getString(R.string.validation_allowed_values, allowedIntervalsStr));
+        fieldValidationMessages.put(MusInterval.Fields.TEMPO, getString(R.string.validation_range, MusInterval.Fields.Tempo.MIN_VALUE, MusInterval.Fields.Tempo.MAX_VALUE));
+        fieldValidationMessages.put(MusInterval.Fields.INSTRUMENT, getString(R.string.validation_mandatory));
+    }
+
+    private static String joinStrings(String separator, String[] values) {
+        StringBuilder builder = new StringBuilder();
+        for (String value : values) {
+            if (builder.length() > 0) {
+                builder.append(separator);
+            }
+            builder.append(value);
+        }
+        return builder.toString();
     }
 
     private String[][] getOrderedPermutationKeys() {
@@ -438,20 +483,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
     }
 
-    private class OnFieldSeekChangeListener implements SeekBar.OnSeekBarChangeListener {
-        @SuppressLint("SetTextI18n")
-        @Override
-        public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-            TextView label = findViewById(R.id.labelTempoValue);
-            label.setText(Integer.toString(seekBar.getProgress()));
-            clearAddedFilenames();
-            refreshExisting();
-        }
-
-        @Override public void onStartTrackingTouch(SeekBar seekBar) { }
-        @Override public void onStopTrackingTouch(SeekBar seekBar) { }
-    }
-
     private class FieldInputTextWatcher implements TextWatcher {
         private String prev;
 
@@ -495,30 +526,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         textFilename.setText(text);
     }
 
-    private void configureTempoButtons() {
-        final Button actionTempoMinus = findViewById(R.id.actionTempoMinus);
-        actionTempoMinus.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                final int progress = seekTempo.getProgress();
-                if (progress > MusInterval.Fields.Tempo.MIN_VALUE) {
-                    seekTempo.setProgress(progress - 1);
-                }
-            }
-        });
-
-        final Button actionTempoPlus = findViewById(R.id.actionTempoPlus);
-        actionTempoPlus.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                final int progress = seekTempo.getProgress();
-                if (progress < MusInterval.Fields.Tempo.MAX_VALUE) {
-                    seekTempo.setProgress(progress + 1);
-                }
-            }
-        });
-    }
-
     private void configureClearAllButton() {
         final Button actionClearAll = findViewById(R.id.actionClearAll);
         actionClearAll.setOnClickListener(new View.OnClickListener() {
@@ -526,18 +533,12 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             public void onClick(View v) {
                 filenames = new String[]{};
                 textFilename.setText("");
-                for (CheckBox checkNote : checkNotes) {
-                    checkNote.setChecked(false);
-                }
-                for (CheckBox checkOctave : checkOctaves) {
-                    checkOctave.setChecked(false);
-                }
+                checkNoteAny.setChecked(true);
+                checkOctaveAny.setChecked(true);
                 radioGroupDirection.check(findViewById(R.id.radioDirectionAny).getId());
                 radioGroupTiming.check(findViewById(R.id.radioTimingAny).getId());
-                for (CheckBox checkInterval : checkIntervals) {
-                    checkInterval.setChecked(false);
-                }
-                seekTempo.setProgress(0);
+                checkIntervalAny.setChecked(true);
+                inputTempo.setText("");
                 inputInstrument.setText("");
             }
         });
@@ -694,7 +695,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     public void promptAddDuplicate(MusInterval[] existingMis, final DuplicateAddingHandler handler) {
         final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
         final boolean tagDuplicates = sharedPreferences.getBoolean(SettingsFragment.KEY_TAG_DUPLICATES_SWITCH, SettingsFragment.DEFAULT_TAG_DUPLICATES_SWITCH);
-        final String duplicateTag = sharedPreferences.getString(SettingsFragment.KEY_DUPLICATE_TAG_PREFERENCE, SettingsFragment.DEFAULT_DUPLICATE_TAG);
+        final String duplicateTag = TAG_APPLICATION + AnkiDroidHelper.HIERARCHICAL_TAG_SEPARATOR + TAG_DUPLICATE;
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this)
                 .setPositiveButton(R.string.add_anyway, new DialogInterface.OnClickListener() {
                     @Override
@@ -831,21 +832,20 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     return;
                 }
                 try {
-                    final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
-                    final String corruptedTag = sharedPreferences.getString(SettingsFragment.KEY_CORRUPTED_TAG_PREFERENCE, SettingsFragment.DEFAULT_CORRUPTED_TAG);
-                    final String suspiciousTag = sharedPreferences.getString(SettingsFragment.KEY_SUSPICIOUS_TAG_PREFERENCE, SettingsFragment.DEFAULT_SUSPICIOUS_TAG);
+                    final String invalidTag = TAG_APPLICATION + AnkiDroidHelper.HIERARCHICAL_TAG_SEPARATOR + TAG_CORRUPTED;
+                    final String suspiciousTag = TAG_APPLICATION + AnkiDroidHelper.HIERARCHICAL_TAG_SEPARATOR + TAG_SUSPICIOUS;
 
                     MusInterval mi = getMusInterval();
-                    MusInterval.IntegritySummary integritySummary = mi.checkIntegrity(corruptedTag, suspiciousTag);
+                    MusInterval.IntegritySummary integritySummary = mi.checkIntegrity(invalidTag, suspiciousTag);
 
                     int notesCount = integritySummary.getNotesCount();
                     int corruptedNotesCount = integritySummary.getCorruptedNotesCount();
-                    Map<String, Integer> invalidFieldsCount = integritySummary.getInvalidFieldsCount();
-                    Map<String, Integer> emptyFieldsCount = integritySummary.getEmptyFieldsCount();
-                    int fixedCorruptedNotesCount = integritySummary.getFixedCorruptedNotesCount();
+                    Map<String, Integer> corruptedFieldCounts = integritySummary.getCorruptedFieldCounts();
+                    int fixedCorruptedFieldsCount = integritySummary.getFixedCorruptedFieldsCount();
                     int suspiciousNotesCount = integritySummary.getSuspiciousNotesCount();
-                    int fixedSuspiciousNotesCount = integritySummary.getFixedSuspiciousNotesCount();
-                    int filledLinksCount = integritySummary.getFilledLinksCount();
+                    Map<String, Integer> suspiciousFieldCounts = integritySummary.getSuspiciousFieldCounts();
+                    int fixedSuspiciousFieldsCount = integritySummary.getFixedSuspiciousFieldsCount();
+                    int autoFilledRelationsCount = integritySummary.getAutoFilledRelationsCount();
 
                     StringBuilder report = new StringBuilder();
                     Resources res = getResources();
@@ -853,40 +853,26 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     if (corruptedNotesCount > 0) {
                         report.append("\n\n");
                         if (corruptedNotesCount == 1) {
-                            report.append(res.getQuantityString(R.plurals.integrity_corrupted, corruptedNotesCount, corruptedTag));
+                            report.append(res.getQuantityString(R.plurals.integrity_corrupted, corruptedNotesCount, invalidTag));
                         } else {
-                            report.append(res.getQuantityString(R.plurals.integrity_corrupted, corruptedNotesCount, corruptedNotesCount, corruptedTag));
+                            report.append(res.getQuantityString(R.plurals.integrity_corrupted, corruptedNotesCount, corruptedNotesCount, invalidTag));
                         }
-                        report.append("\n");
-                        for (String field : MusInterval.Fields.getSignature(false)) {
-                            final int invalidCount = invalidFieldsCount.getOrDefault(field, 0);
-                            final int emptyCount = emptyFieldsCount.getOrDefault(field, 0);
-                            final int corruptedCount = invalidCount + emptyCount;
-                            if (corruptedCount > 0) {
-                                report.append("\n");
-                                report.append(String.format("%s: ", mi.modelFields.get(field)));
-                                if (invalidCount > 0) {
-                                    report.append(String.format(
-                                            res.getString(R.string.integrity_invalid),
-                                            invalidCount));
-                                }
-                                if (emptyCount > 0) {
-                                    if (invalidCount > 0) {
-                                        report.append(", ");
-                                    }
-                                    report.append(String.format(
-                                            res.getString(R.string.integrity_empty),
-                                            emptyCount));
-                                }
+                        for (Map.Entry<String, Integer> corruptedFieldCount : corruptedFieldCounts.entrySet()) {
+                            String fieldKey = corruptedFieldCount.getKey();
+                            int count = corruptedFieldCount.getValue();
+                            if (count > 0) {
+                                String field = mi.modelFields.getOrDefault(fieldKey, fieldKey);
+                                report.append("\n\n");
+                                report.append(res.getString(R.string.integrity_field_corrupted, field, count, fieldValidationMessages.get(fieldKey)));
                             }
                         }
                     }
-                    if (fixedCorruptedNotesCount > 0) {
+                    if (fixedCorruptedFieldsCount > 0) {
                         report.append("\n\n");
-                        if (fixedCorruptedNotesCount == 1) {
-                            report.append(res.getQuantityString(R.plurals.integrity_corrupted_fixed, fixedCorruptedNotesCount));
+                        if (fixedCorruptedFieldsCount == 1) {
+                            report.append(res.getQuantityString(R.plurals.integrity_corrupted_field_values_fixed, fixedCorruptedFieldsCount));
                         } else {
-                            report.append(res.getQuantityString(R.plurals.integrity_corrupted_fixed, fixedCorruptedNotesCount, fixedCorruptedNotesCount));
+                            report.append(res.getQuantityString(R.plurals.integrity_corrupted_field_values_fixed, fixedCorruptedFieldsCount, fixedCorruptedFieldsCount));
                         }
                     }
                     if (suspiciousNotesCount > 0) {
@@ -896,18 +882,28 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                         } else {
                             report.append(res.getQuantityString(R.plurals.integrity_suspicious, suspiciousNotesCount, suspiciousNotesCount, suspiciousTag));
                         }
-                    }
-                    if (filledLinksCount > 0) {
-                        report.append("\n\n");
-                        report.append(getResources().getQuantityString(R.plurals.integrity_links, filledLinksCount, filledLinksCount));
-                    }
-                    if (fixedSuspiciousNotesCount > 0) {
-                        report.append("\n\n");
-                        if (fixedSuspiciousNotesCount == 1) {
-                            report.append(res.getQuantityString(R.plurals.integrity_suspicious_fixed, fixedSuspiciousNotesCount));
-                        } else {
-                            report.append(res.getQuantityString(R.plurals.integrity_suspicious_fixed, fixedSuspiciousNotesCount, fixedSuspiciousNotesCount));
+                        report.append("\n");
+                        for (Map.Entry<String, Integer> suspiciousFieldCount : suspiciousFieldCounts.entrySet()) {
+                            String fieldKey = suspiciousFieldCount.getKey();
+                            int count = suspiciousFieldCount.getValue();
+                            if (count > 0) {
+                                String field = mi.modelFields.getOrDefault(fieldKey, fieldKey);
+                                report.append("\n");
+                                report.append(res.getString(R.string.integrity_field_suspicious, field, count));
+                            }
                         }
+                    }
+                    if (fixedSuspiciousFieldsCount > 0) {
+                        report.append("\n\n");
+                        if (fixedSuspiciousFieldsCount == 1) {
+                            report.append(res.getQuantityString(R.plurals.integrity_suspicious_field_values_fixed, fixedSuspiciousFieldsCount));
+                        } else {
+                            report.append(res.getQuantityString(R.plurals.integrity_suspicious_field_values_fixed, fixedSuspiciousFieldsCount, fixedSuspiciousFieldsCount));
+                        }
+                    }
+                    if (autoFilledRelationsCount > 0) {
+                        report.append("\n\n");
+                        report.append(getResources().getQuantityString(R.plurals.integrity_links, autoFilledRelationsCount, autoFilledRelationsCount));
                     }
                     if (corruptedNotesCount == 0 && suspiciousNotesCount == 0) {
                         report.append("\n\n");
@@ -952,7 +948,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         for (int i = 0; i < checkIntervalIds.length; i++) {
             uiDbEditor.putBoolean(String.valueOf(checkIntervalIds[i]), checkIntervals[i].isChecked());
         }
-        uiDbEditor.putString("inputTempo", Integer.toString(seekTempo.getProgress()));
+        uiDbEditor.putString("inputTempo", inputTempo.getText().toString());
         uiDbEditor.putString("inputInstrument", inputInstrument.getText().toString());
         uiDbEditor.putStringSet("savedInstruments", savedInstruments);
         uiDbEditor.apply();
@@ -966,24 +962,22 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         Set<String> storedFilenames = uiDb.getStringSet("selectedFilenames", new HashSet<String>());
         filenames = storedFilenames.toArray(new String[0]);
         refreshFilenameText();
-        checkNoteAny.setChecked(uiDb.getBoolean("checkNoteAny", false));
+        checkNoteAny.setChecked(uiDb.getBoolean("checkNoteAny", true));
         for (int i = 0; i < checkNoteIds.length; i++) {
             checkNotes[i].setChecked(uiDb.getBoolean(String.valueOf(checkNoteIds[i]), false));
         }
-        checkOctaveAny.setChecked(uiDb.getBoolean("checkOctaveAny", false));
+        checkOctaveAny.setChecked(uiDb.getBoolean("checkOctaveAny", true));
         for (int i = 0; i < checkOctaveIds.length; i++) {
             checkOctaves[i].setChecked(uiDb.getBoolean(String.valueOf(checkOctaveIds[i]), false));
         }
         radioGroupDirection.check(uiDb.getInt("radioGroupDirection", findViewById(R.id.radioDirectionAny).getId()));
         radioGroupTiming.check(uiDb.getInt("radioGroupTiming", findViewById(R.id.radioTimingAny).getId()));
-        checkIntervalAny.setChecked(uiDb.getBoolean("checkIntervalAny", false));
+        checkIntervalAny.setChecked(uiDb.getBoolean("checkIntervalAny", true));
         for (int i = 0; i < checkIntervalIds.length; i++) {
             checkIntervals[i].setChecked(uiDb.getBoolean(String.valueOf(checkIntervalIds[i]), false));
         }
-        seekTempo.setProgress(Integer.parseInt(uiDb.getString("inputTempo", "0")));
-        labelTempoValue.setText(String.valueOf(seekTempo.getProgress()));
+        inputTempo.setText(uiDb.getString("inputTempo", ""));
         inputInstrument.setText(uiDb.getString("inputInstrument", ""));
-
         savedInstruments = (HashSet<String>) uiDb.getStringSet("savedInstruments", new HashSet<String>());
         inputInstrument.setAdapter(new ArrayAdapter<>(this,
                 android.R.layout.simple_dropdown_item_1line, savedInstruments.toArray(new String[0])));
@@ -1016,7 +1010,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
     }
 
-    private MusInterval getMusInterval() throws MusInterval.ModelValidationException {
+    private MusInterval getMusInterval() throws MusInterval.ModelValidationException, MusInterval.TempoNotInRangeException {
         final String anyStr = getResources().getString(R.string.any);
 
         final int radioDirectionId = radioGroupDirection.getCheckedRadioButtonId();
@@ -1057,7 +1051,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 .direction(!directionStr.equals(anyStr) ? directionStr : "")
                 .timing(!timingStr.equals(anyStr) ? timingStr : "")
                 .intervals(intervals)
-                .tempo(seekTempo.getProgress() > 0 ? Integer.toString(seekTempo.getProgress()) : "")
+                .tempo(inputTempo.getText().toString())
                 .instrument(inputInstrument.getText().toString());
         if (versionField) {
             builder.version(BuildConfig.VERSION_NAME);
@@ -1162,6 +1156,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             showMsg(R.string.already_added);
         } catch (MusInterval.AddSoundFileException e) {
             showMsg(R.string.add_file_error);
+        } catch (MusInterval.TempoNotInRangeException e) {
+            showMsg(R.string.tempo_not_in_range, MusInterval.Fields.Tempo.MIN_VALUE, MusInterval.Fields.Tempo.MAX_VALUE);
         } catch (MusInterval.Exception e) {
             showMsg(R.string.unknown_adding_error);
         }

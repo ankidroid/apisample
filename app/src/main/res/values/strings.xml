@@ -102,16 +102,20 @@
         <item quantity="other">%d music intervals with parameters (%s, %s, %s, %s, %s, %s) already exist in Anki database</item>
     </plurals>
     <plurals name="integrity_corrupted">
-        <item quantity="one">Found one corrupted note and marked it with \"%s\" tag</item>
-        <item quantity="other">Found %d corrupted notes and marked them with \"%s\" tag</item>
+        <item quantity="one">Found one corrupted note and marked it using tag starting \"%s\"</item>
+        <item quantity="other">Found %d corrupted notes and marked them using tag starting \"%s\"</item>
     </plurals>
     <plurals name="integrity_suspicious">
-        <item quantity="one">Found one suspicious note (invalid link fields) and marked it with \"%s\" tag</item>
-        <item quantity="other">Found %d suspicious notes (invalid link fields) and marked them with \"%s\" tag</item>
+        <item quantity="one">Found one suspicious note (invalid link fields) and marked it using tag starting with \"%s\"</item>
+        <item quantity="other">Found %d suspicious notes (invalid link fields) and marked them using tag starting with \"%s\"</item>
     </plurals>
-    <plurals name="integrity_corrupted_fixed">
-        <item quantity="one">One note previously tagged as corrupted has been fixed</item>
-        <item quantity="other">%d notes previously tagged as corrupted have been fixed</item>
+    <plurals name="integrity_corrupted_field_values_fixed">
+        <item quantity="one">One field value previously tagged as corrupted has been fixed</item>
+        <item quantity="other">%d field values previously tagged as corrupted have been fixed</item>
+    </plurals>
+    <plurals name="integrity_suspicious_field_values_fixed">
+        <item quantity="one">One field value previously tagged as suspicious has been resolved</item>
+        <item quantity="other">%d field values previously tagged as suspicious have been resolved</item>
     </plurals>
     <plurals name="integrity_suspicious_fixed">
         <item quantity="one">One note previously tagged as suspicious has been fixed</item>
@@ -126,8 +130,8 @@
         <item quantity="other">Mandatory fields \%s\ are empty</item>
     </plurals>
     <plurals name="integrity_links">
-        <item quantity="one">Fixed one link field</item>
-        <item quantity="other">Fixed %d link fields</item>
+        <item quantity="one">Automatically filled one link field</item>
+        <item quantity="other">Automatically filled %d link fields</item>
     </plurals>
     <string name="create_model">Note type \"%s\" is not found. Create it?</string>
     <string name="create">Create</string>
@@ -161,12 +165,16 @@
     <string name="unknown_error">Unknown error (try opening AnkiDroid to see what\'s wrong)</string>
     <string name="integrity_check_completed">Integrity check completed (%d notes)</string>
     <string name="integrity_ok">No issues have been found</string>
-    <string name="integrity_invalid">%d invalid</string>
-    <string name="integrity_empty">%d empty</string>
+    <string name="integrity_field_corrupted">- %s: %d corrupted, (%s)</string>
+    <string name="integrity_field_suspicious">- %s: %d suspicious</string>
     <string name="fix_link_confirmation_remember_answer">Remember answer</string>
-
     <string name="InvalidAnkiDatabase_fieldAndFieldNameCountMismatch">Invalid Anki Database: field and field name count mismatches</string>
     <string name="InvalidAnkiDatabase_unknownError">Invalid Anki Database: unknown error</string>
+    <string name="validation_sound">value must represent an AnkiDroid media reference (i. e. \"[sound:example.mp3]\")</string>
+    <string name="validation_allowed_values">allowed values: %s</string>
+    <string name="validation_range">value must an integer between %d and %d</string>
+    <string name="validation_mandatory">value must be present</string>
+    <string name="tempo_not_in_range">Tempo value must be in range of %d to %d (BPM)</string>
 
     <!-- SettingsActivity labels, fields and buttons -->
     <string name="deck_preference_title">Deck</string>
