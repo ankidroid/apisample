@@ -93,7 +93,7 @@ public class NotesIntegrity {
                         fieldSuspiciousPointed.getOrDefault(fieldKey, new HashSet<Map<String, String>>())
                 );
 
-                suspicious = suspiciousPointing || suspiciousPointed;
+                suspicious = suspicious || suspiciousPointing || suspiciousPointed;
             }
 
             if (!suspicious) {
@@ -184,9 +184,9 @@ public class NotesIntegrity {
         } else {
             if (!hasTag) {
                 helper.addTagToNote(noteId, String.format("%s ", tag));
-                int cur = suspiciousFieldCounts.getOrDefault(fieldKey, 0);
-                suspiciousFieldCounts.put(fieldKey, cur + 1);
             }
+            int cur = suspiciousFieldCounts.getOrDefault(fieldKey, 0);
+            suspiciousFieldCounts.put(fieldKey, cur + 1);
             return true;
         }
         return false;

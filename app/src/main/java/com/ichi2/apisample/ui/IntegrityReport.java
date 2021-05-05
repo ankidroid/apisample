@@ -89,13 +89,12 @@ public class IntegrityReport {
             } else {
                 report.append(res.getQuantityString(R.plurals.integrity_suspicious, suspiciousNotesCount, suspiciousNotesCount, suspiciousTag));
             }
-            report.append("\n");
             for (Map.Entry<String, Integer> suspiciousFieldCount : suspiciousFieldCounts.entrySet()) {
                 String fieldKey = suspiciousFieldCount.getKey();
                 int count = suspiciousFieldCount.getValue();
                 if (count > 0) {
                     String field = mi.modelFields.getOrDefault(fieldKey, fieldKey);
-                    report.append("\n");
+                    report.append("\n\n");
                     report.append(res.getString(R.string.integrity_field_suspicious, field, count));
                 }
             }
