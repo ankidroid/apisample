@@ -234,25 +234,25 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             }
         });
         boolean enableMultiple = switchBatch.isChecked();
-        final OnFieldCheckChangeListener onNoteCheckChangeListener = new OnFieldCheckChangeListener(checkNotes, checkNoteAny, enableMultiple);
+        final OnFieldCheckChangeListener onNoteCheckChangeListener = new OnFieldCheckChangeListener(this, checkNotes, checkNoteAny, enableMultiple);
         checkNoteAny.setOnCheckedChangeListener(onNoteCheckChangeListener);
         for (CheckBox checkNote : checkNotes) {
             checkNote.setOnCheckedChangeListener(onNoteCheckChangeListener);
         }
-        final OnFieldCheckChangeListener onOctaveCheckChangeListener = new OnFieldCheckChangeListener(checkOctaves, checkOctaveAny, enableMultiple);
+        final OnFieldCheckChangeListener onOctaveCheckChangeListener = new OnFieldCheckChangeListener(this, checkOctaves, checkOctaveAny, enableMultiple);
         checkOctaveAny.setOnCheckedChangeListener(onOctaveCheckChangeListener);
         for (CheckBox checkOctave : checkOctaves) {
             checkOctave.setOnCheckedChangeListener(onOctaveCheckChangeListener);
         }
-        radioGroupDirection.setOnCheckedChangeListener(new OnFieldRadioChangeListener());
-        radioGroupTiming.setOnCheckedChangeListener(new OnFieldRadioChangeListener());
-        final OnFieldCheckChangeListener onIntervalCheckChangeListener = new OnFieldCheckChangeListener(checkIntervals, checkIntervalAny, enableMultiple);
+        radioGroupDirection.setOnCheckedChangeListener(new OnFieldRadioChangeListener(this));
+        radioGroupTiming.setOnCheckedChangeListener(new OnFieldRadioChangeListener(this));
+        final OnFieldCheckChangeListener onIntervalCheckChangeListener = new OnFieldCheckChangeListener(this, checkIntervals, checkIntervalAny, enableMultiple);
         checkIntervalAny.setOnCheckedChangeListener(onIntervalCheckChangeListener);
         for (CheckBox checkInterval : checkIntervals) {
             checkInterval.setOnCheckedChangeListener(onIntervalCheckChangeListener);
         }
-        inputTempo.addTextChangedListener(new FieldInputTextWatcher());
-        inputInstrument.addTextChangedListener(new FieldInputTextWatcher());
+        inputTempo.addTextChangedListener(new FieldInputTextWatcher(this));
+        inputInstrument.addTextChangedListener(new FieldInputTextWatcher(this));
         switchBatch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
@@ -324,7 +324,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         refreshPermutations();
     }
 
-    private void refreshPermutations() {
+    void refreshPermutations() {
         if (mAnkiDroid.shouldRequestPermission()) {
             return;
         }
@@ -348,7 +348,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
     }
 
-    private void refreshExisting() {
+    void refreshExisting() {
         if (mAnkiDroid.shouldRequestPermission()) {
             return;
         }
@@ -390,97 +390,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
     }
 
-    private class OnFieldCheckChangeListener implements CompoundButton.OnCheckedChangeListener {
-        private final CheckBox[] checkBoxes;
-        private final CheckBox checkBoxAny;
-        private boolean enableMultiple;
-
-        public OnFieldCheckChangeListener(CheckBox[] checkBoxes, CheckBox checkBoxAny, boolean enableMultiple) {
-            this.checkBoxes = checkBoxes;
-            this.checkBoxAny = checkBoxAny;
-            this.enableMultiple = enableMultiple;
-        }
-
-        @Override
-        public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-            if (compoundButton.getId() == checkBoxAny.getId()) {
-                if (b) {
-                    for (CheckBox checkBox : checkBoxes) {
-                        checkBox.setChecked(false);
-                    }
-                } else if (enableMultiple) {
-                    for (CheckBox checkBox : checkBoxes) {
-                        if (checkBox.isChecked()) {
-                            return;
-                        }
-                    }
-                    for (CheckBox checkBox : checkBoxes) {
-                        checkBox.setChecked(true);
-                    }
-                }
-            } else if (b) {
-                checkBoxAny.setChecked(false);
-                if (!enableMultiple) {
-                    for (CheckBox checkBox : checkBoxes) {
-                        if (checkBox.getId() != compoundButton.getId()) {
-                            checkBox.setChecked(false);
-                        }
-                    }
-                }
-            }
-            clearAddedFilenames();
-            refreshExisting();
-            refreshPermutations();
-        }
-
-        public void setEnableMultiple(boolean enableMultiple) {
-            if (!enableMultiple) {
-                ArrayList<CheckBox> checked = new ArrayList<>();
-                for (CheckBox checkBox : checkBoxes) {
-                    if (checkBox.isChecked()) {
-                        checked.add(checkBox);
-                    }
-                }
-                if (checked.size() > 1) {
-                    for (CheckBox checkBox : checked) {
-                        checkBox.setChecked(false);
-                    }
-                }
-            }
-            this.enableMultiple = enableMultiple;
-        }
-    }
-
-    private class OnFieldRadioChangeListener implements RadioGroup.OnCheckedChangeListener {
-        @Override
-        public void onCheckedChanged(RadioGroup radioGroup, int i) {
-            clearAddedFilenames();
-            refreshExisting();
-        }
-    }
-
-    private class FieldInputTextWatcher implements TextWatcher {
-        private String prev;
-
-        @Override
-        public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-            prev = charSequence.toString();
-        }
-
-        @Override
-        public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-            String curr = charSequence.toString();
-            if (!curr.equalsIgnoreCase(prev)) {
-                clearAddedFilenames();
-                refreshExisting();
-            }
-        }
-
-        @Override
-        public void afterTextChanged(Editable editable) { }
-    }
-
-    private void clearAddedFilenames() {
+    void clearAddedFilenames() {
         ArrayList<String> unAddedFilenames = new ArrayList<>();
         for (String filename : filenames) {
             if (!filename.startsWith("[sound:")) {
