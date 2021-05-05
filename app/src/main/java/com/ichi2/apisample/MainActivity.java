@@ -59,30 +59,30 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private static final String STATE_REF_DB = "com.ichi2.apisample.uistate";
     private static final String KEY_BATCH_ADDING_NOTICE_SEEN = "batchAddingNoticeSeen";
 
-    private final Map<String, Integer> singularFieldLabelStringIds = new HashMap<String, Integer>() {{
+    private final static Map<String, Integer> FIELD_LABEL_STRING_IDS_SINGULAR = new HashMap<String, Integer>() {{
         put(MusInterval.Fields.DIRECTION, R.string.direction);
         put(MusInterval.Fields.TIMING, R.string.timing);
         put(MusInterval.Fields.TEMPO, R.string.tempo);
         put(MusInterval.Fields.INSTRUMENT, R.string.instrument);
     }};
-    {
-        if (!singularFieldLabelStringIds.keySet().equals(MusInterval.Builder.ADDING_MANDATORY_SINGULAR_KEYS)) {
+    static {
+        if (!FIELD_LABEL_STRING_IDS_SINGULAR.keySet().equals(MusInterval.Builder.ADDING_MANDATORY_SINGULAR_KEYS)) {
             throw new AssertionError();
         }
     }
 
-    private final Map<String, Integer> selectionFieldLabelStringIds = new HashMap<String, Integer>() {{
+    private final static Map<String, Integer> FIELD_LABEL_STRING_IDS_SELECTION = new HashMap<String, Integer>() {{
         put(MusInterval.Builder.KEY_NOTES, R.string.start_note);
         put(MusInterval.Builder.KEY_OCTAVES, R.string.octave);
         put(MusInterval.Builder.KEY_INTERVALS, R.string.interval);
     }};
-    {
-        if (!selectionFieldLabelStringIds.keySet().equals(MusInterval.Builder.ADDING_MANDATORY_SELECTION_KEYS)) {
+    static {
+        if (!FIELD_LABEL_STRING_IDS_SELECTION.keySet().equals(MusInterval.Builder.ADDING_MANDATORY_SELECTION_KEYS)) {
             throw new AssertionError();
         }
     }
 
-    private final Map<String, String> fieldValidationMessages = new HashMap<>();
+    private final static Map<String, String> FIELD_VALIDATION_MESSAGES = new HashMap<>();
 
     private SwitchCompat switchBatch;
     private TextView textFilename;
@@ -100,7 +100,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private TextView labelExisting;
     private Button actionMarkExisting;
 
-    private final int[] checkNoteIds = new int[]{
+    private final static int[] CHECK_NOTE_IDS = new int[]{
             R.id.checkNoteC, R.id.checkNoteCSharp,
             R.id.checkNoteD, R.id.checkNoteDSharp,
             R.id.checkNoteE,
@@ -109,7 +109,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             R.id.checkNoteA, R.id.checkNoteASharp,
             R.id.checkNoteB
     };
-    private final int[] checkOctaveIds = new int[]{
+    private final static int[] CHECK_OCTAVE_IDS = new int[]{
             R.id.checkOctave1,
             R.id.checkOctave2,
             R.id.checkOctave3,
@@ -117,7 +117,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             R.id.checkOctave5,
             R.id.checkOctave6
     };
-    private final int[] checkIntervalIds = new int[]{
+    private final static int[] CHECK_INTERVAL_IDS = new int[]{
             R.id.checkIntervalP1,
             R.id.checkIntervalm2,
             R.id.checkIntervalM2,
@@ -133,13 +133,13 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             R.id.checkIntervalP8
     };
 
-    private final Map<Integer, String> checkIntervalIdValues = new HashMap<>();
-    {
-        if (checkIntervalIds.length != MusInterval.Fields.Interval.VALUES.length) {
+    private final static Map<Integer, String> CHECK_INTERVAL_ID_VALUES = new HashMap<>();
+    static {
+        if (CHECK_INTERVAL_IDS.length != MusInterval.Fields.Interval.VALUES.length) {
             throw new AssertionError();
         }
         for (int i = 0; i < MusInterval.Fields.Interval.VALUES.length; i++) {
-            checkIntervalIdValues.put(checkIntervalIds[i], MusInterval.Fields.Interval.VALUES[i]);
+            CHECK_INTERVAL_ID_VALUES.put(CHECK_INTERVAL_IDS[i], MusInterval.Fields.Interval.VALUES[i]);
         }
     }
 
@@ -162,21 +162,21 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         textFilename = findViewById(R.id.textFilename);
         actionSelectFile = findViewById(R.id.actionSelectFile);
         checkNoteAny = findViewById(R.id.checkNoteAny);
-        checkNotes = new CheckBox[checkNoteIds.length];
-        for (int i = 0; i < checkNoteIds.length; i++) {
-            checkNotes[i] = findViewById(checkNoteIds[i]);
+        checkNotes = new CheckBox[CHECK_NOTE_IDS.length];
+        for (int i = 0; i < CHECK_NOTE_IDS.length; i++) {
+            checkNotes[i] = findViewById(CHECK_NOTE_IDS[i]);
         }
         checkOctaveAny = findViewById(R.id.checkOctaveAny);
-        checkOctaves = new CheckBox[checkOctaveIds.length];
-        for (int i = 0; i < checkOctaveIds.length; i++) {
-            checkOctaves[i] = findViewById(checkOctaveIds[i]);
+        checkOctaves = new CheckBox[CHECK_OCTAVE_IDS.length];
+        for (int i = 0; i < CHECK_OCTAVE_IDS.length; i++) {
+            checkOctaves[i] = findViewById(CHECK_OCTAVE_IDS[i]);
         }
         radioGroupDirection = findViewById(R.id.radioGroupDirection);
         radioGroupTiming = findViewById(R.id.radioGroupTiming);
         checkIntervalAny = findViewById(R.id.checkIntervalAny);
-        checkIntervals = new CheckBox[checkIntervalIds.length];
-        for (int i = 0; i < checkIntervalIds.length; i++) {
-            checkIntervals[i] = findViewById(checkIntervalIds[i]);
+        checkIntervals = new CheckBox[CHECK_INTERVAL_IDS.length];
+        for (int i = 0; i < CHECK_INTERVAL_IDS.length; i++) {
+            checkIntervals[i] = findViewById(CHECK_INTERVAL_IDS[i]);
         }
         inputTempo = findViewById(R.id.inputTempo);
         inputInstrument = findViewById(R.id.inputInstrument);
@@ -275,15 +275,15 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         String allowedTimingsStr = String.format("%s, %s", MusInterval.Fields.Timing.MELODIC, MusInterval.Fields.Timing.HARMONIC);
         String allowedIntervalsStr = joinStrings(", ", MusInterval.Fields.Interval.VALUES);
 
-        fieldValidationMessages.put(MusInterval.Fields.SOUND, getString(R.string.validation_sound));
-        fieldValidationMessages.put(MusInterval.Fields.SOUND_SMALLER, getString(R.string.validation_sound));
-        fieldValidationMessages.put(MusInterval.Fields.SOUND_LARGER, getString(R.string.validation_sound));
-        fieldValidationMessages.put(MusInterval.Fields.START_NOTE, getString(R.string.validation_allowed_values, allowedStartNotesStr));
-        fieldValidationMessages.put(MusInterval.Fields.DIRECTION, getString(R.string.validation_allowed_values, allowedDirectionsStr));
-        fieldValidationMessages.put(MusInterval.Fields.TIMING, getString(R.string.validation_allowed_values, allowedTimingsStr));
-        fieldValidationMessages.put(MusInterval.Fields.INTERVAL, getString(R.string.validation_allowed_values, allowedIntervalsStr));
-        fieldValidationMessages.put(MusInterval.Fields.TEMPO, getString(R.string.validation_range, MusInterval.Fields.Tempo.MIN_VALUE, MusInterval.Fields.Tempo.MAX_VALUE));
-        fieldValidationMessages.put(MusInterval.Fields.INSTRUMENT, getString(R.string.validation_mandatory));
+        FIELD_VALIDATION_MESSAGES.put(MusInterval.Fields.SOUND, getString(R.string.validation_sound));
+        FIELD_VALIDATION_MESSAGES.put(MusInterval.Fields.SOUND_SMALLER, getString(R.string.validation_sound));
+        FIELD_VALIDATION_MESSAGES.put(MusInterval.Fields.SOUND_LARGER, getString(R.string.validation_sound));
+        FIELD_VALIDATION_MESSAGES.put(MusInterval.Fields.START_NOTE, getString(R.string.validation_allowed_values, allowedStartNotesStr));
+        FIELD_VALIDATION_MESSAGES.put(MusInterval.Fields.DIRECTION, getString(R.string.validation_allowed_values, allowedDirectionsStr));
+        FIELD_VALIDATION_MESSAGES.put(MusInterval.Fields.TIMING, getString(R.string.validation_allowed_values, allowedTimingsStr));
+        FIELD_VALIDATION_MESSAGES.put(MusInterval.Fields.INTERVAL, getString(R.string.validation_allowed_values, allowedIntervalsStr));
+        FIELD_VALIDATION_MESSAGES.put(MusInterval.Fields.TEMPO, getString(R.string.validation_range, MusInterval.Fields.Tempo.MIN_VALUE, MusInterval.Fields.Tempo.MAX_VALUE));
+        FIELD_VALIDATION_MESSAGES.put(MusInterval.Fields.INSTRUMENT, getString(R.string.validation_mandatory));
     }
 
     private static String joinStrings(String separator, String[] values) {
@@ -863,7 +863,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                             if (count > 0) {
                                 String field = mi.modelFields.getOrDefault(fieldKey, fieldKey);
                                 report.append("\n\n");
-                                report.append(res.getString(R.string.integrity_field_corrupted, field, count, fieldValidationMessages.get(fieldKey)));
+                                report.append(res.getString(R.string.integrity_field_corrupted, field, count, FIELD_VALIDATION_MESSAGES.get(fieldKey)));
                             }
                         }
                     }
@@ -935,18 +935,18 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         uiDbEditor.putBoolean("switchBatch", switchBatch.isChecked());
         uiDbEditor.putStringSet("selectedFilenames", new HashSet<>(Arrays.asList(filenames)));
         uiDbEditor.putBoolean("checkNoteAny", checkNoteAny.isChecked());
-        for (int i = 0; i < checkNoteIds.length; i++) {
-            uiDbEditor.putBoolean(String.valueOf(checkNoteIds[i]), checkNotes[i].isChecked());
+        for (int i = 0; i < CHECK_NOTE_IDS.length; i++) {
+            uiDbEditor.putBoolean(String.valueOf(CHECK_NOTE_IDS[i]), checkNotes[i].isChecked());
         }
         uiDbEditor.putBoolean("checkOctaveAny", checkOctaveAny.isChecked());
-        for (int i = 0; i < checkOctaveIds.length; i++) {
-            uiDbEditor.putBoolean(String.valueOf(checkOctaveIds[i]), checkOctaves[i].isChecked());
+        for (int i = 0; i < CHECK_OCTAVE_IDS.length; i++) {
+            uiDbEditor.putBoolean(String.valueOf(CHECK_OCTAVE_IDS[i]), checkOctaves[i].isChecked());
         }
         uiDbEditor.putInt("radioGroupDirection", radioGroupDirection.getCheckedRadioButtonId());
         uiDbEditor.putInt("radioGroupTiming", radioGroupTiming.getCheckedRadioButtonId());
         uiDbEditor.putBoolean("checkIntervalAny", checkIntervalAny.isChecked());
-        for (int i = 0; i < checkIntervalIds.length; i++) {
-            uiDbEditor.putBoolean(String.valueOf(checkIntervalIds[i]), checkIntervals[i].isChecked());
+        for (int i = 0; i < CHECK_INTERVAL_IDS.length; i++) {
+            uiDbEditor.putBoolean(String.valueOf(CHECK_INTERVAL_IDS[i]), checkIntervals[i].isChecked());
         }
         uiDbEditor.putString("inputTempo", inputTempo.getText().toString());
         uiDbEditor.putString("inputInstrument", inputInstrument.getText().toString());
@@ -963,18 +963,18 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         filenames = storedFilenames.toArray(new String[0]);
         refreshFilenameText();
         checkNoteAny.setChecked(uiDb.getBoolean("checkNoteAny", true));
-        for (int i = 0; i < checkNoteIds.length; i++) {
-            checkNotes[i].setChecked(uiDb.getBoolean(String.valueOf(checkNoteIds[i]), false));
+        for (int i = 0; i < CHECK_NOTE_IDS.length; i++) {
+            checkNotes[i].setChecked(uiDb.getBoolean(String.valueOf(CHECK_NOTE_IDS[i]), false));
         }
         checkOctaveAny.setChecked(uiDb.getBoolean("checkOctaveAny", true));
-        for (int i = 0; i < checkOctaveIds.length; i++) {
-            checkOctaves[i].setChecked(uiDb.getBoolean(String.valueOf(checkOctaveIds[i]), false));
+        for (int i = 0; i < CHECK_OCTAVE_IDS.length; i++) {
+            checkOctaves[i].setChecked(uiDb.getBoolean(String.valueOf(CHECK_OCTAVE_IDS[i]), false));
         }
         radioGroupDirection.check(uiDb.getInt("radioGroupDirection", findViewById(R.id.radioDirectionAny).getId()));
         radioGroupTiming.check(uiDb.getInt("radioGroupTiming", findViewById(R.id.radioTimingAny).getId()));
         checkIntervalAny.setChecked(uiDb.getBoolean("checkIntervalAny", true));
-        for (int i = 0; i < checkIntervalIds.length; i++) {
-            checkIntervals[i].setChecked(uiDb.getBoolean(String.valueOf(checkIntervalIds[i]), false));
+        for (int i = 0; i < CHECK_INTERVAL_IDS.length; i++) {
+            checkIntervals[i].setChecked(uiDb.getBoolean(String.valueOf(CHECK_INTERVAL_IDS[i]), false));
         }
         inputTempo.setText(uiDb.getString("inputTempo", ""));
         inputInstrument.setText(uiDb.getString("inputInstrument", ""));
@@ -1039,7 +1039,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
         String[] notes = !checkNoteAny.isChecked() ? getCheckedValues(checkNotes) : null;
         String[] octaves = !checkOctaveAny.isChecked() ? getCheckedValues(checkOctaves) : null;
-        String[] intervals = !checkIntervalAny.isChecked() ? getCheckedValues(checkIntervals, checkIntervalIdValues) : null;
+        String[] intervals = !checkIntervalAny.isChecked() ? getCheckedValues(checkIntervals, CHECK_INTERVAL_ID_VALUES) : null;
 
         MusInterval.Builder builder = new MusInterval.Builder(mAnkiDroid)
                 .deck(storedDeck)
@@ -1081,7 +1081,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         try {
             throw miException;
         } catch (MusInterval.MandatorySelectionEmptyException e) {
-            showMsg(R.string.empty_mandatory_selection, getString(selectionFieldLabelStringIds.get(e.getField())));
+            showMsg(R.string.empty_mandatory_selection, getString(FIELD_LABEL_STRING_IDS_SELECTION.get(e.getField())));
         } catch (MusInterval.UnexpectedSoundsAmountException e) {
             final int expected = e.getExpectedAmount();
             final int provided = e.getProvidedAmount();
@@ -1151,7 +1151,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         } catch (MusInterval.AddToAnkiException e) {
             showMsg(R.string.add_card_error);
         } catch (MusInterval.MandatoryFieldEmptyException e) {
-            showMsg(R.string.mandatory_field_empty, getString(singularFieldLabelStringIds.get(e.getField())));
+            showMsg(R.string.mandatory_field_empty, getString(FIELD_LABEL_STRING_IDS_SINGULAR.get(e.getField())));
         } catch (MusInterval.SoundAlreadyAddedException e) {
             showMsg(R.string.already_added);
         } catch (MusInterval.AddSoundFileException e) {
