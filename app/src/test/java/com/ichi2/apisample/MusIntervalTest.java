@@ -2886,7 +2886,7 @@ public class MusIntervalTest {
     }
 
     @Test
-    public void checkIntegrity_Duplicate_ShouldTag() throws MusInterval.Exception, AnkiDroidHelper.InvalidAnkiDatabaseException {
+    public void checkIntegrity_Duplicate_ShouldCountFixed() throws MusInterval.Exception, AnkiDroidHelper.InvalidAnkiDatabaseException {
         final long modelId = new Random().nextLong();
         final long noteId = new Random().nextLong();
         final long duplicateNoteId = new Random().nextLong();
@@ -2964,5 +2964,85 @@ public class MusIntervalTest {
 
         assertTrue(noteData.get(AnkiDroidHelper.KEY_TAGS).contains(duplicateTag));
         assertTrue(duplicateNoteData.get(AnkiDroidHelper.KEY_TAGS).contains(duplicateTag));
+    }
+
+    @Test
+    public void checkIntegrity_DuplicateFixed_ShouldCount() throws MusInterval.Exception, AnkiDroidHelper.InvalidAnkiDatabaseException {
+        final long modelId = new Random().nextLong();
+        final long noteId = new Random().nextLong();
+        final long anotherNoteId = new Random().nextLong();
+
+        final AnkiDroidHelper helper = mock(AnkiDroidHelper.class);
+        doReturn(modelId).when(helper).findModelIdByName(defaultModelName);
+        doReturn(SIGNATURE).when(helper).getFieldList(eq(modelId));
+
+        final Map<String, String> noteData = new HashMap<String, String>() {{
+            put(MusInterval.Fields.SOUND, "[sound:dir/file.mp3]");
+            put(MusInterval.Fields.START_NOTE, "B3");
+            put(MusInterval.Fields.INTERVAL, "min2");
+            put(MusInterval.Fields.TIMING, "melodic");
+            put(MusInterval.Fields.DIRECTION, "ascending");
+            put(MusInterval.Fields.TEMPO, "80");
+            put(MusInterval.Fields.INSTRUMENT, "guitar");
+            put(AnkiDroidHelper.KEY_ID, String.valueOf(noteId));
+            put(AnkiDroidHelper.KEY_TAGS, String.format(" %s ", duplicateTag));
+        }};
+
+        final Map<String, String> anotherNoteData = new HashMap<String, String>() {{
+            put(MusInterval.Fields.SOUND, "[sound:dir/file.mp3]");
+            put(MusInterval.Fields.START_NOTE, "C4");
+            put(MusInterval.Fields.INTERVAL, "Maj2");
+            put(MusInterval.Fields.TIMING, "melodic");
+            put(MusInterval.Fields.DIRECTION, "ascending");
+            put(MusInterval.Fields.TEMPO, "80");
+            put(MusInterval.Fields.INSTRUMENT, "guitar");
+            put(AnkiDroidHelper.KEY_ID, String.valueOf(anotherNoteId));
+            put(AnkiDroidHelper.KEY_TAGS, String.format(" %s ", duplicateTag));
+        }};
+
+        final Map<String, String> searchData = new HashMap<String, String>() {{
+            put(MusInterval.Fields.START_NOTE, "%%");
+            put(MusInterval.Fields.INTERVAL, "%");
+            put(MusInterval.Fields.TIMING, "");
+            put(MusInterval.Fields.DIRECTION, "");
+            put(MusInterval.Fields.TEMPO, "");
+            put(MusInterval.Fields.INSTRUMENT, "");
+        }};
+
+        final LinkedList<Map<String, String>> searchResult = new LinkedList<Map<String, String>>() {{
+            add(noteData);
+            add(anotherNoteData);
+        }};
+        doReturn(searchResult).when(helper).findNotes(eq(modelId), eq(new HashMap<String, String>()));
+        ArrayList<Map<String, String>> searchDataSet = new ArrayList<Map<String, String>>() {{
+            add(searchData);
+        }};
+        doReturn(searchResult).when(helper).findNotes(eq(modelId), eq(searchDataSet));
+
+        doAnswer(new Answer() {
+            @Override
+            public Boolean answer(InvocationOnMock invocation) {
+                long id = invocation.getArgument(0);
+                String tags = invocation.getArgument(1);
+                for (Map<String, String> data : searchResult) {
+                    if (Long.parseLong(data.get(AnkiDroidHelper.KEY_ID)) == id) {
+                        data.put(AnkiDroidHelper.KEY_TAGS, tags);
+                        return true;
+                    }
+                }
+                return false;
+            }
+        }).when(helper).updateNoteTags(any(Long.class), any(String.class));
+
+        MusInterval mi = new MusInterval.Builder(helper)
+                .model(defaultModelName)
+                .notes(null)
+                .octaves(null)
+                .intervals(null)
+                .build();
+        new NotesIntegrity(helper, mi, corruptedTag, suspiciousTag, duplicateTag).check();
+
+        assertFalse(noteData.get(AnkiDroidHelper.KEY_TAGS).contains(duplicateTag));
+        assertFalse(anotherNoteData.get(AnkiDroidHelper.KEY_TAGS).contains(duplicateTag));
     }
 }
