@@ -28,6 +28,8 @@ public class NotesIntegrity {
     private int fixedSuspiciousFieldsCount;
     private int autoFilledRelationsCount;
 
+    private int duplicatesCount;
+
     private final Map<String, Set<Map<String, String>>> fieldSuspiciousPointed = new HashMap<>();
     private final Map<String, Set<Map<String, String>>> fieldSuspiciousPointing = new HashMap<>();
 
@@ -235,6 +237,10 @@ public class NotesIntegrity {
 
         public int getAutoFilledRelationsCount() {
             return autoFilledRelationsCount;
+        }
+
+        public int getDuplicatesCount() {
+            return duplicatesCount;
         }
     }
 }
