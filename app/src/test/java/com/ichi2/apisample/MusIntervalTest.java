@@ -2882,7 +2882,7 @@ public class MusIntervalTest {
                 .build();
         NotesIntegrity.Summary is = new NotesIntegrity(helper, mi, corruptedTag, suspiciousTag, duplicateTag).check();
 
-        assertEquals(2, is.getDuplicatesCount());
+        assertEquals(2, is.getDuplicateNotesCount());
     }
 
     @Test
@@ -2967,7 +2967,7 @@ public class MusIntervalTest {
     }
 
     @Test
-    public void checkIntegrity_DuplicateFixed_ShouldCount() throws MusInterval.Exception, AnkiDroidHelper.InvalidAnkiDatabaseException {
+    public void checkIntegrity_DuplicateFixed_ShouldRemoveTag() throws MusInterval.Exception, AnkiDroidHelper.InvalidAnkiDatabaseException {
         final long modelId = new Random().nextLong();
         final long noteId = new Random().nextLong();
         final long anotherNoteId = new Random().nextLong();

@@ -29,8 +29,7 @@ public class NotesIntegrity {
     private int fixedSuspiciousFieldsCount;
     private int autoFilledRelationsCount;
 
-    private int duplicatesCount;
-    private int fixedDuplicatesCount;
+    private int duplicateNotesCount;
 
     private final Map<String, Set<Map<String, String>>> fieldSuspiciousPointed = new HashMap<>();
     private final Map<String, Set<Map<String, String>>> fieldSuspiciousPointing = new HashMap<>();
@@ -183,12 +182,14 @@ public class NotesIntegrity {
         }
 
         final String duplicateTagCheckStr = String.format(" %s ", duplicateTag);
-
         for (Map.Entry<Map<String, String>, LinkedList<Map<String, String>>> keyDataNotes : keysDataNotes.entrySet()) {
             LinkedList<Map<String, String>> notes = keyDataNotes.getValue();
             int notesCount = notes.size();
             if (notesCount > 1) {
-                duplicatesCount += notesCount;
+                duplicateNotesCount += notesCount;
+                if (duplicateTag == null) {
+                    continue;
+                }
                 for (Map<String, String> note : notes) {
                     String noteTags = note.get(AnkiDroidHelper.KEY_TAGS);
                     if (!noteTags.contains(duplicateTagCheckStr)) {
@@ -196,13 +197,12 @@ public class NotesIntegrity {
                         helper.addTagToNote(noteId, String.format("%s ", duplicateTag));
                     }
                 }
-            } else if (notesCount == 1) {
+            } else if (notesCount == 1 && corruptedTag != null) {
                 Map<String, String> note = notes.getFirst();
                 String noteTags = note.get(AnkiDroidHelper.KEY_TAGS);
                 if (noteTags.contains(duplicateTagCheckStr)) {
                     long noteId = Long.parseLong(note.get(AnkiDroidHelper.KEY_ID));
                     helper.updateNoteTags(noteId, noteTags.replace(duplicateTagCheckStr, ""));
-                    fixedDuplicatesCount++;
                 }
             }
         }
@@ -253,6 +253,10 @@ public class NotesIntegrity {
             return suspiciousTag;
         }
 
+        public String getDuplicateTag() {
+            return duplicateTag;
+        }
+
         public int getNotesCount() {
             return notesCount;
         }
@@ -285,8 +289,8 @@ public class NotesIntegrity {
             return autoFilledRelationsCount;
         }
 
-        public int getDuplicatesCount() {
-            return duplicatesCount;
+        public int getDuplicateNotesCount() {
+            return duplicateNotesCount;
         }
     }
 }

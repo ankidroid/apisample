@@ -33,6 +33,7 @@ public class IntegrityReport {
 
         String corruptedTag = integritySummary.getCorruptedTag();
         String suspiciousTag = integritySummary.getSuspiciousTag();
+        String duplicateTag = integritySummary.getDuplicateTag();
 
         int notesCount = integritySummary.getNotesCount();
         int corruptedNotesCount = integritySummary.getCorruptedNotesCount();
@@ -42,6 +43,7 @@ public class IntegrityReport {
         Map<String, Integer> suspiciousFieldCounts = integritySummary.getSuspiciousFieldCounts();
         int fixedSuspiciousFieldsCount = integritySummary.getFixedSuspiciousFieldsCount();
         int autoFilledRelationsCount = integritySummary.getAutoFilledRelationsCount();
+        int duplicateNotesCount = integritySummary.getDuplicateNotesCount();
 
         Map<String, String> fieldValidationMessages = new HashMap<>();
         fieldValidationMessages.put(MusInterval.Fields.SOUND, context.getString(R.string.validation_sound));
@@ -114,6 +116,13 @@ public class IntegrityReport {
         if (corruptedNotesCount == 0 && suspiciousNotesCount == 0) {
             report.append("\n\n");
             report.append(res.getString(R.string.integrity_ok));
+        }
+        if (duplicateNotesCount > 0) {
+            report.append("\n\n");
+            report.append(res.getString(R.string.integrity_duplicates, duplicateNotesCount));
+            if (duplicateTag != null) {
+                report.append(res.getString(R.string.integrity_duplicates_tagged, duplicateTag));
+            }
         }
         return report.toString();
     }
