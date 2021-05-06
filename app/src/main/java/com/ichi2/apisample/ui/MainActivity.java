@@ -706,7 +706,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     MusInterval mi = getMusInterval();
                     final String corruptedTag = TAG_APPLICATION + AnkiDroidHelper.HIERARCHICAL_TAG_SEPARATOR + TAG_CORRUPTED;
                     final String suspiciousTag = TAG_APPLICATION + AnkiDroidHelper.HIERARCHICAL_TAG_SEPARATOR + TAG_SUSPICIOUS;
-                    NotesIntegrity integrity = new NotesIntegrity(mAnkiDroid, mi, corruptedTag, suspiciousTag);
+                    final String duplicateTag = TAG_APPLICATION + AnkiDroidHelper.HIERARCHICAL_TAG_SEPARATOR + TAG_DUPLICATE;
+                    NotesIntegrity integrity = new NotesIntegrity(mAnkiDroid, mi, corruptedTag, suspiciousTag, duplicateTag);
                     NotesIntegrity.Summary summary = integrity.check();
                     String report = IntegrityReport.build(summary, MainActivity.this);
 

@@ -16,6 +16,7 @@ public class NotesIntegrity {
 
     private final String corruptedTag;
     private final String suspiciousTag;
+    private final String duplicateTag;
 
     private int notesCount;
 
@@ -33,12 +34,13 @@ public class NotesIntegrity {
     private final Map<String, Set<Map<String, String>>> fieldSuspiciousPointed = new HashMap<>();
     private final Map<String, Set<Map<String, String>>> fieldSuspiciousPointing = new HashMap<>();
 
-    public NotesIntegrity(AnkiDroidHelper helper, MusInterval musInterval, String corruptedTag, String suspiciousTag) {
+    public NotesIntegrity(AnkiDroidHelper helper, MusInterval musInterval, String corruptedTag, String suspiciousTag, String duplicateTag) {
         this.helper = helper;
         this.musInterval = musInterval;
 
         this.corruptedTag = corruptedTag;
         this.suspiciousTag = suspiciousTag;
+        this.duplicateTag = duplicateTag;
     }
 
     public Summary check() throws AnkiDroidHelper.InvalidAnkiDatabaseException {
@@ -164,9 +166,8 @@ public class NotesIntegrity {
     }
 
     private void countDuplicates(ArrayList<Map<String, String>> notesData) {
-        Map<Map<String, String>, ArrayList<Long>> keysDataNoteIds = new HashMap<>();
+        Map<Map<String, String>, ArrayList<Map<String, String>>> keysDataNotes = new HashMap<>();
         for (Map<String, String> noteData : notesData) {
-            long id = Long.parseLong(noteData.get(AnkiDroidHelper.KEY_ID));
             Map<String, String> keyData = new HashMap<String, String>(noteData) {{
                 remove(musInterval.modelFields.get(MusInterval.Fields.SOUND));
                 remove(musInterval.modelFields.get(MusInterval.Fields.SOUND_SMALLER));
@@ -175,15 +176,25 @@ public class NotesIntegrity {
                 remove(AnkiDroidHelper.KEY_ID);
                 remove(AnkiDroidHelper.KEY_TAGS);
             }};
-            ArrayList<Long> current = keysDataNoteIds.getOrDefault(keyData, new ArrayList<Long>());
-            current.add(id);
-            keysDataNoteIds.put(keyData, current);
+            ArrayList<Map<String, String>> current = keysDataNotes.getOrDefault(keyData, new ArrayList<Map<String, String>>());
+            current.add(noteData);
+            keysDataNotes.put(keyData, current);
         }
 
-        for (Map.Entry<Map<String, String>, ArrayList<Long>> keyDataNoteIds : keysDataNoteIds.entrySet()) {
-            int noteIdsCount = keyDataNoteIds.getValue().size();
-            if (noteIdsCount > 1) {
-                duplicatesCount += noteIdsCount;
+        final String duplicateTagCheckStr = String.format(" %s ", duplicateTag);
+
+        for (Map.Entry<Map<String, String>, ArrayList<Map<String, String>>> keyDataNotes : keysDataNotes.entrySet()) {
+            ArrayList<Map<String, String>> notes = keyDataNotes.getValue();
+            int notesCount = notes.size();
+            if (notesCount > 1) {
+                duplicatesCount += notesCount;
+                for (Map<String, String> note : notes) {
+                    long noteId = Long.parseLong(note.get(AnkiDroidHelper.KEY_ID));
+                    String noteTags = note.get(AnkiDroidHelper.KEY_TAGS);
+                    if (!noteTags.contains(duplicateTagCheckStr)) {
+                        helper.addTagToNote(noteId, String.format("%s ", duplicateTag));
+                    }
+                }
             }
         }
     }
