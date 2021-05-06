@@ -56,6 +56,7 @@ public class NotesIntegrity {
         ArrayList<Map<String, String>> correctNotesData = checkCorrectness(searchResult);
         corruptedNotesCount = searchResult.size() - correctNotesData.size();
 
+        countDuplicates(correctNotesData);
         checkRelations(correctNotesData, soundDict);
 
         for (Map<String, String> noteData : correctNotesData) {
@@ -162,7 +163,32 @@ public class NotesIntegrity {
         return correctNotesData;
     }
 
-    public void checkRelations(ArrayList<Map<String, String>> correctNotesData, Map<String, Map<String, String>> soundDict) {
+    private void countDuplicates(ArrayList<Map<String, String>> notesData) {
+        Map<Map<String, String>, ArrayList<Long>> keysDataNoteIds = new HashMap<>();
+        for (Map<String, String> noteData : notesData) {
+            long id = Long.parseLong(noteData.get(AnkiDroidHelper.KEY_ID));
+            Map<String, String> keyData = new HashMap<String, String>(noteData) {{
+                remove(musInterval.modelFields.get(MusInterval.Fields.SOUND));
+                remove(musInterval.modelFields.get(MusInterval.Fields.SOUND_SMALLER));
+                remove(musInterval.modelFields.get(MusInterval.Fields.SOUND_LARGER));
+                remove(musInterval.modelFields.get(MusInterval.Fields.VERSION));
+                remove(AnkiDroidHelper.KEY_ID);
+                remove(AnkiDroidHelper.KEY_TAGS);
+            }};
+            ArrayList<Long> current = keysDataNoteIds.getOrDefault(keyData, new ArrayList<Long>());
+            current.add(id);
+            keysDataNoteIds.put(keyData, current);
+        }
+
+        for (Map.Entry<Map<String, String>, ArrayList<Long>> keyDataNoteIds : keysDataNoteIds.entrySet()) {
+            int noteIdsCount = keyDataNoteIds.getValue().size();
+            if (noteIdsCount > 1) {
+                duplicatesCount += noteIdsCount;
+            }
+        }
+    }
+
+    private void checkRelations(ArrayList<Map<String, String>> correctNotesData, Map<String, Map<String, String>> soundDict) {
         for (Map<String, String> noteData : correctNotesData) {
             for (RelatedIntervalSoundField relatedSoundField : musInterval.relatedSoundFields) {
                 if (relatedSoundField.isSuspicious(noteData, soundDict, fieldSuspiciousPointed)) {
