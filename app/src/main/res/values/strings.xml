@@ -113,9 +113,9 @@
         <item quantity="one">One field value previously tagged as corrupted has been fixed</item>
         <item quantity="other">%d field values previously tagged as corrupted have been fixed</item>
     </plurals>
-    <plurals name="integrity_suspicious_field_values_fixed">
-        <item quantity="one">One field value previously tagged as suspicious has been resolved</item>
-        <item quantity="other">%d field values previously tagged as suspicious have been resolved</item>
+    <plurals name="integrity_suspicious_relations_fixed">
+        <item quantity="one">One relation previously tagged as suspicious has been resolved</item>
+        <item quantity="other">%d relations previously tagged as suspicious have been resolved</item>
     </plurals>
     <plurals name="integrity_suspicious_fixed">
         <item quantity="one">One note previously tagged as suspicious has been fixed</item>
@@ -176,7 +176,7 @@
     <string name="validation_mandatory">value must be present</string>
     <string name="tempo_not_in_range">Tempo value must be in range of %d to %d (BPM)</string>
     <string name="integrity_duplicates">Found %d duplicate notes</string>
-    <string name="integrity_duplicates_tagged">and marked them using tag starting with \"%s\</string>>
+    <string name="integrity_duplicates_tagged">\u0020and marked them using tag starting with \"%s\"</string>>
 
     <!-- SettingsActivity labels, fields and buttons -->
     <string name="deck_preference_title">Deck</string>

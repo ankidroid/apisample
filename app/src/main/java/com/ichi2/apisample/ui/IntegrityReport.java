@@ -41,7 +41,7 @@ public class IntegrityReport {
         int fixedCorruptedFieldsCount = integritySummary.getFixedCorruptedFieldsCount();
         int suspiciousNotesCount = integritySummary.getSuspiciousNotesCount();
         Map<String, Integer> suspiciousFieldCounts = integritySummary.getSuspiciousFieldCounts();
-        int fixedSuspiciousFieldsCount = integritySummary.getFixedSuspiciousFieldsCount();
+        int fixedSuspiciousRelationsCount = integritySummary.getFixedSuspiciousRelationsCount();
         int autoFilledRelationsCount = integritySummary.getAutoFilledRelationsCount();
         int duplicateNotesCount = integritySummary.getDuplicateNotesCount();
 
@@ -101,12 +101,12 @@ public class IntegrityReport {
                 }
             }
         }
-        if (fixedSuspiciousFieldsCount > 0) {
+        if (fixedSuspiciousRelationsCount > 0) {
             report.append("\n\n");
-            if (fixedSuspiciousFieldsCount == 1) {
-                report.append(res.getQuantityString(R.plurals.integrity_suspicious_field_values_fixed, fixedSuspiciousFieldsCount));
+            if (fixedSuspiciousRelationsCount == 1) {
+                report.append(res.getQuantityString(R.plurals.integrity_suspicious_relations_fixed, fixedSuspiciousRelationsCount));
             } else {
-                report.append(res.getQuantityString(R.plurals.integrity_suspicious_field_values_fixed, fixedSuspiciousFieldsCount, fixedSuspiciousFieldsCount));
+                report.append(res.getQuantityString(R.plurals.integrity_suspicious_relations_fixed, fixedSuspiciousRelationsCount, fixedSuspiciousRelationsCount));
             }
         }
         if (autoFilledRelationsCount > 0) {

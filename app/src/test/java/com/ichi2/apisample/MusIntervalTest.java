@@ -2567,7 +2567,7 @@ public class MusIntervalTest {
 
         assertEquals(3, is.getNotesCount());
         assertEquals(0, is.getSuspiciousNotesCount());
-        assertEquals(8, is.getFixedSuspiciousFieldsCount());
+        assertEquals(8, is.getFixedSuspiciousRelationsCount());
     }
 
     @Test

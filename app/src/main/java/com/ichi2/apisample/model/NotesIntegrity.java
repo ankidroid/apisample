@@ -26,7 +26,7 @@ public class NotesIntegrity {
 
     private int suspiciousNotesCount;
     private final Map<String, Integer> suspiciousFieldCounts = new HashMap<>();
-    private int fixedSuspiciousFieldsCount;
+    private int fixedSuspiciousRelations;
     private int autoFilledRelationsCount;
 
     private int duplicateNotesCount;
@@ -84,6 +84,10 @@ public class NotesIntegrity {
                         noteTags,
                         fieldSuspiciousPointing.getOrDefault(fieldKey, new HashSet<Map<String, String>>())
                 );
+                if (suspiciousPointing) {
+                    int current = suspiciousFieldCounts.getOrDefault(fieldKey, 0);
+                    suspiciousFieldCounts.put(fieldKey, current + 1);
+                }
 
                 String suspiciousPointedTag = (
                         suspiciousBaseTag
@@ -227,14 +231,12 @@ public class NotesIntegrity {
         if (!suspiciousData.contains(noteData)) {
             if (hasTag) {
                 helper.updateNoteTags(noteId, noteTags.replace(tagCheckStr, " "));
-                fixedSuspiciousFieldsCount++;
+                fixedSuspiciousRelations++;
             }
         } else {
             if (!hasTag) {
                 helper.addTagToNote(noteId, String.format("%s ", tag));
             }
-            int cur = suspiciousFieldCounts.getOrDefault(fieldKey, 0);
-            suspiciousFieldCounts.put(fieldKey, cur + 1);
             return true;
         }
         return false;
@@ -281,8 +283,8 @@ public class NotesIntegrity {
             return suspiciousFieldCounts;
         }
 
-        public int getFixedSuspiciousFieldsCount() {
-            return fixedSuspiciousFieldsCount;
+        public int getFixedSuspiciousRelationsCount() {
+            return fixedSuspiciousRelations;
         }
 
         public int getAutoFilledRelationsCount() {
