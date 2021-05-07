@@ -19,8 +19,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.preference.PreferenceManager;
 
-import android.text.Editable;
-import android.text.TextWatcher;
+import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -115,6 +114,10 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private AutoCompleteTextView inputInstrument;
     private TextView labelExisting;
     private Button actionMarkExisting;
+
+    private AlertDialog dialogProgress;
+
+    private Handler mHandler;
 
     private final static int[] CHECK_NOTE_IDS = new int[]{
             R.id.checkNoteC, R.id.checkNoteCSharp,
@@ -262,7 +265,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             }
         });
 
-
+        mHandler = new Handler();
 
         configureClearAllButton();
         configureSelectFileButton();
@@ -704,29 +707,63 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 }
                 try {
                     MusInterval mi = getMusInterval();
+
                     final String corruptedTag = TAG_APPLICATION + AnkiDroidHelper.HIERARCHICAL_TAG_SEPARATOR + TAG_CORRUPTED;
                     final String suspiciousTag = TAG_APPLICATION + AnkiDroidHelper.HIERARCHICAL_TAG_SEPARATOR + TAG_SUSPICIOUS;
                     SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
                     boolean tagDuplicates = preferences.getBoolean(SettingsFragment.KEY_TAG_DUPLICATES_SWITCH, SettingsFragment.DEFAULT_TAG_DUPLICATES_SWITCH);
                     final String duplicateTag = !tagDuplicates ? null : TAG_APPLICATION + AnkiDroidHelper.HIERARCHICAL_TAG_SEPARATOR + TAG_DUPLICATE;
-                    NotesIntegrity integrity = new NotesIntegrity(mAnkiDroid, mi, corruptedTag, suspiciousTag, duplicateTag);
-                    NotesIntegrity.Summary summary = integrity.check();
-                    String report = IntegrityReport.build(summary, MainActivity.this);
 
-                    new AlertDialog.Builder(MainActivity.this)
-                            .setMessage(report)
-                            .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialogInterface, int i) {
+                    final NotesIntegrity integrity = new NotesIntegrity(mAnkiDroid, mi, corruptedTag, suspiciousTag, duplicateTag);
 
-                                }
-                            })
-                            .show();
+                    dialogProgress = getProgressDialog();
+
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                NotesIntegrity.Summary summary = integrity.check();
+                                final String report = IntegrityReport.build(summary, MainActivity.this);
+                                mHandler.post(new Thread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        dialogProgress.hide();
+                                        new AlertDialog.Builder(MainActivity.this)
+                                                .setMessage(report)
+                                                .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                                                    @Override
+                                                    public void onClick(DialogInterface dialogInterface, int i) {
+
+                                                    }
+                                                })
+                                                .show();
+                                    }
+                                }));
+                            } catch (final Throwable t) {
+                                mHandler.post(new Thread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        handleError(t);
+                                    }
+                                }));
+                            }
+                        }
+                    }).start();
+
                 } catch (Throwable e) {
                     handleError(e);
                 }
             }
         });
+    }
+
+    private AlertDialog getProgressDialog() {
+        ViewGroup viewGroup = findViewById(R.id.content);
+        View dialogView = LayoutInflater.from(MainActivity.this).inflate(R.layout.dialog_progress, viewGroup, false);
+        return new AlertDialog.Builder(MainActivity.this)
+                .setView(dialogView)
+                .setCancelable(false)
+                .show();
     }
 
     @Override
