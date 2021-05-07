@@ -718,37 +718,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
                     dialogProgress = getProgressDialog();
 
-                    new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                NotesIntegrity.Summary summary = integrity.check();
-                                final String report = IntegrityReport.build(summary, MainActivity.this);
-                                mHandler.post(new Thread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        dialogProgress.hide();
-                                        new AlertDialog.Builder(MainActivity.this)
-                                                .setMessage(report)
-                                                .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                                                    @Override
-                                                    public void onClick(DialogInterface dialogInterface, int i) {
-
-                                                    }
-                                                })
-                                                .show();
-                                    }
-                                }));
-                            } catch (final Throwable t) {
-                                mHandler.post(new Thread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        handleError(t);
-                                    }
-                                }));
-                            }
-                        }
-                    }).start();
+                    new Thread(new IntegrityCheck(integrity, MainActivity.this, dialogProgress, mHandler)).start();
 
                 } catch (Throwable e) {
                     handleError(e);
@@ -915,7 +885,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         return valuesList.toArray(new String[0]);
     }
 
-    private void handleError(Throwable err) {
+    void handleError(Throwable err) {
         try {
             throw err;
         } catch (MusInterval.Exception e) {
