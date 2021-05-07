@@ -79,7 +79,7 @@ public class NotesIntegrity {
                 ).toLowerCase();
                 boolean suspiciousPointing = processRelation(
                         noteId,
-                        fieldKey, noteData,
+                        noteData,
                         suspiciousPointingTag,
                         noteTags,
                         fieldSuspiciousPointing.getOrDefault(fieldKey, new HashSet<Map<String, String>>())
@@ -96,7 +96,7 @@ public class NotesIntegrity {
                 ).toLowerCase();
                 boolean suspiciousPointed = processRelation(
                         noteId,
-                        fieldKey, noteData,
+                        noteData,
                         suspiciousPointedTag,
                         noteTags,
                         fieldSuspiciousPointed.getOrDefault(fieldKey, new HashSet<Map<String, String>>())
@@ -225,7 +225,7 @@ public class NotesIntegrity {
         }
     }
 
-    private boolean processRelation(long noteId, String fieldKey, Map<String, String> noteData, String tag, String noteTags, Set<Map<String, String>> suspiciousData) {
+    private boolean processRelation(long noteId, Map<String, String> noteData, String tag, String noteTags, Set<Map<String, String>> suspiciousData) {
         final String tagCheckStr = String.format(" %s ", tag);
         boolean hasTag = noteTags.contains(tagCheckStr);
         if (!suspiciousData.contains(noteData)) {
