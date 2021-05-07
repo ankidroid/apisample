@@ -2,6 +2,7 @@ package com.ichi2.apisample.ui;
 
 import android.Manifest;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.ClipData;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -42,6 +43,7 @@ import com.ichi2.apisample.model.NotesIntegrity;
 import com.ichi2.apisample.model.MusInterval;
 import com.ichi2.apisample.R;
 import com.ichi2.apisample.helper.AnkiDroidHelper;
+import com.ichi2.apisample.model.ProgressIndicator;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -51,7 +53,7 @@ import java.util.Map;
 import java.util.Set;
 
 
-public class MainActivity extends AppCompatActivity implements ActivityCompat.OnRequestPermissionsResultCallback, DuplicateAddingPrompter {
+public class MainActivity extends AppCompatActivity implements ActivityCompat.OnRequestPermissionsResultCallback, DuplicateAddingPrompter, ProgressIndicator {
 
     private static final int AD_PERM_REQUEST = 0;
     private static final int PERMISSIONS_REQUEST_EXTERNAL_STORAGE = 1;
@@ -115,7 +117,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private TextView labelExisting;
     private Button actionMarkExisting;
 
-    private AlertDialog dialogProgress;
+    private ProgressDialog progressDialog;
 
     private Handler mHandler;
 
@@ -202,6 +204,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         inputInstrument = findViewById(R.id.inputInstrument);
         labelExisting = findViewById(R.id.labelExisting);
         actionMarkExisting = findViewById(R.id.actionMarkExisting);
+
+        progressDialog = new ProgressDialog(MainActivity.this);
 
         restoreUiState();
 
@@ -714,11 +718,15 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     boolean tagDuplicates = preferences.getBoolean(SettingsFragment.KEY_TAG_DUPLICATES_SWITCH, SettingsFragment.DEFAULT_TAG_DUPLICATES_SWITCH);
                     final String duplicateTag = !tagDuplicates ? null : TAG_APPLICATION + AnkiDroidHelper.HIERARCHICAL_TAG_SEPARATOR + TAG_DUPLICATE;
 
-                    final NotesIntegrity integrity = new NotesIntegrity(mAnkiDroid, mi, corruptedTag, suspiciousTag, duplicateTag);
+                    final NotesIntegrity integrity = new NotesIntegrity(mAnkiDroid, mi, corruptedTag, suspiciousTag, duplicateTag, MainActivity.this);
 
-                    dialogProgress = getProgressDialog();
+                    progressDialog.setTitle(R.string.integrity_progress_title);
+                    progressDialog.setMessage("");
+                    progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+                    progressDialog.setCancelable(false);
+                    progressDialog.show();
 
-                    new Thread(new IntegrityCheck(integrity, MainActivity.this, dialogProgress, mHandler)).start();
+                    new Thread(new IntegrityCheck(integrity, MainActivity.this, progressDialog, mHandler)).start();
 
                 } catch (Throwable e) {
                     handleError(e);
@@ -727,13 +735,14 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         });
     }
 
-    private AlertDialog getProgressDialog() {
-        ViewGroup viewGroup = findViewById(R.id.content);
-        View dialogView = LayoutInflater.from(MainActivity.this).inflate(R.layout.dialog_progress, viewGroup, false);
-        return new AlertDialog.Builder(MainActivity.this)
-                .setView(dialogView)
-                .setCancelable(false)
-                .show();
+    @Override
+    public void setMessage(final int resId, final Object ...formatArgs) {
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                progressDialog.setMessage(getString(resId, formatArgs));
+            }
+        });
     }
 
     @Override

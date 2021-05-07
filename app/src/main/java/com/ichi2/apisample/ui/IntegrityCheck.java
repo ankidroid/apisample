@@ -1,6 +1,7 @@
 package com.ichi2.apisample.ui;
 
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.res.Resources;
@@ -15,16 +16,16 @@ import java.util.Map;
 
 public class IntegrityCheck implements Runnable {
     private final MainActivity mainActivity;
-    private final AlertDialog dialogProgress;
+    private final ProgressDialog progressDialog;
     private final Handler handler;
 
     private final NotesIntegrity notesIntegrity;
 
 
-    public IntegrityCheck(NotesIntegrity notesIntegrity, MainActivity mainActivity, AlertDialog dialogProgress, Handler handler) {
+    public IntegrityCheck(NotesIntegrity notesIntegrity, MainActivity mainActivity, ProgressDialog progressDialog, Handler handler) {
         this.notesIntegrity = notesIntegrity;
         this.mainActivity = mainActivity;
-        this.dialogProgress = dialogProgress;
+        this.progressDialog = progressDialog;
         this.handler = handler;
     }
 
@@ -36,7 +37,7 @@ public class IntegrityCheck implements Runnable {
             handler.post(new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    dialogProgress.hide();
+                    progressDialog.hide();
                     new AlertDialog.Builder(mainActivity)
                             .setMessage(report)
                             .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {

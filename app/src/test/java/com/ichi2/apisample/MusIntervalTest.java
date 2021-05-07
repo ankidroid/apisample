@@ -5,6 +5,7 @@ import com.ichi2.apisample.model.DuplicateAddingHandler;
 import com.ichi2.apisample.model.DuplicateAddingPrompter;
 import com.ichi2.apisample.model.MusInterval;
 import com.ichi2.apisample.model.NotesIntegrity;
+import com.ichi2.apisample.model.ProgressIndicator;
 import com.ichi2.apisample.model.RelatedIntervalSoundField;
 import com.ichi2.apisample.validation.EmptyValidator;
 
@@ -2279,7 +2280,8 @@ public class MusIntervalTest {
                 .octaves(null)
                 .intervals(null)
                 .build();
-        NotesIntegrity.Summary is = new NotesIntegrity(helper, mi, corruptedTag, suspiciousTag, duplicateTag).check();
+        ProgressIndicator progressIndicator = mock(ProgressIndicator.class);
+        NotesIntegrity.Summary is = new NotesIntegrity(helper, mi, corruptedTag, suspiciousTag, duplicateTag, progressIndicator).check();
 
         assertEquals(1, is.getNotesCount());
         assertEquals(1, is.getCorruptedNotesCount());
@@ -2340,7 +2342,8 @@ public class MusIntervalTest {
                 .octaves(null)
                 .intervals(null)
                 .build();
-        NotesIntegrity.Summary is = new NotesIntegrity(helper, mi, corruptedTag, suspiciousTag, duplicateTag).check();
+        ProgressIndicator progressIndicator = mock(ProgressIndicator.class);
+        NotesIntegrity.Summary is = new NotesIntegrity(helper, mi, corruptedTag, suspiciousTag, duplicateTag, progressIndicator).check();
 
         assertEquals(1, is.getNotesCount());
         assertEquals(0, is.getCorruptedNotesCount());
@@ -2429,7 +2432,8 @@ public class MusIntervalTest {
                 .octaves(null)
                 .intervals(null)
                 .build();
-        NotesIntegrity.Summary is = new NotesIntegrity(helper, mi, corruptedTag, suspiciousTag, duplicateTag).check();
+        ProgressIndicator progressIndicator = mock(ProgressIndicator.class);
+        NotesIntegrity.Summary is = new NotesIntegrity(helper, mi, corruptedTag, suspiciousTag, duplicateTag, progressIndicator).check();
 
         assertEquals(3, is.getNotesCount());
         assertEquals(3, is.getSuspiciousNotesCount());
@@ -2563,7 +2567,8 @@ public class MusIntervalTest {
                 .octaves(null)
                 .intervals(null)
                 .build();
-        NotesIntegrity.Summary is = new NotesIntegrity(helper, mi, corruptedTag, suspiciousTag, duplicateTag).check();
+        ProgressIndicator progressIndicator = mock(ProgressIndicator.class);
+        NotesIntegrity.Summary is = new NotesIntegrity(helper, mi, corruptedTag, suspiciousTag, duplicateTag, progressIndicator).check();
 
         assertEquals(3, is.getNotesCount());
         assertEquals(0, is.getSuspiciousNotesCount());
@@ -2687,7 +2692,8 @@ public class MusIntervalTest {
                 .octaves(null)
                 .intervals(null)
                 .build();
-        NotesIntegrity.Summary is = new NotesIntegrity(helper, mi, corruptedTag, suspiciousTag, duplicateTag).check();
+        ProgressIndicator progressIndicator = mock(ProgressIndicator.class);
+        NotesIntegrity.Summary is = new NotesIntegrity(helper, mi, corruptedTag, suspiciousTag, duplicateTag, progressIndicator).check();
 
         assertEquals(3, is.getNotesCount());
         assertEquals(4, is.getAutoFilledRelationsCount());
@@ -2811,7 +2817,8 @@ public class MusIntervalTest {
                 .octaves(null)
                 .intervals(null)
                 .build();
-        NotesIntegrity.Summary is = new NotesIntegrity(helper, mi, corruptedTag, suspiciousTag, duplicateTag).check();
+        ProgressIndicator progressIndicator = mock(ProgressIndicator.class);
+        NotesIntegrity.Summary is = new NotesIntegrity(helper, mi, corruptedTag, suspiciousTag, duplicateTag, progressIndicator).check();
 
         assertEquals(3, is.getNotesCount());
         assertEquals(0, is.getAutoFilledRelationsCount());
@@ -2880,7 +2887,8 @@ public class MusIntervalTest {
                 .octaves(null)
                 .intervals(null)
                 .build();
-        NotesIntegrity.Summary is = new NotesIntegrity(helper, mi, corruptedTag, suspiciousTag, duplicateTag).check();
+        ProgressIndicator progressIndicator = mock(ProgressIndicator.class);
+        NotesIntegrity.Summary is = new NotesIntegrity(helper, mi, corruptedTag, suspiciousTag, duplicateTag, progressIndicator).check();
 
         assertEquals(2, is.getDuplicateNotesCount());
     }
@@ -2960,7 +2968,8 @@ public class MusIntervalTest {
                 .octaves(null)
                 .intervals(null)
                 .build();
-        new NotesIntegrity(helper, mi, corruptedTag, suspiciousTag, duplicateTag).check();
+        ProgressIndicator progressIndicator = mock(ProgressIndicator.class);
+        new NotesIntegrity(helper, mi, corruptedTag, suspiciousTag, duplicateTag, progressIndicator).check();
 
         assertTrue(noteData.get(AnkiDroidHelper.KEY_TAGS).contains(duplicateTag));
         assertTrue(duplicateNoteData.get(AnkiDroidHelper.KEY_TAGS).contains(duplicateTag));
@@ -3040,7 +3049,8 @@ public class MusIntervalTest {
                 .octaves(null)
                 .intervals(null)
                 .build();
-        new NotesIntegrity(helper, mi, corruptedTag, suspiciousTag, duplicateTag).check();
+        ProgressIndicator progressIndicator = mock(ProgressIndicator.class);
+        new NotesIntegrity(helper, mi, corruptedTag, suspiciousTag, duplicateTag, progressIndicator).check();
 
         assertFalse(noteData.get(AnkiDroidHelper.KEY_TAGS).contains(duplicateTag));
         assertFalse(anotherNoteData.get(AnkiDroidHelper.KEY_TAGS).contains(duplicateTag));
