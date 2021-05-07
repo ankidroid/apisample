@@ -1,8 +1,8 @@
 package com.ichi2.apisample;
 
 import com.ichi2.apisample.helper.AnkiDroidHelper;
-import com.ichi2.apisample.model.DuplicateAddingHandler;
-import com.ichi2.apisample.model.DuplicateAddingPrompter;
+import com.ichi2.apisample.model.AddingHandler;
+import com.ichi2.apisample.model.AddingPrompter;
 import com.ichi2.apisample.model.MusInterval;
 import com.ichi2.apisample.model.NotesIntegrity;
 import com.ichi2.apisample.model.ProgressIndicator;
@@ -368,7 +368,7 @@ public class MusIntervalTest {
                 .intervals(MusInterval.Fields.Interval.VALUES)
                 .build();
 
-        mi.addToAnki(null);
+        mi.addToAnki(null, null);
     }
 
     @Test(expected = MusInterval.AddToAnkiException.class)
@@ -439,7 +439,7 @@ public class MusIntervalTest {
                 .instrument(instrument)
                 .build();
 
-        mi.addToAnki(null);
+        mi.addToAnki(null, null);
     }
 
     @Test
@@ -510,7 +510,10 @@ public class MusIntervalTest {
                 .instrument(instrument)
                 .build();
 
-        mi.addToAnki(null); // should not throw any exception
+        AddingPrompter prompter = mock(AddingPrompter.class);
+        ProgressIndicator indicator = mock(ProgressIndicator.class);
+
+        mi.addToAnki(prompter, indicator); // should not throw any exception
     }
 
     @Test
@@ -579,7 +582,10 @@ public class MusIntervalTest {
                 .instrument(instrument)
                 .build();
 
-        mi.addToAnki(null); // should not throw any exception
+        AddingPrompter prompter = mock(AddingPrompter.class);
+        ProgressIndicator indicator = mock(ProgressIndicator.class);
+
+        mi.addToAnki(prompter, indicator); // should not throw any exception
     }
 
     @Test
@@ -617,7 +623,22 @@ public class MusIntervalTest {
                 .instrument(instrument)
                 .build();
 
-        MusInterval mi2 = mi.addToAnki(null); // should not throw any exception
+        final LinkedList<MusInterval> addedMusIntervals = new LinkedList<>();
+
+        AddingPrompter prompter = mock(AddingPrompter.class);
+        doAnswer(new Answer() {
+            @Override
+            public Object answer(InvocationOnMock invocation) throws Throwable {
+                addedMusIntervals.add((MusInterval) invocation.getArgument(0));
+                return null;
+            }
+        }).when(prompter).addingFinished(any(MusInterval.class));
+
+        ProgressIndicator indicator = mock(ProgressIndicator.class);
+
+        mi.addToAnki(prompter, indicator); // should not throw any exception
+
+        MusInterval mi2 = addedMusIntervals.getFirst();
 
         // everything should be the same, except "sound" field
         assertFalse(Arrays.equals(mi.sounds, mi2.sounds));
@@ -660,7 +681,22 @@ public class MusIntervalTest {
                 .instrument("violin")
                 .build();
 
-        MusInterval mi2 = mi.addToAnki(null); // should not throw any exception
+        final LinkedList<MusInterval> addedMusIntervals = new LinkedList<>();
+
+        AddingPrompter prompter = mock(AddingPrompter.class);
+        doAnswer(new Answer() {
+            @Override
+            public Object answer(InvocationOnMock invocation) throws Throwable {
+                addedMusIntervals.add((MusInterval) invocation.getArgument(0));
+                return null;
+            }
+        }).when(prompter).addingFinished(any(MusInterval.class));
+
+        ProgressIndicator indicator = mock(ProgressIndicator.class);
+
+        mi.addToAnki(prompter, indicator); // should not throw any exception
+
+        MusInterval mi2 = addedMusIntervals.getFirst();
 
         assertNotEquals(0, mi2.sounds.length);
         assertFalse(Arrays.equals(new String[]{sound}, mi2.sounds));
@@ -700,7 +736,22 @@ public class MusIntervalTest {
                 .instrument("violin")
                 .build();
 
-        MusInterval mi2 = mi.addToAnki(null); // should not throw any exception
+        final LinkedList<MusInterval> addedMusIntervals = new LinkedList<>();
+
+        AddingPrompter prompter = mock(AddingPrompter.class);
+        doAnswer(new Answer() {
+            @Override
+            public Object answer(InvocationOnMock invocation) throws Throwable {
+                addedMusIntervals.add((MusInterval) invocation.getArgument(0));
+                return null;
+            }
+        }).when(prompter).addingFinished(any(MusInterval.class));
+
+        ProgressIndicator indicator = mock(ProgressIndicator.class);
+
+        mi.addToAnki(prompter, indicator); // should not throw any exception
+
+        MusInterval mi2 = addedMusIntervals.getFirst();
 
         assertNotEquals(0, mi2.sounds.length);
         assertFalse(Arrays.equals(new String[]{sound}, mi2.sounds));
@@ -729,7 +780,7 @@ public class MusIntervalTest {
                 .intervals(MusInterval.Fields.Interval.VALUES)
                 .build();
 
-        mi.addToAnki(null); // should throw exception
+        mi.addToAnki(null, null); // should throw exception
     }
 
     @Test(expected = MusInterval.MandatorySelectionEmptyException.class)
@@ -742,12 +793,12 @@ public class MusIntervalTest {
         doReturn(SIGNATURE).when(helper).getFieldList(eq(modelId));
         doReturn(deckId).when(helper).findDeckIdByName(defaultDeckName);
 
-        MusInterval mi = new MusInterval.Builder(helper)
+        new MusInterval.Builder(helper)
                 .model(defaultModelName)
                 .deck(defaultDeckName)
                 .sounds(new String[]{"/path/to/file"})
                 .notes(new String[]{})
-                .build().addToAnki(null); // should throw exception
+                .build().addToAnki(null, null); // should throw exception
     }
 
     @Test(expected = MusInterval.MandatorySelectionEmptyException.class)
@@ -760,13 +811,13 @@ public class MusIntervalTest {
         doReturn(SIGNATURE).when(helper).getFieldList(eq(modelId));
         doReturn(deckId).when(helper).findDeckIdByName(defaultDeckName);
 
-        MusInterval mi = new MusInterval.Builder(helper)
+        new MusInterval.Builder(helper)
                 .model(defaultModelName)
                 .deck(defaultDeckName)
                 .sounds(new String[]{"/path/to/file"})
                 .notes(new String[]{defaultNote})
                 .octaves(new String[]{})
-                .build().addToAnki(null); // should throw exception
+                .build().addToAnki(null, null); // should throw exception
     }
 
     @Test(expected = MusInterval.MandatorySelectionEmptyException.class)
@@ -779,14 +830,14 @@ public class MusIntervalTest {
         doReturn(SIGNATURE).when(helper).getFieldList(eq(modelId));
         doReturn(deckId).when(helper).findDeckIdByName(defaultDeckName);
 
-        MusInterval mi = new MusInterval.Builder(helper)
+        new MusInterval.Builder(helper)
                 .model(defaultModelName)
                 .deck(defaultDeckName)
                 .sounds(new String[]{"/path/to/file"})
                 .notes(new String[]{defaultNote})
                 .octaves(new String[]{defaultOctave})
                 .intervals(new String[]{}) // should throw exception
-                .build().addToAnki(null);
+                .build().addToAnki(null, null);
     }
 
     @Test
@@ -845,8 +896,24 @@ public class MusIntervalTest {
                 .instrument("violin")
                 .build();
 
-        MusInterval mi1_2 = mi1.addToAnki(null);
-        MusInterval mi2_2 = mi2.addToAnki(null);
+        final LinkedList<MusInterval> addedMusIntervals = new LinkedList<>();
+
+        AddingPrompter prompter = mock(AddingPrompter.class);
+        doAnswer(new Answer() {
+            @Override
+            public Object answer(InvocationOnMock invocation) throws Throwable {
+                addedMusIntervals.add((MusInterval) invocation.getArgument(0));
+                return null;
+            }
+        }).when(prompter).addingFinished(any(MusInterval.class));
+
+        ProgressIndicator indicator = mock(ProgressIndicator.class);
+
+        mi1.addToAnki(prompter, indicator);
+        mi2.addToAnki(prompter, indicator);
+
+        MusInterval mi1_2 = addedMusIntervals.getFirst();
+        MusInterval mi2_2 = addedMusIntervals.getLast();
 
         assertFalse(Arrays.equals(mi1_2.sounds, mi2_2.sounds));
     }
@@ -879,7 +946,7 @@ public class MusIntervalTest {
                 .instrument("violin")
                 .build();
 
-        mi.addToAnki(null); // should throw exception
+        mi.addToAnki(null, null); // should throw exception
     }
 
     @Test(expected = MusInterval.NoteNotExistsException.class)
@@ -1409,11 +1476,26 @@ public class MusIntervalTest {
             }
         }).when(helper).updateNote(eq(modelId), any(Long.class), any(Map.class));
 
-        musIntervalsAdded.add(musIntervals[0].addToAnki(null));
+        final LinkedList<MusInterval> addedMusIntervals = new LinkedList<>();
+
+        AddingPrompter prompter = mock(AddingPrompter.class);
+        doAnswer(new Answer() {
+            @Override
+            public Object answer(InvocationOnMock invocation) throws Throwable {
+                addedMusIntervals.add((MusInterval) invocation.getArgument(0));
+                return null;
+            }
+        }).when(prompter).addingFinished(any(MusInterval.class));
+
+        ProgressIndicator indicator = mock(ProgressIndicator.class);
+
+        musIntervals[0].addToAnki(prompter, indicator);
+        musIntervalsAdded.add(addedMusIntervals.getLast());
         assertArrayEquals(new String[]{""}, musIntervalsAdded.get(0).soundsSmaller);
         assertArrayEquals(new String[]{""}, musIntervalsAdded.get(0).soundsLarger);
         for (int i = 1; i < musIntervals.length; i++) {
-            musIntervalsAdded.add(musIntervals[i].addToAnki(null));
+            musIntervals[i].addToAnki(prompter, indicator);
+            musIntervalsAdded.add(addedMusIntervals.getLast());
             assertArrayEquals(musIntervalsAdded.get(i - 1).sounds, musIntervalsAdded.get(i).soundsSmaller);
             assertArrayEquals(musIntervalsAdded.get(i).sounds, musIntervalsAdded.get(i - 1).soundsLarger);
         }
@@ -1514,8 +1596,22 @@ public class MusIntervalTest {
             }
         }).when(helper).updateNote(eq(modelId), any(Long.class), any(Map.class));
 
+        final LinkedList<MusInterval> addedMusIntervals = new LinkedList<>();
+
+        AddingPrompter prompter = mock(AddingPrompter.class);
+        doAnswer(new Answer() {
+            @Override
+            public Object answer(InvocationOnMock invocation) throws Throwable {
+                addedMusIntervals.add((MusInterval) invocation.getArgument(0));
+                return null;
+            }
+        }).when(prompter).addingFinished(any(MusInterval.class));
+
+        ProgressIndicator indicator = mock(ProgressIndicator.class);
+
         for (MusInterval musInterval : musIntervals) {
-            musIntervalsAdded.add(musInterval.addToAnki(null));
+            musInterval.addToAnki(prompter, indicator);
+            musIntervalsAdded.add(addedMusIntervals.getLast());
             assertArrayEquals(new String[]{}, musInterval.soundsSmaller);
             assertArrayEquals(new String[]{}, musInterval.soundsLarger);
         }
@@ -1644,22 +1740,37 @@ public class MusIntervalTest {
             }
         }).when(helper).updateNote(eq(modelId), any(Long.class), any(Map.class));
 
-        DuplicateAddingPrompter prompter = mock(DuplicateAddingPrompter.class);
+        AddingPrompter prompter = mock(AddingPrompter.class);
         doAnswer(new Answer() {
             @Override
             public Object answer(InvocationOnMock invocation) throws Throwable {
-                musIntervalsAdded.add(((DuplicateAddingHandler) invocation.getArgument(1)).add());
+                musIntervalsAdded.add(((AddingHandler) invocation.getArgument(1)).add());
                 return null;
             }
-        }).when(prompter).promptAddDuplicate(any(MusInterval[].class), any(DuplicateAddingHandler.class));
+        }).when(prompter).promptAddDuplicate(any(MusInterval[].class), any(AddingHandler.class));
 
-        musIntervalsAdded.add(musIntervals[0].addToAnki(null));
+        final LinkedList<MusInterval> addedMusIntervals = new LinkedList<>();
+        doAnswer(new Answer() {
+            @Override
+            public Object answer(InvocationOnMock invocation) throws Throwable {
+                addedMusIntervals.add((MusInterval) invocation.getArgument(0));
+                return null;
+            }
+        }).when(prompter).addingFinished(any(MusInterval.class));
+
+        ProgressIndicator indicator = mock(ProgressIndicator.class);
+
+        musIntervals[0].addToAnki(prompter, indicator);
+        musIntervalsAdded.add(addedMusIntervals.getLast());
         for (int i = 1; i < musIntervals.length; i++) {
-            musIntervalsAdded.add(musIntervals[i].addToAnki(prompter));
+            musIntervals[i].addToAnki(prompter, indicator);
+            musIntervalsAdded.add(addedMusIntervals.getLast());
         }
-        MusInterval musIntervalSmallerAdded = musIntervalSmaller.addToAnki(prompter);
+        musIntervalSmaller.addToAnki(prompter, indicator);
+        MusInterval musIntervalSmallerAdded = addedMusIntervals.getLast();
         assertArrayEquals(musIntervalsAdded.getLast().sounds, musIntervalSmallerAdded.soundsLarger);
-        MusInterval musIntervalLargerAdded = musIntervalLarger.addToAnki(prompter);
+        musIntervalLarger.addToAnki(prompter, indicator);
+        MusInterval musIntervalLargerAdded = addedMusIntervals.getLast();
         assertArrayEquals(musIntervalsAdded.getLast().sounds, musIntervalLargerAdded.soundsSmaller);
     }
 
@@ -1790,14 +1901,29 @@ public class MusIntervalTest {
             }
         }).when(helper).updateNote(eq(modelId), any(Long.class), any(Map.class));
 
+        final LinkedList<MusInterval> addedMusIntervals = new LinkedList<>();
 
-        musIntervalsAdded.add(musInterval.addToAnki(null));
+        AddingPrompter prompter = mock(AddingPrompter.class);
+        doAnswer(new Answer() {
+            @Override
+            public Object answer(InvocationOnMock invocation) throws Throwable {
+                addedMusIntervals.add((MusInterval) invocation.getArgument(0));
+                return null;
+            }
+        }).when(prompter).addingFinished(any(MusInterval.class));
+
+        ProgressIndicator indicator = mock(ProgressIndicator.class);
+
+        musInterval.addToAnki(prompter, indicator);
+        musIntervalsAdded.add(addedMusIntervals.getLast());
         for (MusInterval value : musIntervalsSmaller) {
-            MusInterval musIntervalSmallerAdded = value.addToAnki(null);
+            value.addToAnki(prompter, indicator);
+            MusInterval musIntervalSmallerAdded = addedMusIntervals.getLast();
             assertArrayEquals(musIntervalSmallerAdded.sounds, musIntervalsAdded.getFirst().soundsSmaller);
         }
         for (MusInterval value : musIntervalsLarger) {
-            MusInterval musIntervalLargerAdded = value.addToAnki(null);
+            value.addToAnki(prompter, indicator);
+            MusInterval musIntervalLargerAdded = addedMusIntervals.getLast();
             assertArrayEquals(musIntervalLargerAdded.sounds, musIntervalsAdded.getFirst().soundsLarger);
         }
     }
@@ -1890,10 +2016,23 @@ public class MusIntervalTest {
                 .instrument("violin")
                 .build();
 
-        DuplicateAddingPrompter prompter = mock(DuplicateAddingPrompter.class);
-
         doReturn(new LinkedList<Map<String, String>>()).when(helper).findNotes(eq(modelId), any(ArrayList.class));
-        final MusInterval musIntervalAdded = musInterval.addToAnki(prompter);
+
+        final LinkedList<MusInterval> addedMusIntervals = new LinkedList<>();
+
+        AddingPrompter prompter = mock(AddingPrompter.class);
+        doAnswer(new Answer() {
+            @Override
+            public Object answer(InvocationOnMock invocation) {
+                addedMusIntervals.add((MusInterval) invocation.getArgument(0));
+                return null;
+            }
+        }).when(prompter).addingFinished(any(MusInterval.class));
+
+        ProgressIndicator indicator = mock(ProgressIndicator.class);
+
+        musInterval.addToAnki(prompter, indicator);
+        final MusInterval musIntervalAdded = addedMusIntervals.getLast();
         assertNotNull(musIntervalAdded);
         assertTrue(addedNoteIds.contains(noteId));
 
@@ -1906,12 +2045,15 @@ public class MusIntervalTest {
         doAnswer(new Answer() {
             @Override
             public Object answer(InvocationOnMock invocation) throws Throwable {
-                ((DuplicateAddingHandler) invocation.getArgument(1)).add();
+                AddingHandler handler = invocation.getArgument(1);
+                handler.add();
+                handler.proceed();
                 return null;
             }
-        }).when(prompter).promptAddDuplicate(any(MusInterval[].class), any(DuplicateAddingHandler.class));
+        }).when(prompter).promptAddDuplicate(any(MusInterval[].class), any(AddingHandler.class));
 
-        MusInterval duplicateMusIntervalAdded = duplicateMusInterval.addToAnki(prompter);
+        duplicateMusInterval.addToAnki(prompter, indicator);
+        MusInterval duplicateMusIntervalAdded = addedMusIntervals.getLast();
         assertArrayEquals(duplicateMusIntervalAdded.sounds, new String[]{});
         assertTrue(addedNoteIds.contains(duplicateNoteId));
     }
@@ -1961,10 +2103,22 @@ public class MusIntervalTest {
                 .instrument("violin")
                 .build();
 
-        DuplicateAddingPrompter prompter = mock(DuplicateAddingPrompter.class);
+        final LinkedList<MusInterval> addedMusIntervals = new LinkedList<>();
+
+        AddingPrompter prompter = mock(AddingPrompter.class);
+        doAnswer(new Answer() {
+            @Override
+            public Object answer(InvocationOnMock invocation) {
+                addedMusIntervals.add((MusInterval) invocation.getArgument(0));
+                return null;
+            }
+        }).when(prompter).addingFinished(any(MusInterval.class));
+
+        ProgressIndicator indicator = mock(ProgressIndicator.class);
 
         doReturn(new LinkedList<Map<String, String>>()).when(helper).findNotes(eq(modelId), any(ArrayList.class));
-        final MusInterval musIntervalAdded = musInterval.addToAnki(prompter);
+        musInterval.addToAnki(prompter, indicator);
+        final MusInterval musIntervalAdded = addedMusIntervals.getLast();
         assertNotNull(musIntervalAdded);
 
         final LinkedList<String> tags = new LinkedList<>();
@@ -1978,10 +2132,12 @@ public class MusIntervalTest {
         doAnswer(new Answer() {
             @Override
             public Object answer(InvocationOnMock invocation) throws Throwable {
-                ((DuplicateAddingHandler) invocation.getArgument(1)).mark();
+                AddingHandler handler = invocation.getArgument(1);
+                handler.mark();
+                handler.proceed();
                 return null;
             }
-        }).when(prompter).promptAddDuplicate(any(MusInterval[].class), any(DuplicateAddingHandler.class));
+        }).when(prompter).promptAddDuplicate(any(MusInterval[].class), any(AddingHandler.class));
         doAnswer(new Answer() {
             @Override
             public Integer answer(InvocationOnMock invocation) {
@@ -1990,7 +2146,8 @@ public class MusIntervalTest {
             }
         }).when(helper).addTagToNote(eq(noteId), any(String.class));
 
-        MusInterval duplicateMusIntervalAdded = duplicateMusInterval.addToAnki(prompter);
+        duplicateMusInterval.addToAnki(prompter, indicator);
+        MusInterval duplicateMusIntervalAdded = addedMusIntervals.getLast();
         assertArrayEquals(duplicateMusIntervalAdded.sounds, new String[]{});
         assertTrue(tags.contains("marked "));
     }
@@ -2040,10 +2197,22 @@ public class MusIntervalTest {
                 .instrument("violin")
                 .build();
 
-        DuplicateAddingPrompter prompter = mock(DuplicateAddingPrompter.class);
+        final LinkedList<MusInterval> addedMusIntervals = new LinkedList<>();
+
+        AddingPrompter prompter = mock(AddingPrompter.class);
+        doAnswer(new Answer() {
+            @Override
+            public Object answer(InvocationOnMock invocation) {
+                addedMusIntervals.add((MusInterval) invocation.getArgument(0));
+                return null;
+            }
+        }).when(prompter).addingFinished(any(MusInterval.class));
+
+        ProgressIndicator indicator = mock(ProgressIndicator.class);
 
         doReturn(new LinkedList<Map<String, String>>()).when(helper).findNotes(eq(modelId), any(ArrayList.class));
-        final MusInterval musIntervalAdded = musInterval.addToAnki(prompter);
+        musInterval.addToAnki(prompter, indicator);
+        final MusInterval musIntervalAdded = addedMusIntervals.getLast();
         assertNotNull(musIntervalAdded);
 
         final String duplicateTag = "duplicate";
@@ -2058,10 +2227,12 @@ public class MusIntervalTest {
         doAnswer(new Answer() {
             @Override
             public Object answer(InvocationOnMock invocation) throws Throwable {
-                ((DuplicateAddingHandler) invocation.getArgument(1)).tag(duplicateTag);
+                AddingHandler handler = invocation.getArgument(1);
+                handler.tag(duplicateTag);
+                handler.proceed();
                 return null;
             }
-        }).when(prompter).promptAddDuplicate(any(MusInterval[].class), any(DuplicateAddingHandler.class));
+        }).when(prompter).promptAddDuplicate(any(MusInterval[].class), any(AddingHandler.class));
         doAnswer(new Answer() {
             @Override
             public Integer answer(InvocationOnMock invocation) {
@@ -2070,7 +2241,8 @@ public class MusIntervalTest {
             }
         }).when(helper).addTagToNote(eq(noteId), any(String.class));
 
-        MusInterval duplicateMusIntervalAdded = duplicateMusInterval.addToAnki(prompter);
+        duplicateMusInterval.addToAnki(prompter, indicator);
+        MusInterval duplicateMusIntervalAdded = addedMusIntervals.getLast();
         assertArrayEquals(duplicateMusIntervalAdded.sounds, new String[]{});
         assertTrue(tags.contains(String.format("%s ", duplicateTag)));
     }
@@ -2122,10 +2294,22 @@ public class MusIntervalTest {
                 .instrument("violin")
                 .build();
 
-        DuplicateAddingPrompter prompter = mock(DuplicateAddingPrompter.class);
+        final LinkedList<MusInterval> addedMusIntervals = new LinkedList<>();
+
+        AddingPrompter prompter = mock(AddingPrompter.class);
+        doAnswer(new Answer() {
+            @Override
+            public Object answer(InvocationOnMock invocation) {
+                addedMusIntervals.add((MusInterval) invocation.getArgument(0));
+                return null;
+            }
+        }).when(prompter).addingFinished(any(MusInterval.class));
+
+        ProgressIndicator indicator = mock(ProgressIndicator.class);
 
         doReturn(new LinkedList<Map<String, String>>()).when(helper).findNotes(eq(modelId), any(ArrayList.class));
-        final MusInterval musIntervalAdded = musInterval.addToAnki(prompter);
+        musInterval.addToAnki(prompter, indicator);
+        final MusInterval musIntervalAdded = addedMusIntervals.getLast();
         final Map<String, String> addedData = musIntervalAdded.getCollectedDataSet().get(0);
         assertNotNull(musIntervalAdded);
         assertEquals(String.format("[sound:%s]", sound), addedData.get(MusInterval.Fields.SOUND));
@@ -2139,10 +2323,12 @@ public class MusIntervalTest {
         doAnswer(new Answer() {
             @Override
             public Object answer(InvocationOnMock invocation) throws Throwable {
-                ((DuplicateAddingHandler) invocation.getArgument(1)).replace();
+                AddingHandler handler = invocation.getArgument(1);
+                handler.replace();
+                handler.proceed();
                 return null;
             }
-        }).when(prompter).promptAddDuplicate(any(MusInterval[].class), any(DuplicateAddingHandler.class));
+        }).when(prompter).promptAddDuplicate(any(MusInterval[].class), any(AddingHandler.class));
         doAnswer(new Answer() {
             @Override
             public Boolean answer(InvocationOnMock invocation) {
@@ -2152,7 +2338,8 @@ public class MusIntervalTest {
             }
         }).when(helper).updateNote(eq(modelId), eq(noteId), any(Map.class));
 
-        MusInterval duplicateMusIntervalAdded = duplicateMusInterval.addToAnki(prompter);
+        duplicateMusInterval.addToAnki(prompter, indicator);
+        MusInterval duplicateMusIntervalAdded = addedMusIntervals.getLast();
         assertArrayEquals(duplicateMusIntervalAdded.sounds, new String[]{});
         assertEquals(String.format("[sound:%s]", duplicateSound), addedData.get(MusInterval.Fields.SOUND));
     }
@@ -2169,7 +2356,7 @@ public class MusIntervalTest {
                 .notes(ALL_NOTES)
                 .octaves(ALL_OCTAVES)
                 .intervals(MusInterval.Fields.Interval.VALUES)
-                .build().addToAnki(null);
+                .build().addToAnki(null, null);
     }
 
     @Test
@@ -2206,6 +2393,9 @@ public class MusIntervalTest {
             sounds[i] = String.format("/path/to/file%d.mp3", i);
         }
 
+        AddingPrompter prompter = mock(AddingPrompter.class);
+        ProgressIndicator indicator = mock(ProgressIndicator.class);
+
         new MusInterval.Builder(helper)
                 .model(defaultModelName)
                 .deck(defaultDeckName)
@@ -2218,7 +2408,7 @@ public class MusIntervalTest {
                 .tempo("90")
                 .instrument("violin")
                 .build()
-                .addToAnki(null);
+                .addToAnki(prompter, indicator);
 
         assertEquals(permutations, addedNotesData.size());
         int i = 0;

@@ -14,7 +14,7 @@ import com.ichi2.apisample.model.NotesIntegrity;
 import java.util.HashMap;
 import java.util.Map;
 
-public class IntegrityCheck implements Runnable {
+public class IntegrityCheckWorker implements Runnable {
     private final MainActivity mainActivity;
     private final ProgressDialog progressDialog;
     private final Handler handler;
@@ -22,7 +22,7 @@ public class IntegrityCheck implements Runnable {
     private final NotesIntegrity notesIntegrity;
 
 
-    public IntegrityCheck(NotesIntegrity notesIntegrity, MainActivity mainActivity, ProgressDialog progressDialog, Handler handler) {
+    public IntegrityCheckWorker(NotesIntegrity notesIntegrity, MainActivity mainActivity, ProgressDialog progressDialog, Handler handler) {
         this.notesIntegrity = notesIntegrity;
         this.mainActivity = mainActivity;
         this.progressDialog = progressDialog;
@@ -53,6 +53,7 @@ public class IntegrityCheck implements Runnable {
             handler.post(new Thread(new Runnable() {
                 @Override
                 public void run() {
+                    progressDialog.hide();
                     mainActivity.handleError(t);
                 }
             }));

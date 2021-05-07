@@ -183,6 +183,8 @@
     <string name="integrity_finding_duplicates">Checking for duplicate notes…</string>
     <string name="integrity_verifying_relations">Verifying relations (%d of %d)</string>
     <string name="integrity_processing_relations">Processing relations (%d of %d)</string>
+    <string name="batch_adding_title">Adding music intervals to AnkiDroid…</string>
+    <string name="batch_adding">%d of %d completed</string>
 
     <!-- SettingsActivity labels, fields and buttons -->
     <string name="deck_preference_title">Deck</string>
