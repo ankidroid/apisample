@@ -205,8 +205,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         labelExisting = findViewById(R.id.labelExisting);
         actionMarkExisting = findViewById(R.id.actionMarkExisting);
 
-        progressDialog = new ProgressDialog(MainActivity.this);
-
         restoreUiState();
 
         textFilename.setOnClickListener(new View.OnClickListener() {
@@ -557,8 +555,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     mAnkiDroid.requestPermission(MainActivity.this, AD_PERM_REQUEST);
                     return;
                 }
+
+                progressDialog = new ProgressDialog(MainActivity.this);
                 progressDialog.setTitle(R.string.batch_adding_title);
-                progressDialog.setMessage("");
                 progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
                 progressDialog.setCancelable(false);
                 progressDialog.show();
@@ -572,7 +571,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                             mHandler.post(new Runnable() {
                                 @Override
                                 public void run() {
-                                    progressDialog.hide();
+                                    progressDialog.dismiss();
                                     handleError(t);
                                 }
                             });
@@ -598,7 +597,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         mHandler.post(new Runnable() {
             @Override
             public void run() {
-                progressDialog.hide();
+                progressDialog.dismiss();
                 filenames = newMi.sounds;
                 refreshFilenameText();
                 savedInstruments.add(newMi.instrument);
@@ -669,8 +668,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
                     final NotesIntegrity integrity = new NotesIntegrity(mAnkiDroid, mi, corruptedTag, suspiciousTag, duplicateTag, MainActivity.this);
 
+                    progressDialog = new ProgressDialog(MainActivity.this);
                     progressDialog.setTitle(R.string.integrity_progress_title);
-                    progressDialog.setMessage("");
                     progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
                     progressDialog.setCancelable(false);
                     progressDialog.show();

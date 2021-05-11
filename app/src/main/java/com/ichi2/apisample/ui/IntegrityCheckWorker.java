@@ -37,7 +37,7 @@ public class IntegrityCheckWorker implements Runnable {
             handler.post(new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    progressDialog.hide();
+                    progressDialog.dismiss();
                     new AlertDialog.Builder(mainActivity)
                             .setMessage(report)
                             .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
@@ -53,7 +53,7 @@ public class IntegrityCheckWorker implements Runnable {
             handler.post(new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    progressDialog.hide();
+                    progressDialog.dismiss();
                     mainActivity.handleError(t);
                 }
             }));
