@@ -115,9 +115,9 @@ public class DuplicatePromptWorker implements Runnable {
                 }
             }
         }
-        builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+        builder.setOnCancelListener(new DialogInterface.OnCancelListener() {
             @Override
-            public void onDismiss(DialogInterface dialogInterface) {
+            public void onCancel(DialogInterface dialogInterface) {
                 try {
                     duplicateAddingHandler.proceed();
                 } catch (Throwable e) {
