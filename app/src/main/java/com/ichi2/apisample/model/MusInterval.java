@@ -607,6 +607,7 @@ public class MusInterval {
     private void addToAnki(int idx, final List<Map<String, String>> dataSet, final AddingPrompter prompter, final ProgressIndicator progressIndicator)
             throws AddToAnkiException, SoundAlreadyAddedException, AddSoundFileException, ModelValidationException,
             AnkiDroidHelper.InvalidAnkiDatabaseException, TempoNotInRangeException {
+
         final int dataCount = dataSet.size();
         if (idx >= dataCount) {
             Builder builder = new Builder(helper)
@@ -627,9 +628,12 @@ public class MusInterval {
                 builder.version(version);
             }
             prompter.addingFinished(builder.build());
+            return;
         }
+
         for (int i = idx; i < dataCount; i++) {
             final Map<String, String> miData = dataSet.get(i);
+
             String sound = miData.get(modelFields.get(Fields.SOUND));
             if (sound == null) {
                 throw new IllegalStateException();
