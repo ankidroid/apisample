@@ -363,10 +363,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private void handleFilenamesChange() {
         StringBuilder text = new StringBuilder();
         if (filenames.length > 0) {
-            int nFilenames = filenames.length;
-            final String[] names = new String[nFilenames];
-            final Uri[] uris = new Uri[nFilenames];
-            for (int i = 0; i < nFilenames; i++) {
+            final FilenameAdapter.UriName[] uriNames = new FilenameAdapter.UriName[filenames.length];
+            for (int i = 0; i < uriNames.length; i++) {
                 String filename = filenames[i];
                 String name;
                 Uri uri;
@@ -384,11 +382,10 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     name = cursor.getString(nameIdx);
                     cursor.close();
                 }
-                names[i] = name;
-                uris[i] = uri;
+                uriNames[i] = new FilenameAdapter.UriName(uri, name);
             }
 
-            text.append(names[0]);
+            text.append(uriNames[0].getName());
 
             actionPlay.setEnabled(true);
             if (filenames.length > 1) {
@@ -398,12 +395,12 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 actionPlay.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        openFilenamesDialog(names, uris);
+                        openFilenamesDialog(uriNames);
                     }
                 });
             } else {
                 actionPlay.setText(R.string.play);
-                actionPlay.setOnClickListener(new OnPlayClickListener(this, uris[0]));
+                actionPlay.setOnClickListener(new OnPlayClickListener(this, uriNames[0].getUri()));
             }
         } else {
             resetPlayButton();
@@ -411,11 +408,11 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         textFilename.setText(text);
     }
 
-    public void openFilenamesDialog(String[] names, Uri[] uris) {
+    public void openFilenamesDialog(FilenameAdapter.UriName[] uriNames) {
         ViewGroup viewGroup = findViewById(R.id.content);
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_filenames, viewGroup, false);
         RecyclerView recyclerView = dialogView.findViewById(R.id.recyclerView);
-        recyclerView.setAdapter(new FilenameAdapter(this, names, uris));
+        recyclerView.setAdapter(new FilenameAdapter(this, uriNames));
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         new AlertDialog.Builder(this)
                 .setView(dialogView)

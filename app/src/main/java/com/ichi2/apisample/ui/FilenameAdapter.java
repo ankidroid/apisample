@@ -16,8 +16,7 @@ import com.ichi2.apisample.R;
 public class FilenameAdapter extends RecyclerView.Adapter<FilenameAdapter.ViewHolder> {
     private final Context context;
 
-    private final String[] names;
-    private final Uri[] uris;
+    private final UriName[] uriNames;
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         private final TextView textView;
@@ -39,10 +38,9 @@ public class FilenameAdapter extends RecyclerView.Adapter<FilenameAdapter.ViewHo
         }
     }
 
-    public FilenameAdapter(Context context, String[] names, Uri[] uris) {
+    public FilenameAdapter(Context context, UriName[] uriNames) {
         this.context = context;
-        this.names = names;
-        this.uris = uris;
+        this.uriNames = uriNames;
     }
 
     @NonNull
@@ -55,12 +53,30 @@ public class FilenameAdapter extends RecyclerView.Adapter<FilenameAdapter.ViewHo
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        holder.getTextView().setText(names[position]);
-        holder.getActionPlay().setOnClickListener(new OnPlayClickListener(context, uris[position]));
+        holder.getTextView().setText(uriNames[position].name);
+        holder.getActionPlay().setOnClickListener(new OnPlayClickListener(context, uriNames[position].uri));
     }
 
     @Override
     public int getItemCount() {
-        return names.length;
+        return uriNames.length;
+    }
+
+    public static class UriName {
+        private final Uri uri;
+        private final String name;
+
+        public UriName(Uri uri, String name) {
+            this.uri = uri;
+            this.name = name;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public Uri getUri() {
+            return uri;
+        }
     }
 }
