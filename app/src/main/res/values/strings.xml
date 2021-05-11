@@ -72,6 +72,8 @@
         <item quantity="one">; 1 of them is marked</item>
         <item quantity="other">; %d of them are marked</item>
     </plurals>
+    <string name="play">Play</string>
+    <string name="view_all">View all</string>
 
     <!-- MainActivity messages-->
     <string name="anki_permission_denied">Could not get permission to access the AnkiDroid database</string>
@@ -149,9 +151,6 @@
     <string name="add_file_error">Failed to add file to AnkiDroid media</string>
     <string name="unknown_adding_error">Failed to add music interval to AnkiDroid</string>
     <string name="additional_filenames">\u0020+ %d more…</string>
-    <string name="filenames_list_item">%d. %s</string>
-    <string name="filenames_list_item_with_key">%d. %s (%s, %s)</string>
-    <string name="filenames_list_separator">\n</string>
     <string name="empty_mandatory_selection">At least one specific option must be selected for field \"%s\"</string>
     <string name="batch_adding_notice">
         When adding multiple music intervals at once, the selected set of sound files must obey the following rules:\n
