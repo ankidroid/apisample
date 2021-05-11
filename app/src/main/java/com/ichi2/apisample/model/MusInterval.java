@@ -380,7 +380,7 @@ public class MusInterval {
     public final String instrument;
     public final String version;
 
-    // @todo: add comment here
+    // Lists of added sounds & automatically filled links
     private ArrayList<String> addedSounds;
     private ArrayList<String> addedSoundsSmaller;
     private ArrayList<String> addedSoundsLarger;
