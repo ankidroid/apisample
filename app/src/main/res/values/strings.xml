@@ -185,6 +185,7 @@
     <string name="batch_adding_title">Adding music intervals to AnkiDroid…</string>
     <string name="batch_adding">%d of %d completed</string>
     <string name="access_error">Couldn\'t access \"%s\"</string>
+    <string name="audio_playing_error">Error trying to play audio file</string>
 
     <!-- SettingsActivity labels, fields and buttons -->
     <string name="deck_preference_title">Deck</string>

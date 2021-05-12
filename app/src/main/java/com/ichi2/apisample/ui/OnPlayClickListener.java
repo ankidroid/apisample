@@ -44,7 +44,7 @@ public class OnPlayClickListener implements View.OnClickListener {
                 }
             });
         } catch (IOException e) {
-            // @todo: handle
+            mainActivity.showMsg(R.string.audio_playing_error);
         }
     }
 }
