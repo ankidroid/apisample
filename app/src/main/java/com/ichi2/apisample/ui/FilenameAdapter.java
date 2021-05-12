@@ -1,6 +1,5 @@
 package com.ichi2.apisample.ui;
 
-import android.content.Context;
 import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,9 +13,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.ichi2.apisample.R;
 
 public class FilenameAdapter extends RecyclerView.Adapter<FilenameAdapter.ViewHolder> {
-    private final Context context;
-
-    private final UriName[] uriNames;
+    private final MainActivity mainActivity;
+    private final UriPathName[] uriPathNames;
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         private final TextView textView;
@@ -38,9 +36,9 @@ public class FilenameAdapter extends RecyclerView.Adapter<FilenameAdapter.ViewHo
         }
     }
 
-    public FilenameAdapter(Context context, UriName[] uriNames) {
-        this.context = context;
-        this.uriNames = uriNames;
+    public FilenameAdapter(MainActivity mainActivity, UriPathName[] uriPathNames) {
+        this.mainActivity = mainActivity;
+        this.uriPathNames = uriPathNames;
     }
 
     @NonNull
@@ -53,30 +51,37 @@ public class FilenameAdapter extends RecyclerView.Adapter<FilenameAdapter.ViewHo
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        holder.getTextView().setText(uriNames[position].name);
-        holder.getActionPlay().setOnClickListener(new OnPlayClickListener(context, uriNames[position].uri));
+        UriPathName uriPathName = uriPathNames[position];
+        holder.getTextView().setText(uriPathName.name);
+        holder.getActionPlay().setOnClickListener(new OnPlayClickListener(mainActivity, uriPathName.uri, uriPathName.path));
     }
 
     @Override
     public int getItemCount() {
-        return uriNames.length;
+        return uriPathNames.length;
     }
 
-    public static class UriName {
+    public static class UriPathName {
         private final Uri uri;
+        private final String path;
         private final String name;
 
-        public UriName(Uri uri, String name) {
+        public UriPathName(Uri uri, String path, String name) {
             this.uri = uri;
+            this.path = path;
             this.name = name;
-        }
-
-        public String getName() {
-            return name;
         }
 
         public Uri getUri() {
             return uri;
+        }
+
+        public String getPath() {
+            return path;
+        }
+
+        public String getName() {
+            return name;
         }
     }
 }

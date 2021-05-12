@@ -363,17 +363,22 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private void handleFilenamesChange() {
         StringBuilder text = new StringBuilder();
         if (filenames.length > 0) {
-            final FilenameAdapter.UriName[] uriNames = new FilenameAdapter.UriName[filenames.length];
-            for (int i = 0; i < uriNames.length; i++) {
+            final FilenameAdapter.UriPathName[] uriPathNames = new FilenameAdapter.UriPathName[filenames.length];
+            for (int i = 0; i < uriPathNames.length; i++) {
                 String filename = filenames[i];
                 String name;
+                String path = null;
                 Uri uri;
-                if (filename.startsWith("[sound:") && filename.endsWith("]")) {
+                if (filename.startsWith("[sound:")) {
                     name = filename;
-                    filename = Environment.getExternalStorageDirectory().getPath()
-                            + "/AnkiDroid/collection.media/"
-                            + filename.substring(7, filename.length() - 1); // @todo: make this configurable
-                    uri = Uri.fromFile(new File(filename));
+                    path = AnkiDroidHelper.DEFAULT_MEDIA_FOLDER // @todo: make this configurable
+                            + filename.substring(7, filename.length() - 1);
+                    File file = new File(path);
+                    if (!file.exists()) {
+                        uri = null;
+                    } else {
+                        uri = Uri.fromFile(file);
+                    }
                 } else {
                     uri = Uri.parse(filename);
                     Cursor cursor = getContentResolver().query(uri, null, null, null, null);
@@ -382,10 +387,11 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     name = cursor.getString(nameIdx);
                     cursor.close();
                 }
-                uriNames[i] = new FilenameAdapter.UriName(uri, name);
+                uriPathNames[i] = new FilenameAdapter.UriPathName(uri, path, name);
             }
+            FilenameAdapter.UriPathName uriFirst = uriPathNames[0];
 
-            text.append(uriNames[0].getName());
+            text.append(uriFirst.getName());
 
             actionPlay.setEnabled(true);
             if (filenames.length > 1) {
@@ -395,12 +401,12 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 actionPlay.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        openFilenamesDialog(uriNames);
+                        openFilenamesDialog(uriPathNames);
                     }
                 });
             } else {
                 actionPlay.setText(R.string.play);
-                actionPlay.setOnClickListener(new OnPlayClickListener(this, uriNames[0].getUri()));
+                actionPlay.setOnClickListener(new OnPlayClickListener(this, uriFirst.getUri(), uriFirst.getPath()));
             }
         } else {
             resetPlayButton();
@@ -408,11 +414,11 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         textFilename.setText(text);
     }
 
-    public void openFilenamesDialog(FilenameAdapter.UriName[] uriNames) {
+    public void openFilenamesDialog(FilenameAdapter.UriPathName[] uriPathNames) {
         ViewGroup viewGroup = findViewById(R.id.content);
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_filenames, viewGroup, false);
         RecyclerView recyclerView = dialogView.findViewById(R.id.recyclerView);
-        recyclerView.setAdapter(new FilenameAdapter(this, uriNames));
+        recyclerView.setAdapter(new FilenameAdapter(this, uriPathNames));
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         new AlertDialog.Builder(this)
                 .setView(dialogView)
