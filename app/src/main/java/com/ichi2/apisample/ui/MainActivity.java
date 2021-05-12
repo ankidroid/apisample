@@ -172,6 +172,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     }
 
     private String[] filenames = new String[]{};
+
+    private SoundPlayer soundPlayer;
+
     private Integer permutationsNumber;
 
     private HashSet<String> savedInstruments = new HashSet<>();
@@ -251,6 +254,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         configureAddToAnkiButton();
         configureSettingsButton();
         configureCheckIntegrityButton();
+
+        soundPlayer = new SoundPlayer(this);
 
         mAnkiDroid = new AnkiDroidHelper(this);
     }
@@ -392,7 +397,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 }
                 uriPathNames[i] = new FilenameAdapter.UriPathName(uri, path, name);
             }
-            FilenameAdapter.UriPathName uriFirst = uriPathNames[0];
+            final FilenameAdapter.UriPathName uriFirst = uriPathNames[0];
 
             text.append(uriFirst.getName());
 
@@ -409,7 +414,12 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 });
             } else {
                 actionPlay.setText(R.string.play);
-                actionPlay.setOnClickListener(new OnPlayClickListener(this, uriFirst.getUri(), uriFirst.getPath()));
+                actionPlay.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        soundPlayer.play(uriFirst.getUri(), uriFirst.getPath());
+                    }
+                });
             }
         } else {
             resetPlayButton();
@@ -421,7 +431,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         ViewGroup viewGroup = findViewById(R.id.content);
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_filenames, viewGroup, false);
         RecyclerView recyclerView = dialogView.findViewById(R.id.recyclerView);
-        recyclerView.setAdapter(new FilenameAdapter(this, uriPathNames));
+        recyclerView.setAdapter(new FilenameAdapter(uriPathNames, soundPlayer));
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         new AlertDialog.Builder(this)
                 .setView(dialogView)
