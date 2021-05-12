@@ -610,24 +610,7 @@ public class MusInterval {
 
         final int dataCount = dataSet.size();
         if (idx >= dataCount) {
-            Builder builder = new Builder(helper)
-                    .deck(deckName)
-                    .model(modelName)
-                    .model_fields(modelFields)
-                    .sounds(addedSounds.toArray(new String[0]))
-                    .sounds_smaller(addedSoundsSmaller.toArray(new String[0]))
-                    .sounds_larger(addedSoundsLarger.toArray(new String[0]))
-                    .notes(notes)
-                    .octaves(octaves)
-                    .direction(direction)
-                    .timing(timing)
-                    .intervals(intervals)
-                    .tempo(tempo)
-                    .instrument(instrument);
-            if (!version.isEmpty()) {
-                builder.version(version);
-            }
-            prompter.addingFinished(builder.build());
+            prompter.addingFinished(getAddedMusInterval());
             return;
         }
 
@@ -681,7 +664,15 @@ public class MusInterval {
 
                         helper.updateNote(modelId, Long.parseLong(existingData.get(AnkiDroidHelper.KEY_ID)), newData);
 
-                        return getMusIntervalFromData(newData);
+                        MusInterval updatedMi = getMusIntervalFromData(newData);
+                        addedSounds.add(updatedMi.sounds[0]);
+                        if (updatedMi.soundsSmaller.length > 0) {
+                            addedSoundsSmaller.add(updatedMi.soundsSmaller[0]);
+                        }
+                        if (updatedMi.soundsLarger.length > 0) {
+                            addedSoundsLarger.add(updatedMi.soundsLarger[0]);
+                        }
+                        return updatedMi;
                     }
 
                     @Override
@@ -705,36 +696,11 @@ public class MusInterval {
                 return;
             }
 
-            MusInterval newMi = handleAddToAnki(miData);
-            addedSounds.add(newMi.sounds[0]);
-            if (newMi.soundsSmaller.length > 0) {
-                addedSoundsSmaller.add(newMi.soundsSmaller[0]);
-            }
-            if (newMi.soundsLarger.length > 0) {
-                addedSoundsLarger.add(newMi.soundsLarger[0]);
-            }
-
+            handleAddToAnki(miData);
             progressIndicator.setMessage(R.string.batch_adding, i + 1, dataCount);
         }
 
-        Builder builder = new Builder(helper)
-                .deck(deckName)
-                .model(modelName)
-                .model_fields(modelFields)
-                .sounds(addedSounds.toArray(new String[0]))
-                .sounds_smaller(addedSoundsSmaller.toArray(new String[0]))
-                .sounds_larger(addedSoundsLarger.toArray(new String[0]))
-                .notes(notes)
-                .octaves(octaves)
-                .direction(direction)
-                .timing(timing)
-                .intervals(intervals)
-                .tempo(tempo)
-                .instrument(instrument);
-        if (!version.isEmpty()) {
-            builder.version(version);
-        }
-        prompter.addingFinished(builder.build());
+        prompter.addingFinished(getAddedMusInterval());
     }
 
     private MusInterval handleAddToAnki(Map<String, String> data) throws AddSoundFileException,
@@ -756,7 +722,15 @@ public class MusInterval {
             throw new AddToAnkiException();
         }
 
-        return getMusIntervalFromData(data);
+        MusInterval newMi =  getMusIntervalFromData(data);
+        addedSounds.add(newMi.sounds[0]);
+        if (newMi.soundsSmaller.length > 0) {
+            addedSoundsSmaller.add(newMi.soundsSmaller[0]);
+        }
+        if (newMi.soundsLarger.length > 0) {
+            addedSoundsLarger.add(newMi.soundsLarger[0]);
+        }
+        return newMi;
     }
 
     private MusInterval getMusIntervalFromData(Map<String, String> data) throws ModelValidationException, TempoNotInRangeException {
@@ -781,6 +755,27 @@ public class MusInterval {
                 .intervals(new String[]{data.get(modelFields.get(Fields.INTERVAL))})
                 .tempo(data.get(modelFields.get(Fields.TEMPO)))
                 .instrument(data.get(modelFields.get(Fields.INSTRUMENT)));
+        if (!version.isEmpty()) {
+            builder.version(version);
+        }
+        return builder.build();
+    }
+
+    private MusInterval getAddedMusInterval() throws ModelValidationException, TempoNotInRangeException {
+        Builder builder = new Builder(helper)
+                .deck(deckName)
+                .model(modelName)
+                .model_fields(modelFields)
+                .sounds(addedSounds.toArray(new String[0]))
+                .sounds_smaller(addedSoundsSmaller.toArray(new String[0]))
+                .sounds_larger(addedSoundsLarger.toArray(new String[0]))
+                .notes(notes)
+                .octaves(octaves)
+                .direction(direction)
+                .timing(timing)
+                .intervals(intervals)
+                .tempo(tempo)
+                .instrument(instrument);
         if (!version.isEmpty()) {
             builder.version(version);
         }
