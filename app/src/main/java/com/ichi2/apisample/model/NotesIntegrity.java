@@ -16,6 +16,7 @@ public class NotesIntegrity {
 
     private final String corruptedTag;
     private final String suspiciousTag;
+    private final String duplicateTag;
 
     private int notesCount;
 
@@ -25,18 +26,21 @@ public class NotesIntegrity {
 
     private int suspiciousNotesCount;
     private final Map<String, Integer> suspiciousFieldCounts = new HashMap<>();
-    private int fixedSuspiciousFieldsCount;
+    private int fixedSuspiciousRelations;
     private int autoFilledRelationsCount;
+
+    private int duplicateNotesCount;
 
     private final Map<String, Set<Map<String, String>>> fieldSuspiciousPointed = new HashMap<>();
     private final Map<String, Set<Map<String, String>>> fieldSuspiciousPointing = new HashMap<>();
 
-    public NotesIntegrity(AnkiDroidHelper helper, MusInterval musInterval, String corruptedTag, String suspiciousTag) {
+    public NotesIntegrity(AnkiDroidHelper helper, MusInterval musInterval, String corruptedTag, String suspiciousTag, String duplicateTag) {
         this.helper = helper;
         this.musInterval = musInterval;
 
         this.corruptedTag = corruptedTag;
         this.suspiciousTag = suspiciousTag;
+        this.duplicateTag = duplicateTag;
     }
 
     public Summary check() throws AnkiDroidHelper.InvalidAnkiDatabaseException {
@@ -54,6 +58,7 @@ public class NotesIntegrity {
         ArrayList<Map<String, String>> correctNotesData = checkCorrectness(searchResult);
         corruptedNotesCount = searchResult.size() - correctNotesData.size();
 
+        countDuplicates(correctNotesData);
         checkRelations(correctNotesData, soundDict);
 
         for (Map<String, String> noteData : correctNotesData) {
@@ -74,11 +79,15 @@ public class NotesIntegrity {
                 ).toLowerCase();
                 boolean suspiciousPointing = processRelation(
                         noteId,
-                        fieldKey, noteData,
+                        noteData,
                         suspiciousPointingTag,
                         noteTags,
                         fieldSuspiciousPointing.getOrDefault(fieldKey, new HashSet<Map<String, String>>())
                 );
+                if (suspiciousPointing) {
+                    int current = suspiciousFieldCounts.getOrDefault(fieldKey, 0);
+                    suspiciousFieldCounts.put(fieldKey, current + 1);
+                }
 
                 String suspiciousPointedTag = (
                         suspiciousBaseTag
@@ -87,7 +96,7 @@ public class NotesIntegrity {
                 ).toLowerCase();
                 boolean suspiciousPointed = processRelation(
                         noteId,
-                        fieldKey, noteData,
+                        noteData,
                         suspiciousPointedTag,
                         noteTags,
                         fieldSuspiciousPointed.getOrDefault(fieldKey, new HashSet<Map<String, String>>())
@@ -160,7 +169,50 @@ public class NotesIntegrity {
         return correctNotesData;
     }
 
-    public void checkRelations(ArrayList<Map<String, String>> correctNotesData, Map<String, Map<String, String>> soundDict) {
+    private void countDuplicates(ArrayList<Map<String, String>> notesData) {
+        Map<Map<String, String>, LinkedList<Map<String, String>>> keysDataNotes = new HashMap<>();
+        for (Map<String, String> noteData : notesData) {
+            Map<String, String> keyData = new HashMap<String, String>(noteData) {{
+                remove(musInterval.modelFields.get(MusInterval.Fields.SOUND));
+                remove(musInterval.modelFields.get(MusInterval.Fields.SOUND_SMALLER));
+                remove(musInterval.modelFields.get(MusInterval.Fields.SOUND_LARGER));
+                remove(musInterval.modelFields.get(MusInterval.Fields.VERSION));
+                remove(AnkiDroidHelper.KEY_ID);
+                remove(AnkiDroidHelper.KEY_TAGS);
+            }};
+            LinkedList<Map<String, String>> current = keysDataNotes.getOrDefault(keyData, new LinkedList<Map<String, String>>());
+            current.add(noteData);
+            keysDataNotes.put(keyData, current);
+        }
+
+        final String duplicateTagCheckStr = String.format(" %s ", duplicateTag);
+        for (Map.Entry<Map<String, String>, LinkedList<Map<String, String>>> keyDataNotes : keysDataNotes.entrySet()) {
+            LinkedList<Map<String, String>> notes = keyDataNotes.getValue();
+            int notesCount = notes.size();
+            if (notesCount > 1) {
+                duplicateNotesCount += notesCount;
+                if (duplicateTag == null) {
+                    continue;
+                }
+                for (Map<String, String> note : notes) {
+                    String noteTags = note.get(AnkiDroidHelper.KEY_TAGS);
+                    if (!noteTags.contains(duplicateTagCheckStr)) {
+                        long noteId = Long.parseLong(note.get(AnkiDroidHelper.KEY_ID));
+                        helper.addTagToNote(noteId, String.format("%s ", duplicateTag));
+                    }
+                }
+            } else if (notesCount == 1 && corruptedTag != null) {
+                Map<String, String> note = notes.getFirst();
+                String noteTags = note.get(AnkiDroidHelper.KEY_TAGS);
+                if (noteTags.contains(duplicateTagCheckStr)) {
+                    long noteId = Long.parseLong(note.get(AnkiDroidHelper.KEY_ID));
+                    helper.updateNoteTags(noteId, noteTags.replace(duplicateTagCheckStr, ""));
+                }
+            }
+        }
+    }
+
+    private void checkRelations(ArrayList<Map<String, String>> correctNotesData, Map<String, Map<String, String>> soundDict) {
         for (Map<String, String> noteData : correctNotesData) {
             for (RelatedIntervalSoundField relatedSoundField : musInterval.relatedSoundFields) {
                 if (relatedSoundField.isSuspicious(noteData, soundDict, fieldSuspiciousPointed)) {
@@ -173,20 +225,18 @@ public class NotesIntegrity {
         }
     }
 
-    private boolean processRelation(long noteId, String fieldKey, Map<String, String> noteData, String tag, String noteTags, Set<Map<String, String>> suspiciousData) {
+    private boolean processRelation(long noteId, Map<String, String> noteData, String tag, String noteTags, Set<Map<String, String>> suspiciousData) {
         final String tagCheckStr = String.format(" %s ", tag);
         boolean hasTag = noteTags.contains(tagCheckStr);
         if (!suspiciousData.contains(noteData)) {
             if (hasTag) {
                 helper.updateNoteTags(noteId, noteTags.replace(tagCheckStr, " "));
-                fixedSuspiciousFieldsCount++;
+                fixedSuspiciousRelations++;
             }
         } else {
             if (!hasTag) {
                 helper.addTagToNote(noteId, String.format("%s ", tag));
             }
-            int cur = suspiciousFieldCounts.getOrDefault(fieldKey, 0);
-            suspiciousFieldCounts.put(fieldKey, cur + 1);
             return true;
         }
         return false;
@@ -203,6 +253,10 @@ public class NotesIntegrity {
 
         public String getSuspiciousTag() {
             return suspiciousTag;
+        }
+
+        public String getDuplicateTag() {
+            return duplicateTag;
         }
 
         public int getNotesCount() {
@@ -229,12 +283,16 @@ public class NotesIntegrity {
             return suspiciousFieldCounts;
         }
 
-        public int getFixedSuspiciousFieldsCount() {
-            return fixedSuspiciousFieldsCount;
+        public int getFixedSuspiciousRelationsCount() {
+            return fixedSuspiciousRelations;
         }
 
         public int getAutoFilledRelationsCount() {
             return autoFilledRelationsCount;
+        }
+
+        public int getDuplicateNotesCount() {
+            return duplicateNotesCount;
         }
     }
 }
