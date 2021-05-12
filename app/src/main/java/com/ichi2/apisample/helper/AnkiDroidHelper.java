@@ -10,7 +10,6 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
-import android.os.Environment;
 
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -37,8 +36,7 @@ public class AnkiDroidHelper {
 
     public static final String HIERARCHICAL_TAG_SEPARATOR = "::";
 
-    public static final String DEFAULT_MEDIA_FOLDER = Environment.getExternalStorageDirectory().getPath()
-            + "/AnkiDroid/collection.media/";
+    public static final String DIR_MEDIA = "/collection.media/";
 
     private static final String DECK_REF_DB = "com.ichi2.anki.api.decks";
     private static final String MODEL_REF_DB = "com.ichi2.anki.api.models";

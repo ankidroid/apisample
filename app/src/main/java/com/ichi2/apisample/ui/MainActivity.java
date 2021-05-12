@@ -23,7 +23,6 @@ import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.os.Environment;
 import android.os.Handler;
 import android.provider.OpenableColumns;
 import android.view.LayoutInflater;
@@ -279,6 +278,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         super.onResume();
         refreshExisting();
         refreshPermutations();
+        refreshFilenames();
     }
 
     void refreshPermutations() {
@@ -356,13 +356,16 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
         if (unAddedFilenames.size() != filenames.length) {
             filenames = unAddedFilenames.toArray(new String[0]);
-            handleFilenamesChange();
+            refreshFilenames();
         }
     }
 
-    private void handleFilenamesChange() {
+    private void refreshFilenames() {
         StringBuilder text = new StringBuilder();
         if (filenames.length > 0) {
+            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+            String ankiDir = preferences.getString(SettingsFragment.KEY_ANKI_DIR_PREFERENCE, SettingsFragment.DEFAULT_ANKI_DIR);
+
             final FilenameAdapter.UriPathName[] uriPathNames = new FilenameAdapter.UriPathName[filenames.length];
             for (int i = 0; i < uriPathNames.length; i++) {
                 String filename = filenames[i];
@@ -371,7 +374,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 Uri uri;
                 if (filename.startsWith("[sound:")) {
                     name = filename;
-                    path = AnkiDroidHelper.DEFAULT_MEDIA_FOLDER // @todo: make this configurable
+                    path = ankiDir + AnkiDroidHelper.DIR_MEDIA
                             + filename.substring(7, filename.length() - 1);
                     File file = new File(path);
                     if (!file.exists()) {
@@ -544,7 +547,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 }
             }
             filenames = filenamesList.toArray(new String[0]);
-            handleFilenamesChange();
+            refreshFilenames();
             if (filenames.length > 1) {
                 actionPlay.callOnClick();
             }
@@ -623,7 +626,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             public void run() {
                 progressDialog.dismiss();
                 filenames = newMi.sounds;
-                handleFilenamesChange();
+                refreshFilenames();
                 savedInstruments.add(newMi.instrument);
                 refreshExisting();
                 final int nAdded = newMi.sounds.length;
@@ -641,7 +644,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         System.arraycopy(filenames, 0, tempFilenames, 0, filenames.length);
         tempFilenames[tempFilenames.length - 1] = newMi.sounds[0];
         filenames = tempFilenames;
-        handleFilenamesChange();
+        refreshFilenames();
         savedInstruments.add(newMi.instrument);
         refreshExisting();
     }
@@ -749,7 +752,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         switchBatch.setChecked(uiDb.getBoolean(REF_DB_SWITCH_BATCH, false));
         Set<String> storedFilenames = uiDb.getStringSet(REF_DB_SELECTED_FILENAMES, new HashSet<String>());
         filenames = storedFilenames.toArray(new String[0]);
-        handleFilenamesChange();
+        refreshFilenames();
         checkNoteAny.setChecked(uiDb.getBoolean(REF_DB_CHECK_NOTE_ANY, true));
         for (int i = 0; i < CHECK_NOTE_IDS.length; i++) {
             checkNotes[i].setChecked(uiDb.getBoolean(String.valueOf(CHECK_NOTE_IDS[i]), false));
