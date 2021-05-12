@@ -1,4 +1,4 @@
-package com.ichi2.apisample;
+package com.ichi2.apisample.ui;
 
 import android.Manifest;
 import android.app.AlertDialog;
@@ -36,6 +36,14 @@ import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.ichi2.apisample.BuildConfig;
+import com.ichi2.apisample.model.DuplicateAddingHandler;
+import com.ichi2.apisample.model.DuplicateAddingPrompter;
+import com.ichi2.apisample.model.NotesIntegrity;
+import com.ichi2.apisample.model.MusInterval;
+import com.ichi2.apisample.R;
+import com.ichi2.apisample.helper.AnkiDroidHelper;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -56,33 +64,41 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private static final String TAG_CORRUPTED = "corrupted";
     private static final String TAG_SUSPICIOUS = "suspicious";
 
-    private static final String STATE_REF_DB = "com.ichi2.apisample.uistate";
-    private static final String KEY_BATCH_ADDING_NOTICE_SEEN = "batchAddingNoticeSeen";
+    private static final String REF_DB_STATE = "com.ichi2.apisample.uistate";
+    private static final String REF_DB_SWITCH_BATCH = "switchBatch";
+    private static final String REF_DB_SELECTED_FILENAMES = "selectedFilenames";
+    private static final String REF_DB_CHECK_NOTE_ANY = "checkNoteAny";
+    private static final String REF_DB_CHECK_OCTAVE_ANY = "checkOctaveAny";
+    private static final String REF_DB_RADIO_GROUP_DIRECTION = "radioGroupDirection";
+    private static final String REF_DB_RADIO_GROUP_TIMING = "radioGroupTiming";
+    private static final String REF_DB_CHECK_INTERVAL_ANY = "checkIntervalAny";
+    private static final String REF_DB_INPUT_TEMPO = "inputTempo";
+    private static final String REF_DB_INPUT_INSTRUMENT = "inputInstrument";
+    private static final String REF_DB_SAVED_INSTRUMENTS = "savedInstruments";
+    private static final String REF_DB_BATCH_ADDING_NOTICE_SEEN = "batchAddingNoticeSeen";
 
-    private final Map<String, Integer> singularFieldLabelStringIds = new HashMap<String, Integer>() {{
+    private final static Map<String, Integer> FIELD_LABEL_STRING_IDS_SINGULAR = new HashMap<String, Integer>() {{
         put(MusInterval.Fields.DIRECTION, R.string.direction);
         put(MusInterval.Fields.TIMING, R.string.timing);
         put(MusInterval.Fields.TEMPO, R.string.tempo);
         put(MusInterval.Fields.INSTRUMENT, R.string.instrument);
     }};
-    {
-        if (!singularFieldLabelStringIds.keySet().equals(MusInterval.Builder.ADDING_MANDATORY_SINGULAR_KEYS)) {
+    static {
+        if (!FIELD_LABEL_STRING_IDS_SINGULAR.keySet().equals(MusInterval.Builder.ADDING_MANDATORY_SINGULAR_KEYS)) {
             throw new AssertionError();
         }
     }
 
-    private final Map<String, Integer> selectionFieldLabelStringIds = new HashMap<String, Integer>() {{
+    private final static Map<String, Integer> FIELD_LABEL_STRING_IDS_SELECTION = new HashMap<String, Integer>() {{
         put(MusInterval.Builder.KEY_NOTES, R.string.start_note);
         put(MusInterval.Builder.KEY_OCTAVES, R.string.octave);
         put(MusInterval.Builder.KEY_INTERVALS, R.string.interval);
     }};
-    {
-        if (!selectionFieldLabelStringIds.keySet().equals(MusInterval.Builder.ADDING_MANDATORY_SELECTION_KEYS)) {
+    static {
+        if (!FIELD_LABEL_STRING_IDS_SELECTION.keySet().equals(MusInterval.Builder.ADDING_MANDATORY_SELECTION_KEYS)) {
             throw new AssertionError();
         }
     }
-
-    private final Map<String, String> fieldValidationMessages = new HashMap<>();
 
     private SwitchCompat switchBatch;
     private TextView textFilename;
@@ -100,7 +116,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private TextView labelExisting;
     private Button actionMarkExisting;
 
-    private final int[] checkNoteIds = new int[]{
+    private final static int[] CHECK_NOTE_IDS = new int[]{
             R.id.checkNoteC, R.id.checkNoteCSharp,
             R.id.checkNoteD, R.id.checkNoteDSharp,
             R.id.checkNoteE,
@@ -109,7 +125,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             R.id.checkNoteA, R.id.checkNoteASharp,
             R.id.checkNoteB
     };
-    private final int[] checkOctaveIds = new int[]{
+    private final static int[] CHECK_OCTAVE_IDS = new int[]{
             R.id.checkOctave1,
             R.id.checkOctave2,
             R.id.checkOctave3,
@@ -117,7 +133,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             R.id.checkOctave5,
             R.id.checkOctave6
     };
-    private final int[] checkIntervalIds = new int[]{
+    private final static int[] CHECK_INTERVAL_IDS = new int[]{
             R.id.checkIntervalP1,
             R.id.checkIntervalm2,
             R.id.checkIntervalM2,
@@ -133,13 +149,14 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             R.id.checkIntervalP8
     };
 
-    private final Map<Integer, String> checkIntervalIdValues = new HashMap<>();
-    {
-        if (checkIntervalIds.length != MusInterval.Fields.Interval.VALUES.length) {
+    private final static Map<Integer, String> CHECK_INTERVAL_ID_VALUES = new HashMap<>();
+    static {
+        //noinspection ConstantConditions
+        if (CHECK_INTERVAL_IDS.length != MusInterval.Fields.Interval.VALUES.length) {
             throw new AssertionError();
         }
         for (int i = 0; i < MusInterval.Fields.Interval.VALUES.length; i++) {
-            checkIntervalIdValues.put(checkIntervalIds[i], MusInterval.Fields.Interval.VALUES[i]);
+            CHECK_INTERVAL_ID_VALUES.put(CHECK_INTERVAL_IDS[i], MusInterval.Fields.Interval.VALUES[i]);
         }
     }
 
@@ -155,35 +172,33 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Toolbar main_toolbar = findViewById(R.id.main_toolbar);
-        setSupportActionBar(main_toolbar);
+        Toolbar mainToolbar = findViewById(R.id.main_toolbar);
+        setSupportActionBar(mainToolbar);
 
         switchBatch = findViewById(R.id.switchBatch);
         textFilename = findViewById(R.id.textFilename);
         actionSelectFile = findViewById(R.id.actionSelectFile);
         checkNoteAny = findViewById(R.id.checkNoteAny);
-        checkNotes = new CheckBox[checkNoteIds.length];
-        for (int i = 0; i < checkNoteIds.length; i++) {
-            checkNotes[i] = findViewById(checkNoteIds[i]);
+        checkNotes = new CheckBox[CHECK_NOTE_IDS.length];
+        for (int i = 0; i < CHECK_NOTE_IDS.length; i++) {
+            checkNotes[i] = findViewById(CHECK_NOTE_IDS[i]);
         }
         checkOctaveAny = findViewById(R.id.checkOctaveAny);
-        checkOctaves = new CheckBox[checkOctaveIds.length];
-        for (int i = 0; i < checkOctaveIds.length; i++) {
-            checkOctaves[i] = findViewById(checkOctaveIds[i]);
+        checkOctaves = new CheckBox[CHECK_OCTAVE_IDS.length];
+        for (int i = 0; i < CHECK_OCTAVE_IDS.length; i++) {
+            checkOctaves[i] = findViewById(CHECK_OCTAVE_IDS[i]);
         }
         radioGroupDirection = findViewById(R.id.radioGroupDirection);
         radioGroupTiming = findViewById(R.id.radioGroupTiming);
         checkIntervalAny = findViewById(R.id.checkIntervalAny);
-        checkIntervals = new CheckBox[checkIntervalIds.length];
-        for (int i = 0; i < checkIntervalIds.length; i++) {
-            checkIntervals[i] = findViewById(checkIntervalIds[i]);
+        checkIntervals = new CheckBox[CHECK_INTERVAL_IDS.length];
+        for (int i = 0; i < CHECK_INTERVAL_IDS.length; i++) {
+            checkIntervals[i] = findViewById(CHECK_INTERVAL_IDS[i]);
         }
         inputTempo = findViewById(R.id.inputTempo);
         inputInstrument = findViewById(R.id.inputInstrument);
         labelExisting = findViewById(R.id.labelExisting);
         actionMarkExisting = findViewById(R.id.actionMarkExisting);
-
-        initFieldValidationMessages();
 
         restoreUiState();
 
@@ -219,25 +234,25 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             }
         });
         boolean enableMultiple = switchBatch.isChecked();
-        final OnFieldCheckChangeListener onNoteCheckChangeListener = new OnFieldCheckChangeListener(checkNotes, checkNoteAny, enableMultiple);
+        final OnFieldCheckChangeListener onNoteCheckChangeListener = new OnFieldCheckChangeListener(this, checkNotes, checkNoteAny, enableMultiple);
         checkNoteAny.setOnCheckedChangeListener(onNoteCheckChangeListener);
         for (CheckBox checkNote : checkNotes) {
             checkNote.setOnCheckedChangeListener(onNoteCheckChangeListener);
         }
-        final OnFieldCheckChangeListener onOctaveCheckChangeListener = new OnFieldCheckChangeListener(checkOctaves, checkOctaveAny, enableMultiple);
+        final OnFieldCheckChangeListener onOctaveCheckChangeListener = new OnFieldCheckChangeListener(this, checkOctaves, checkOctaveAny, enableMultiple);
         checkOctaveAny.setOnCheckedChangeListener(onOctaveCheckChangeListener);
         for (CheckBox checkOctave : checkOctaves) {
             checkOctave.setOnCheckedChangeListener(onOctaveCheckChangeListener);
         }
-        radioGroupDirection.setOnCheckedChangeListener(new OnFieldRadioChangeListener());
-        radioGroupTiming.setOnCheckedChangeListener(new OnFieldRadioChangeListener());
-        final OnFieldCheckChangeListener onIntervalCheckChangeListener = new OnFieldCheckChangeListener(checkIntervals, checkIntervalAny, enableMultiple);
+        radioGroupDirection.setOnCheckedChangeListener(new OnFieldRadioChangeListener(this));
+        radioGroupTiming.setOnCheckedChangeListener(new OnFieldRadioChangeListener(this));
+        final OnFieldCheckChangeListener onIntervalCheckChangeListener = new OnFieldCheckChangeListener(this, checkIntervals, checkIntervalAny, enableMultiple);
         checkIntervalAny.setOnCheckedChangeListener(onIntervalCheckChangeListener);
         for (CheckBox checkInterval : checkIntervals) {
             checkInterval.setOnCheckedChangeListener(onIntervalCheckChangeListener);
         }
-        inputTempo.addTextChangedListener(new FieldInputTextWatcher());
-        inputInstrument.addTextChangedListener(new FieldInputTextWatcher());
+        inputTempo.addTextChangedListener(new FieldInputTextWatcher(this));
+        inputInstrument.addTextChangedListener(new FieldInputTextWatcher(this));
         switchBatch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
@@ -257,44 +272,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         configureCheckIntegrityButton();
 
         mAnkiDroid = new AnkiDroidHelper(this);
-    }
-
-    private void initFieldValidationMessages() {
-        String[] allowedStartNotes = new String[checkNotes.length * checkOctaves.length];
-        int i = 0;
-        for (CheckBox checkNote : checkNotes) {
-            String note = checkNote.getText().toString();
-            for (CheckBox checkOctave : checkOctaves) {
-                String octave = checkOctave.getText().toString();
-                allowedStartNotes[i] = note + octave;
-                i++;
-            }
-        }
-        String allowedStartNotesStr = joinStrings(", ", allowedStartNotes);
-        String allowedDirectionsStr = String.format("%s, %s", MusInterval.Fields.Direction.ASC, MusInterval.Fields.Direction.DESC);
-        String allowedTimingsStr = String.format("%s, %s", MusInterval.Fields.Timing.MELODIC, MusInterval.Fields.Timing.HARMONIC);
-        String allowedIntervalsStr = joinStrings(", ", MusInterval.Fields.Interval.VALUES);
-
-        fieldValidationMessages.put(MusInterval.Fields.SOUND, getString(R.string.validation_sound));
-        fieldValidationMessages.put(MusInterval.Fields.SOUND_SMALLER, getString(R.string.validation_sound));
-        fieldValidationMessages.put(MusInterval.Fields.SOUND_LARGER, getString(R.string.validation_sound));
-        fieldValidationMessages.put(MusInterval.Fields.START_NOTE, getString(R.string.validation_allowed_values, allowedStartNotesStr));
-        fieldValidationMessages.put(MusInterval.Fields.DIRECTION, getString(R.string.validation_allowed_values, allowedDirectionsStr));
-        fieldValidationMessages.put(MusInterval.Fields.TIMING, getString(R.string.validation_allowed_values, allowedTimingsStr));
-        fieldValidationMessages.put(MusInterval.Fields.INTERVAL, getString(R.string.validation_allowed_values, allowedIntervalsStr));
-        fieldValidationMessages.put(MusInterval.Fields.TEMPO, getString(R.string.validation_range, MusInterval.Fields.Tempo.MIN_VALUE, MusInterval.Fields.Tempo.MAX_VALUE));
-        fieldValidationMessages.put(MusInterval.Fields.INSTRUMENT, getString(R.string.validation_mandatory));
-    }
-
-    private static String joinStrings(String separator, String[] values) {
-        StringBuilder builder = new StringBuilder();
-        for (String value : values) {
-            if (builder.length() > 0) {
-                builder.append(separator);
-            }
-            builder.append(value);
-        }
-        return builder.toString();
     }
 
     private String[][] getOrderedPermutationKeys() {
@@ -335,10 +312,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private void validateModel() {
         try {
             getMusInterval();
-        } catch (MusInterval.Exception e) {
-            processMusIntervalException(e);
         } catch (Throwable e) {
-            processUnknownException(e);
+            handleError(e);
         }
     }
 
@@ -349,7 +324,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         refreshPermutations();
     }
 
-    private void refreshPermutations() {
+    void refreshPermutations() {
         if (mAnkiDroid.shouldRequestPermission()) {
             return;
         }
@@ -358,6 +333,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             permutationsNumber = getMusInterval().getPermutationsNumber();
 
         } catch (Throwable e) {
+            // probably best to ignore exceptions here as this function is called silently
         } finally {
             Resources res = getResources();
             String selectFileText;
@@ -372,7 +348,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
     }
 
-    private void refreshExisting() {
+    void refreshExisting() {
         if (mAnkiDroid.shouldRequestPermission()) {
             return;
         }
@@ -414,97 +390,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
     }
 
-    private class OnFieldCheckChangeListener implements CompoundButton.OnCheckedChangeListener {
-        private final CheckBox[] checkBoxes;
-        private final CheckBox checkBoxAny;
-        private boolean enableMultiple;
-
-        public OnFieldCheckChangeListener(CheckBox[] checkBoxes, CheckBox checkBoxAny, boolean enableMultiple) {
-            this.checkBoxes = checkBoxes;
-            this.checkBoxAny = checkBoxAny;
-            this.enableMultiple = enableMultiple;
-        }
-
-        @Override
-        public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-            if (compoundButton.getId() == checkBoxAny.getId()) {
-                if (b) {
-                    for (CheckBox checkBox : checkBoxes) {
-                        checkBox.setChecked(false);
-                    }
-                } else if (enableMultiple) {
-                    for (CheckBox checkBox : checkBoxes) {
-                        if (checkBox.isChecked()) {
-                            return;
-                        }
-                    }
-                    for (CheckBox checkBox : checkBoxes) {
-                        checkBox.setChecked(true);
-                    }
-                }
-            } else if (b) {
-                checkBoxAny.setChecked(false);
-                if (!enableMultiple) {
-                    for (CheckBox checkBox : checkBoxes) {
-                        if (checkBox.getId() != compoundButton.getId()) {
-                            checkBox.setChecked(false);
-                        }
-                    }
-                }
-            }
-            clearAddedFilenames();
-            refreshExisting();
-            refreshPermutations();
-        }
-
-        public void setEnableMultiple(boolean enableMultiple) {
-            if (!enableMultiple) {
-                ArrayList<CheckBox> checked = new ArrayList<>();
-                for (CheckBox checkBox : checkBoxes) {
-                    if (checkBox.isChecked()) {
-                        checked.add(checkBox);
-                    }
-                }
-                if (checked.size() > 1) {
-                    for (CheckBox checkBox : checked) {
-                        checkBox.setChecked(false);
-                    }
-                }
-            }
-            this.enableMultiple = enableMultiple;
-        }
-    }
-
-    private class OnFieldRadioChangeListener implements RadioGroup.OnCheckedChangeListener {
-        @Override
-        public void onCheckedChanged(RadioGroup radioGroup, int i) {
-            clearAddedFilenames();
-            refreshExisting();
-        }
-    }
-
-    private class FieldInputTextWatcher implements TextWatcher {
-        private String prev;
-
-        @Override
-        public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-            prev = charSequence.toString();
-        }
-
-        @Override
-        public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-            String curr = charSequence.toString();
-            if (!curr.equalsIgnoreCase(prev)) {
-                clearAddedFilenames();
-                refreshExisting();
-            }
-        }
-
-        @Override
-        public void afterTextChanged(Editable editable) { }
-    }
-
-    private void clearAddedFilenames() {
+    void clearAddedFilenames() {
         ArrayList<String> unAddedFilenames = new ArrayList<>();
         for (String filename : filenames) {
             if (!filename.startsWith("[sound:")) {
@@ -568,7 +454,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
 
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
-        boolean batchNoticeSeen = preferences.getBoolean(KEY_BATCH_ADDING_NOTICE_SEEN, false);
+        boolean batchNoticeSeen = preferences.getBoolean(REF_DB_BATCH_ADDING_NOTICE_SEEN, false);
         if (batchNoticeSeen) {
             openChooser();
             return;
@@ -591,7 +477,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             public void onDismiss(DialogInterface dialogInterface) {
                 if (checkRemember.isChecked()) {
                     SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(MainActivity.this).edit();
-                    editor.putBoolean(KEY_BATCH_ADDING_NOTICE_SEEN, true);
+                    editor.putBoolean(REF_DB_BATCH_ADDING_NOTICE_SEEN, true);
                     editor.apply();
                 }
                 openChooser();
@@ -648,12 +534,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     final int count = getMusInterval().markExistingNotes();
                     showQuantityMsg(R.plurals.mi_marked_result, count, count);
                     refreshExisting();
-                } catch (MusInterval.Exception e) {
-                    processMusIntervalException(e);
-                } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
-                    processInvalidAnkiDatabase(e);
                 } catch (Throwable e) {
-                    processUnknownException(e);
+                    handleError(e);
                 }
             }
         });
@@ -680,12 +562,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     } else if (nAdded > 1) {
                         showQuantityMsg(R.plurals.mi_added, nAdded, nAdded);
                     }
-                } catch (MusInterval.Exception e) {
-                    processMusIntervalException(e);
-                } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
-                    processInvalidAnkiDatabase(e);
                 } catch (Throwable e) {
-                    processUnknownException(e);
+                    handleError(e);
                 }
             }
         });
@@ -707,10 +585,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                             }
                             handleInsertion(newMi);
                             showQuantityMsg(R.plurals.mi_added, 1);
-                        } catch (MusInterval.Exception e) {
-                            processMusIntervalException(e);
-                        } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
-                            processInvalidAnkiDatabase(e);
+                        } catch (Throwable e) {
+                            handleError(e);
                         }
                     }
                 });
@@ -726,15 +602,14 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                             final int count = handler.mark();
                             showQuantityMsg(R.plurals.mi_marked_result, count, count);
                             refreshExisting();
-                        } catch (MusInterval.Exception e) {
-                            processMusIntervalException(e);
-                        } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
-                            processInvalidAnkiDatabase(e);
+                        } catch (Throwable e) {
+                            handleError(e);
                         }
                     }
                 });
             }
         } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
+            // simply don't give the option to mark if unable to count existing
         }
         Resources res = getResources();
         String msg;
@@ -754,10 +629,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                         MusInterval newMi = handler.replace();
                         handleInsertion(newMi);
                         showMsg(R.string.item_replaced);
-                    } catch (MusInterval.Exception e) {
-                        processMusIntervalException(e);
-                    } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
-                        processInvalidAnkiDatabase(e);
+                    } catch (Throwable e) {
+                        handleError(e);
                     }
                 }
             });
@@ -775,10 +648,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             if (tagDuplicates) {
                 try {
                     handler.tag(duplicateTag);
-                } catch (MusInterval.Exception e) {
-                    processMusIntervalException(e);
-                } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
-                    processInvalidAnkiDatabase(e);
+                } catch (Throwable e) {
+                    handleError(e);
                 }
             }
         }
@@ -832,86 +703,15 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     return;
                 }
                 try {
-                    final String invalidTag = TAG_APPLICATION + AnkiDroidHelper.HIERARCHICAL_TAG_SEPARATOR + TAG_CORRUPTED;
-                    final String suspiciousTag = TAG_APPLICATION + AnkiDroidHelper.HIERARCHICAL_TAG_SEPARATOR + TAG_SUSPICIOUS;
-
                     MusInterval mi = getMusInterval();
-                    MusInterval.IntegritySummary integritySummary = mi.checkIntegrity(invalidTag, suspiciousTag);
-
-                    int notesCount = integritySummary.getNotesCount();
-                    int corruptedNotesCount = integritySummary.getCorruptedNotesCount();
-                    Map<String, Integer> corruptedFieldCounts = integritySummary.getCorruptedFieldCounts();
-                    int fixedCorruptedFieldsCount = integritySummary.getFixedCorruptedFieldsCount();
-                    int suspiciousNotesCount = integritySummary.getSuspiciousNotesCount();
-                    Map<String, Integer> suspiciousFieldCounts = integritySummary.getSuspiciousFieldCounts();
-                    int fixedSuspiciousFieldsCount = integritySummary.getFixedSuspiciousFieldsCount();
-                    int autoFilledRelationsCount = integritySummary.getAutoFilledRelationsCount();
-
-                    StringBuilder report = new StringBuilder();
-                    Resources res = getResources();
-                    report.append(res.getString(R.string.integrity_check_completed, notesCount));
-                    if (corruptedNotesCount > 0) {
-                        report.append("\n\n");
-                        if (corruptedNotesCount == 1) {
-                            report.append(res.getQuantityString(R.plurals.integrity_corrupted, corruptedNotesCount, invalidTag));
-                        } else {
-                            report.append(res.getQuantityString(R.plurals.integrity_corrupted, corruptedNotesCount, corruptedNotesCount, invalidTag));
-                        }
-                        for (Map.Entry<String, Integer> corruptedFieldCount : corruptedFieldCounts.entrySet()) {
-                            String fieldKey = corruptedFieldCount.getKey();
-                            int count = corruptedFieldCount.getValue();
-                            if (count > 0) {
-                                String field = mi.modelFields.getOrDefault(fieldKey, fieldKey);
-                                report.append("\n\n");
-                                report.append(res.getString(R.string.integrity_field_corrupted, field, count, fieldValidationMessages.get(fieldKey)));
-                            }
-                        }
-                    }
-                    if (fixedCorruptedFieldsCount > 0) {
-                        report.append("\n\n");
-                        if (fixedCorruptedFieldsCount == 1) {
-                            report.append(res.getQuantityString(R.plurals.integrity_corrupted_field_values_fixed, fixedCorruptedFieldsCount));
-                        } else {
-                            report.append(res.getQuantityString(R.plurals.integrity_corrupted_field_values_fixed, fixedCorruptedFieldsCount, fixedCorruptedFieldsCount));
-                        }
-                    }
-                    if (suspiciousNotesCount > 0) {
-                        report.append("\n\n");
-                        if (suspiciousNotesCount == 1) {
-                            report.append(res.getQuantityString(R.plurals.integrity_suspicious, suspiciousNotesCount, suspiciousTag));
-                        } else {
-                            report.append(res.getQuantityString(R.plurals.integrity_suspicious, suspiciousNotesCount, suspiciousNotesCount, suspiciousTag));
-                        }
-                        report.append("\n");
-                        for (Map.Entry<String, Integer> suspiciousFieldCount : suspiciousFieldCounts.entrySet()) {
-                            String fieldKey = suspiciousFieldCount.getKey();
-                            int count = suspiciousFieldCount.getValue();
-                            if (count > 0) {
-                                String field = mi.modelFields.getOrDefault(fieldKey, fieldKey);
-                                report.append("\n");
-                                report.append(res.getString(R.string.integrity_field_suspicious, field, count));
-                            }
-                        }
-                    }
-                    if (fixedSuspiciousFieldsCount > 0) {
-                        report.append("\n\n");
-                        if (fixedSuspiciousFieldsCount == 1) {
-                            report.append(res.getQuantityString(R.plurals.integrity_suspicious_field_values_fixed, fixedSuspiciousFieldsCount));
-                        } else {
-                            report.append(res.getQuantityString(R.plurals.integrity_suspicious_field_values_fixed, fixedSuspiciousFieldsCount, fixedSuspiciousFieldsCount));
-                        }
-                    }
-                    if (autoFilledRelationsCount > 0) {
-                        report.append("\n\n");
-                        report.append(getResources().getQuantityString(R.plurals.integrity_links, autoFilledRelationsCount, autoFilledRelationsCount));
-                    }
-                    if (corruptedNotesCount == 0 && suspiciousNotesCount == 0) {
-                        report.append("\n\n");
-                        report.append(res.getString(R.string.integrity_ok));
-                    }
+                    final String corruptedTag = TAG_APPLICATION + AnkiDroidHelper.HIERARCHICAL_TAG_SEPARATOR + TAG_CORRUPTED;
+                    final String suspiciousTag = TAG_APPLICATION + AnkiDroidHelper.HIERARCHICAL_TAG_SEPARATOR + TAG_SUSPICIOUS;
+                    NotesIntegrity integrity = new NotesIntegrity(mAnkiDroid, mi, corruptedTag, suspiciousTag);
+                    NotesIntegrity.Summary summary = integrity.check();
+                    String report = IntegrityReport.build(summary, MainActivity.this);
 
                     new AlertDialog.Builder(MainActivity.this)
-                            .setMessage(report.toString())
+                            .setMessage(report)
                             .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialogInterface, int i) {
@@ -919,10 +719,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                                 }
                             })
                             .show();
-                } catch (MusInterval.Exception e) {
-                    processMusIntervalException(e);
-                } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
-                    processInvalidAnkiDatabase(e);
+                } catch (Throwable e) {
+                    handleError(e);
                 }
             }
         });
@@ -930,55 +728,55 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
     @Override
     protected void onPause() {
-        final SharedPreferences.Editor uiDbEditor = getSharedPreferences(STATE_REF_DB, Context.MODE_PRIVATE).edit();
+        final SharedPreferences.Editor uiDbEditor = getSharedPreferences(REF_DB_STATE, Context.MODE_PRIVATE).edit();
 
-        uiDbEditor.putBoolean("switchBatch", switchBatch.isChecked());
-        uiDbEditor.putStringSet("selectedFilenames", new HashSet<>(Arrays.asList(filenames)));
-        uiDbEditor.putBoolean("checkNoteAny", checkNoteAny.isChecked());
-        for (int i = 0; i < checkNoteIds.length; i++) {
-            uiDbEditor.putBoolean(String.valueOf(checkNoteIds[i]), checkNotes[i].isChecked());
+        uiDbEditor.putBoolean(REF_DB_SWITCH_BATCH, switchBatch.isChecked());
+        uiDbEditor.putStringSet(REF_DB_SELECTED_FILENAMES, new HashSet<>(Arrays.asList(filenames)));
+        uiDbEditor.putBoolean(REF_DB_CHECK_NOTE_ANY, checkNoteAny.isChecked());
+        for (int i = 0; i < CHECK_NOTE_IDS.length; i++) {
+            uiDbEditor.putBoolean(String.valueOf(CHECK_NOTE_IDS[i]), checkNotes[i].isChecked());
         }
-        uiDbEditor.putBoolean("checkOctaveAny", checkOctaveAny.isChecked());
-        for (int i = 0; i < checkOctaveIds.length; i++) {
-            uiDbEditor.putBoolean(String.valueOf(checkOctaveIds[i]), checkOctaves[i].isChecked());
+        uiDbEditor.putBoolean(REF_DB_CHECK_OCTAVE_ANY, checkOctaveAny.isChecked());
+        for (int i = 0; i < CHECK_OCTAVE_IDS.length; i++) {
+            uiDbEditor.putBoolean(String.valueOf(CHECK_OCTAVE_IDS[i]), checkOctaves[i].isChecked());
         }
-        uiDbEditor.putInt("radioGroupDirection", radioGroupDirection.getCheckedRadioButtonId());
-        uiDbEditor.putInt("radioGroupTiming", radioGroupTiming.getCheckedRadioButtonId());
-        uiDbEditor.putBoolean("checkIntervalAny", checkIntervalAny.isChecked());
-        for (int i = 0; i < checkIntervalIds.length; i++) {
-            uiDbEditor.putBoolean(String.valueOf(checkIntervalIds[i]), checkIntervals[i].isChecked());
+        uiDbEditor.putInt(REF_DB_RADIO_GROUP_DIRECTION, radioGroupDirection.getCheckedRadioButtonId());
+        uiDbEditor.putInt(REF_DB_RADIO_GROUP_TIMING, radioGroupTiming.getCheckedRadioButtonId());
+        uiDbEditor.putBoolean(REF_DB_CHECK_INTERVAL_ANY, checkIntervalAny.isChecked());
+        for (int i = 0; i < CHECK_INTERVAL_IDS.length; i++) {
+            uiDbEditor.putBoolean(String.valueOf(CHECK_INTERVAL_IDS[i]), checkIntervals[i].isChecked());
         }
-        uiDbEditor.putString("inputTempo", inputTempo.getText().toString());
-        uiDbEditor.putString("inputInstrument", inputInstrument.getText().toString());
-        uiDbEditor.putStringSet("savedInstruments", savedInstruments);
+        uiDbEditor.putString(REF_DB_INPUT_TEMPO, inputTempo.getText().toString());
+        uiDbEditor.putString(REF_DB_INPUT_INSTRUMENT, inputInstrument.getText().toString());
+        uiDbEditor.putStringSet(REF_DB_SAVED_INSTRUMENTS, savedInstruments);
         uiDbEditor.apply();
 
         super.onPause();
     }
 
     protected void restoreUiState() {
-        final SharedPreferences uiDb = getSharedPreferences(STATE_REF_DB, Context.MODE_PRIVATE);
-        switchBatch.setChecked(uiDb.getBoolean("switchBatch", false));
-        Set<String> storedFilenames = uiDb.getStringSet("selectedFilenames", new HashSet<String>());
+        final SharedPreferences uiDb = getSharedPreferences(REF_DB_STATE, Context.MODE_PRIVATE);
+        switchBatch.setChecked(uiDb.getBoolean(REF_DB_SWITCH_BATCH, false));
+        Set<String> storedFilenames = uiDb.getStringSet(REF_DB_SELECTED_FILENAMES, new HashSet<String>());
         filenames = storedFilenames.toArray(new String[0]);
         refreshFilenameText();
-        checkNoteAny.setChecked(uiDb.getBoolean("checkNoteAny", true));
-        for (int i = 0; i < checkNoteIds.length; i++) {
-            checkNotes[i].setChecked(uiDb.getBoolean(String.valueOf(checkNoteIds[i]), false));
+        checkNoteAny.setChecked(uiDb.getBoolean(REF_DB_CHECK_NOTE_ANY, true));
+        for (int i = 0; i < CHECK_NOTE_IDS.length; i++) {
+            checkNotes[i].setChecked(uiDb.getBoolean(String.valueOf(CHECK_NOTE_IDS[i]), false));
         }
-        checkOctaveAny.setChecked(uiDb.getBoolean("checkOctaveAny", true));
-        for (int i = 0; i < checkOctaveIds.length; i++) {
-            checkOctaves[i].setChecked(uiDb.getBoolean(String.valueOf(checkOctaveIds[i]), false));
+        checkOctaveAny.setChecked(uiDb.getBoolean(REF_DB_CHECK_OCTAVE_ANY, true));
+        for (int i = 0; i < CHECK_OCTAVE_IDS.length; i++) {
+            checkOctaves[i].setChecked(uiDb.getBoolean(String.valueOf(CHECK_OCTAVE_IDS[i]), false));
         }
-        radioGroupDirection.check(uiDb.getInt("radioGroupDirection", findViewById(R.id.radioDirectionAny).getId()));
-        radioGroupTiming.check(uiDb.getInt("radioGroupTiming", findViewById(R.id.radioTimingAny).getId()));
-        checkIntervalAny.setChecked(uiDb.getBoolean("checkIntervalAny", true));
-        for (int i = 0; i < checkIntervalIds.length; i++) {
-            checkIntervals[i].setChecked(uiDb.getBoolean(String.valueOf(checkIntervalIds[i]), false));
+        radioGroupDirection.check(uiDb.getInt(REF_DB_RADIO_GROUP_DIRECTION, findViewById(R.id.radioDirectionAny).getId()));
+        radioGroupTiming.check(uiDb.getInt(REF_DB_RADIO_GROUP_TIMING, findViewById(R.id.radioTimingAny).getId()));
+        checkIntervalAny.setChecked(uiDb.getBoolean(REF_DB_CHECK_INTERVAL_ANY, true));
+        for (int i = 0; i < CHECK_INTERVAL_IDS.length; i++) {
+            checkIntervals[i].setChecked(uiDb.getBoolean(String.valueOf(CHECK_INTERVAL_IDS[i]), false));
         }
-        inputTempo.setText(uiDb.getString("inputTempo", ""));
-        inputInstrument.setText(uiDb.getString("inputInstrument", ""));
-        savedInstruments = (HashSet<String>) uiDb.getStringSet("savedInstruments", new HashSet<String>());
+        inputTempo.setText(uiDb.getString(REF_DB_INPUT_TEMPO, ""));
+        inputInstrument.setText(uiDb.getString(REF_DB_INPUT_INSTRUMENT, ""));
+        savedInstruments = (HashSet<String>) uiDb.getStringSet(REF_DB_SAVED_INSTRUMENTS, new HashSet<String>());
         inputInstrument.setAdapter(new ArrayAdapter<>(this,
                 android.R.layout.simple_dropdown_item_1line, savedInstruments.toArray(new String[0])));
 
@@ -1039,7 +837,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
         String[] notes = !checkNoteAny.isChecked() ? getCheckedValues(checkNotes) : null;
         String[] octaves = !checkOctaveAny.isChecked() ? getCheckedValues(checkOctaves) : null;
-        String[] intervals = !checkIntervalAny.isChecked() ? getCheckedValues(checkIntervals, checkIntervalIdValues) : null;
+        String[] intervals = !checkIntervalAny.isChecked() ? getCheckedValues(checkIntervals, CHECK_INTERVAL_ID_VALUES) : null;
 
         MusInterval.Builder builder = new MusInterval.Builder(mAnkiDroid)
                 .deck(storedDeck)
@@ -1077,17 +875,27 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         return valuesList.toArray(new String[0]);
     }
 
+    private void handleError(Throwable err) {
+        try {
+            throw err;
+        } catch (MusInterval.Exception e) {
+            processMusIntervalException(e);
+        } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
+            processInvalidAnkiDatabase(e);
+        } catch (Throwable e) {
+            processUnknownException(e);
+        }
+    }
+
     private void processMusIntervalException(MusInterval.Exception miException) {
         try {
             throw miException;
         } catch (MusInterval.MandatorySelectionEmptyException e) {
-            showMsg(R.string.empty_mandatory_selection, getString(selectionFieldLabelStringIds.get(e.getField())));
+            showMsg(R.string.empty_mandatory_selection, getString(FIELD_LABEL_STRING_IDS_SELECTION.get(e.getField())));
         } catch (MusInterval.UnexpectedSoundsAmountException e) {
             final int expected = e.getExpectedAmount();
             final int provided = e.getProvidedAmount();
             final boolean expectedSingle = expected == 1;
-            Resources res = getResources();
-            String msg;
             if (provided == 0) {
                 if (expectedSingle) {
                     showQuantityMsg(R.plurals.sound_not_provided, expected);
@@ -1151,7 +959,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         } catch (MusInterval.AddToAnkiException e) {
             showMsg(R.string.add_card_error);
         } catch (MusInterval.MandatoryFieldEmptyException e) {
-            showMsg(R.string.mandatory_field_empty, getString(singularFieldLabelStringIds.get(e.getField())));
+            showMsg(R.string.mandatory_field_empty, getString(FIELD_LABEL_STRING_IDS_SINGULAR.get(e.getField())));
         } catch (MusInterval.SoundAlreadyAddedException e) {
             showMsg(R.string.already_added);
         } catch (MusInterval.AddSoundFileException e) {
@@ -1165,13 +973,14 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
     private void handleCreateModel(String modelName) {
         final String[] signature = MusInterval.Fields.getSignature(SettingsFragment.DEFAULT_VERSION_FIELD_SWITCH);
+        Resources res = getResources();
         final Long newModelId = mAnkiDroid.addNewCustomModel(
                 modelName,
                 signature,
-                MusInterval.Builder.CARD_NAMES,
-                MusInterval.Builder.QFMT,
-                MusInterval.Builder.AFMT,
-                MusInterval.Builder.CSS
+                res.getStringArray(R.array.card_names),
+                res.getStringArray(R.array.qfmt),
+                res.getStringArray(R.array.afmt),
+                res.getString(R.string.css)
         );
         if (newModelId != null) {
             SharedPreferences.Editor preferenceEditor = PreferenceManager.getDefaultSharedPreferences(MainActivity.this).edit();

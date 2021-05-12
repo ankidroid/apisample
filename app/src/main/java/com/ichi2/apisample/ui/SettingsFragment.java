@@ -1,4 +1,4 @@
-package com.ichi2.apisample;
+package com.ichi2.apisample.ui;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -12,6 +12,10 @@ import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceManager;
 import androidx.preference.PreferenceScreen;
 import androidx.preference.SwitchPreference;
+
+import com.ichi2.apisample.model.MusInterval;
+import com.ichi2.apisample.R;
+import com.ichi2.apisample.helper.AnkiDroidHelper;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,7 +37,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
     public static final boolean DEFAULT_VERSION_FIELD_SWITCH = true;
     public static final boolean DEFAULT_TAG_DUPLICATES_SWITCH = true;
 
-    private static final Map<String, Integer> fieldPreferenceLabelStringIds = new HashMap<String, Integer>() {{
+    private static final Map<String, Integer> FIELD_PREFERENCE_LABEL_STRING_IDS = new HashMap<String, Integer>() {{
         put(MusInterval.Fields.SOUND, R.string.sound_field_list_preference_title);
         put(MusInterval.Fields.SOUND_SMALLER, R.string.sound_smaller_field_list_preference_title);
         put(MusInterval.Fields.SOUND_LARGER, R.string.sound_larger_field_list_preference_title);
@@ -46,7 +50,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         put(MusInterval.Fields.VERSION, R.string.version_field_list_preference_title);
     }};
     static {
-        if (!fieldPreferenceLabelStringIds.keySet().equals(new HashSet<>(Arrays.asList(MusInterval.Fields.getSignature(true))))) {
+        if (!FIELD_PREFERENCE_LABEL_STRING_IDS.keySet().equals(new HashSet<>(Arrays.asList(MusInterval.Fields.getSignature(true))))) {
             throw new AssertionError();
         }
     }
@@ -196,7 +200,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
     }
 
     public static String getFieldPreferenceLabelString(String fieldKey, Context context) {
-        Integer resId = fieldPreferenceLabelStringIds.get(fieldKey);
+        Integer resId = FIELD_PREFERENCE_LABEL_STRING_IDS.get(fieldKey);
         return resId != null ? context.getResources().getString(resId) : "";
     }
 

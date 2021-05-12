@@ -1,10 +1,12 @@
-package com.ichi2.apisample;
+package com.ichi2.apisample.ui;
 
 import android.os.Bundle;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+
+import com.ichi2.apisample.R;
 
 public class SettingsActivity extends AppCompatActivity {
     @Override

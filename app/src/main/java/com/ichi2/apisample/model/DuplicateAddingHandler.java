@@ -1,4 +1,6 @@
-package com.ichi2.apisample;
+package com.ichi2.apisample.model;
+
+import com.ichi2.apisample.helper.AnkiDroidHelper;
 
 public interface DuplicateAddingHandler {
     MusInterval add() throws MusInterval.AddSoundFileException, MusInterval.AddToAnkiException,

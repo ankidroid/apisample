@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="card_names">
+        <item>Question > Answer</item>
+    </string-array>
+    <string name="css">
+        .card {\n
+                font-family: arial;\n
+                font-size: 20px;\n
+                text-align: center;\n
+                color: black;\n
+                background-color: white;\n
+        }\n
+        \n
+        .the_answer {\n
+                font-size: 40px;\n
+                font-face: bold;\n
+                color: green;\n
+        }
+    </string>
+    <string name="qfmt1">
+        {{sound}}\nWhich interval is it?
+    </string>
+    <string-array name="qfmt">
+        <item>@string/qfmt1</item>
+    </string-array>
+    <string name="afmt1">
+        {{FrontSide}}
+        \n
+        \n
+        &lt;hr id=answer&gt;
+        \n
+        \n
+        &lt;img src=\"_wils_{{start_note}}_{{direction}}_{{timing}}_{{interval}}.jpg\" onerror=\"this.style.display=\'none\'\"/&gt;
+        \n
+        &lt;img src=\"_wila_{{interval}}_.jpg\" onerror=\"this.style.display=\'none\'\"/&gt;
+        \n
+        &lt;div id=\"interval_longer_name\" class=\"the_answer\">&lt;/div&gt;
+        \n
+        {{start_note}}, {{direction}}, {{timing}}, &lt;span id=\"interval_short_name\">{{interval}}&lt;/span&gt;; {{tempo}}BPM, {{instrument}}
+        \n
+        \n
+        &lt;script&gt;
+            \n
+            function intervalLongerName(intervalShortName) {\n
+              var longerName = {\n
+                \'min2\': \'minor 2nd\',\n
+                \'Maj2\': \'Major 2nd\'\n
+              };\n
+              return longerName[intervalShortName];\n
+            }\n
+            \n
+            document.getElementById(\"interval_longer_name\").innerText =\n
+                intervalLongerName(document.getElementById(\"interval_short_name\").innerText);\n
+            \n
+        &lt;/script&gt;\n
+        \n
+    </string>
+    <string-array name="afmt">
+        <item>@string/afmt1</item>
+    </string-array>
+</resources>

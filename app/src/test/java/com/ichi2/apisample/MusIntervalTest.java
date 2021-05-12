@@ -1,5 +1,13 @@
 package com.ichi2.apisample;
 
+import com.ichi2.apisample.helper.AnkiDroidHelper;
+import com.ichi2.apisample.model.DuplicateAddingHandler;
+import com.ichi2.apisample.model.DuplicateAddingPrompter;
+import com.ichi2.apisample.model.MusInterval;
+import com.ichi2.apisample.model.NotesIntegrity;
+import com.ichi2.apisample.model.RelatedIntervalSoundField;
+import com.ichi2.apisample.validation.EmptyValidator;
+
 import org.junit.Test;
 import org.mockito.internal.stubbing.answers.ThrowsExceptionClass;
 import org.mockito.invocation.InvocationOnMock;
@@ -37,7 +45,7 @@ public class MusIntervalTest {
     final static String defaultOctave = ALL_NOTES[2]; // 3
     final static String defaultStartNote = defaultNote + defaultOctave; // C#3
     final static String note2 = ALL_NOTES[1]; // C#
-    final static String octave2 = ALL_NOTES[1]; // 2
+    final static String octave2 = ALL_OCTAVES[1]; // 2
     final static String startNote2 = note2 + octave2; // C#2
     final static String intervalMin3 = MusInterval.Fields.Interval.VALUES[3]; //m3
     final static String[] SIGNATURE = MusInterval.Fields.getSignature(false);
@@ -56,7 +64,7 @@ public class MusIntervalTest {
         doReturn(modelId).when(helper).findModelIdByName(defaultModelName);
         doReturn(SIGNATURE).when(helper).getFieldList(eq(modelId));
         doReturn(deckId).when(helper).findDeckIdByName(defaultDeckName);
-        doReturn(existingNotesData).when(helper).findNotes(eq(modelId), any(Map[].class));
+        doReturn(existingNotesData).when(helper).findNotes(eq(modelId), any(ArrayList.class));
 
         MusInterval mi = new MusInterval.Builder(helper)
                 .model(defaultModelName)
@@ -95,7 +103,7 @@ public class MusIntervalTest {
         doReturn(modelId).when(helper).findModelIdByName(defaultModelName);
         doReturn(SIGNATURE).when(helper).getFieldList(eq(modelId));
         doReturn(deckId).when(helper).findDeckIdByName(defaultDeckName);
-        doReturn(existingNotesData).when(helper).findNotes(eq(modelId), any(Map[].class));
+        doReturn(existingNotesData).when(helper).findNotes(eq(modelId), any(ArrayList.class));
 
         MusInterval mi = new MusInterval.Builder(helper)
                 .model(defaultModelName)
@@ -139,7 +147,7 @@ public class MusIntervalTest {
         doReturn(modelId).when(helper).findModelIdByName(defaultModelName);
         doReturn(SIGNATURE).when(helper).getFieldList(eq(modelId));
         doReturn(deckId).when(helper).findDeckIdByName(defaultDeckName);
-        doReturn(existingNotesData).when(helper).findNotes(eq(modelId), any(Map[].class));
+        doReturn(existingNotesData).when(helper).findNotes(eq(modelId), any(ArrayList.class));
 
         MusInterval mi = new MusInterval.Builder(helper)
                 .model(defaultModelName)
@@ -182,7 +190,7 @@ public class MusIntervalTest {
         doReturn(modelId).when(helper).findModelIdByName(defaultModelName);
         doReturn(SIGNATURE).when(helper).getFieldList(eq(modelId));
         doReturn(deckId).when(helper).findDeckIdByName(defaultDeckName);
-        doReturn(existingNotesData).when(helper).findNotes(eq(modelId), any(Map[].class));
+        doReturn(existingNotesData).when(helper).findNotes(eq(modelId), any(ArrayList.class));
 
         MusInterval mi = new MusInterval.Builder(helper)
                 .model(defaultModelName)
@@ -217,7 +225,7 @@ public class MusIntervalTest {
         doReturn(modelId).when(helper).findModelIdByName(defaultModelName);
         doReturn(SIGNATURE).when(helper).getFieldList(eq(modelId));
         doReturn(deckId).when(helper).findDeckIdByName(defaultDeckName);
-        doReturn(existingNotesData).when(helper).findNotes(eq(modelId), any(Map[].class));
+        doReturn(existingNotesData).when(helper).findNotes(eq(modelId), any(ArrayList.class));
 
         MusInterval mi = new MusInterval.Builder(helper)
                 .model(defaultModelName)
@@ -261,7 +269,7 @@ public class MusIntervalTest {
         doReturn(modelId).when(helper).findModelIdByName(defaultModelName);
         doReturn(SIGNATURE).when(helper).getFieldList(eq(modelId));
         doReturn(deckId).when(helper).findDeckIdByName(defaultDeckName);
-        doReturn(existingNotesData).when(helper).findNotes(eq(modelId), any(Map[].class));
+        doReturn(existingNotesData).when(helper).findNotes(eq(modelId), any(ArrayList.class));
 
         MusInterval mi = new MusInterval.Builder(helper)
                 .model(defaultModelName)
@@ -293,7 +301,7 @@ public class MusIntervalTest {
         doReturn(modelId).when(helper).findModelIdByName(defaultModelName);
         doReturn(SIGNATURE).when(helper).getFieldList(eq(modelId));
         doReturn(deckId).when(helper).findDeckIdByName(defaultDeckName);
-        doReturn(existingNotesData).when(helper).findNotes(eq(modelId), any(Map[].class));
+        doReturn(existingNotesData).when(helper).findNotes(eq(modelId), any(ArrayList.class));
 
         MusInterval mi = new MusInterval.Builder(helper)
                 .model(defaultModelName)
@@ -323,7 +331,7 @@ public class MusIntervalTest {
         doReturn(modelId).when(helper).findModelIdByName(defaultModelName);
         doReturn(SIGNATURE).when(helper).getFieldList(eq(modelId));
         doReturn(deckId).when(helper).findDeckIdByName(defaultDeckName);
-        doReturn(existingNotesData).when(helper).findNotes(eq(modelId), any(Map[].class));
+        doReturn(existingNotesData).when(helper).findNotes(eq(modelId), any(ArrayList.class));
 
         MusInterval mi = new MusInterval.Builder(helper)
                 .model(defaultModelName)
@@ -383,7 +391,7 @@ public class MusIntervalTest {
         doReturn(null).when(helper).findDeckIdByName(defaultDeckName);
         doReturn(deckId).when(helper).addNewDeck(defaultDeckName);
         doNothing().when(helper).storeDeckReference(defaultDeckName, deckId);
-        doReturn(new LinkedList<Map<String, String>>()).when(helper).findNotes(eq(modelId), any(Map[].class));
+        doReturn(new LinkedList<Map<String, String>>()).when(helper).findNotes(eq(modelId), any(ArrayList.class));
 
         doReturn(newSound).when(helper).addFileToAnkiMedia(sound);
         doReturn(new LinkedList<Map<String, String>>()).when(helper).findNotes(eq(modelId), any(Map.class));
@@ -884,7 +892,7 @@ public class MusIntervalTest {
         doReturn(modelId).when(helper).findModelIdByName(defaultModelName);
         doReturn(SIGNATURE).when(helper).getFieldList(eq(modelId));
         doReturn(deckId).when(helper).findDeckIdByName(defaultDeckName);
-        doReturn(existingNotesData).when(helper).findNotes(eq(modelId), any(Map[].class));
+        doReturn(existingNotesData).when(helper).findNotes(eq(modelId), any(ArrayList.class));
 
         MusInterval mi = new MusInterval.Builder(helper)
                 .model(defaultModelName)
@@ -927,7 +935,7 @@ public class MusIntervalTest {
         doReturn(modelId).when(helper).findModelIdByName(defaultModelName);
         doReturn(SIGNATURE).when(helper).getFieldList(eq(modelId));
         doReturn(deckId).when(helper).findDeckIdByName(defaultDeckName);
-        doReturn(existingNotesData).when(helper).findNotes(eq(modelId), any(Map[].class));
+        doReturn(existingNotesData).when(helper).findNotes(eq(modelId), any(ArrayList.class));
 
         // Marking failure
         doReturn(0).when(helper).addTagToNote(noteId, " marked ");
@@ -977,7 +985,7 @@ public class MusIntervalTest {
         doReturn(modelId).when(helper).findModelIdByName(defaultModelName);
         doReturn(SIGNATURE).when(helper).getFieldList(eq(modelId));
         doReturn(deckId).when(helper).findDeckIdByName(defaultDeckName);
-        doReturn(existingNotesData).when(helper).findNotes(eq(modelId), any(Map[].class));
+        doReturn(existingNotesData).when(helper).findNotes(eq(modelId), any(ArrayList.class));
 
         // Marked successfully
         doReturn(1).when(helper).addTagToNote(noteId, " marked ");
@@ -1040,7 +1048,7 @@ public class MusIntervalTest {
         doReturn(modelId).when(helper).findModelIdByName(defaultModelName);
         doReturn(SIGNATURE).when(helper).getFieldList(eq(modelId));
         doReturn(deckId).when(helper).findDeckIdByName(defaultDeckName);
-        doReturn(existingNotesData).when(helper).findNotes(eq(modelId), any(Map[].class));
+        doReturn(existingNotesData).when(helper).findNotes(eq(modelId), any(ArrayList.class));
 
         // Marked successfully
         doReturn(1).when(helper).addTagToNote(noteId1, " marked ");
@@ -1093,7 +1101,7 @@ public class MusIntervalTest {
         doReturn(modelId).when(helper).findModelIdByName(defaultModelName);
         doReturn(SIGNATURE).when(helper).getFieldList(eq(modelId));
         doReturn(deckId).when(helper).findDeckIdByName(defaultDeckName);
-        doReturn(existingNotesData).when(helper).findNotes(eq(modelId), any(Map[].class));
+        doReturn(existingNotesData).when(helper).findNotes(eq(modelId), any(ArrayList.class));
 
         // Marked successfully
         doReturn(1).when(helper).addTagToNote(noteId, " some tags benchmarked marked_as_red marked ");
@@ -1144,7 +1152,7 @@ public class MusIntervalTest {
         doReturn(modelId).when(helper).findModelIdByName(defaultModelName);
         doReturn(SIGNATURE).when(helper).getFieldList(eq(modelId));
         doReturn(deckId).when(helper).findDeckIdByName(defaultDeckName);
-        doReturn(existingNotesData).when(helper).findNotes(eq(modelId), any(Map[].class));
+        doReturn(existingNotesData).when(helper).findNotes(eq(modelId), any(ArrayList.class));
 
         // Marked successfully
         doReturn(1).when(helper).addTagToNote(noteId, " marked ");
@@ -1352,7 +1360,7 @@ public class MusIntervalTest {
                     String sound = mi.sounds[0];
                     Map<String, String> data;
                     try {
-                        data = mi.getCollectedDataSet()[0];
+                        data = mi.getCollectedDataSet().get(0);
                     } catch (Throwable e) {
                         data = new HashMap<>();
                     }
@@ -1458,7 +1466,7 @@ public class MusIntervalTest {
                     String sound = mi.sounds[0];
                     Map<String, String> data;
                     try {
-                        data = mi.getCollectedDataSet()[0];
+                        data = mi.getCollectedDataSet().get(0);
                     } catch (Throwable e) {
                         data = new HashMap<>();
                     }
@@ -1587,7 +1595,7 @@ public class MusIntervalTest {
                     String sound = mi.sounds[0];
                     Map<String, String> data;
                     try {
-                        data = mi.getCollectedDataSet()[0];
+                        data = mi.getCollectedDataSet().get(0);
                     } catch (Throwable e) {
                         data = new HashMap<>();
                     }
@@ -1733,7 +1741,7 @@ public class MusIntervalTest {
                     String sound = mi.sounds[0];
                     Map<String, String> data;
                     try {
-                        data = mi.getCollectedDataSet()[0];
+                        data = mi.getCollectedDataSet().get(0);
                     } catch (Throwable e) {
                         data = new HashMap<>();
                     }
@@ -1882,17 +1890,17 @@ public class MusIntervalTest {
 
         DuplicateAddingPrompter prompter = mock(DuplicateAddingPrompter.class);
 
-        doReturn(new LinkedList<Map<String, String>>()).when(helper).findNotes(eq(modelId), any(Map[].class));
+        doReturn(new LinkedList<Map<String, String>>()).when(helper).findNotes(eq(modelId), any(ArrayList.class));
         final MusInterval musIntervalAdded = musInterval.addToAnki(prompter);
         assertNotNull(musIntervalAdded);
         assertTrue(addedNoteIds.contains(noteId));
 
         doReturn(new LinkedList<Map<String, String>>() {{
-            add(new HashMap<String, String>(musIntervalAdded.getCollectedDataSet()[0]) {{
+            add(new HashMap<String, String>(musIntervalAdded.getCollectedDataSet().get(0)) {{
                 put("id", String.valueOf(addedNoteIds.getLast()));
                 put("tags", "");
             }});
-        }}).when(helper).findNotes(eq(modelId), any(Map[].class));
+        }}).when(helper).findNotes(eq(modelId), any(ArrayList.class));
         doAnswer(new Answer() {
             @Override
             public Object answer(InvocationOnMock invocation) throws Throwable {
@@ -1953,18 +1961,18 @@ public class MusIntervalTest {
 
         DuplicateAddingPrompter prompter = mock(DuplicateAddingPrompter.class);
 
-        doReturn(new LinkedList<Map<String, String>>()).when(helper).findNotes(eq(modelId), any(Map[].class));
+        doReturn(new LinkedList<Map<String, String>>()).when(helper).findNotes(eq(modelId), any(ArrayList.class));
         final MusInterval musIntervalAdded = musInterval.addToAnki(prompter);
         assertNotNull(musIntervalAdded);
 
         final LinkedList<String> tags = new LinkedList<>();
 
         doReturn(new LinkedList<Map<String, String>>() {{
-            add(new HashMap<String, String>(musIntervalAdded.getCollectedDataSet()[0]) {{
+            add(new HashMap<String, String>(musIntervalAdded.getCollectedDataSet().get(0)) {{
                 put("id", String.valueOf(noteId));
                 put("tags", "");
             }});
-        }}).when(helper).findNotes(eq(modelId), any(Map[].class));
+        }}).when(helper).findNotes(eq(modelId), any(ArrayList.class));
         doAnswer(new Answer() {
             @Override
             public Object answer(InvocationOnMock invocation) throws Throwable {
@@ -2032,7 +2040,7 @@ public class MusIntervalTest {
 
         DuplicateAddingPrompter prompter = mock(DuplicateAddingPrompter.class);
 
-        doReturn(new LinkedList<Map<String, String>>()).when(helper).findNotes(eq(modelId), any(Map[].class));
+        doReturn(new LinkedList<Map<String, String>>()).when(helper).findNotes(eq(modelId), any(ArrayList.class));
         final MusInterval musIntervalAdded = musInterval.addToAnki(prompter);
         assertNotNull(musIntervalAdded);
 
@@ -2040,11 +2048,11 @@ public class MusIntervalTest {
         final LinkedList<String> tags = new LinkedList<>();
 
         doReturn(new LinkedList<Map<String, String>>() {{
-            add(new HashMap<String, String>(musIntervalAdded.getCollectedDataSet()[0]) {{
+            add(new HashMap<String, String>(musIntervalAdded.getCollectedDataSet().get(0)) {{
                 put("id", String.valueOf(noteId));
                 put("tags", "");
             }});
-        }}).when(helper).findNotes(eq(modelId), any(Map[].class));
+        }}).when(helper).findNotes(eq(modelId), any(ArrayList.class));
         doAnswer(new Answer() {
             @Override
             public Object answer(InvocationOnMock invocation) throws Throwable {
@@ -2114,18 +2122,18 @@ public class MusIntervalTest {
 
         DuplicateAddingPrompter prompter = mock(DuplicateAddingPrompter.class);
 
-        doReturn(new LinkedList<Map<String, String>>()).when(helper).findNotes(eq(modelId), any(Map[].class));
+        doReturn(new LinkedList<Map<String, String>>()).when(helper).findNotes(eq(modelId), any(ArrayList.class));
         final MusInterval musIntervalAdded = musInterval.addToAnki(prompter);
-        final Map<String, String> addedData = musIntervalAdded.getCollectedDataSet()[0];
+        final Map<String, String> addedData = musIntervalAdded.getCollectedDataSet().get(0);
         assertNotNull(musIntervalAdded);
         assertEquals(String.format("[sound:%s]", sound), addedData.get(MusInterval.Fields.SOUND));
 
         doReturn(new LinkedList<Map<String, String>>() {{
-            add(new HashMap<String, String>(musIntervalAdded.getCollectedDataSet()[0]) {{
+            add(new HashMap<String, String>(musIntervalAdded.getCollectedDataSet().get(0)) {{
                 put("id", String.valueOf(noteId));
                 put("tags", "");
             }});
-        }}).when(helper).findNotes(eq(modelId), any(Map[].class));
+        }}).when(helper).findNotes(eq(modelId), any(ArrayList.class));
         doAnswer(new Answer() {
             @Override
             public Object answer(InvocationOnMock invocation) throws Throwable {
@@ -2226,7 +2234,6 @@ public class MusIntervalTest {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     public void checkIntegrity_corrupted_shouldCount() throws MusInterval.Exception, AnkiDroidHelper.InvalidAnkiDatabaseException {
         final long modelId = new Random().nextLong();
         final long corruptedNoteId = new Random().nextLong();
@@ -2260,7 +2267,10 @@ public class MusIntervalTest {
             add(corruptedNoteData);
         }};
         doReturn(searchResult).when(helper).findNotes(eq(modelId), eq(new HashMap<String, String>()));
-        doReturn(searchResult).when(helper).findNotes(eq(modelId), eq(new Map[]{searchData}));
+        ArrayList<Map<String, String>> searchDataset = new ArrayList<Map<String, String>>() {{
+            add(searchData);
+        }};
+        doReturn(searchResult).when(helper).findNotes(eq(modelId), eq(searchDataset));
 
         MusInterval mi = new MusInterval.Builder(helper)
                 .model(defaultModelName)
@@ -2268,7 +2278,7 @@ public class MusIntervalTest {
                 .octaves(null)
                 .intervals(null)
                 .build();
-        MusInterval.IntegritySummary is = mi.checkIntegrity(corruptedTag, suspiciousTag);
+        NotesIntegrity.Summary is = new NotesIntegrity(helper, mi, corruptedTag, suspiciousTag).check();
 
         assertEquals(1, is.getNotesCount());
         assertEquals(1, is.getCorruptedNotesCount());
@@ -2278,7 +2288,6 @@ public class MusIntervalTest {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     public void checkIntegrity_corruptedFixed_shouldCount() throws MusInterval.Exception, AnkiDroidHelper.InvalidAnkiDatabaseException {
         final long modelId = new Random().nextLong();
         final long noteId = new Random().nextLong();
@@ -2319,7 +2328,10 @@ public class MusIntervalTest {
             add(fixedNoteData);
         }};
         doReturn(searchResult).when(helper).findNotes(eq(modelId), eq(new HashMap<String, String>()));
-        doReturn(searchResult).when(helper).findNotes(eq(modelId), eq(new Map[]{searchData}));
+        ArrayList<Map<String, String>> searchDataset = new ArrayList<Map<String, String>>() {{
+            add(searchData);
+        }};
+        doReturn(searchResult).when(helper).findNotes(eq(modelId), eq(searchDataset));
 
         MusInterval mi = new MusInterval.Builder(helper)
                 .model(defaultModelName)
@@ -2327,7 +2339,7 @@ public class MusIntervalTest {
                 .octaves(null)
                 .intervals(null)
                 .build();
-        MusInterval.IntegritySummary is = mi.checkIntegrity(corruptedTag, suspiciousTag);
+        NotesIntegrity.Summary is = new NotesIntegrity(helper, mi, corruptedTag, suspiciousTag).check();
 
         assertEquals(1, is.getNotesCount());
         assertEquals(0, is.getCorruptedNotesCount());
@@ -2335,7 +2347,6 @@ public class MusIntervalTest {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     public void checkIntegrity_brokenLink_shouldCount() throws MusInterval.Exception, AnkiDroidHelper.InvalidAnkiDatabaseException {
         final long modelId = new Random().nextLong();
         final long smallerNoteId = new Random().nextLong();
@@ -2406,7 +2417,10 @@ public class MusIntervalTest {
             add(largerNoteData);
         }};
         doReturn(searchResult).when(helper).findNotes(eq(modelId), eq(new HashMap<String, String>()));
-        doReturn(searchResult).when(helper).findNotes(eq(modelId), eq(new Map[]{searchData}));
+        ArrayList<Map<String, String>> searchDataset = new ArrayList<Map<String, String>>() {{
+            add(searchData);
+        }};
+        doReturn(searchResult).when(helper).findNotes(eq(modelId), eq(searchDataset));
 
         MusInterval mi = new MusInterval.Builder(helper)
                 .model(defaultModelName)
@@ -2414,14 +2428,13 @@ public class MusIntervalTest {
                 .octaves(null)
                 .intervals(null)
                 .build();
-        MusInterval.IntegritySummary is = mi.checkIntegrity(corruptedTag, suspiciousTag);
+        NotesIntegrity.Summary is = new NotesIntegrity(helper, mi, corruptedTag, suspiciousTag).check();
 
         assertEquals(3, is.getNotesCount());
         assertEquals(3, is.getSuspiciousNotesCount());
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     public void checkIntegrity_suspiciousFixed_shouldCount() throws MusInterval.Exception, AnkiDroidHelper.InvalidAnkiDatabaseException {
         final long modelId = new Random().nextLong();
         final long smallerNoteId = new Random().nextLong();
@@ -2538,7 +2551,10 @@ public class MusIntervalTest {
             add(largerNoteData);
         }};
         doReturn(searchResult).when(helper).findNotes(eq(modelId), eq(new HashMap<String, String>()));
-        doReturn(searchResult).when(helper).findNotes(eq(modelId), eq(new Map[]{searchData}));
+        ArrayList<Map<String, String>> searchDataset = new ArrayList<Map<String, String>>() {{
+            add(searchData);
+        }};
+        doReturn(searchResult).when(helper).findNotes(eq(modelId), eq(searchDataset));
 
         MusInterval mi = new MusInterval.Builder(helper)
                 .model(defaultModelName)
@@ -2546,7 +2562,7 @@ public class MusIntervalTest {
                 .octaves(null)
                 .intervals(null)
                 .build();
-        MusInterval.IntegritySummary is = mi.checkIntegrity(corruptedTag, suspiciousTag);
+        NotesIntegrity.Summary is = new NotesIntegrity(helper, mi, corruptedTag, suspiciousTag).check();
 
         assertEquals(3, is.getNotesCount());
         assertEquals(0, is.getSuspiciousNotesCount());
@@ -2554,7 +2570,6 @@ public class MusIntervalTest {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     public void checkIntegrity_missingLink_shouldFill() throws MusInterval.Exception, AnkiDroidHelper.InvalidAnkiDatabaseException {
         final long modelId = new Random().nextLong();
         final long smallerNoteId = new Random().nextLong();
@@ -2624,7 +2639,10 @@ public class MusIntervalTest {
             add(largerNoteData);
         }};
         doReturn(searchResult).when(helper).findNotes(eq(modelId), eq(new HashMap<String, String>()));
-        doReturn(searchResult).when(helper).findNotes(eq(modelId), eq(new Map[]{searchData}));
+        ArrayList<Map<String, String>> searchDataset = new ArrayList<Map<String, String>>() {{
+            add(searchData);
+        }};
+        doReturn(searchResult).when(helper).findNotes(eq(modelId), eq(searchDataset));
         Map<String, String> smallerNoteKeyData = new HashMap<String, String>(smallerNoteData) {{
             remove(MusInterval.Fields.SOUND);
             remove(MusInterval.Fields.SOUND_SMALLER);
@@ -2668,14 +2686,13 @@ public class MusIntervalTest {
                 .octaves(null)
                 .intervals(null)
                 .build();
-        MusInterval.IntegritySummary is = mi.checkIntegrity(corruptedTag, suspiciousTag);
+        NotesIntegrity.Summary is = new NotesIntegrity(helper, mi, corruptedTag, suspiciousTag).check();
 
         assertEquals(3, is.getNotesCount());
         assertEquals(4, is.getAutoFilledRelationsCount());
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     public void checkIntegrity_linkToMissing_shouldCount() throws MusInterval.Exception, AnkiDroidHelper.InvalidAnkiDatabaseException {
         final long modelId = new Random().nextLong();
         final long smallerNoteId = new Random().nextLong();
@@ -2746,7 +2763,10 @@ public class MusIntervalTest {
             add(largerNoteData);
         }};
         doReturn(searchResult).when(helper).findNotes(eq(modelId), eq(new HashMap<String, String>()));
-        doReturn(searchResult).when(helper).findNotes(eq(modelId), eq(new Map[]{searchData}));
+        ArrayList<Map<String, String>> searchDataset = new ArrayList<Map<String, String>>() {{
+            add(searchData);
+        }};
+        doReturn(searchResult).when(helper).findNotes(eq(modelId), eq(searchDataset));
         Map<String, String> smallerNoteKeyData = new HashMap<String, String>(smallerNoteData) {{
             remove(MusInterval.Fields.SOUND);
             remove(MusInterval.Fields.SOUND_SMALLER);
@@ -2790,7 +2810,7 @@ public class MusIntervalTest {
                 .octaves(null)
                 .intervals(null)
                 .build();
-        MusInterval.IntegritySummary is = mi.checkIntegrity(corruptedTag, suspiciousTag);
+        NotesIntegrity.Summary is = new NotesIntegrity(helper, mi, corruptedTag, suspiciousTag).check();
 
         assertEquals(3, is.getNotesCount());
         assertEquals(0, is.getAutoFilledRelationsCount());
