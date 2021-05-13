@@ -380,7 +380,50 @@ public class MusInterval {
     public final String instrument;
     public final String version;
 
-    private ArrayList<MusInterval> addedMis;
+    private interface FieldAccessor {
+        String getFieldValue(MusInterval mi);
+    }
+
+    private final static Map<String, FieldAccessor> OWN_FIELDS_ACCESSORS = new HashMap<String, FieldAccessor>() {{
+        put(Fields.SOUND, new FieldAccessor() {
+            @Override
+            public String getFieldValue(MusInterval mi) {
+                return mi.sounds[0];
+            }
+        });
+        put(Fields.SOUND_SMALLER, new FieldAccessor() {
+            @Override
+            public String getFieldValue(MusInterval mi) {
+                return mi.soundsSmaller[0];
+            }
+        });
+        put(Fields.SOUND_LARGER, new FieldAccessor() {
+            @Override
+            public String getFieldValue(MusInterval mi) {
+                return mi.soundsLarger[0];
+            }
+        });
+        put(Builder.KEY_NOTES, new FieldAccessor() {
+            @Override
+            public String getFieldValue(MusInterval mi) {
+                return mi.notes[0];
+            }
+        });
+        put(Builder.KEY_OCTAVES, new FieldAccessor() {
+            @Override
+            public String getFieldValue(MusInterval mi) {
+                return mi.octaves[0];
+            }
+        });
+        put(Builder.KEY_INTERVALS, new FieldAccessor() {
+            @Override
+            public String getFieldValue(MusInterval mi) {
+                return mi.intervals[0];
+            }
+        });
+    }};
+
+    private Map<String, ArrayList<String>> addedNotesOwnFields;
 
 
     /**
@@ -595,7 +638,10 @@ public class MusInterval {
 
         ArrayList<Map<String, String>> miDataSet = getCollectedDataSet();
 
-        addedMis = new ArrayList<>();
+        addedNotesOwnFields = new HashMap<>();
+        for (Map.Entry<String, FieldAccessor> ownFieldAccessor : OWN_FIELDS_ACCESSORS.entrySet()) {
+            addedNotesOwnFields.put(ownFieldAccessor.getKey(), new ArrayList<String>());
+        }
 
         addToAnki(0, miDataSet, prompter, progressIndicator);
     }
@@ -660,7 +706,7 @@ public class MusInterval {
 
                         helper.updateNote(modelId, Long.parseLong(existingData.get(AnkiDroidHelper.KEY_ID)), newData);
                         MusInterval updatedMi = getMusIntervalFromData(newData);
-                        addedMis.add(updatedMi);
+                        updateAddedNotes(updatedMi);
                         return updatedMi;
                     }
 
@@ -712,8 +758,18 @@ public class MusInterval {
         }
 
         MusInterval newMi = getMusIntervalFromData(data);
-        addedMis.add(newMi);
+        updateAddedNotes(newMi);
         return newMi;
+    }
+
+    private void updateAddedNotes(MusInterval mi) {
+        for (Map.Entry<String, FieldAccessor> ownFieldAccessor : OWN_FIELDS_ACCESSORS.entrySet()) {
+            String ownField = ownFieldAccessor.getKey();
+            ArrayList<String> current = addedNotesOwnFields.get(ownField);
+            FieldAccessor accessor = ownFieldAccessor.getValue();
+            current.add(accessor.getFieldValue(mi));
+            addedNotesOwnFields.put(ownField, current);
+        }
     }
 
     private MusInterval getMusIntervalFromData(Map<String, String> data) throws ModelValidationException, TempoNotInRangeException {
@@ -745,36 +801,18 @@ public class MusInterval {
     }
 
     private MusInterval getAddedMusInterval() throws ModelValidationException, TempoNotInRangeException {
-        int nAdded = addedMis.size();
-        String[] addedSounds = new String[nAdded];
-        String[] addedSoundsSmaller = new String[nAdded];
-        String[] addedSoundsLarger = new String[nAdded];
-        String[] addedNotes = new String[nAdded];
-        String[] addedOctaves = new String[nAdded];
-        String[] addedIntervals = new String[nAdded];
-
-        for (int i = 0; i < nAdded; i++) {
-            MusInterval mi = addedMis.get(i);
-            addedSounds[i] = mi.sounds[0];
-            addedSoundsSmaller[i] = mi.soundsSmaller[0];
-            addedSoundsLarger[i] = mi.soundsLarger[0];
-            addedNotes[i] = mi.notes[0];
-            addedOctaves[i] = mi.octaves[0];
-            addedIntervals[i] = mi.intervals[0];
-        }
-
         Builder builder = new Builder(helper)
                 .deck(deckName)
                 .model(modelName)
                 .model_fields(modelFields)
-                .sounds(addedSounds)
-                .sounds_smaller(addedSoundsSmaller)
-                .sounds_larger(addedSoundsLarger)
-                .notes(addedNotes)
-                .octaves(addedOctaves)
+                .sounds(addedNotesOwnFields.get(Fields.SOUND).toArray(new String[0]))
+                .sounds_smaller(addedNotesOwnFields.get(Fields.SOUND_SMALLER).toArray(new String[0]))
+                .sounds_larger(addedNotesOwnFields.get(Fields.SOUND_LARGER).toArray(new String[0]))
+                .notes(addedNotesOwnFields.get(Builder.KEY_NOTES).toArray(new String[0]))
+                .octaves(addedNotesOwnFields.get(Builder.KEY_OCTAVES).toArray(new String[0]))
                 .direction(direction)
                 .timing(timing)
-                .intervals(addedIntervals)
+                .intervals(addedNotesOwnFields.get(Builder.KEY_INTERVALS).toArray(new String[0]))
                 .tempo(tempo)
                 .instrument(instrument);
         if (!version.isEmpty()) {
