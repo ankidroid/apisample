@@ -380,10 +380,8 @@ public class MusInterval {
     public final String instrument;
     public final String version;
 
-    // Lists of added sounds & automatically filled links
-    private ArrayList<String> addedSounds;
-    private ArrayList<String> addedSoundsSmaller;
-    private ArrayList<String> addedSoundsLarger;
+    private ArrayList<MusInterval> addedMis;
+
 
     /**
      * Construct an object using builder class.
@@ -597,9 +595,7 @@ public class MusInterval {
 
         ArrayList<Map<String, String>> miDataSet = getCollectedDataSet();
 
-        addedSounds = new ArrayList<>();
-        addedSoundsSmaller = new ArrayList<>();
-        addedSoundsLarger = new ArrayList<>();
+        addedMis = new ArrayList<>();
 
         addToAnki(0, miDataSet, prompter, progressIndicator);
     }
@@ -663,15 +659,8 @@ public class MusInterval {
                         }
 
                         helper.updateNote(modelId, Long.parseLong(existingData.get(AnkiDroidHelper.KEY_ID)), newData);
-
                         MusInterval updatedMi = getMusIntervalFromData(newData);
-                        addedSounds.add(updatedMi.sounds[0]);
-                        if (updatedMi.soundsSmaller.length > 0) {
-                            addedSoundsSmaller.add(updatedMi.soundsSmaller[0]);
-                        }
-                        if (updatedMi.soundsLarger.length > 0) {
-                            addedSoundsLarger.add(updatedMi.soundsLarger[0]);
-                        }
+                        addedMis.add(updatedMi);
                         return updatedMi;
                     }
 
@@ -722,14 +711,8 @@ public class MusInterval {
             throw new AddToAnkiException();
         }
 
-        MusInterval newMi =  getMusIntervalFromData(data);
-        addedSounds.add(newMi.sounds[0]);
-        if (newMi.soundsSmaller.length > 0) {
-            addedSoundsSmaller.add(newMi.soundsSmaller[0]);
-        }
-        if (newMi.soundsLarger.length > 0) {
-            addedSoundsLarger.add(newMi.soundsLarger[0]);
-        }
+        MusInterval newMi = getMusIntervalFromData(data);
+        addedMis.add(newMi);
         return newMi;
     }
 
@@ -762,18 +745,36 @@ public class MusInterval {
     }
 
     private MusInterval getAddedMusInterval() throws ModelValidationException, TempoNotInRangeException {
+        int nAdded = addedMis.size();
+        String[] addedSounds = new String[nAdded];
+        String[] addedSoundsSmaller = new String[nAdded];
+        String[] addedSoundsLarger = new String[nAdded];
+        String[] addedNotes = new String[nAdded];
+        String[] addedOctaves = new String[nAdded];
+        String[] addedIntervals = new String[nAdded];
+
+        for (int i = 0; i < nAdded; i++) {
+            MusInterval mi = addedMis.get(i);
+            addedSounds[i] = mi.sounds[0];
+            addedSoundsSmaller[i] = mi.soundsSmaller[0];
+            addedSoundsLarger[i] = mi.soundsLarger[0];
+            addedNotes[i] = mi.notes[0];
+            addedOctaves[i] = mi.octaves[0];
+            addedIntervals[i] = mi.intervals[0];
+        }
+
         Builder builder = new Builder(helper)
                 .deck(deckName)
                 .model(modelName)
                 .model_fields(modelFields)
-                .sounds(addedSounds.toArray(new String[0]))
-                .sounds_smaller(addedSoundsSmaller.toArray(new String[0]))
-                .sounds_larger(addedSoundsLarger.toArray(new String[0]))
-                .notes(notes)
-                .octaves(octaves)
+                .sounds(addedSounds)
+                .sounds_smaller(addedSoundsSmaller)
+                .sounds_larger(addedSoundsLarger)
+                .notes(addedNotes)
+                .octaves(addedOctaves)
                 .direction(direction)
                 .timing(timing)
-                .intervals(intervals)
+                .intervals(addedIntervals)
                 .tempo(tempo)
                 .instrument(instrument);
         if (!version.isEmpty()) {
