@@ -13,8 +13,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.ichi2.apisample.R;
 
 public class FilenameAdapter extends RecyclerView.Adapter<FilenameAdapter.ViewHolder> {
-    private final MainActivity mainActivity;
     private final UriPathName[] uriPathNames;
+    private final SoundPlayer soundPlayer;
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         private final TextView textView;
@@ -36,9 +36,9 @@ public class FilenameAdapter extends RecyclerView.Adapter<FilenameAdapter.ViewHo
         }
     }
 
-    public FilenameAdapter(MainActivity mainActivity, UriPathName[] uriPathNames) {
-        this.mainActivity = mainActivity;
+    public FilenameAdapter(UriPathName[] uriPathNames, SoundPlayer soundPlayer) {
         this.uriPathNames = uriPathNames;
+        this.soundPlayer = soundPlayer;
     }
 
     @NonNull
@@ -51,9 +51,14 @@ public class FilenameAdapter extends RecyclerView.Adapter<FilenameAdapter.ViewHo
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        UriPathName uriPathName = uriPathNames[position];
+        final UriPathName uriPathName = uriPathNames[position];
         holder.getTextView().setText(uriPathName.name);
-        holder.getActionPlay().setOnClickListener(new OnPlayClickListener(mainActivity, uriPathName.uri, uriPathName.path));
+        holder.getActionPlay().setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                soundPlayer.play(uriPathName.uri, uriPathName.path);
+            }
+        });
     }
 
     @Override
