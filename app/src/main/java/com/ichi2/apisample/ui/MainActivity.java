@@ -312,8 +312,10 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private void validateModel() {
         try {
             getMusInterval();
-        } catch (Throwable e) {
-            handleError(e);
+        } catch (MusInterval.ModelValidationException e) {
+            processMusIntervalException(e);
+        } catch (MusInterval.ValidationException e) {
+            // here we care only about model
         }
     }
 
@@ -679,8 +681,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 try {
                     getMusInterval();
                 } catch (Throwable e) {
-                    if (!(e instanceof MusInterval.ModelValidationException)) {
-                        processUnknownException(e);
+                    // handle IllegalStateException on unconfirmed permissions in AnkiDroid
+                    if (!(e instanceof MusInterval.ValidationException)) {
+                        handleError(e);
                         return;
                     }
                 }
