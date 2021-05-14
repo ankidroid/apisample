@@ -315,7 +315,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         } catch (MusInterval.ModelValidationException e) {
             processMusIntervalException(e);
         } catch (MusInterval.ValidationException e) {
-            // here we care only about model
+            // ignore other validation errors aside from model
+        } catch (Throwable e) {
+            processUnknownException(e);
         }
     }
 
