@@ -324,7 +324,8 @@ public class MusInterval {
     }
     public static class SoundAlreadyAddedException extends Exception {}
     public static class AddSoundFileException extends Exception {}
-    public static class ModelValidationException extends Exception {
+    public static class ValidationException extends Exception {}
+    public static class ModelValidationException extends ValidationException {
         private final String modelName;
 
         public ModelValidationException(String modelName) {
@@ -353,7 +354,7 @@ public class MusInterval {
             return invalidModelFields;
         }
     }
-    public static class TempoNotInRangeException extends Exception { }
+    public static class TempoNotInRangeException extends ValidationException { }
 
     private final AnkiDroidHelper helper;
 
