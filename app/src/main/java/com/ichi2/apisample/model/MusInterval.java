@@ -213,6 +213,13 @@ public class MusInterval {
         private String mInstrument = "";
         private String mVersion = "";
 
+        private boolean mDefaultModel = false;
+        private String[] mFields = new String[]{};
+        private String[] mCards = new String[]{};
+        private String[] mQfmt = new String[]{};
+        private String[] mAfmt = new String[]{};
+        private String mCss = "";
+
         public Builder(final AnkiDroidHelper helper) {
             mHelper = helper;
         }
@@ -223,6 +230,36 @@ public class MusInterval {
 
         public Builder model(String mn) {
             mModelName = mn;
+            return this;
+        }
+
+        public Builder default_model(boolean dfmdl) {
+            mDefaultModel = dfmdl;
+            return this;
+        }
+
+        public Builder fields(String[] flds) {
+            mFields = flds;
+            return this;
+        }
+
+        public Builder cards(String[] cds) {
+            mCards = cds;
+            return this;
+        }
+
+        public Builder qfmt(String[] qfmt) {
+            mQfmt = qfmt;
+            return this;
+        }
+
+        public Builder afmt(String[] afmt) {
+            mAfmt = afmt;
+            return this;
+        }
+
+        public Builder css(String css) {
+            mCss = css;
             return this;
         }
 
@@ -356,6 +393,29 @@ public class MusInterval {
             return invalidModelFields;
         }
     }
+    public static class DefaultModelOutDatedException extends ModelValidationException {
+        private final String[] fields;
+        private final String[] cards;
+        private final String[] qfmt;
+        private final String[] afmt;
+        private final String css;
+
+        public DefaultModelOutDatedException(String modelName, String[] fields, String[] cards, String[] qfmt, String[] afmt, String css) {
+            super(modelName);
+            this.fields = fields;
+            this.cards = cards;
+            this.qfmt = qfmt;
+            this.afmt = afmt;
+            this.css = css;
+        }
+
+        public String[] getFields() { return fields; }
+        public String[] getCards() { return cards; }
+        public String[] getQfmt() { return qfmt; }
+        public String[] getAfmt() { return afmt; }
+        public String getCss() { return css; }
+    }
+
     public static class TempoNotInRangeException extends ValidationException { }
 
     private final AnkiDroidHelper helper;
@@ -456,14 +516,17 @@ public class MusInterval {
         instrument = builder.mInstrument.trim();
         version = builder.mVersion;
 
-        validateModel();
+        validateFields(builder.mDefaultModel, builder.mFields, builder.mCards, builder.mQfmt, builder.mAfmt, builder.mCss);
     }
 
-    protected void validateModel() throws ModelValidationException, TempoNotInRangeException {
+    protected void validateFields(boolean isDefaultModel, String[] fields, String[] cards, String[] qfmt, String[] afmt, String css) throws ModelValidationException, TempoNotInRangeException {
         String[] signature = Fields.getSignature(!version.isEmpty());
 
         if (modelId == null) {
             throw new ModelDoesNotExistException(modelName);
+        }
+        if (isDefaultModel && !helper.checkCustomModel(modelId, fields, cards, qfmt, afmt, css)) {
+            throw new DefaultModelOutDatedException(Builder.DEFAULT_MODEL_NAME, fields, cards, afmt, afmt, css);
         }
         final ArrayList<String> modelOwnFields = new ArrayList<>(Arrays.asList(helper.getFieldList(modelId)));
         if (modelOwnFields.size() < signature.length) {
