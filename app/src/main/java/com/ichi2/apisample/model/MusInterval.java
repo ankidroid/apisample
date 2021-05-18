@@ -393,14 +393,14 @@ public class MusInterval {
             return invalidModelFields;
         }
     }
-    public static class DefaultModelOutDatedException extends ModelValidationException {
+    public static class DefaultModelOutdatedException extends ModelValidationException {
         private final String[] fields;
         private final String[] cards;
         private final String[] qfmt;
         private final String[] afmt;
         private final String css;
 
-        public DefaultModelOutDatedException(String modelName, String[] fields, String[] cards, String[] qfmt, String[] afmt, String css) {
+        public DefaultModelOutdatedException(String modelName, String[] fields, String[] cards, String[] qfmt, String[] afmt, String css) {
             super(modelName);
             this.fields = fields;
             this.cards = cards;
@@ -526,7 +526,7 @@ public class MusInterval {
             throw new ModelDoesNotExistException(modelName);
         }
         if (isDefaultModel && !helper.checkCustomModel(modelId, fields, cards, qfmt, afmt, css)) {
-            throw new DefaultModelOutDatedException(Builder.DEFAULT_MODEL_NAME, fields, cards, afmt, afmt, css);
+            throw new DefaultModelOutdatedException(Builder.DEFAULT_MODEL_NAME, fields, cards, afmt, afmt, css);
         }
         final ArrayList<String> modelOwnFields = new ArrayList<>(Arrays.asList(helper.getFieldList(modelId)));
         if (modelOwnFields.size() < signature.length) {

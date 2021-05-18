@@ -920,11 +920,12 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
         final boolean useDefaultModel = sharedPreferences.getBoolean(SettingsFragment.KEY_USE_DEFAULT_MODEL_CHECK, SettingsFragment.DEFAULT_USE_DEFAULT_MODEL_CHECK);
         if (useDefaultModel) {
-            final String[] fields = getResources().getStringArray(R.array.fields);
-            final String[] cardNames = getResources().getStringArray(R.array.card_names);
-            final String[] qfmt = getResources().getStringArray(R.array.qfmt);
-            final String[] afmt = getResources().getStringArray(R.array.afmt);
-            final String css = getResources().getString(R.string.css);
+            Resources res = getResources();
+            final String[] fields = res.getStringArray(R.array.fields);
+            final String[] cardNames = res.getStringArray(R.array.card_names);
+            final String[] qfmt = res.getStringArray(R.array.qfmt);
+            final String[] afmt = res.getStringArray(R.array.afmt);
+            final String css = res.getString(R.string.css);
             builder.default_model(true)
                     .fields(fields)
                     .cards(cardNames)
@@ -1004,7 +1005,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                         }
                     })
                     .show();
-        } catch (final MusInterval.DefaultModelOutDatedException e) {
+        } catch (final MusInterval.DefaultModelOutdatedException e) {
             final String modelName = e.getModelName();
             new AlertDialog.Builder(this)
                     .setMessage(String.format(
@@ -1088,31 +1089,29 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         String css = res.getString(R.string.css);
 
         final String modelName = MusInterval.Builder.DEFAULT_MODEL_NAME;
-        Long modelId = mAnkiDroid.findModelIdByName(modelName);
-        if (modelId == null) {
-            final Long newModelId = mAnkiDroid.addNewCustomModel(
-                    modelName,
-                    fields,
-                    cardNames,
-                    qfmt,
-                    afmt,
-                    css
-            );
-            if (newModelId != null) {
-                SharedPreferences.Editor preferenceEditor = PreferenceManager.getDefaultSharedPreferences(MainActivity.this).edit();
-                for (String fieldKey : fields) {
-                    String fieldPreferenceKey = SettingsFragment.getFieldPreferenceKey(fieldKey);
-                    preferenceEditor.putString(fieldPreferenceKey, fieldKey);
-                    String modelFieldPreferenceKey = SettingsFragment.getModelFieldPreferenceKey(newModelId, fieldPreferenceKey);
-                    preferenceEditor.putString(modelFieldPreferenceKey, fieldKey);
-                }
-                preferenceEditor.apply();
-                refreshExisting();
-                refreshPermutations();
-                showMsg(R.string.create_model_success, modelName);
-            } else {
-                showMsg(R.string.create_model_error);
+        final Long newModelId = mAnkiDroid.addNewCustomModel(
+                modelName,
+                fields,
+                cardNames,
+                qfmt,
+                afmt,
+                css
+        );
+        if (newModelId != null) {
+            String[] mainSignature = MusInterval.Fields.getSignature(false);
+            SharedPreferences.Editor preferenceEditor = PreferenceManager.getDefaultSharedPreferences(MainActivity.this).edit();
+            for (String fieldKey : mainSignature) {
+                String fieldPreferenceKey = SettingsFragment.getFieldPreferenceKey(fieldKey);
+                preferenceEditor.putString(fieldPreferenceKey, fieldKey);
+                String modelFieldPreferenceKey = SettingsFragment.getModelFieldPreferenceKey(newModelId, fieldPreferenceKey);
+                preferenceEditor.putString(modelFieldPreferenceKey, fieldKey);
             }
+            preferenceEditor.apply();
+            refreshExisting();
+            refreshPermutations();
+            showMsg(R.string.create_model_success, modelName);
+        } else {
+            showMsg(R.string.create_model_error);
         }
     }
 
