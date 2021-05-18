@@ -1022,6 +1022,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                                     e.getCss()
                             );
                             if (updatedModelId != null) {
+                                updateModelPreferences(updatedModelId);
                                 showMsg(R.string.update_model_success, MusInterval.Builder.DEFAULT_MODEL_NAME);
                             } else {
                                 showMsg(R.string.update_model_error);
@@ -1098,21 +1099,25 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 css
         );
         if (newModelId != null) {
-            String[] mainSignature = MusInterval.Fields.getSignature(false);
-            SharedPreferences.Editor preferenceEditor = PreferenceManager.getDefaultSharedPreferences(MainActivity.this).edit();
-            for (String fieldKey : mainSignature) {
-                String fieldPreferenceKey = SettingsFragment.getFieldPreferenceKey(fieldKey);
-                preferenceEditor.putString(fieldPreferenceKey, fieldKey);
-                String modelFieldPreferenceKey = SettingsFragment.getModelFieldPreferenceKey(newModelId, fieldPreferenceKey);
-                preferenceEditor.putString(modelFieldPreferenceKey, fieldKey);
-            }
-            preferenceEditor.apply();
+            updateModelPreferences(newModelId);
             refreshExisting();
             refreshPermutations();
             showMsg(R.string.create_model_success, modelName);
         } else {
             showMsg(R.string.create_model_error);
         }
+    }
+
+    private void updateModelPreferences(long modelId) {
+        String[] mainSignature = MusInterval.Fields.getSignature(false);
+        SharedPreferences.Editor preferenceEditor = PreferenceManager.getDefaultSharedPreferences(MainActivity.this).edit();
+        for (String fieldKey : mainSignature) {
+            String fieldPreferenceKey = SettingsFragment.getFieldPreferenceKey(fieldKey);
+            preferenceEditor.putString(fieldPreferenceKey, fieldKey);
+            String modelFieldPreferenceKey = SettingsFragment.getModelFieldPreferenceKey(modelId, fieldPreferenceKey);
+            preferenceEditor.putString(modelFieldPreferenceKey, fieldKey);
+        }
+        preferenceEditor.apply();
     }
 
     private void processInvalidAnkiDatabase(AnkiDroidHelper.InvalidAnkiDatabaseException invalidAnkiDatabaseException) {
