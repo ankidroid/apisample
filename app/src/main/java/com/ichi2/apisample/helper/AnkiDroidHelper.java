@@ -135,6 +135,98 @@ public class AnkiDroidHelper {
         return getApi().addNewCustomModel(modelName, fields, cards, qfmt, afmt, css, null, null);
     }
 
+    public boolean checkCustomModel(long modelId, String[] fields, String[] cards, String[] qfmt, String[] afmt, String css) {
+        Uri modelUri = Uri.withAppendedPath(FlashCardsContract.Model.CONTENT_URI, String.valueOf(modelId));
+        Cursor cursor = mResolver.query(modelUri, null, null, null, null);
+        cursor.moveToNext();
+        String existingCss = cursor.getString(cursor.getColumnIndex(FlashCardsContract.Model.CSS));
+        String existingNumCards = cursor.getString(cursor.getColumnIndex(FlashCardsContract.Model.NUM_CARDS));
+        if (!existingCss.equals(css) || Integer.parseInt(existingNumCards) != cards.length) {
+            return false;
+        }
+
+        Set<String> existingFields = new HashSet<>(Arrays.asList(getFieldList(modelId)));
+        for (String field : fields) {
+            if (!existingFields.contains(field)) {
+                return false;
+            }
+        }
+
+        cursor = mResolver.query(Uri.withAppendedPath(modelUri, "templates"), null, null, null, null);
+        final int colIdxName = cursor.getColumnIndex(FlashCardsContract.CardTemplate.NAME);
+        final int colIdxQfmt = cursor.getColumnIndex(FlashCardsContract.CardTemplate.QUESTION_FORMAT);
+        final int colIdxAfmt = cursor.getColumnIndex(FlashCardsContract.CardTemplate.ANSWER_FORMAT);
+        for (int i = 0; i < cards.length; i++) {
+            cursor.moveToNext();
+            String existingName = cursor.getString(colIdxName);
+            String existingQfmt = cursor.getString(colIdxQfmt);
+            String existingAfmt = cursor.getString(colIdxAfmt);
+            if (!existingName.equals(cards[i]) || !existingQfmt.equals(qfmt[i]) || !existingAfmt.equals(afmt[i])) {
+                return false;
+            }
+        }
+        cursor.close();
+        return true;
+    }
+
+    public Long updateCustomModel(long modelId, String[] fields, String[] cards, String[] qfmt, String[] afmt, String css) {
+        ContentValues values = new ContentValues();
+        values.put(FlashCardsContract.Model.CSS, css);
+        values.put(FlashCardsContract.Model.NUM_CARDS, cards.length);
+        Uri modelUri = Uri.withAppendedPath(FlashCardsContract.Model.CONTENT_URI, String.valueOf(modelId));
+        int updated = mResolver.update(modelUri, values, null, null);
+        if (updated == 0) {
+            return null;
+        }
+
+        Uri fieldsUri = Uri.withAppendedPath(modelUri, "fields");
+        Set<String> existingFields = new HashSet<>(Arrays.asList(getFieldList(modelId)));
+        for (String field : fields) {
+            if (existingFields.contains(field)) {
+                continue;
+            }
+            values = new ContentValues();
+            values.put(FlashCardsContract.Model.FIELD_NAME, field);
+            Uri fieldUri = mResolver.insert(fieldsUri, values);
+            if (fieldUri == null) {
+                return null;
+            }
+        }
+
+        Uri templatesUri = Uri.withAppendedPath(modelUri, "templates");
+        Cursor cursor = mResolver.query(templatesUri, null, null, null, null);
+        int templatesCount = cursor.getCount();
+        cursor.close();
+        boolean templatesToAdd = cards.length - templatesCount > 0;
+        int last = templatesToAdd ? templatesCount : cards.length;
+        int i = 0;
+        for (; i < last; i++) {
+            Uri templateUri = Uri.withAppendedPath(templatesUri, Integer.toString(i));
+            values = new ContentValues();
+            values.put(FlashCardsContract.CardTemplate.NAME, cards[i]);
+            values.put(FlashCardsContract.CardTemplate.QUESTION_FORMAT, qfmt[i]);
+            values.put(FlashCardsContract.CardTemplate.ANSWER_FORMAT, afmt[i]);
+            updated = mResolver.update(templateUri, values, null, null);
+            if (updated == 0) {
+                return null;
+            }
+        }
+        if (templatesToAdd) {
+            for (; i < cards.length; i++) {
+                values = new ContentValues();
+                values.put(FlashCardsContract.CardTemplate.NAME, cards[i]);
+                values.put(FlashCardsContract.CardTemplate.QUESTION_FORMAT, qfmt[i]);
+                values.put(FlashCardsContract.CardTemplate.ANSWER_FORMAT, afmt[i]);
+                Uri templateUri = mResolver.insert(templatesUri, values);
+                if (templateUri == null) {
+                    return null;
+                }
+            }
+        }
+
+        return modelId;
+    }
+
     public Map<Long, String> getDeckList() {
         return mApi.getDeckList();
     }
@@ -194,7 +286,6 @@ public class AnkiDroidHelper {
 
     // @todo: refactor once new version release of "com.ichi2.anki.api" is available
     public String addFileToAnkiMedia(String uriString) {
-        ContentResolver cr = mContext.getContentResolver();
         ContentValues cv = new ContentValues();
         cv.put("file_uri", uriString);
         final String preferredName = "music_interval_" + (System.currentTimeMillis() / 1000L);
@@ -202,7 +293,7 @@ public class AnkiDroidHelper {
         final Uri fileUri = Uri.parse(uriString);
         mContext.grantUriPermission("com.ichi2.anki", fileUri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
         try {
-            Uri uri = cr.insert(Uri.withAppendedPath(FlashCardsContract.AUTHORITY_URI, "media"), cv);
+            Uri uri = mResolver.insert(Uri.withAppendedPath(FlashCardsContract.AUTHORITY_URI, "media"), cv);
             File insertedFile = new File(uri.getPath());
             String filePath =  insertedFile.toString();
             return filePath.substring(1); // get rid of the "/" at the beginning

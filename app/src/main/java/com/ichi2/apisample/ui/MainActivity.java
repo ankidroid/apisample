@@ -918,6 +918,25 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         if (versionField) {
             builder.version(BuildConfig.VERSION_NAME);
         }
+        final boolean useDefaultModel = sharedPreferences.getBoolean(SettingsFragment.KEY_USE_DEFAULT_MODEL_CHECK, SettingsFragment.DEFAULT_USE_DEFAULT_MODEL_CHECK);
+        if (useDefaultModel) {
+            Resources res = getResources();
+            final String[] fields = res.getStringArray(R.array.fields);
+            final String[] cardNames = res.getStringArray(R.array.card_names);
+            final String[] qfmt = res.getStringArray(R.array.qfmt);
+            final String[] afmt = res.getStringArray(R.array.afmt);
+            final String css = res.getString(R.string.css);
+            builder.default_model(true)
+                    .fields(fields)
+                    .cards(cardNames)
+                    .qfmt(qfmt)
+                    .afmt(afmt)
+                    .css(css);
+            Long modelId = mAnkiDroid.findModelIdByName(MusInterval.Builder.DEFAULT_MODEL_NAME);
+            if (modelId != null) {
+                updateModelPreferences(modelId);
+            }
+        }
         return builder.build();
     }
 
@@ -981,7 +1000,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                             modelName))
                     .setPositiveButton(R.string.create, new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
-                            handleCreateModel(modelName);
+                            handleCreateDefaultModel();
                         }
                     })
                     .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
@@ -990,6 +1009,37 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                         }
                     })
                     .show();
+        } catch (final MusInterval.DefaultModelOutdatedException e) {
+            final String modelName = e.getModelName();
+            new AlertDialog.Builder(this)
+                    .setMessage(String.format(
+                            getResources().getString(R.string.update_model),
+                            modelName))
+                    .setPositiveButton(R.string.update, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            Long updatedModelId = mAnkiDroid.updateCustomModel(
+                                    mAnkiDroid.findModelIdByName(modelName),
+                                    e.getFields(),
+                                    e.getCards(),
+                                    e.getQfmt(),
+                                    e.getAfmt(),
+                                    e.getCss()
+                            );
+                            if (updatedModelId != null) {
+                                updateModelPreferences(updatedModelId);
+                                showMsg(R.string.update_model_success, MusInterval.Builder.DEFAULT_MODEL_NAME);
+                            } else {
+                                showMsg(R.string.update_model_error);
+                            }
+                        }
+                    })
+                    .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            dialog.cancel();
+                        }
+                    })
+                    .show();
+
         } catch (MusInterval.NotEnoughFieldsException e) {
             showMsg(R.string.invalid_model, e.getModelName());
         } catch (MusInterval.ModelNotConfiguredException e) {
@@ -1035,32 +1085,43 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
     }
 
-    private void handleCreateModel(String modelName) {
-        final String[] signature = MusInterval.Fields.getSignature(SettingsFragment.DEFAULT_VERSION_FIELD_SWITCH);
+    private void handleCreateDefaultModel() {
         Resources res = getResources();
+        String[] fields = res.getStringArray(R.array.fields);
+        String[] cardNames = res.getStringArray(R.array.card_names);
+        String[] qfmt = res.getStringArray(R.array.qfmt);
+        String[] afmt = res.getStringArray(R.array.afmt);
+        String css = res.getString(R.string.css);
+
+        final String modelName = MusInterval.Builder.DEFAULT_MODEL_NAME;
         final Long newModelId = mAnkiDroid.addNewCustomModel(
                 modelName,
-                signature,
-                res.getStringArray(R.array.card_names),
-                res.getStringArray(R.array.qfmt),
-                res.getStringArray(R.array.afmt),
-                res.getString(R.string.css)
+                fields,
+                cardNames,
+                qfmt,
+                afmt,
+                css
         );
         if (newModelId != null) {
-            SharedPreferences.Editor preferenceEditor = PreferenceManager.getDefaultSharedPreferences(MainActivity.this).edit();
-            for (String fieldKey : signature) {
-                String fieldPreferenceKey = SettingsFragment.getFieldPreferenceKey(fieldKey);
-                preferenceEditor.putString(fieldPreferenceKey, fieldKey);
-                String modelFieldPreferenceKey = SettingsFragment.getModelFieldPreferenceKey(newModelId, fieldPreferenceKey);
-                preferenceEditor.putString(modelFieldPreferenceKey, fieldKey);
-            }
-            preferenceEditor.apply();
+            updateModelPreferences(newModelId);
             refreshExisting();
             refreshPermutations();
             showMsg(R.string.create_model_success, modelName);
         } else {
             showMsg(R.string.create_model_error);
         }
+    }
+
+    private void updateModelPreferences(long modelId) {
+        String[] mainSignature = MusInterval.Fields.getSignature(false);
+        SharedPreferences.Editor preferenceEditor = PreferenceManager.getDefaultSharedPreferences(MainActivity.this).edit();
+        for (String fieldKey : mainSignature) {
+            String fieldPreferenceKey = SettingsFragment.getFieldPreferenceKey(fieldKey);
+            preferenceEditor.putString(fieldPreferenceKey, fieldKey);
+            String modelFieldPreferenceKey = SettingsFragment.getModelFieldPreferenceKey(modelId, fieldPreferenceKey);
+            preferenceEditor.putString(modelFieldPreferenceKey, fieldKey);
+        }
+        preferenceEditor.apply();
     }
 
     private void processInvalidAnkiDatabase(AnkiDroidHelper.InvalidAnkiDatabaseException invalidAnkiDatabaseException) {
