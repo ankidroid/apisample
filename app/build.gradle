@@ -31,6 +31,10 @@ android {
     useLibrary 'android.test.mock'
 }
 
+configurations {
+    driver
+}
+
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'androidx.appcompat:appcompat:1.2.0'
@@ -45,4 +49,83 @@ dependencies {
     testImplementation 'org.mockito:mockito-core:2.7.22'
     androidTestImplementation 'org.mockito:mockito-core:2.7.22'
     androidTestImplementation 'org.mockito:mockito-android:2.7.22'
+     driver 'org.xerial:sqlite-jdbc:3.34.0'
+}
+
+
+import groovy.json.JsonSlurper
+import groovy.sql.Sql
+
+import javax.xml.namespace.QName
+import java.util.zip.ZipInputStream
+
+task buildModelResource {
+    def source = new File("./Selected Notes.apkg")
+
+    def dbFileName = "collection.anki2"
+    def baseDir = "."
+    def dbFilePath = baseDir + "/" + dbFileName
+
+    def fileInputStream = new FileInputStream(source)
+    def zipInputStream = new ZipInputStream(fileInputStream)
+    def zipEntry
+    while ((zipEntry = zipInputStream.getNextEntry()) != null) {
+        if (zipEntry.getName().equals(dbFileName)) {
+            def fileOutputStream = new FileOutputStream(dbFilePath)
+            for (int c = zipInputStream.read(); c != -1; c = zipInputStream.read()) {
+                fileOutputStream.write(c)
+            }
+            zipInputStream.closeEntry()
+            fileOutputStream.close()
+        }
+    }
+    zipInputStream.close()
+
+    URLClassLoader loader = GroovyObject.class.classLoader
+    configurations.driver.each {File file -> loader.addURL(file.toURI().toURL())}
+
+    def resFilePath = './app/src/main/res/values/model.xml'
+
+    def sql = Sql.newInstance('jdbc:sqlite:' + dbFileName,'','','org.sqlite.JDBC')
+    def screen = { s -> s.replace('"', '\\"').replace("'", "\\'") }
+    def fillStringArray = { root, name, arr ->
+        def node = root.find { it.'@name' == name }
+        node.value = ""
+        arr.each {
+            node.appendNode(new QName('item'), [:], it)
+        }
+    }
+    def result = sql.firstRow('SELECT models FROM col')
+    def resultParsed = new JsonSlurper().parseText(result.models)
+
+    def modelId = "1600189815815"
+    def model = resultParsed[modelId]
+
+    def fields = []
+    def cardNames = []
+    def qfmt = []
+    def afmt = []
+
+    model.flds.each { fld ->
+        fields << fld.name
+    }
+    model.tmpls.each { tmpl ->
+        cardNames << screen(tmpl.name)
+        qfmt << screen(tmpl.qfmt)
+        afmt << screen(tmpl.afmt)
+    }
+    def css = model.css
+
+    def res = new XmlParser().parse(new File(resFilePath))
+    def elements = res.children()
+
+    elements.find { it.'@name' == "css" }.value = css
+    fillStringArray(elements, 'fields', fields)
+    fillStringArray(elements, 'card_names', cardNames)
+    fillStringArray(elements, 'qfmt', qfmt)
+    fillStringArray(elements, 'afmt', afmt)
+
+    new XmlNodePrinter(new PrintWriter(new FileWriter(new File(resFilePath)))).print(res)
+    sql.close()
+    new File(dbFilePath).delete()
 }

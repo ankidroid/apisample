@@ -26,9 +26,9 @@ public class MusInterval {
         public static final String SOUND = "sound";
         public static final String SOUND_SMALLER = "sound_smaller";
         public static final String SOUND_LARGER = "sound_larger";
-        public static final String START_NOTE = "start_note";
-        public static final String DIRECTION = "direction";
-        public static final String TIMING = "timing";
+        public static final String START_NOTE = "note1";
+        public static final String DIRECTION = "ascending_descending";
+        public static final String TIMING = "melodic_harmonic";
         public static final String INTERVAL = "interval";
         public static final String TEMPO = "tempo";
         public static final String INSTRUMENT = "instrument";
