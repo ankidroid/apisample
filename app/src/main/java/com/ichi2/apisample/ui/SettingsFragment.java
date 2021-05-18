@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Environment;
 
+import androidx.preference.CheckBoxPreference;
 import androidx.preference.DropDownPreference;
 import androidx.preference.EditTextPreference;
 import androidx.preference.ListPreference;
@@ -28,6 +29,7 @@ import java.util.Map;
 
 public class SettingsFragment extends PreferenceFragmentCompat {
     public static final String KEY_DECK_PREFERENCE = "preference_deck";
+    public static final String KEY_USE_DEFAULT_MODEL_CHECK = "preference_use_default_model";
     public static final String KEY_MODEL_PREFERENCE = "preference_model";
     public static final String KEY_VERSION_FIELD_SWITCH = "preference_version_field_switch";
     public static final String KEY_TAG_DUPLICATES_SWITCH = "preference_tag_duplicates_switch";
@@ -38,6 +40,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
     private static final String TEMPLATE_KEY_FIELD_PREFERENCE = "preference_%s_field";
     private static final String TEMPLATE_KEY_MODEL_FIELD_PREFERENCE = "%s_%s_model";
 
+    public static final boolean DEFAULT_USE_DEFAULT_MODEL_CHECK = true;
     public static final boolean DEFAULT_VERSION_FIELD_SWITCH = true;
     public static final boolean DEFAULT_TAG_DUPLICATES_SWITCH = true;
     public static final String DEFAULT_ANKI_DIR = Environment.getExternalStorageDirectory().getPath() + "/AnkiDroid";
@@ -87,7 +90,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         deckListPreference.setEntryValues(deckEntries);
         preferenceScreen.addPreference(deckListPreference);
 
-        ListPreference modelListPreference = new ListPreference(context);
+        final ListPreference modelListPreference = new ListPreference(context);
         modelListPreference.setKey(KEY_MODEL_PREFERENCE);
         modelListPreference.setTitle(R.string.model_preference_title);
         modelListPreference.setSummaryProvider(ListPreference.SimpleSummaryProvider.getInstance());
@@ -123,6 +126,26 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             }
         });
         preferenceScreen.addPreference(modelListPreference);
+
+        CheckBoxPreference useDefaultModelCheckPreference = new CheckBoxPreference(context);
+        useDefaultModelCheckPreference.setKey(KEY_USE_DEFAULT_MODEL_CHECK);
+        useDefaultModelCheckPreference.setTitle(R.string.use_default_model_check_preference_title);
+        useDefaultModelCheckPreference.setSummary(R.string.use_default_model_check_preference_summary);
+        useDefaultModelCheckPreference.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
+                boolean newVal = (boolean)newValue;
+                if (newVal) {
+                    modelListPreference.setValue(MusInterval.Builder.DEFAULT_MODEL_NAME);
+                    modelListPreference.setEnabled(false);
+                } else {
+                    modelListPreference.setEnabled(true);
+                }
+                return true;
+            }
+        });
+        preferenceScreen.addPreference(useDefaultModelCheckPreference);
+        modelListPreference.setEnabled(!useDefaultModelCheckPreference.isChecked());
 
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
         final boolean versionField = preferences.getBoolean(KEY_VERSION_FIELD_SWITCH, DEFAULT_VERSION_FIELD_SWITCH);

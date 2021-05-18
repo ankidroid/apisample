@@ -208,4 +208,6 @@
     <string name="tag_duplicates_preference_title">Tag duplicates</string>
     <string name="tag_duplicates_preference_summary">Mark identical intervals with special tag</string>
     <string name="anki_dir_preference_title">AnkiDroid directory</string>
+    <string name="use_default_model_check_preference_title">Use default note type</string>
+    <string name="use_default_model_check_preference_summary">Enable automatic creation and updating of the used model</string>
 </resources>
