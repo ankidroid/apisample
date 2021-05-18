@@ -41,7 +41,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
     private static final String TEMPLATE_KEY_MODEL_FIELD_PREFERENCE = "%s_%s_model";
 
     public static final boolean DEFAULT_USE_DEFAULT_MODEL_CHECK = true;
-    public static final boolean DEFAULT_VERSION_FIELD_SWITCH = true;
+    public static final boolean DEFAULT_VERSION_FIELD_SWITCH = false;
     public static final boolean DEFAULT_TAG_DUPLICATES_SWITCH = true;
     public static final String DEFAULT_ANKI_DIR = Environment.getExternalStorageDirectory().getPath() + "/AnkiDroid";
 
@@ -127,35 +127,15 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         });
         preferenceScreen.addPreference(modelListPreference);
 
-        CheckBoxPreference useDefaultModelCheckPreference = new CheckBoxPreference(context);
-        useDefaultModelCheckPreference.setKey(KEY_USE_DEFAULT_MODEL_CHECK);
-        useDefaultModelCheckPreference.setTitle(R.string.use_default_model_check_preference_title);
-        useDefaultModelCheckPreference.setSummary(R.string.use_default_model_check_preference_summary);
-        useDefaultModelCheckPreference.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-            @Override
-            public boolean onPreferenceChange(Preference preference, Object newValue) {
-                boolean newVal = (boolean)newValue;
-                if (newVal) {
-                    modelListPreference.setValue(MusInterval.Builder.DEFAULT_MODEL_NAME);
-                    modelListPreference.setEnabled(false);
-                } else {
-                    modelListPreference.setEnabled(true);
-                }
-                return true;
-            }
-        });
-        preferenceScreen.addPreference(useDefaultModelCheckPreference);
-        modelListPreference.setEnabled(!useDefaultModelCheckPreference.isChecked());
-
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
         final boolean versionField = preferences.getBoolean(KEY_VERSION_FIELD_SWITCH, DEFAULT_VERSION_FIELD_SWITCH);
-        final String[] signature = MusInterval.Fields.getSignature(true);
+        final String[] fullSignature = MusInterval.Fields.getSignature(true);
         PreferenceCategory fieldsPreferenceCategory = new PreferenceCategory(context);
         fieldsPreferenceCategory.setKey(KEY_FIELDS_PREFERENCE_CATEGORY);
         fieldsPreferenceCategory.setTitle(R.string.fields_preference_category_title);
         fieldsPreferenceCategory.setInitialExpandedChildrenCount(0);
         preferenceScreen.addPreference(fieldsPreferenceCategory);
-        for (String fieldKey : signature) {
+        for (String fieldKey : fullSignature) {
             ListPreference fieldListPreference = new DropDownPreference(context);
             fieldListPreference.setKey(getFieldPreferenceKey(fieldKey));
             fieldListPreference.setTitle(getFieldPreferenceLabelString(fieldKey, context));
@@ -163,7 +143,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             fieldListPreference.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
                 @Override
                 public boolean onPreferenceChange(Preference preference, Object newValue) {
-                    for (String fieldKey : signature) {
+                    for (String fieldKey : fullSignature) {
                         String fieldPreferenceKey = getFieldPreferenceKey(fieldKey);
                         ListPreference fieldListPreference = preferenceScreen.findPreference(fieldPreferenceKey);
                         if (fieldListPreference != null && fieldListPreference.getValue().equals(newValue)) {
@@ -182,7 +162,45 @@ public class SettingsFragment extends PreferenceFragmentCompat {
                 versionFieldListPreference.setVisible(false);
             }
         }
-        updateFieldsPreferenceEntries(modelListPreference.getValue(), signature, false);
+        updateFieldsPreferenceEntries(modelListPreference.getValue(), fullSignature, false);
+
+        final String[] mainSignature = MusInterval.Fields.getSignature(false);
+        CheckBoxPreference useDefaultModelCheckPreference = new CheckBoxPreference(context);
+        useDefaultModelCheckPreference.setKey(KEY_USE_DEFAULT_MODEL_CHECK);
+        useDefaultModelCheckPreference.setTitle(R.string.use_default_model_check_preference_title);
+        useDefaultModelCheckPreference.setSummary(R.string.use_default_model_check_preference_summary);
+        useDefaultModelCheckPreference.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
+                final String defaultModel = MusInterval.Builder.DEFAULT_MODEL_NAME;
+                boolean newVal = (boolean)newValue;
+                for (String fieldKey : mainSignature) {
+                    String fieldPreferenceKey = getFieldPreferenceKey(fieldKey);
+                    ListPreference fieldListPreference = preferenceScreen.findPreference(fieldPreferenceKey);
+                    fieldListPreference.setValue(fieldKey);
+                    fieldListPreference.setEnabled(!newVal);
+                }
+                if (newVal) {
+                    final String currModel = modelListPreference.getValue();
+                    if (!currModel.equals(defaultModel)) {
+                        updateFieldsPreferenceEntries(defaultModel, fullSignature, true);
+                    }
+                    modelListPreference.setValue(defaultModel);
+                    modelListPreference.setEnabled(false);
+                } else {
+                    modelListPreference.setEnabled(true);
+                    updateFieldsPreferenceEntries(defaultModel, fullSignature, false);
+                }
+                return true;
+            }
+        });
+        preferenceScreen.addPreference(useDefaultModelCheckPreference);
+        modelListPreference.setEnabled(!useDefaultModelCheckPreference.isChecked());
+        for (String fieldKey : mainSignature) {
+            String fieldPreferenceKey = getFieldPreferenceKey(fieldKey);
+            ListPreference fieldListPreference = preferenceScreen.findPreference(fieldPreferenceKey);
+            fieldListPreference.setEnabled(!useDefaultModelCheckPreference.isChecked());
+        }
 
         SwitchPreference versionFieldSwitchPreference = new SwitchPreference(context);
         versionFieldSwitchPreference.setKey(KEY_VERSION_FIELD_SWITCH);
