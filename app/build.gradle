@@ -8,8 +8,8 @@ android {
         applicationId "com.ichi2.apisample"
         minSdkVersion 24
         targetSdkVersion 30
-        versionCode 15
-        versionName "1.4.0"
+        versionCode 16
+        versionName "1.4.1"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     signingConfigs {
