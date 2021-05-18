@@ -2,7 +2,7 @@ package com.ichi2.apisample.model;
 
 import com.ichi2.apisample.helper.AnkiDroidHelper;
 
-public interface DuplicateAddingHandler {
+public interface AddingHandler {
     MusInterval add() throws MusInterval.AddSoundFileException, MusInterval.AddToAnkiException,
             AnkiDroidHelper.InvalidAnkiDatabaseException, MusInterval.ModelValidationException, MusInterval.TempoNotInRangeException;
 
@@ -14,4 +14,6 @@ public interface DuplicateAddingHandler {
 
     int tag(String tag) throws MusInterval.NoteNotExistsException, MusInterval.ModelValidationException,
             AnkiDroidHelper.InvalidAnkiDatabaseException, MusInterval.TempoNotInRangeException;
+
+    void proceed() throws Throwable;
 }

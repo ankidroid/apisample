@@ -1,5 +1,6 @@
 package com.ichi2.apisample.model;
 
+import com.ichi2.apisample.R;
 import com.ichi2.apisample.helper.AnkiDroidHelper;
 import com.ichi2.apisample.validation.Validator;
 
@@ -18,6 +19,8 @@ public class NotesIntegrity {
     private final String suspiciousTag;
     private final String duplicateTag;
 
+    private ProgressIndicator progressIndicator;
+
     private int notesCount;
 
     private int corruptedNotesCount;
@@ -34,34 +37,41 @@ public class NotesIntegrity {
     private final Map<String, Set<Map<String, String>>> fieldSuspiciousPointed = new HashMap<>();
     private final Map<String, Set<Map<String, String>>> fieldSuspiciousPointing = new HashMap<>();
 
-    public NotesIntegrity(AnkiDroidHelper helper, MusInterval musInterval, String corruptedTag, String suspiciousTag, String duplicateTag) {
+    public NotesIntegrity(AnkiDroidHelper helper, MusInterval musInterval, String corruptedTag, String suspiciousTag, String duplicateTag, ProgressIndicator progressIndicator) {
         this.helper = helper;
         this.musInterval = musInterval;
 
         this.corruptedTag = corruptedTag;
         this.suspiciousTag = suspiciousTag;
         this.duplicateTag = duplicateTag;
+
+        this.progressIndicator = progressIndicator;
     }
 
     public Summary check() throws AnkiDroidHelper.InvalidAnkiDatabaseException {
         final String soundField = musInterval.modelFields.get(MusInterval.Fields.SOUND);
 
-        LinkedList<Map<String, String>> allNotesData = helper.findNotes(musInterval.modelId, new HashMap<String, String>());
-        Map<String, Map<String, String>> soundDict = new HashMap<>();
-        for (Map<String, String> noteData : allNotesData) {
-            soundDict.put(noteData.getOrDefault(soundField, ""), noteData);
-        }
-
+        progressIndicator.setMessage(R.string.integrity_searching);
         LinkedList<Map<String, String>> searchResult = musInterval.getExistingNotes();
         notesCount = searchResult.size();
 
         ArrayList<Map<String, String>> correctNotesData = checkCorrectness(searchResult);
         corruptedNotesCount = searchResult.size() - correctNotesData.size();
 
+        progressIndicator.setMessage(R.string.integrity_finding_duplicates);
         countDuplicates(correctNotesData);
+
+        LinkedList<Map<String, String>> allNotesData = helper.findNotes(musInterval.modelId, new HashMap<String, String>());
+        Map<String, Map<String, String>> soundDict = new HashMap<>();
+        for (Map<String, String> noteData : allNotesData) {
+            soundDict.put(noteData.getOrDefault(soundField, ""), noteData);
+        }
         checkRelations(correctNotesData, soundDict);
 
-        for (Map<String, String> noteData : correctNotesData) {
+        int correctNotesCount = correctNotesData.size();
+        for (int i = 0; i < correctNotesCount; i++) {
+            progressIndicator.setMessage(R.string.integrity_processing_relations, i, correctNotesCount);
+            final Map<String, String> noteData = correctNotesData.get(i);
             long noteId = Long.parseLong((noteData.get(AnkiDroidHelper.KEY_ID)));
             String noteTags = noteData.get(AnkiDroidHelper.KEY_TAGS).toLowerCase();
             boolean suspicious = false;
@@ -128,7 +138,11 @@ public class NotesIntegrity {
 
     private ArrayList<Map<String, String>> checkCorrectness(LinkedList<Map<String, String>> notesData) {
         ArrayList<Map<String, String>> correctNotesData = new ArrayList<>();
-        for (final Map<String, String> noteData : notesData) {
+        int notesCount = notesData.size();
+        for (int i = 0; i < notesCount; i++) {
+            progressIndicator.setMessage(R.string.integrity_validating, i, notesCount);
+            final Map<String, String> noteData = notesData.get(i);
+
             long noteId = Long.parseLong(noteData.get(AnkiDroidHelper.KEY_ID));
             String noteTags = noteData.get(AnkiDroidHelper.KEY_TAGS).toLowerCase();
 
@@ -213,7 +227,10 @@ public class NotesIntegrity {
     }
 
     private void checkRelations(ArrayList<Map<String, String>> correctNotesData, Map<String, Map<String, String>> soundDict) {
-        for (Map<String, String> noteData : correctNotesData) {
+        int correctNotesCount = correctNotesData.size();
+        for (int i = 0; i < correctNotesCount; i++) {
+            Map<String, String> noteData = correctNotesData.get(i);
+            progressIndicator.setMessage(R.string.integrity_verifying_relations, i, correctNotesCount);
             for (RelatedIntervalSoundField relatedSoundField : musInterval.relatedSoundFields) {
                 if (relatedSoundField.isSuspicious(noteData, soundDict, fieldSuspiciousPointed)) {
                     final String fieldKey = relatedSoundField.getFieldKey();

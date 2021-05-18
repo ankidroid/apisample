@@ -1,5 +1,6 @@
 package com.ichi2.apisample.model;
 
+import com.ichi2.apisample.R;
 import com.ichi2.apisample.helper.AnkiDroidHelper;
 import com.ichi2.apisample.validation.EmptyValidator;
 import com.ichi2.apisample.validation.IntegerRangeValidator;
@@ -11,6 +12,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -379,6 +381,11 @@ public class MusInterval {
     public final String instrument;
     public final String version;
 
+    // Lists of added sounds & automatically filled links
+    private ArrayList<String> addedSounds;
+    private ArrayList<String> addedSoundsSmaller;
+    private ArrayList<String> addedSoundsLarger;
+
     /**
      * Construct an object using builder class.
      */
@@ -540,12 +547,7 @@ public class MusInterval {
         return updated;
     }
 
-    /**
-     * Insert the data into AnkiDroid via API.
-     * Also creates a deck if not yet created, but fails if model not found.
-     * @return New MusInterval instance (with some of the fields updated)
-     */
-    public MusInterval addToAnki(DuplicateAddingPrompter prompter)
+    public void addToAnki(AddingPrompter prompter, ProgressIndicator progressIndicator)
             throws CreateDeckException, AddToAnkiException, UnexpectedSoundsAmountException,
             MandatoryFieldEmptyException, SoundAlreadyAddedException, AddSoundFileException,
             ModelValidationException, AnkiDroidHelper.InvalidAnkiDatabaseException, TempoNotInRangeException {
@@ -595,12 +597,45 @@ public class MusInterval {
         }
 
         ArrayList<Map<String, String>> miDataSet = getCollectedDataSet();
-        final String soundField = modelFields.get(Fields.SOUND);
-        ArrayList<String> addedSounds = new ArrayList<>();
-        ArrayList<String> soundsSmaller = new ArrayList<>();
-        ArrayList<String> soundsLarger = new ArrayList<>();
-        for (final Map<String, String> miData : miDataSet) {
-            String sound = miData.get(soundField);
+
+        addedSounds = new ArrayList<>();
+        addedSoundsSmaller = new ArrayList<>();
+        addedSoundsLarger = new ArrayList<>();
+
+        addToAnki(0, miDataSet, prompter, progressIndicator);
+    }
+
+    private void addToAnki(int idx, final List<Map<String, String>> dataSet, final AddingPrompter prompter, final ProgressIndicator progressIndicator)
+            throws AddToAnkiException, SoundAlreadyAddedException, AddSoundFileException, ModelValidationException,
+            AnkiDroidHelper.InvalidAnkiDatabaseException, TempoNotInRangeException {
+
+        final int dataCount = dataSet.size();
+        if (idx >= dataCount) {
+            Builder builder = new Builder(helper)
+                    .deck(deckName)
+                    .model(modelName)
+                    .model_fields(modelFields)
+                    .sounds(addedSounds.toArray(new String[0]))
+                    .sounds_smaller(addedSoundsSmaller.toArray(new String[0]))
+                    .sounds_larger(addedSoundsLarger.toArray(new String[0]))
+                    .notes(notes)
+                    .octaves(octaves)
+                    .direction(direction)
+                    .timing(timing)
+                    .intervals(intervals)
+                    .tempo(tempo)
+                    .instrument(instrument);
+            if (!version.isEmpty()) {
+                builder.version(version);
+            }
+            prompter.addingFinished(builder.build());
+            return;
+        }
+
+        for (int i = idx; i < dataCount; i++) {
+            final Map<String, String> miData = dataSet.get(i);
+
+            String sound = miData.get(modelFields.get(Fields.SOUND));
             if (sound == null) {
                 throw new IllegalStateException();
             }
@@ -611,14 +646,17 @@ public class MusInterval {
             final LinkedList<Map<String, String>> existingNotesData = getExistingNotes(miData);
             if (existingNotesData.size() > 0) {
                 MusInterval[] existingMis = new MusInterval[existingNotesData.size()];
-                for (int i = 0; i < existingNotesData.size(); i++) {
-                    existingMis[i] = getMusIntervalFromData(existingNotesData.get(i));
+                for (int j = 0; j < existingNotesData.size(); j++) {
+                    existingMis[j] = getMusIntervalFromData(existingNotesData.get(j));
                 }
-                prompter.promptAddDuplicate(existingMis, new DuplicateAddingHandler() {
+
+                final int nextIdx = i + 1;
+
+                prompter.promptAddDuplicate(existingMis, new AddingHandler() {
                     @Override
                     public MusInterval add() throws AddSoundFileException, AddToAnkiException,
                             AnkiDroidHelper.InvalidAnkiDatabaseException, ModelValidationException, TempoNotInRangeException {
-                        return addToAnki(miData);
+                        return handleAddToAnki(miData);
                     }
 
                     @Override
@@ -629,13 +667,13 @@ public class MusInterval {
                         }
                         Map<String, String> existingData = existingNotesData.getFirst();
 
-                        String sound = miData.get(soundField);
+                        String sound = miData.get(modelFields.get(Fields.SOUND));
                         String newSound = helper.addFileToAnkiMedia(sound);
                         if (newSound == null || newSound.isEmpty()) {
                             throw new AddSoundFileException();
                         }
                         newSound = String.format("[sound:%s]", newSound);
-                        miData.put(soundField, newSound);
+                        miData.put(modelFields.get(Fields.SOUND), newSound);
 
                         Map<String, String> newData = new HashMap<>(miData);
                         for (RelatedIntervalSoundField relatedSoundField : relatedSoundFields) {
@@ -658,18 +696,26 @@ public class MusInterval {
                             AnkiDroidHelper.InvalidAnkiDatabaseException, TempoNotInRangeException {
                         return getMusIntervalFromData(miData).tagExistingNotes(tag);
                     }
+
+                    @Override
+                    public void proceed() throws Throwable {
+                        progressIndicator.setMessage(R.string.batch_adding, nextIdx, dataCount);
+                        addToAnki(nextIdx, dataSet, prompter, progressIndicator);
+                    }
                 });
-                continue;
+                return;
             }
 
-            MusInterval newMi = addToAnki(miData);
+            MusInterval newMi = handleAddToAnki(miData);
             addedSounds.add(newMi.sounds[0]);
             if (newMi.soundsSmaller.length > 0) {
-                soundsSmaller.add(newMi.soundsSmaller[0]);
+                addedSoundsSmaller.add(newMi.soundsSmaller[0]);
             }
             if (newMi.soundsLarger.length > 0) {
-                soundsLarger.add(newMi.soundsLarger[0]);
+                addedSoundsLarger.add(newMi.soundsLarger[0]);
             }
+
+            progressIndicator.setMessage(R.string.batch_adding, i + 1, dataCount);
         }
 
         Builder builder = new Builder(helper)
@@ -677,8 +723,8 @@ public class MusInterval {
                 .model(modelName)
                 .model_fields(modelFields)
                 .sounds(addedSounds.toArray(new String[0]))
-                .sounds_smaller(soundsSmaller.toArray(new String[0]))
-                .sounds_larger(soundsLarger.toArray(new String[0]))
+                .sounds_smaller(addedSoundsSmaller.toArray(new String[0]))
+                .sounds_larger(addedSoundsLarger.toArray(new String[0]))
                 .notes(notes)
                 .octaves(octaves)
                 .direction(direction)
@@ -689,10 +735,10 @@ public class MusInterval {
         if (!version.isEmpty()) {
             builder.version(version);
         }
-        return builder.build();
+        prompter.addingFinished(builder.build());
     }
 
-    private MusInterval addToAnki(Map<String, String> data) throws AddSoundFileException,
+    private MusInterval handleAddToAnki(Map<String, String> data) throws AddSoundFileException,
             AddToAnkiException, AnkiDroidHelper.InvalidAnkiDatabaseException, ModelValidationException, TempoNotInRangeException {
         String sound = data.get(modelFields.get(Fields.SOUND));
         String newSound = helper.addFileToAnkiMedia(sound);

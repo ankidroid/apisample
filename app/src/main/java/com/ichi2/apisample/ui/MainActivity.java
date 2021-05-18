@@ -2,6 +2,7 @@ package com.ichi2.apisample.ui;
 
 import android.Manifest;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.ClipData;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -19,8 +20,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.preference.PreferenceManager;
 
-import android.text.Editable;
-import android.text.TextWatcher;
+import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -37,12 +37,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.ichi2.apisample.BuildConfig;
-import com.ichi2.apisample.model.DuplicateAddingHandler;
-import com.ichi2.apisample.model.DuplicateAddingPrompter;
+import com.ichi2.apisample.model.AddingHandler;
+import com.ichi2.apisample.model.AddingPrompter;
 import com.ichi2.apisample.model.NotesIntegrity;
 import com.ichi2.apisample.model.MusInterval;
 import com.ichi2.apisample.R;
 import com.ichi2.apisample.helper.AnkiDroidHelper;
+import com.ichi2.apisample.model.ProgressIndicator;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -52,7 +53,7 @@ import java.util.Map;
 import java.util.Set;
 
 
-public class MainActivity extends AppCompatActivity implements ActivityCompat.OnRequestPermissionsResultCallback, DuplicateAddingPrompter {
+public class MainActivity extends AppCompatActivity implements ActivityCompat.OnRequestPermissionsResultCallback, AddingPrompter, ProgressIndicator {
 
     private static final int AD_PERM_REQUEST = 0;
     private static final int PERMISSIONS_REQUEST_EXTERNAL_STORAGE = 1;
@@ -115,6 +116,10 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private AutoCompleteTextView inputInstrument;
     private TextView labelExisting;
     private Button actionMarkExisting;
+
+    private ProgressDialog progressDialog;
+
+    private Handler mHandler;
 
     private final static int[] CHECK_NOTE_IDS = new int[]{
             R.id.checkNoteC, R.id.checkNoteCSharp,
@@ -262,7 +267,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             }
         });
 
-
+        mHandler = new Handler();
 
         configureClearAllButton();
         configureSelectFileButton();
@@ -554,114 +559,64 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     mAnkiDroid.requestPermission(MainActivity.this, AD_PERM_REQUEST);
                     return;
                 }
-                try {
-                    MusInterval newMi = getMusInterval().addToAnki(MainActivity.this);
-                    filenames = newMi.sounds;
-                    refreshFilenameText();
-                    savedInstruments.add(newMi.instrument);
-                    refreshExisting();
-                    final int nAdded = newMi.sounds.length;
-                    if (nAdded == 1) {
-                        showQuantityMsg(R.plurals.mi_added, nAdded);
-                    } else if (nAdded > 1) {
-                        showQuantityMsg(R.plurals.mi_added, nAdded, nAdded);
+
+                progressDialog = new ProgressDialog(MainActivity.this);
+                progressDialog.setTitle(R.string.batch_adding_title);
+                progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+                progressDialog.setCancelable(false);
+                progressDialog.show();
+
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            getMusInterval().addToAnki(MainActivity.this, MainActivity.this);
+                        } catch (final Throwable t) {
+                            mHandler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    progressDialog.dismiss();
+                                    handleError(t);
+                                }
+                            });
+
+                        }
                     }
-                } catch (Throwable e) {
-                    handleError(e);
-                }
+                }).start();
             }
         });
     }
 
     @Override
-    public void promptAddDuplicate(MusInterval[] existingMis, final DuplicateAddingHandler handler) {
+    public void promptAddDuplicate(final MusInterval[] existingMis, final AddingHandler handler) {
         final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
         final boolean tagDuplicates = sharedPreferences.getBoolean(SettingsFragment.KEY_TAG_DUPLICATES_SWITCH, SettingsFragment.DEFAULT_TAG_DUPLICATES_SWITCH);
         final String duplicateTag = TAG_APPLICATION + AnkiDroidHelper.HIERARCHICAL_TAG_SEPARATOR + TAG_DUPLICATE;
-        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this)
-                .setPositiveButton(R.string.add_anyway, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        try {
-                            MusInterval newMi = handler.add();
-                            if (tagDuplicates) {
-                                handler.tag(duplicateTag);
-                            }
-                            handleInsertion(newMi);
-                            showQuantityMsg(R.plurals.mi_added, 1);
-                        } catch (Throwable e) {
-                            handleError(e);
-                        }
-                    }
-                });
-        int existingCount = existingMis.length;
-        MusInterval existingMi = existingMis[0];
-        try {
-            int markedCount = existingMi.getExistingMarkedNotesCount();
-            if (existingCount > markedCount) {
-                builder.setNeutralButton(R.string.mark_existing, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        try {
-                            final int count = handler.mark();
-                            showQuantityMsg(R.plurals.mi_marked_result, count, count);
-                            refreshExisting();
-                        } catch (Throwable e) {
-                            handleError(e);
-                        }
-                    }
-                });
-            }
-        } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
-            // simply don't give the option to mark if unable to count existing
-        }
-        Resources res = getResources();
-        String msg;
-        if (existingCount == 1) {
-            msg = res.getQuantityString(
-                    R.plurals.duplicate_warning, existingCount,
-                    existingMi.notes[0] + existingMi.octaves[0],
-                    existingMi.direction,
-                    existingMi.timing,
-                    existingMi.intervals[0],
-                    existingMi.tempo,
-                    existingMi.instrument);
-            builder.setNegativeButton(R.string.replace_existing, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialogInterface, int i) {
-                    try {
-                        MusInterval newMi = handler.replace();
-                        handleInsertion(newMi);
-                        showMsg(R.string.item_replaced);
-                    } catch (Throwable e) {
-                        handleError(e);
-                    }
-                }
-            });
-        } else {
-            msg = res.getQuantityString(R.plurals.duplicate_warning, existingCount,
-                    existingCount,
-                    existingMi.notes[0] + existingMi.octaves[0],
-                    existingMi.direction,
-                    existingMi.timing,
-                    existingMi.intervals[0],
-                    existingMi.tempo,
-                    existingMi.instrument);
-        }
-        if (existingCount > 1) {
-            if (tagDuplicates) {
-                try {
-                    handler.tag(duplicateTag);
-                } catch (Throwable e) {
-                    handleError(e);
-                }
-            }
-        }
-        builder.setMessage(msg);
-        builder.show();
+
+        mHandler.post(new DuplicatePromptWorker(this, mHandler, tagDuplicates, duplicateTag, existingMis, handler));
     }
 
-    private void handleInsertion(MusInterval newMi) {
+    @Override
+    public void addingFinished(final MusInterval newMi) {
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                progressDialog.dismiss();
+                filenames = newMi.sounds;
+                refreshFilenameText();
+                savedInstruments.add(newMi.instrument);
+                refreshExisting();
+                final int nAdded = newMi.sounds.length;
+                if (nAdded == 1) {
+                    showQuantityMsg(R.plurals.mi_added, nAdded);
+                } else if (nAdded > 1) {
+                    showQuantityMsg(R.plurals.mi_added, nAdded, nAdded);
+                }
+            }
+        });
+    }
+
+    void handleInsertion(MusInterval newMi) {
         String[] tempFilenames = new String[filenames.length + 1];
         System.arraycopy(filenames, 0, tempFilenames, 0, filenames.length);
         tempFilenames[tempFilenames.length - 1] = newMi.sounds[0];
@@ -709,27 +664,35 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 }
                 try {
                     MusInterval mi = getMusInterval();
+
                     final String corruptedTag = TAG_APPLICATION + AnkiDroidHelper.HIERARCHICAL_TAG_SEPARATOR + TAG_CORRUPTED;
                     final String suspiciousTag = TAG_APPLICATION + AnkiDroidHelper.HIERARCHICAL_TAG_SEPARATOR + TAG_SUSPICIOUS;
                     SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
                     boolean tagDuplicates = preferences.getBoolean(SettingsFragment.KEY_TAG_DUPLICATES_SWITCH, SettingsFragment.DEFAULT_TAG_DUPLICATES_SWITCH);
                     final String duplicateTag = !tagDuplicates ? null : TAG_APPLICATION + AnkiDroidHelper.HIERARCHICAL_TAG_SEPARATOR + TAG_DUPLICATE;
-                    NotesIntegrity integrity = new NotesIntegrity(mAnkiDroid, mi, corruptedTag, suspiciousTag, duplicateTag);
-                    NotesIntegrity.Summary summary = integrity.check();
-                    String report = IntegrityReport.build(summary, MainActivity.this);
 
-                    new AlertDialog.Builder(MainActivity.this)
-                            .setMessage(report)
-                            .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialogInterface, int i) {
+                    final NotesIntegrity integrity = new NotesIntegrity(mAnkiDroid, mi, corruptedTag, suspiciousTag, duplicateTag, MainActivity.this);
 
-                                }
-                            })
-                            .show();
+                    progressDialog = new ProgressDialog(MainActivity.this);
+                    progressDialog.setTitle(R.string.integrity_progress_title);
+                    progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+                    progressDialog.setCancelable(false);
+                    progressDialog.show();
+
+                    new Thread(new IntegrityCheckWorker(integrity, MainActivity.this, progressDialog, mHandler)).start();
                 } catch (Throwable e) {
                     handleError(e);
                 }
+            }
+        });
+    }
+
+    @Override
+    public void setMessage(final int resId, final Object ...formatArgs) {
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                progressDialog.setMessage(getString(resId, formatArgs));
             }
         });
     }
@@ -883,7 +846,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         return valuesList.toArray(new String[0]);
     }
 
-    private void handleError(Throwable err) {
+    void handleError(Throwable err) {
         try {
             throw err;
         } catch (MusInterval.Exception e) {
@@ -1021,11 +984,11 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         showMsg(R.string.unknown_error);
     }
 
-    private void showMsg(int msgResId, Object ...formatArgs) {
+    void showMsg(int msgResId, Object ...formatArgs) {
         Toast.makeText(MainActivity.this, getResources().getString(msgResId, formatArgs), Toast.LENGTH_LONG).show();
     }
 
-    private void showQuantityMsg(int msgResId, int quantity, Object ...formatArgs) {
+    void showQuantityMsg(int msgResId, int quantity, Object ...formatArgs) {
         Toast.makeText(MainActivity.this, getResources().getQuantityString(msgResId, quantity, formatArgs), Toast.LENGTH_LONG).show();
     }
 }

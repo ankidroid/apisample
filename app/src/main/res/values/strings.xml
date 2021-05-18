@@ -148,7 +148,7 @@
     <string name="item_replaced">Music interval successfully replaced. Please run "Check media" in AnkiDroid to find and delete the orphaned old sound file</string>
     <string name="add_file_error">Failed to add file to AnkiDroid media</string>
     <string name="unknown_adding_error">Failed to add music interval to AnkiDroid</string>
-    <string name="additional_filenames">\u0020+ %d more...</string>
+    <string name="additional_filenames">\u0020+ %d more…</string>
     <string name="filenames_list_item">%d. %s</string>
     <string name="filenames_list_item_with_key">%d. %s (%s, %s)</string>
     <string name="filenames_list_separator">\n</string>
@@ -176,7 +176,15 @@
     <string name="validation_mandatory">value must be present</string>
     <string name="tempo_not_in_range">Tempo value must be in range of %d to %d (BPM)</string>
     <string name="integrity_duplicates">Found %d duplicate notes</string>
-    <string name="integrity_duplicates_tagged">\u0020and marked them using tag starting with \"%s\"</string>>
+    <string name="integrity_progress_title">Running integrity check…</string>
+    <string name="integrity_duplicates_tagged">\u0020and marked them using tag starting with \"%s\"</string>
+    <string name="integrity_searching">Searching for notes…</string>
+    <string name="integrity_validating">Validating notes (%d of %d)</string>
+    <string name="integrity_finding_duplicates">Checking for duplicate notes…</string>
+    <string name="integrity_verifying_relations">Verifying relations (%d of %d)</string>
+    <string name="integrity_processing_relations">Processing relations (%d of %d)</string>
+    <string name="batch_adding_title">Adding music intervals to AnkiDroid…</string>
+    <string name="batch_adding">%d of %d completed</string>
 
     <!-- SettingsActivity labels, fields and buttons -->
     <string name="deck_preference_title">Deck</string>
