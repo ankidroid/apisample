@@ -6,7 +6,7 @@ import android.widget.CompoundButton;
 import java.util.ArrayList;
 
 public class OnFieldCheckChangeListener implements CompoundButton.OnCheckedChangeListener {
-    private MainActivity mainActivity;
+    private final MainActivity mainActivity;
 
     private final CheckBox[] checkBoxes;
     private final CheckBox checkBoxAny;
@@ -49,6 +49,7 @@ public class OnFieldCheckChangeListener implements CompoundButton.OnCheckedChang
         mainActivity.clearAddedFilenames();
         mainActivity.refreshExisting();
         mainActivity.refreshPermutations();
+        mainActivity.refreshKeys();
     }
 
     public void setEnableMultiple(boolean enableMultiple) {

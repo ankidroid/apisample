@@ -2053,8 +2053,6 @@ public class MusIntervalTest {
         }).when(prompter).promptAddDuplicate(any(MusInterval[].class), any(AddingHandler.class));
 
         duplicateMusInterval.addToAnki(prompter, indicator);
-        MusInterval duplicateMusIntervalAdded = addedMusIntervals.getLast();
-        assertArrayEquals(duplicateMusIntervalAdded.sounds, new String[]{});
         assertTrue(addedNoteIds.contains(duplicateNoteId));
     }
 
@@ -2340,7 +2338,6 @@ public class MusIntervalTest {
 
         duplicateMusInterval.addToAnki(prompter, indicator);
         MusInterval duplicateMusIntervalAdded = addedMusIntervals.getLast();
-        assertArrayEquals(duplicateMusIntervalAdded.sounds, new String[]{});
         assertEquals(String.format("[sound:%s]", duplicateSound), addedData.get(MusInterval.Fields.SOUND));
     }
 
