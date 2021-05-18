@@ -526,7 +526,7 @@ public class MusInterval {
             throw new ModelDoesNotExistException(modelName);
         }
         if (isDefaultModel && !helper.checkCustomModel(modelId, fields, cards, qfmt, afmt, css)) {
-            throw new DefaultModelOutdatedException(Builder.DEFAULT_MODEL_NAME, fields, cards, afmt, afmt, css);
+            throw new DefaultModelOutdatedException(Builder.DEFAULT_MODEL_NAME, fields, cards, qfmt, afmt, css);
         }
         final ArrayList<String> modelOwnFields = new ArrayList<>(Arrays.asList(helper.getFieldList(modelId)));
         if (modelOwnFields.size() < signature.length) {

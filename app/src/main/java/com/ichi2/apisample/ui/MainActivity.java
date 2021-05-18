@@ -932,6 +932,10 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     .qfmt(qfmt)
                     .afmt(afmt)
                     .css(css);
+            Long modelId = mAnkiDroid.findModelIdByName(MusInterval.Builder.DEFAULT_MODEL_NAME);
+            if (modelId != null) {
+                updateModelPreferences(modelId);
+            }
         }
         return builder.build();
     }

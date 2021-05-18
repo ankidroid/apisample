@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class SettingsFragment extends PreferenceFragmentCompat {
     public static final String KEY_DECK_PREFERENCE = "preference_deck";
@@ -127,8 +128,6 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         });
         preferenceScreen.addPreference(modelListPreference);
 
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
-        final boolean versionField = preferences.getBoolean(KEY_VERSION_FIELD_SWITCH, DEFAULT_VERSION_FIELD_SWITCH);
         final String[] fullSignature = MusInterval.Fields.getSignature(true);
         PreferenceCategory fieldsPreferenceCategory = new PreferenceCategory(context);
         fieldsPreferenceCategory.setKey(KEY_FIELDS_PREFERENCE_CATEGORY);
@@ -155,6 +154,8 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             });
             fieldsPreferenceCategory.addPreference(fieldListPreference);
         }
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+        final boolean versionField = preferences.getBoolean(KEY_VERSION_FIELD_SWITCH, DEFAULT_VERSION_FIELD_SWITCH);
         if (!versionField) {
             String versionFieldPreferenceKey = getFieldPreferenceKey(MusInterval.Fields.VERSION);
             ListPreference versionFieldListPreference = preferenceScreen.findPreference(versionFieldPreferenceKey);
@@ -165,21 +166,27 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         updateFieldsPreferenceEntries(modelListPreference.getValue(), fullSignature, false);
 
         final String[] mainSignature = MusInterval.Fields.getSignature(false);
-        CheckBoxPreference useDefaultModelCheckPreference = new CheckBoxPreference(context);
+        final CheckBoxPreference useDefaultModelCheckPreference = new CheckBoxPreference(context);
         useDefaultModelCheckPreference.setKey(KEY_USE_DEFAULT_MODEL_CHECK);
         useDefaultModelCheckPreference.setTitle(R.string.use_default_model_check_preference_title);
         useDefaultModelCheckPreference.setSummary(R.string.use_default_model_check_preference_summary);
+        useDefaultModelCheckPreference.setDefaultValue(DEFAULT_USE_DEFAULT_MODEL_CHECK);
         useDefaultModelCheckPreference.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
             @Override
             public boolean onPreferenceChange(Preference preference, Object newValue) {
-                final String defaultModel = MusInterval.Builder.DEFAULT_MODEL_NAME;
-                boolean newVal = (boolean)newValue;
+                boolean newVal = (boolean) newValue;
                 for (String fieldKey : mainSignature) {
                     String fieldPreferenceKey = getFieldPreferenceKey(fieldKey);
                     ListPreference fieldListPreference = preferenceScreen.findPreference(fieldPreferenceKey);
-                    fieldListPreference.setValue(fieldKey);
-                    fieldListPreference.setEnabled(!newVal);
+                    if (newVal) {
+                        fieldListPreference.setValue(fieldKey);
+                        fieldListPreference.setEnabled(false);
+                    } else {
+                        fieldListPreference.setEnabled(true);
+                    }
                 }
+
+                final String defaultModel = MusInterval.Builder.DEFAULT_MODEL_NAME;
                 if (newVal) {
                     final String currModel = modelListPreference.getValue();
                     if (!currModel.equals(defaultModel)) {
@@ -187,6 +194,8 @@ public class SettingsFragment extends PreferenceFragmentCompat {
                     }
                     modelListPreference.setValue(defaultModel);
                     modelListPreference.setEnabled(false);
+
+                    updateVersionFieldPreferenceEntries(true);
                 } else {
                     modelListPreference.setEnabled(true);
                     updateFieldsPreferenceEntries(defaultModel, fullSignature, false);
@@ -199,7 +208,15 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         for (String fieldKey : mainSignature) {
             String fieldPreferenceKey = getFieldPreferenceKey(fieldKey);
             ListPreference fieldListPreference = preferenceScreen.findPreference(fieldPreferenceKey);
-            fieldListPreference.setEnabled(!useDefaultModelCheckPreference.isChecked());
+            if (useDefaultModelCheckPreference.isChecked()) {
+                fieldListPreference.setEnabled(false);
+                fieldListPreference.setValue(fieldKey);
+            } else {
+                fieldListPreference.setEnabled(true);
+            }
+        }
+        if (useDefaultModelCheckPreference.isChecked()) {
+            updateVersionFieldPreferenceEntries(true);
         }
 
         SwitchPreference versionFieldSwitchPreference = new SwitchPreference(context);
@@ -214,12 +231,11 @@ public class SettingsFragment extends PreferenceFragmentCompat {
                 ListPreference versionFieldListPreference = preferenceScreen.findPreference(versionFieldPreferenceKey);
                 if (versionFieldListPreference != null) {
                     final boolean versionField = (boolean) newValue;
-                    versionFieldListPreference.setVisible(versionField);
                     if (versionField) {
-                        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
-                        String model = preferences.getString(KEY_MODEL_PREFERENCE, "");
-                        final String[] signature = MusInterval.Fields.getSignature(true);
-                        updateFieldsPreferenceEntries(model, signature, false);
+                        versionFieldListPreference.setVisible(true);
+                        updateVersionFieldPreferenceEntries(useDefaultModelCheckPreference.isChecked());
+                    } else {
+                        versionFieldListPreference.setVisible(false);
                     }
                 }
                 return true;
@@ -283,5 +299,32 @@ public class SettingsFragment extends PreferenceFragmentCompat {
                 fieldListPreference.setValue(value);
             }
         }
+    }
+
+    private void updateVersionFieldPreferenceEntries(boolean excludeTaken) {
+        String versionFieldPreferenceKey = getFieldPreferenceKey(MusInterval.Fields.VERSION);
+        String value = PreferenceManager.getDefaultSharedPreferences(context).getString(versionFieldPreferenceKey, "");
+        Long modelId = helper.findModelIdByName(MusInterval.Builder.DEFAULT_MODEL_NAME);
+        ArrayList<String> fields = modelId != null ? new ArrayList<>(Arrays.asList(helper.getFieldList(modelId))) : new ArrayList<String>();
+        ArrayList<String> availableFields = new ArrayList<>();
+        if (excludeTaken) {
+            Set<String> takenFields = new HashSet<>(Arrays.asList(MusInterval.Fields.getSignature(false)));
+            for (String fieldKey : fields) {
+                if (!takenFields.contains(fieldKey)) {
+                    availableFields.add(fieldKey);
+                }
+            }
+            if (takenFields.contains(value)) {
+                value = "";
+            }
+        } else {
+            availableFields = fields;
+        }
+        ListPreference versionFieldListPreference = preferenceScreen.findPreference(versionFieldPreferenceKey);
+        availableFields.add(0, "");
+        String[] versionEntries = availableFields.toArray(new String[0]);
+        versionFieldListPreference.setEntries(versionEntries);
+        versionFieldListPreference.setEntryValues(versionEntries);
+        versionFieldListPreference.setValue(value);
     }
 }
