@@ -890,12 +890,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
         final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         final boolean versionField = sharedPreferences.getBoolean(SettingsFragment.KEY_VERSION_FIELD_SWITCH, SettingsFragment.DEFAULT_VERSION_FIELD_SWITCH);
-        String[] signature = MusInterval.Fields.getSignature(versionField);
-        final Map<String, String> storedFields = new HashMap<>();
-        for (String fieldKey : signature) {
-            String fieldPreferenceKey = SettingsFragment.getFieldPreferenceKey(fieldKey);
-            storedFields.put(fieldKey, sharedPreferences.getString(fieldPreferenceKey, ""));
-        }
         final String storedDeck = sharedPreferences.getString(SettingsFragment.KEY_DECK_PREFERENCE, MusInterval.Builder.DEFAULT_DECK_NAME);
         final String storedModel = sharedPreferences.getString(SettingsFragment.KEY_MODEL_PREFERENCE, MusInterval.Builder.DEFAULT_MODEL_NAME);
 
@@ -906,7 +900,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         MusInterval.Builder builder = new MusInterval.Builder(mAnkiDroid)
                 .deck(storedDeck)
                 .model(storedModel)
-                .model_fields(storedFields)
                 .sounds(filenames)
                 .notes(notes)
                 .octaves(octaves)
@@ -915,9 +908,11 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 .intervals(intervals)
                 .tempo(inputTempo.getText().toString())
                 .instrument(inputInstrument.getText().toString());
+
         if (versionField) {
             builder.version(BuildConfig.VERSION_NAME);
         }
+
         final boolean useDefaultModel = sharedPreferences.getBoolean(SettingsFragment.KEY_USE_DEFAULT_MODEL_CHECK, SettingsFragment.DEFAULT_USE_DEFAULT_MODEL_CHECK);
         if (useDefaultModel) {
             Resources res = getResources();
@@ -937,6 +932,15 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 updateModelPreferences(modelId);
             }
         }
+
+        String[] signature = MusInterval.Fields.getSignature(versionField);
+        final Map<String, String> storedFields = new HashMap<>();
+        for (String fieldKey : signature) {
+            String fieldPreferenceKey = SettingsFragment.getFieldPreferenceKey(fieldKey);
+            storedFields.put(fieldKey, sharedPreferences.getString(fieldPreferenceKey, ""));
+        }
+        builder.model_fields(storedFields);
+
         return builder.build();
     }
 
