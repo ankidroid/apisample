@@ -1,7 +1,11 @@
 package com.ichi2.apisample.ui;
 
+import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.res.Resources;
+import android.os.Handler;
 
 import com.ichi2.apisample.R;
 import com.ichi2.apisample.model.MusInterval;
@@ -10,25 +14,58 @@ import com.ichi2.apisample.model.NotesIntegrity;
 import java.util.HashMap;
 import java.util.Map;
 
-public class IntegrityReport {
+public class IntegrityCheckWorker implements Runnable {
+    private final MainActivity mainActivity;
+    private final ProgressDialog progressDialog;
+    private final Handler handler;
+
+    private final NotesIntegrity notesIntegrity;
+
+
+    public IntegrityCheckWorker(NotesIntegrity notesIntegrity, MainActivity mainActivity, ProgressDialog progressDialog, Handler handler) {
+        this.notesIntegrity = notesIntegrity;
+        this.mainActivity = mainActivity;
+        this.progressDialog = progressDialog;
+        this.handler = handler;
+    }
+
+    @Override
+    public void run() {
+        try {
+            NotesIntegrity.Summary summary = notesIntegrity.check();
+            final String report = getReport(summary, mainActivity);
+            handler.post(new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    progressDialog.dismiss();
+                    new AlertDialog.Builder(mainActivity)
+                            .setMessage(report)
+                            .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+
+                                }
+                            })
+                            .show();
+                }
+            }));
+        } catch (final Throwable t) {
+            handler.post(new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    progressDialog.dismiss();
+                    mainActivity.handleError(t);
+                }
+            }));
+        }
+    }
 
     private static final String ALLOWED_START_NOTES_STR = joinStrings(", ", MusInterval.Fields.StartNote.VALUES);
     private static final String ALLOWED_DIRECTIONS_STR = String.format("%s, %s", MusInterval.Fields.Direction.ASC, MusInterval.Fields.Direction.DESC);
     private static final String ALLOWED_TIMINGS_STR = String.format("%s, %s", MusInterval.Fields.Timing.MELODIC, MusInterval.Fields.Timing.HARMONIC);
     private static final String ALLOWED_INTERVALS_STR = joinStrings(", ", MusInterval.Fields.Interval.VALUES);
 
-    private static String joinStrings(String separator, String[] values) {
-        StringBuilder builder = new StringBuilder();
-        for (String value : values) {
-            if (builder.length() > 0) {
-                builder.append(separator);
-            }
-            builder.append(value);
-        }
-        return builder.toString();
-    }
-
-    public static String build(NotesIntegrity.Summary integritySummary, Context context) {
+    private static String getReport(NotesIntegrity.Summary integritySummary, Context context) {
         MusInterval mi = integritySummary.getMusInterval();
 
         String corruptedTag = integritySummary.getCorruptedTag();
@@ -125,5 +162,16 @@ public class IntegrityReport {
             }
         }
         return report.toString();
+    }
+
+    private static String joinStrings(String separator, String[] values) {
+        StringBuilder builder = new StringBuilder();
+        for (String value : values) {
+            if (builder.length() > 0) {
+                builder.append(separator);
+            }
+            builder.append(value);
+        }
+        return builder.toString();
     }
 }
