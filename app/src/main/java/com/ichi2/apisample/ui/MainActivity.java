@@ -570,10 +570,11 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private void openChooser() {
         Intent intent = new Intent()
                 .setAction(Intent.ACTION_OPEN_DOCUMENT)
-                .setType("audio/*")
+                .setType("*/*")
                 .addCategory(Intent.CATEGORY_OPENABLE)
                 .putExtra(Intent.EXTRA_LOCAL_ONLY, true)
-                .putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+                .putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+                .putExtra(Intent.EXTRA_MIME_TYPES, new String[]{"audio/*", "video/*"});
 
         startActivityForResult(Intent.createChooser(intent, actionSelectFile.getText().toString()),
                 ACTION_SELECT_FILE);
