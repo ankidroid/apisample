@@ -3,17 +3,13 @@ package com.ichi2.apisample.model;
 import com.ichi2.apisample.helper.AnkiDroidHelper;
 
 public interface AddingHandler {
-    MusInterval add() throws MusInterval.AddSoundFileException, MusInterval.AddToAnkiException,
-            AnkiDroidHelper.InvalidAnkiDatabaseException, MusInterval.ModelValidationException, MusInterval.TempoNotInRangeException;
+    MusInterval add();
 
-    MusInterval replace() throws AnkiDroidHelper.InvalidAnkiDatabaseException,
-            MusInterval.AddSoundFileException, MusInterval.ModelValidationException, MusInterval.TempoNotInRangeException;
+    MusInterval replace() throws AnkiDroidHelper.InvalidAnkiDatabaseException, MusInterval.ValidationException;
 
-    int mark() throws MusInterval.NoteNotExistsException, MusInterval.ModelValidationException,
-            AnkiDroidHelper.InvalidAnkiDatabaseException, MusInterval.TempoNotInRangeException;
+    int mark() throws AnkiDroidHelper.InvalidAnkiDatabaseException, MusInterval.ValidationException, MusInterval.NoteNotExistsException;
 
-    int tag(String tag) throws MusInterval.NoteNotExistsException, MusInterval.ModelValidationException,
-            AnkiDroidHelper.InvalidAnkiDatabaseException, MusInterval.TempoNotInRangeException;
+    int tag(String tag) throws AnkiDroidHelper.InvalidAnkiDatabaseException, MusInterval.ValidationException, MusInterval.NoteNotExistsException;
 
-    void proceed() throws Throwable;
+    void proceed() throws AnkiDroidHelper.InvalidAnkiDatabaseException, MusInterval.ValidationException;
 }

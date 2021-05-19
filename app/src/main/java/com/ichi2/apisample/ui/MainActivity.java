@@ -699,6 +699,16 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         });
     }
 
+    @Override
+    public void processException(final Throwable t) {
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                handleError(t);
+            }
+        });
+    }
+
     void handleInsertion(MusInterval newMi) {
         String[] tempFilenames = new String[filenames.length + 1];
         System.arraycopy(filenames, 0, tempFilenames, 0, filenames.length);
