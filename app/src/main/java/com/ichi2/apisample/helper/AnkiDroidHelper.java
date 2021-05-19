@@ -300,6 +300,7 @@ public class AnkiDroidHelper {
         File tempAudioFile = null;
         if (type.startsWith("video")) {
             if (!type.equals("video/mp4")) {
+                mContext.revokeUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
                 return null;
             }
             try {
