@@ -8,16 +8,24 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.media.MediaCodec;
+import android.media.MediaExtractor;
+import android.media.MediaFormat;
+import android.media.MediaMuxer;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Environment;
 
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
 
 import com.ichi2.anki.FlashCardsContract;
 import com.ichi2.anki.api.AddContentApi;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -286,21 +294,91 @@ public class AnkiDroidHelper {
 
     // @todo: refactor once new version release of "com.ichi2.anki.api" is available
     public String addFileToAnkiMedia(String uriString) {
+        Uri uri = Uri.parse(uriString);
+        mContext.grantUriPermission("com.ichi2.anki", uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        String type = mResolver.getType(uri);
+        File tempAudioFile = null;
+        if (type.startsWith("video")) {
+            if (!type.equals("video/mp4")) {
+                mContext.revokeUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                return null;
+            }
+            try {
+                MediaMuxer mediaMuxer = null;
+                MediaExtractor mediaExtractor = new MediaExtractor();
+                final String tempAudioPath = Environment.getExternalStorageDirectory().getPath() + "/tempOutput.mp3";
+                mediaExtractor.setDataSource(mContext, uri, null);
+                int trackCount = mediaExtractor.getTrackCount();
+                int audioTrackindex = -1;
+                int framerate = -1;
+                for (int i = 0; i < trackCount; i++) {
+                    MediaFormat trackFormat = mediaExtractor.getTrackFormat(i);
+                    String mime = trackFormat.getString(MediaFormat.KEY_MIME);
+                    if (mime.startsWith("audio/")) {
+                        mediaExtractor.selectTrack(i);
+                        mediaMuxer = new MediaMuxer(tempAudioPath, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
+                        audioTrackindex = mediaMuxer.addTrack(trackFormat);
+                        mediaMuxer.start();
+                    }
+                    if (mime.startsWith("video/")) {
+                        framerate = trackFormat.getInteger(MediaFormat.KEY_FRAME_RATE);
+                        break;
+                    }
+                }
+
+                if (mediaMuxer == null) {
+                    mContext.revokeUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    return null;
+                }
+
+                MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
+                bufferInfo.presentationTimeUs = 0;
+
+                ByteBuffer byteBuffer = ByteBuffer.allocate(500 * 1024);
+
+                int i;
+                while ((i = mediaExtractor.readSampleData(byteBuffer, 0)) > 0) {
+                    bufferInfo.offset = 0;
+                    bufferInfo.size = i;
+                    bufferInfo.flags = mediaExtractor.getSampleFlags();
+                    bufferInfo.presentationTimeUs += 1000 * 1000 / framerate;
+                    mediaMuxer.writeSampleData(audioTrackindex, byteBuffer, bufferInfo);
+                    mediaExtractor.advance();
+                }
+
+                mediaExtractor.release();
+                mediaMuxer.stop();
+                mediaMuxer.release();
+
+                mContext.revokeUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                tempAudioFile = new File(tempAudioPath);
+                uri = FileProvider.getUriForFile(mContext, mContext.getApplicationContext().getPackageName() + ".provider", tempAudioFile);
+                mContext.grantUriPermission("com.ichi2.anki", uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                uriString = uri.toString();
+            } catch (IOException e) {
+                mContext.revokeUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                if (tempAudioFile != null && tempAudioFile.exists()) {
+                    tempAudioFile.delete();
+                }
+                return null;
+            }
+        }
         ContentValues cv = new ContentValues();
         cv.put("file_uri", uriString);
         final String preferredName = "music_interval_" + (System.currentTimeMillis() / 1000L);
         cv.put("preferred_name", preferredName);
-        final Uri fileUri = Uri.parse(uriString);
-        mContext.grantUriPermission("com.ichi2.anki", fileUri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
         try {
-            Uri uri = mResolver.insert(Uri.withAppendedPath(FlashCardsContract.AUTHORITY_URI, "media"), cv);
-            File insertedFile = new File(uri.getPath());
+            Uri insertedUri = mResolver.insert(Uri.withAppendedPath(FlashCardsContract.AUTHORITY_URI, "media"), cv);
+            File insertedFile = new File(insertedUri.getPath());
             String filePath =  insertedFile.toString();
             return filePath.substring(1); // get rid of the "/" at the beginning
         } catch (Exception e) {
             return null;
         } finally {
-            mContext.revokeUriPermission(fileUri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            mContext.revokeUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            if (tempAudioFile != null && tempAudioFile.exists()) {
+                tempAudioFile.delete();
+            }
         }
     }
 
