@@ -299,6 +299,9 @@ public class AnkiDroidHelper {
         String type = mResolver.getType(uri);
         File tempAudioFile = null;
         if (type.startsWith("video")) {
+            if (!type.equals("video/mp4")) {
+                return null;
+            }
             try {
                 MediaMuxer mediaMuxer = null;
                 MediaExtractor mediaExtractor = new MediaExtractor();
@@ -349,7 +352,6 @@ public class AnkiDroidHelper {
                 mContext.revokeUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
                 tempAudioFile = new File(tempAudioPath);
                 uri = FileProvider.getUriForFile(mContext, mContext.getApplicationContext().getPackageName() + ".provider", tempAudioFile);
-                mContext.getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
                 mContext.grantUriPermission("com.ichi2.anki", uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
                 uriString = uri.toString();
             } catch (IOException e) {
