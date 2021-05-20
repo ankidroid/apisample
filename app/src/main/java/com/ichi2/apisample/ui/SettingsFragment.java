@@ -3,8 +3,10 @@ package com.ichi2.apisample.ui;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Environment;
 
 import androidx.preference.DropDownPreference;
+import androidx.preference.EditTextPreference;
 import androidx.preference.ListPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceCategory;
@@ -29,6 +31,8 @@ public class SettingsFragment extends PreferenceFragmentCompat {
     public static final String KEY_MODEL_PREFERENCE = "preference_model";
     public static final String KEY_VERSION_FIELD_SWITCH = "preference_version_field_switch";
     public static final String KEY_TAG_DUPLICATES_SWITCH = "preference_tag_duplicates_switch";
+    public static final String KEY_ANKI_DIR_PREFERENCE = "preference_anki_dir";
+
     private static final String KEY_FIELDS_PREFERENCE_CATEGORY = "preference_fields";
 
     private static final String TEMPLATE_KEY_FIELD_PREFERENCE = "preference_%s_field";
@@ -36,6 +40,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
 
     public static final boolean DEFAULT_VERSION_FIELD_SWITCH = true;
     public static final boolean DEFAULT_TAG_DUPLICATES_SWITCH = true;
+    public static final String DEFAULT_ANKI_DIR = Environment.getExternalStorageDirectory().getPath() + "/AnkiDroid";
 
     private static final Map<String, Integer> FIELD_PREFERENCE_LABEL_STRING_IDS = new HashMap<String, Integer>() {{
         put(MusInterval.Fields.SOUND, R.string.sound_field_list_preference_title);
@@ -187,6 +192,14 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         tagDuplicatesSwitchPreference.setSummary(R.string.tag_duplicates_preference_summary);
         tagDuplicatesSwitchPreference.setDefaultValue(DEFAULT_TAG_DUPLICATES_SWITCH);
         preferenceScreen.addPreference(tagDuplicatesSwitchPreference);
+
+        EditTextPreference ankiDirPreference = new EditTextPreference(context);
+        ankiDirPreference.setKey(KEY_ANKI_DIR_PREFERENCE);
+        ankiDirPreference.setTitle(R.string.anki_dir_preference_title);
+        ankiDirPreference.setSummaryProvider(EditTextPreference.SimpleSummaryProvider.getInstance());
+        ankiDirPreference.setDialogTitle(R.string.anki_dir_preference_title);
+        ankiDirPreference.setDefaultValue(DEFAULT_ANKI_DIR);
+        preferenceScreen.addPreference(ankiDirPreference);
 
         setPreferenceScreen(preferenceScreen);
     }

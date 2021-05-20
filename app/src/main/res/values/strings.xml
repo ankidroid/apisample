@@ -72,6 +72,8 @@
         <item quantity="one">; 1 of them is marked</item>
         <item quantity="other">; %d of them are marked</item>
     </plurals>
+    <string name="play">Play</string>
+    <string name="view_all">View all</string>
 
     <!-- MainActivity messages-->
     <string name="anki_permission_denied">Could not get permission to access the AnkiDroid database</string>
@@ -149,9 +151,6 @@
     <string name="add_file_error">Failed to add file to AnkiDroid media</string>
     <string name="unknown_adding_error">Failed to add music interval to AnkiDroid</string>
     <string name="additional_filenames">\u0020+ %d more…</string>
-    <string name="filenames_list_item">%d. %s</string>
-    <string name="filenames_list_item_with_key">%d. %s (%s, %s)</string>
-    <string name="filenames_list_separator">\n</string>
     <string name="empty_mandatory_selection">At least one specific option must be selected for field \"%s\"</string>
     <string name="batch_adding_notice">
         When adding multiple music intervals at once, the selected set of sound files must obey the following rules:\n
@@ -185,6 +184,8 @@
     <string name="integrity_processing_relations">Processing relations (%d of %d)</string>
     <string name="batch_adding_title">Adding music intervals to AnkiDroid…</string>
     <string name="batch_adding">%d of %d completed</string>
+    <string name="access_error">Couldn\'t access \"%s\"</string>
+    <string name="audio_playing_error">Error trying to play audio file</string>
 
     <!-- SettingsActivity labels, fields and buttons -->
     <string name="deck_preference_title">Deck</string>
@@ -202,12 +203,7 @@
     <string name="version_field_list_preference_title">App version</string>
     <string name="version_field_switch_preference_title">Version stamp</string>
     <string name="version_field_switch_preference_summary">Log app version for added notes in a separate field</string>
-    <string name="duplicate_tag_edit_text_preference_title">Duplicate tag</string>
-    <string name="duplicate_tag_edit_text_preference_dialog_title">Duplicate tag</string>
     <string name="tag_duplicates_preference_title">Tag duplicates</string>
     <string name="tag_duplicates_preference_summary">Mark identical intervals with special tag</string>
-    <string name="corrupted_tag_edit_text_preference_title">Corrupted note tag</string>
-    <string name="corrupted_tag_edit_text_preference_dialog_title">Added to notes with empty/invalid fields upon running integrity check</string>
-    <string name="suspicious_tag_edit_text_preference_title">Suspicious note tag</string>
-    <string name="suspicious_tag_edit_text_preference_dialog_title">Added to notes that point or are being pointed by broken links</string>
+    <string name="anki_dir_preference_title">AnkiDroid directory</string>
 </resources>

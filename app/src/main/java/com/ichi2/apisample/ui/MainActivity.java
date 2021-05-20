@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 
@@ -19,8 +20,11 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.preference.PreferenceManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.os.Handler;
+import android.provider.OpenableColumns;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -45,6 +49,7 @@ import com.ichi2.apisample.R;
 import com.ichi2.apisample.helper.AnkiDroidHelper;
 import com.ichi2.apisample.model.ProgressIndicator;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -103,6 +108,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
     private SwitchCompat switchBatch;
     private TextView textFilename;
+    private Button actionPlay;
     private Button actionSelectFile;
     private CheckBox checkNoteAny;
     private CheckBox[] checkNotes;
@@ -166,6 +172,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     }
 
     private String[] filenames = new String[]{};
+
+    private SoundPlayer soundPlayer;
+
     private Integer permutationsNumber;
 
     private HashSet<String> savedInstruments = new HashSet<>();
@@ -182,6 +191,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
         switchBatch = findViewById(R.id.switchBatch);
         textFilename = findViewById(R.id.textFilename);
+        actionPlay = findViewById(R.id.actionPlay);
         actionSelectFile = findViewById(R.id.actionSelectFile);
         checkNoteAny = findViewById(R.id.checkNoteAny);
         checkNotes = new CheckBox[CHECK_NOTE_IDS.length];
@@ -207,37 +217,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
         restoreUiState();
 
-        textFilename.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (filenames.length > 1) {
-                    StringBuilder msg = new StringBuilder();
-                    final String[][] orderedPermutationKeys = getOrderedPermutationKeys();
-                    for (int i = 0; i < filenames.length; i++) {
-                        if (msg.length() > 0) {
-                            msg.append(getString(R.string.filenames_list_separator));
-                        }
-                        // @todo: update filename field values signature
-                        if (i < orderedPermutationKeys.length && !filenames[i].startsWith("[sound:")) {
-                            final String startNote = orderedPermutationKeys[i][1] + orderedPermutationKeys[i][0];
-                            final String interval = orderedPermutationKeys[i][2];
-                            msg.append(getString(R.string.filenames_list_item_with_key, i + 1, filenames[i], startNote, interval));
-                        } else {
-                            msg.append(getString(R.string.filenames_list_item, i + 1, filenames[i]));
-                        }
-                    }
-                    new AlertDialog.Builder(MainActivity.this)
-                            .setMessage(msg)
-                            .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialogInterface, int i) {
-                                    dialogInterface.dismiss();
-                                }
-                            })
-                            .show();
-                }
-            }
-        });
         boolean enableMultiple = switchBatch.isChecked();
         final OnFieldCheckChangeListener onNoteCheckChangeListener = new OnFieldCheckChangeListener(this, checkNotes, checkNoteAny, enableMultiple);
         checkNoteAny.setOnCheckedChangeListener(onNoteCheckChangeListener);
@@ -276,32 +255,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         configureSettingsButton();
         configureCheckIntegrityButton();
 
+        soundPlayer = new SoundPlayer(this);
+
         mAnkiDroid = new AnkiDroidHelper(this);
-    }
-
-    private String[][] getOrderedPermutationKeys() {
-        final String[] selectedNotes = getCheckedTexts(checkNotes);
-        final String[] selectedOctaves = getCheckedTexts(checkOctaves);
-        final String[] selectedIntervals = getCheckedTexts(checkIntervals);
-        ArrayList<String[]> orderedPermutationKeys = new ArrayList<>();
-        for (String octave : selectedOctaves) {
-            for (String note : selectedNotes) {
-                for (String interval : selectedIntervals) {
-                    orderedPermutationKeys.add(new String[]{octave, note, interval});
-                }
-            }
-        }
-        return orderedPermutationKeys.toArray(new String[0][]);
-    }
-
-    private String[] getCheckedTexts(CheckBox[] checkBoxes) {
-        ArrayList<String> texts = new ArrayList<>();
-        for (CheckBox check : checkBoxes) {
-            if (check.isChecked()) {
-                texts.add(check.getText().toString());
-            }
-        }
-        return texts.toArray(new String[0]);
     }
 
     @Override
@@ -331,6 +287,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         super.onResume();
         refreshExisting();
         refreshPermutations();
+        refreshFilenames();
     }
 
     void refreshPermutations() {
@@ -406,19 +363,89 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 unAddedFilenames.add(filename);
             }
         }
-        filenames = unAddedFilenames.toArray(new String[0]);
-        refreshFilenameText();
+        if (unAddedFilenames.size() != filenames.length) {
+            filenames = unAddedFilenames.toArray(new String[0]);
+            refreshFilenames();
+        }
     }
 
-    private void refreshFilenameText() {
+    private void refreshFilenames() {
         StringBuilder text = new StringBuilder();
         if (filenames.length > 0) {
-            text.append(filenames[0]);
+            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+            String ankiDir = preferences.getString(SettingsFragment.KEY_ANKI_DIR_PREFERENCE, SettingsFragment.DEFAULT_ANKI_DIR);
+
+            final FilenameAdapter.UriPathName[] uriPathNames = new FilenameAdapter.UriPathName[filenames.length];
+            for (int i = 0; i < uriPathNames.length; i++) {
+                String filename = filenames[i];
+                String name;
+                String path = null;
+                Uri uri;
+                if (filename.startsWith("[sound:")) {
+                    name = filename;
+                    path = ankiDir + AnkiDroidHelper.DIR_MEDIA
+                            + filename.substring(7, filename.length() - 1);
+                    File file = new File(path);
+                    if (!file.exists()) {
+                        uri = null;
+                    } else {
+                        uri = Uri.fromFile(file);
+                    }
+                } else {
+                    uri = Uri.parse(filename);
+                    Cursor cursor = getContentResolver().query(uri, null, null, null, null);
+                    int nameIdx = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+                    cursor.moveToFirst();
+                    name = cursor.getString(nameIdx);
+                    cursor.close();
+                }
+                uriPathNames[i] = new FilenameAdapter.UriPathName(uri, path, name);
+            }
+            final FilenameAdapter.UriPathName uriFirst = uriPathNames[0];
+
+            text.append(uriFirst.getName());
+
+            actionPlay.setEnabled(true);
             if (filenames.length > 1) {
                 text.append(getString(R.string.additional_filenames, filenames.length - 1));
+
+                actionPlay.setText(R.string.view_all);
+                actionPlay.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        openFilenamesDialog(uriPathNames);
+                    }
+                });
+            } else {
+                actionPlay.setText(R.string.play);
+                actionPlay.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        soundPlayer.play(uriFirst.getUri(), uriFirst.getPath());
+                    }
+                });
             }
+        } else {
+            resetPlayButton();
         }
         textFilename.setText(text);
+    }
+
+    public void openFilenamesDialog(FilenameAdapter.UriPathName[] uriPathNames) {
+        ViewGroup viewGroup = findViewById(R.id.content);
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_filenames, viewGroup, false);
+        RecyclerView recyclerView = dialogView.findViewById(R.id.recyclerView);
+        recyclerView.setAdapter(new FilenameAdapter(uriPathNames, soundPlayer));
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        new AlertDialog.Builder(this)
+                .setView(dialogView)
+                .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        dialogInterface.dismiss();
+                    }
+                })
+                .show();
     }
 
     private void configureClearAllButton() {
@@ -427,6 +454,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             @Override
             public void onClick(View v) {
                 filenames = new String[]{};
+                resetPlayButton();
                 textFilename.setText("");
                 checkNoteAny.setChecked(true);
                 checkOctaveAny.setChecked(true);
@@ -437,6 +465,12 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 inputInstrument.setText("");
             }
         });
+    }
+
+    private void resetPlayButton() {
+        actionPlay.setText(R.string.play);
+        actionPlay.setOnClickListener(null);
+        actionPlay.setEnabled(false);
     }
 
     private void configureSelectFileButton() {
@@ -527,7 +561,10 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 }
             }
             filenames = filenamesList.toArray(new String[0]);
-            refreshFilenameText();
+            refreshFilenames();
+            if (filenames.length > 1) {
+                actionPlay.callOnClick();
+            }
         }
     }
 
@@ -603,7 +640,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             public void run() {
                 progressDialog.dismiss();
                 filenames = newMi.sounds;
-                refreshFilenameText();
+                refreshFilenames();
                 savedInstruments.add(newMi.instrument);
                 refreshExisting();
                 final int nAdded = newMi.sounds.length;
@@ -621,7 +658,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         System.arraycopy(filenames, 0, tempFilenames, 0, filenames.length);
         tempFilenames[tempFilenames.length - 1] = newMi.sounds[0];
         filenames = tempFilenames;
-        refreshFilenameText();
+        refreshFilenames();
         savedInstruments.add(newMi.instrument);
         refreshExisting();
     }
@@ -730,7 +767,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         switchBatch.setChecked(uiDb.getBoolean(REF_DB_SWITCH_BATCH, false));
         Set<String> storedFilenames = uiDb.getStringSet(REF_DB_SELECTED_FILENAMES, new HashSet<String>());
         filenames = storedFilenames.toArray(new String[0]);
-        refreshFilenameText();
+        refreshFilenames();
         checkNoteAny.setChecked(uiDb.getBoolean(REF_DB_CHECK_NOTE_ANY, true));
         for (int i = 0; i < CHECK_NOTE_IDS.length; i++) {
             checkNotes[i].setChecked(uiDb.getBoolean(String.valueOf(CHECK_NOTE_IDS[i]), false));
