@@ -240,7 +240,7 @@ public class AudioCaptureService extends Service {
             capturesDir.mkdirs();
         }
 
-        String timestamp = new SimpleDateFormat("dd-MM-yyyy-hh-mm-ss", Locale.US).format(new Date());
+        String timestamp = new SimpleDateFormat("dd-MM-yyyy-hh-mm-ss-SSS", Locale.US).format(new Date());
         String filename = String.format("Capture-%s.pcm", timestamp);
         return new File(capturesDir.getAbsolutePath() + "/" + filename);
     }
