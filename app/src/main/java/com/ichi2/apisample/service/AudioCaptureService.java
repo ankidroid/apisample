@@ -1,11 +1,13 @@
 package com.ichi2.apisample.service;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.PixelFormat;
 import android.media.AudioAttributes;
 import android.media.AudioFormat;
 import android.media.AudioPlaybackCaptureConfiguration;
@@ -15,11 +17,16 @@ import android.media.projection.MediaProjectionManager;
 import android.os.Build;
 import android.os.Environment;
 import android.os.IBinder;
+import android.view.Gravity;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.WindowManager;
+import android.widget.Button;
 
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 
+import com.ichi2.apisample.R;
 import com.ichi2.apisample.helper.PcmToWavUtil;
 
 import java.io.File;
@@ -30,8 +37,6 @@ import java.util.Date;
 import java.util.Locale;
 
 public class AudioCaptureService extends Service {
-    public final static String ACTION_START = "AudioCaptureService:Start";
-    public final static String ACTION_STOP = "AudioCaptureService:Stop";
     public final static String EXTRA_RESULT_DATA = "AudioCaptureService:Extra:ResultData";
 
     private final static int SERVICE_ID = 1;
@@ -46,14 +51,15 @@ public class AudioCaptureService extends Service {
     private final static int BYTES_PER_SAMPLE = 2;
     private final static int BUFFER_SIZE_IN_BYTES = NUM_SAMPLES_PER_READ * BYTES_PER_SAMPLE;
 
-    private MediaProjectionManager projectionManager;
-    private MediaProjection projection;
-
     private Thread captureThread;
+    private MediaProjection projection;
     private AudioRecord record;
 
+    private WindowManager windowManager;
+    private View overlayView;
+
     @Override
-    @RequiresApi(api = Build.VERSION_CODES.Q)
+    @TargetApi(Build.VERSION_CODES.O)
     public void onCreate() {
         super.onCreate();
         NotificationChannel notificationChannel = new NotificationChannel(
@@ -68,46 +74,86 @@ public class AudioCaptureService extends Service {
                 new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID).build()
         );
 
-        projectionManager = (MediaProjectionManager) getApplicationContext().getSystemService(Context.MEDIA_PROJECTION_SERVICE);
+        windowManager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
+        WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams(
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
+                PixelFormat.TRANSLUCENT
+        );
+        layoutParams.gravity = Gravity.START | Gravity.TOP;
+        layoutParams.setTitle("overlayy");
+        layoutParams.x = 0;
+        layoutParams.y = 0;
+
+        overlayView = LayoutInflater.from(this).inflate(R.layout.overlay_recording, null, false);
+
+        final Button actionStart = overlayView.findViewById(R.id.actionStart);
+        final Button actionStop = overlayView.findViewById(R.id.actionStop);
+
+        actionStart.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                actionStart.setEnabled(false);
+                startAudioCapture();
+                actionStop.setEnabled(true);
+            }
+        });
+
+        actionStop.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                actionStop.setEnabled(false);
+                stopAudioCapture();
+                actionStart.setEnabled(true);
+            }
+        });
+        actionStop.setEnabled(false);
+
+        Button actionClose = overlayView.findViewById(R.id.actionClose);
+        actionClose.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                record.release();
+                projection.stop();
+                stopSelf();
+            }
+        });
+
+        windowManager.addView(overlayView, layoutParams);
     }
 
     @Override
-    @RequiresApi(api = Build.VERSION_CODES.Q)
+    public void onDestroy() {
+        windowManager.removeView(overlayView);
+    }
+
+    @Override
+    @TargetApi(Build.VERSION_CODES.Q)
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent == null) {
             return Service.START_NOT_STICKY;
         }
-        switch (intent.getAction()) {
-            case ACTION_START:
-                projection = projectionManager.getMediaProjection(Activity.RESULT_OK, (Intent) intent.getParcelableExtra(EXTRA_RESULT_DATA));
-                startAudioCapture();
-                return Service.START_STICKY;
-            case ACTION_STOP:
-                stopAudioCapture();
-                return Service.START_NOT_STICKY;
-            default:
-                throw new IllegalArgumentException();
-        }
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.Q)
-    private void startAudioCapture() {
+        MediaProjectionManager projectionManager = (MediaProjectionManager) getSystemService(Context.MEDIA_PROJECTION_SERVICE);
+        projection = projectionManager.getMediaProjection(Activity.RESULT_OK, (Intent) intent.getParcelableExtra(EXTRA_RESULT_DATA));
         AudioPlaybackCaptureConfiguration config = new AudioPlaybackCaptureConfiguration.Builder(projection)
                 .addMatchingUsage(AudioAttributes.USAGE_MEDIA)
                 .build();
-
         AudioFormat format = new AudioFormat.Builder()
                 .setEncoding(ENCODING)
                 .setSampleRate(SAMPLE_RATE)
                 .setChannelMask(CHANNEL_MASK)
                 .build();
-
         record = new AudioRecord.Builder()
                 .setAudioFormat(format)
                 .setBufferSizeInBytes(BUFFER_SIZE_IN_BYTES)
                 .setAudioPlaybackCaptureConfig(config)
                 .build();
+        return Service.START_STICKY;
+    }
 
+    private void startAudioCapture() {
         record.startRecording();
         captureThread = new Thread(new Runnable() {
             @Override
@@ -156,10 +202,6 @@ public class AudioCaptureService extends Service {
     }
 
     private void stopAudioCapture() {
-        if (projection == null) {
-            throw new IllegalStateException();
-        }
-
         captureThread.interrupt();
         try {
             captureThread.join();
@@ -181,11 +223,6 @@ public class AudioCaptureService extends Service {
         }
 
         record.stop();
-        record.release();
-        record = null;
-
-        projection.stop();
-        stopSelf();
     }
 
     private static byte[] toByteArray(short[] array) {

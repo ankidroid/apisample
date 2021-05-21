@@ -1,6 +1,7 @@
 package com.ichi2.apisample.ui;
 
 import android.Manifest;
+import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.ClipData;
@@ -13,6 +14,7 @@ import android.content.res.Resources;
 import android.database.Cursor;
 import android.media.projection.MediaProjectionManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -26,6 +28,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.os.Handler;
 import android.provider.OpenableColumns;
+import android.provider.Settings;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -119,6 +122,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private SwitchCompat switchBatch;
     private TextView textFilename;
     private Button actionPlay;
+    private Button actionCaptureAudio;
     private Button actionSelectFile;
     private CheckBox checkNoteAny;
     private CheckBox[] checkNotes;
@@ -208,6 +212,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         switchBatch = findViewById(R.id.switchBatch);
         textFilename = findViewById(R.id.textFilename);
         actionPlay = findViewById(R.id.actionPlay);
+        actionCaptureAudio = findViewById(R.id.actionCaptureAudio);
         actionSelectFile = findViewById(R.id.actionSelectFile);
         checkNoteAny = findViewById(R.id.checkNoteAny);
         checkNotes = new CheckBox[CHECK_NOTE_IDS.length];
@@ -264,8 +269,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
         mHandler = new Handler();
 
-        configureRecordingButtons();
         configureClearAllButton();
+        configureCaptureAudioButton();
         configureSelectFileButton();
         configureMarkExistingButton();
         configureAddToAnkiButton();
@@ -492,36 +497,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 .show();
     }
 
-    private void configureRecordingButtons() {
-        // @todo: request file permission aswell
-        Button actionRecordingStart = findViewById(R.id.actionRecordingStart);
-        actionRecordingStart.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-                    requestPermissions(new String[]{
-                                    Manifest.permission.RECORD_AUDIO},
-                            PERMISSIONS_REQUEST_RECORD_AUDIO
-                    );
-                    return;
-                }
-                MediaProjectionManager mediaProjectionManager = (MediaProjectionManager) getSystemService(Context.MEDIA_PROJECTION_SERVICE);
-                Intent intent = mediaProjectionManager.createScreenCaptureIntent();
-                startActivityForResult(intent, ACTION_SCREEN_CAPTURE);
-            }
-        });
-
-        Button actionRecordingStop = findViewById(R.id.actionRecordingStop);
-        actionRecordingStop.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(MainActivity.this, AudioCaptureService.class);
-                intent.setAction(AudioCaptureService.ACTION_STOP);
-                startService(intent);
-            }
-        });
-    }
-
     private void configureClearAllButton() {
         final Button actionClearAll = findViewById(R.id.actionClearAll);
         actionClearAll.setOnClickListener(new View.OnClickListener() {
@@ -545,6 +520,37 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         actionPlay.setText(R.string.play);
         actionPlay.setOnClickListener(null);
         actionPlay.setEnabled(false);
+    }
+
+    private void configureCaptureAudioButton() {
+        actionCaptureAudio.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // @todo: add callbacks to permission requests
+                if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+                    requestPermissions(new String[]{
+                                    Manifest.permission.RECORD_AUDIO},
+                            PERMISSIONS_REQUEST_RECORD_AUDIO
+                    );
+                    return;
+                }
+                if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                    requestPermissions(new String[]{
+                                    Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                            PERMISSIONS_REQUEST_EXTERNAL_STORAGE
+                    );
+                    return;
+                }
+                if (!Settings.canDrawOverlays(MainActivity.this)) {
+                    Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
+                    startActivityForResult(intent, 69);
+                    return;
+                }
+                MediaProjectionManager mediaProjectionManager = (MediaProjectionManager) getSystemService(Context.MEDIA_PROJECTION_SERVICE);
+                Intent intent = mediaProjectionManager.createScreenCaptureIntent();
+                startActivityForResult(intent, ACTION_SCREEN_CAPTURE);
+            }
+        });
     }
 
     private void configureSelectFileButton() {
@@ -616,6 +622,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     }
 
     @Override
+    @TargetApi(Build.VERSION_CODES.Q)
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
@@ -646,7 +653,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
         if (requestCode == ACTION_SCREEN_CAPTURE && resultCode == RESULT_OK) {
             Intent intent = new Intent(this, AudioCaptureService.class);
-            intent.setAction(AudioCaptureService.ACTION_START);
             intent.putExtra(AudioCaptureService.EXTRA_RESULT_DATA, data);
             startForegroundService(intent);
         }
