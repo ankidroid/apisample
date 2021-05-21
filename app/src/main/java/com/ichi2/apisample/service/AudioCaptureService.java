@@ -96,8 +96,8 @@ public class AudioCaptureService extends Service {
 
         AudioFormat format = new AudioFormat.Builder()
                 .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
-                .setSampleRate(8000)
-                .setChannelMask(AudioFormat.CHANNEL_IN_MONO)
+                .setSampleRate(44100)
+                .setChannelMask(AudioFormat.CHANNEL_IN_STEREO)
                 .build();
 
         record = new AudioRecord.Builder()
@@ -169,7 +169,7 @@ public class AudioCaptureService extends Service {
         }
 
         try {
-            PcmToWavUtil converter = new PcmToWavUtil(8000, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
+            PcmToWavUtil converter = new PcmToWavUtil(44100, AudioFormat.CHANNEL_IN_STEREO, AudioFormat.ENCODING_PCM_16BIT);
             String pathname = file.getAbsolutePath();
             String convertedPathname = pathname.substring(0, pathname.lastIndexOf(".")) + ".wav";
             File wavFile = new File(convertedPathname);
