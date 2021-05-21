@@ -115,6 +115,11 @@ public class AudioCaptureService extends Service {
         actionClose.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                if (captureThread != null && captureThread.isAlive()) {
+                    captureThread.interrupt();
+                    record.stop();
+                    file.delete();
+                }
                 record.release();
                 projection.stop();
                 stopSelf();
