@@ -12,6 +12,7 @@ import android.media.AudioPlaybackCaptureConfiguration;
 import android.media.AudioRecord;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
+import android.os.Build;
 import android.os.Environment;
 import android.os.IBinder;
 
@@ -33,8 +34,13 @@ public class AudioCaptureService extends Service {
     public final static String ACTION_STOP = "AudioCaptureService:Stop";
     public final static String EXTRA_RESULT_DATA = "AudioCaptureService:Extra:ResultData";
 
-    private final static int SERVICE_ID = 123; // @fixme
+    private final static int SERVICE_ID = 1;
     private final static String NOTIFICATION_CHANNEL_ID = "AudioCapture channel";
+    private final static String NOTIFICATION_CHANNEL_NAME = "Audio Capture Service Channel";
+
+    private final int ENCODING = AudioFormat.ENCODING_PCM_16BIT;
+    private final int SAMPLE_RATE = 44100;
+    private final int CHANNEL_MASK = AudioFormat.CHANNEL_IN_STEREO;
 
     private final static int NUM_SAMPLES_PER_READ = 1024;
     private final static int BYTES_PER_SAMPLE = 2;
@@ -47,9 +53,16 @@ public class AudioCaptureService extends Service {
     private AudioRecord record;
 
     @Override
+    @RequiresApi(api = Build.VERSION_CODES.Q)
     public void onCreate() {
         super.onCreate();
-        createNotificationChannel();
+        NotificationChannel notificationChannel = new NotificationChannel(
+                NOTIFICATION_CHANNEL_ID,
+                NOTIFICATION_CHANNEL_NAME,
+                NotificationManager.IMPORTANCE_DEFAULT
+        );
+        NotificationManager notificationManager = getSystemService(NotificationManager.class);
+        notificationManager.createNotificationChannel(notificationChannel);
         startForeground(
                 SERVICE_ID,
                 new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID).build()
@@ -58,19 +71,8 @@ public class AudioCaptureService extends Service {
         projectionManager = (MediaProjectionManager) getApplicationContext().getSystemService(Context.MEDIA_PROJECTION_SERVICE);
     }
 
-    private void createNotificationChannel() {
-        NotificationChannel notificationChannel = new NotificationChannel(
-                NOTIFICATION_CHANNEL_ID,
-                "Audio Capture Service Channel",
-                NotificationManager.IMPORTANCE_DEFAULT
-        );
-
-        NotificationManager notificationManager = getSystemService(NotificationManager.class);
-        notificationManager.createNotificationChannel(notificationChannel);
-    }
-
     @Override
-    @RequiresApi(value = 29)
+    @RequiresApi(api = Build.VERSION_CODES.Q)
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent == null) {
             return Service.START_NOT_STICKY;
@@ -88,16 +90,16 @@ public class AudioCaptureService extends Service {
         }
     }
 
-    @RequiresApi(value = 29)
+    @RequiresApi(api = Build.VERSION_CODES.Q)
     private void startAudioCapture() {
         AudioPlaybackCaptureConfiguration config = new AudioPlaybackCaptureConfiguration.Builder(projection)
                 .addMatchingUsage(AudioAttributes.USAGE_MEDIA)
                 .build();
 
         AudioFormat format = new AudioFormat.Builder()
-                .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
-                .setSampleRate(44100)
-                .setChannelMask(AudioFormat.CHANNEL_IN_STEREO)
+                .setEncoding(ENCODING)
+                .setSampleRate(SAMPLE_RATE)
+                .setChannelMask(CHANNEL_MASK)
                 .build();
 
         record = new AudioRecord.Builder()
@@ -153,8 +155,6 @@ public class AudioCaptureService extends Service {
         }
     }
 
-
-
     private void stopAudioCapture() {
         if (projection == null) {
             throw new IllegalStateException();
@@ -169,7 +169,7 @@ public class AudioCaptureService extends Service {
         }
 
         try {
-            PcmToWavUtil converter = new PcmToWavUtil(44100, AudioFormat.CHANNEL_IN_STEREO, AudioFormat.ENCODING_PCM_16BIT);
+            PcmToWavUtil converter = new PcmToWavUtil(SAMPLE_RATE, CHANNEL_MASK, ENCODING);
             String pathname = file.getAbsolutePath();
             String convertedPathname = pathname.substring(0, pathname.lastIndexOf(".")) + ".wav";
             File wavFile = new File(convertedPathname);
