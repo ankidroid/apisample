@@ -74,7 +74,7 @@
     </plurals>
     <string name="play">Play</string>
     <string name="view_all">View all</string>
-    <string name="capture_audio">Capture</string>
+    <string name="capture_audio">Capture audio</string>
     <string name="start">Start</string>
     <string name="stop">Stop</string>
     <string name="close">Close</string>
