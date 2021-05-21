@@ -11,6 +11,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.database.Cursor;
+import android.media.projection.MediaProjectionManager;
 import android.net.Uri;
 import android.os.Bundle;
 
@@ -49,6 +50,7 @@ import com.ichi2.apisample.model.MusInterval;
 import com.ichi2.apisample.R;
 import com.ichi2.apisample.helper.AnkiDroidHelper;
 import com.ichi2.apisample.model.ProgressIndicator;
+import com.ichi2.apisample.service.AudioCaptureService;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -63,8 +65,10 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
     private static final int AD_PERM_REQUEST = 0;
     private static final int PERMISSIONS_REQUEST_EXTERNAL_STORAGE = 1;
+    private static final int PERMISSIONS_REQUEST_RECORD_AUDIO = 2;
 
     private static final int ACTION_SELECT_FILE = 10;
+    private static final int ACTION_SCREEN_CAPTURE = 11;
 
     private static final String TAG_APPLICATION = "mi2a";
     private static final String TAG_DUPLICATE = "duplicate";
@@ -260,6 +264,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
         mHandler = new Handler();
 
+        configureRecordingButtons();
         configureClearAllButton();
         configureSelectFileButton();
         configureMarkExistingButton();
@@ -487,6 +492,36 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 .show();
     }
 
+    private void configureRecordingButtons() {
+        // @todo: request file permission aswell
+        Button actionRecordingStart = findViewById(R.id.actionRecordingStart);
+        actionRecordingStart.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+                    requestPermissions(new String[]{
+                                    Manifest.permission.RECORD_AUDIO},
+                            PERMISSIONS_REQUEST_RECORD_AUDIO
+                    );
+                    return;
+                }
+                MediaProjectionManager mediaProjectionManager = (MediaProjectionManager) getSystemService(Context.MEDIA_PROJECTION_SERVICE);
+                Intent intent = mediaProjectionManager.createScreenCaptureIntent();
+                startActivityForResult(intent, ACTION_SCREEN_CAPTURE);
+            }
+        });
+
+        Button actionRecordingStop = findViewById(R.id.actionRecordingStop);
+        actionRecordingStop.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(MainActivity.this, AudioCaptureService.class);
+                intent.setAction(AudioCaptureService.ACTION_STOP);
+                startService(intent);
+            }
+        });
+    }
+
     private void configureClearAllButton() {
         final Button actionClearAll = findViewById(R.id.actionClearAll);
         actionClearAll.setOnClickListener(new View.OnClickListener() {
@@ -607,6 +642,13 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             if (filenames.length > 1) {
                 actionPlay.callOnClick();
             }
+        }
+
+        if (requestCode == ACTION_SCREEN_CAPTURE && resultCode == RESULT_OK) {
+            Intent intent = new Intent(this, AudioCaptureService.class);
+            intent.setAction(AudioCaptureService.ACTION_START);
+            intent.putExtra(AudioCaptureService.EXTRA_RESULT_DATA, data);
+            startForegroundService(intent);
         }
     }
 
@@ -877,6 +919,15 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                         handleSelectFile();
                     } else {
                         showMsg(R.string.fs_permission_denied);
+                    }
+                }
+                break;
+            case PERMISSIONS_REQUEST_RECORD_AUDIO:
+                if (grantResults.length > 0) {
+                    if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                        // @todo: add callback
+                    } else {
+                        showMsg(R.string.recording_permission_denied);
                     }
                 }
                 break;

@@ -6,7 +6,7 @@ android {
 
     defaultConfig {
         applicationId "com.ichi2.apisample"
-        minSdkVersion 24
+        minSdkVersion 29
         targetSdkVersion 30
         versionCode 18
         versionName "1.6.0"

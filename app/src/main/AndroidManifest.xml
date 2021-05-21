@@ -4,6 +4,8 @@
     <!-- should be changed to package="com.luckywarepro.musicintervals2anki" -->
 
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
     <application
         android:requestLegacyExternalStorage="true"
