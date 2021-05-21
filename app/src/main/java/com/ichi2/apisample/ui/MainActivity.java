@@ -4,10 +4,12 @@ import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
 import android.content.ClipData;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
@@ -22,6 +24,8 @@ import androidx.appcompat.widget.SwitchCompat;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.FileProvider;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -305,9 +309,27 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
     }
 
+    private final BroadcastReceiver messageReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String pathname = intent.getStringExtra(AudioCaptureService.EXTRA_PATHNAME);
+            File file = new File(pathname);
+            Uri uri = FileProvider.getUriForFile(MainActivity.this, getApplicationContext().getPackageName() + ".provider", file);
+            String[] newFilenames = new String[filenames.length + 1];
+            System.arraycopy(filenames, 0, newFilenames, 0, filenames.length);
+            newFilenames[filenames.length] = uri.toString();
+            filenames = newFilenames;
+
+            refreshFilenames();
+        }
+    };
+
     @Override
     protected void onResume() {
         super.onResume();
+
+        LocalBroadcastManager.getInstance(this).registerReceiver(messageReceiver, new IntentFilter(AudioCaptureService.ACTION_FILE_CREATED));
+
         refreshExisting();
         refreshPermutations();
         refreshFilenames();
@@ -883,6 +905,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         uiDbEditor.putString(REF_DB_INTERVAL_KEYS, StringUtil.joinStrings(DB_STRING_ARRAY_SEPARATOR, intervalKeys));
 
         uiDbEditor.apply();
+
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(messageReceiver);
 
         super.onPause();
     }

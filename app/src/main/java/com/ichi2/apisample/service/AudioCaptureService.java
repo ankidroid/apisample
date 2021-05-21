@@ -25,6 +25,7 @@ import android.widget.Button;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.ichi2.apisample.R;
 import com.ichi2.apisample.helper.PcmToWavUtil;
@@ -38,6 +39,9 @@ import java.util.Locale;
 
 public class AudioCaptureService extends Service {
     public final static String EXTRA_RESULT_DATA = "AudioCaptureService:Extra:ResultData";
+
+    public final static String ACTION_FILE_CREATED = "AudioCaptureService:FileCreated";
+    public final static String EXTRA_PATHNAME = "AudioCaptureService:Extra:Pathname";
 
     private final static int SERVICE_ID = 1;
     private final static String NOTIFICATION_CHANNEL_ID = "AudioCapture channel";
@@ -223,6 +227,10 @@ public class AudioCaptureService extends Service {
             wavFile.createNewFile();
             converter.pcmToWav(pathname, convertedPathname);
             file.delete();
+
+            Intent intent = new Intent(ACTION_FILE_CREATED);
+            intent.putExtra(EXTRA_PATHNAME, convertedPathname);
+            LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
         } catch (IOException e) {
             throw new Error();
         }
