@@ -16,12 +16,14 @@ import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
 import android.os.Build;
 import android.os.Environment;
+import android.os.Handler;
 import android.os.IBinder;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
@@ -36,6 +38,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 public class AudioCaptureService extends Service {
     public final static String EXTRA_RESULT_DATA = "AudioCaptureService:Extra:ResultData";
@@ -59,8 +62,15 @@ public class AudioCaptureService extends Service {
     private MediaProjection projection;
     private AudioRecord record;
 
+    private Handler handler;
+
     private WindowManager windowManager;
     private View overlayView;
+    private TextView textTop;
+    private TextView textBottom;
+
+    private long recordingStartedAt;
+    private int recordedFilesCount;
 
     @Override
     @TargetApi(Build.VERSION_CODES.O)
@@ -78,6 +88,8 @@ public class AudioCaptureService extends Service {
                 new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID).build()
         );
 
+        handler = new Handler();
+
         windowManager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
         WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT,
@@ -87,7 +99,7 @@ public class AudioCaptureService extends Service {
                 PixelFormat.TRANSLUCENT
         );
         layoutParams.gravity = Gravity.START | Gravity.TOP;
-        layoutParams.setTitle("overlayy");
+        layoutParams.setTitle("overlayy"); // @fixme
         layoutParams.x = 0;
         layoutParams.y = 0;
 
@@ -130,6 +142,9 @@ public class AudioCaptureService extends Service {
             }
         });
 
+        textTop = overlayView.findViewById(R.id.textTop);
+        textBottom = overlayView.findViewById(R.id.textBottom);
+
         windowManager.addView(overlayView, layoutParams);
     }
 
@@ -163,6 +178,7 @@ public class AudioCaptureService extends Service {
     }
 
     private void startAudioCapture() {
+        recordingStartedAt = System.currentTimeMillis();
         record.startRecording();
         captureThread = new Thread(new Runnable() {
             @Override
@@ -199,6 +215,13 @@ public class AudioCaptureService extends Service {
             short[] capturedSamples = new short[NUM_SAMPLES_PER_READ];
 
             while (!captureThread.isInterrupted()) {
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        refreshTime(System.currentTimeMillis() - recordingStartedAt);
+
+                    }
+                });
                 record.read(capturedSamples, 0, NUM_SAMPLES_PER_READ);
                 fileOutputStream.write(toByteArray(capturedSamples), 0, BUFFER_SIZE_IN_BYTES);
             }
@@ -208,6 +231,18 @@ public class AudioCaptureService extends Service {
             e.printStackTrace();
             throw new Error();
         }
+    }
+
+    private void refreshTime(long millis) {
+        textTop.setText(
+                String.format(
+                        Locale.US,
+                        "%02d:%02d:%02d",
+                        TimeUnit.MILLISECONDS.toMinutes(millis) % TimeUnit.HOURS.toMinutes(1),
+                        TimeUnit.MILLISECONDS.toSeconds(millis) % TimeUnit.MINUTES.toSeconds(1),
+                        (TimeUnit.MILLISECONDS.toMillis(millis) % TimeUnit.SECONDS.toMillis(1)) / 10
+                )
+        );
     }
 
     private void stopAudioCapture() {
@@ -231,6 +266,15 @@ public class AudioCaptureService extends Service {
             Intent intent = new Intent(ACTION_FILE_CREATED);
             intent.putExtra(EXTRA_PATHNAME, convertedPathname);
             LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+
+            recordedFilesCount++;
+            textBottom.setText("files recorded: " + recordedFilesCount); // @fixme
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    refreshTime(0);
+                }
+            });
         } catch (IOException e) {
             throw new Error();
         }
