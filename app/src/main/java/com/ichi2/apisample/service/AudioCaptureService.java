@@ -20,6 +20,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -64,13 +65,19 @@ public class AudioCaptureService extends Service {
 
     private Handler handler;
 
-    private WindowManager windowManager;
-    private View overlayView;
-    private TextView textTop;
-    private TextView textBottom;
-
     private long recordingStartedAt;
     private int recordedFilesCount;
+
+    private boolean isRecording;
+
+    private WindowManager windowManager;
+    private View overlayView;
+
+    private float dX;
+    private float dY;
+
+    private TextView textTop;
+    private TextView textBottom;
 
     @Override
     @TargetApi(Build.VERSION_CODES.O)
@@ -105,27 +112,55 @@ public class AudioCaptureService extends Service {
 
         overlayView = LayoutInflater.from(this).inflate(R.layout.overlay_recording, null, false);
 
-        final Button actionStart = overlayView.findViewById(R.id.actionStart);
-        final Button actionStop = overlayView.findViewById(R.id.actionStop);
+        View.OnTouchListener moveOnTouchListener = new View.OnTouchListener() {
+            private boolean isMoving;
 
-        actionStart.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                WindowManager.LayoutParams layoutParams = (WindowManager.LayoutParams) overlayView.getLayoutParams();
+                switch (motionEvent.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        dX = layoutParams.x - motionEvent.getRawX();
+                        dY = layoutParams.y - motionEvent.getRawY();
+                        break;
+                    case MotionEvent.ACTION_UP:
+                        if (!isMoving) {
+                            view.performClick();
+                        } else {
+                            isMoving = false;
+                        }
+                        break;
+                    case MotionEvent.ACTION_MOVE:
+                        isMoving = true;
+                        layoutParams.x = (int) (motionEvent.getRawX() + dX);
+                        layoutParams.y = (int) (motionEvent.getRawY() + dY);
+                        windowManager.updateViewLayout(overlayView, layoutParams);
+                        break;
+                    default:
+                        return false;
+                }
+                return true;
+            }
+        };
+
+        overlayView.setOnTouchListener(moveOnTouchListener);
+
+        final Button actionRecord = overlayView.findViewById(R.id.actionRecord);
+        actionRecord.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                actionStart.setEnabled(false);
-                startAudioCapture();
-                actionStop.setEnabled(true);
+                if (!isRecording) {
+                    startAudioCapture();
+                    isRecording = true;
+                    actionRecord.setText(R.string.stop);
+                } else {
+                    stopAudioCapture();
+                    isRecording = false;
+                    actionRecord.setText(R.string.start);
+                }
             }
         });
-
-        actionStop.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                actionStop.setEnabled(false);
-                stopAudioCapture();
-                actionStart.setEnabled(true);
-            }
-        });
-        actionStop.setEnabled(false);
+        actionRecord.setOnTouchListener(moveOnTouchListener);
 
         Button actionClose = overlayView.findViewById(R.id.actionClose);
         actionClose.setOnClickListener(new View.OnClickListener() {
@@ -143,7 +178,9 @@ public class AudioCaptureService extends Service {
         });
 
         textTop = overlayView.findViewById(R.id.textTop);
+        textTop.setOnTouchListener(moveOnTouchListener);
         textBottom = overlayView.findViewById(R.id.textBottom);
+        textBottom.setOnTouchListener(moveOnTouchListener);
 
         windowManager.addView(overlayView, layoutParams);
     }
@@ -268,7 +305,7 @@ public class AudioCaptureService extends Service {
             LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
 
             recordedFilesCount++;
-            textBottom.setText("files recorded: " + recordedFilesCount); // @fixme
+            textBottom.setText(getString(R.string.recorded_files, recordedFilesCount));
             handler.post(new Runnable() {
                 @Override
                 public void run() {

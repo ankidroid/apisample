@@ -2,13 +2,15 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
+    android:background="#40808080"
     android:orientation="vertical">
 
     <TextView
         android:id="@+id/textTop"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="#FFFFFF" />
+        android:layout_gravity="center"
+        android:textColor="#FFFFFF" />
 
     <LinearLayout
         android:layout_width="wrap_content"
@@ -16,16 +18,10 @@
         android:orientation="horizontal">
 
         <Button
-            android:id="@+id/actionStart"
+            android:id="@+id/actionRecord"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/start" />
-
-        <Button
-            android:id="@+id/actionStop"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/stop" />
 
         <Button
             android:id="@+id/actionClose"
@@ -39,6 +35,6 @@
         android:id="@+id/textBottom"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:background="#FFFFFF" />
+        android:layout_gravity="center"
+        android:textColor="#FFFFFF" />
 </LinearLayout>

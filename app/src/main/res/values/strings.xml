@@ -78,6 +78,7 @@
     <string name="start">Start</string>
     <string name="stop">Stop</string>
     <string name="close">Close</string>
+    <string name="recorded_files">Files recorded: %d</string>
 
     <!-- MainActivity messages-->
     <string name="anki_permission_denied">Could not get permission to access the AnkiDroid database</string>
