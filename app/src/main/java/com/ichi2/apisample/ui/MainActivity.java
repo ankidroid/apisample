@@ -72,6 +72,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
     private static final int ACTION_SELECT_FILE = 10;
     private static final int ACTION_SCREEN_CAPTURE = 11;
+    private static final int ACTION_PROMPT_OVERLAY_PERMISSION = 12;
 
     private static final String TAG_APPLICATION = "mi2a";
     private static final String TAG_DUPLICATE = "duplicate";
@@ -541,9 +542,13 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     );
                     return;
                 }
+                // @todo: show some message here
                 if (!Settings.canDrawOverlays(MainActivity.this)) {
-                    Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
-                    startActivityForResult(intent, 69);
+                    Intent intent = new Intent(
+                            Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                            Uri.parse("package:" + getPackageName())
+                    );
+                    startActivityForResult(intent, ACTION_PROMPT_OVERLAY_PERMISSION);
                     return;
                 }
                 MediaProjectionManager mediaProjectionManager = (MediaProjectionManager) getSystemService(Context.MEDIA_PROJECTION_SERVICE);
@@ -625,36 +630,46 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     @TargetApi(Build.VERSION_CODES.Q)
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-
-        if (requestCode == ACTION_SELECT_FILE && resultCode == RESULT_OK) {
-            ArrayList<String> filenamesList = new ArrayList<>();
-            if (data != null) {
-                ClipData clipData = data.getClipData();
-                if (clipData != null) {
-                    for (int i = 0; i < clipData.getItemCount(); i++) {
-                        Uri uri = clipData.getItemAt(i).getUri();
+        switch (requestCode) {
+            case ACTION_SELECT_FILE:
+                if (resultCode != RESULT_OK) {
+                    return;
+                }
+                ArrayList<String> filenamesList = new ArrayList<>();
+                if (data != null) {
+                    ClipData clipData = data.getClipData();
+                    if (clipData != null) {
+                        for (int i = 0; i < clipData.getItemCount(); i++) {
+                            Uri uri = clipData.getItemAt(i).getUri();
+                            getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                            filenamesList.add(uri.toString());
+                        }
+                    } else {
+                        Uri uri = data.getData();
                         getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
                         filenamesList.add(uri.toString());
                     }
-                } else {
-                    Uri uri = data.getData();
-                    getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                    filenamesList.add(uri.toString());
                 }
-            }
-            filenames = filenamesList.toArray(new String[0]);
-            refreshKeys();
-            afterAdding = false;
-            refreshFilenames();
-            if (filenames.length > 1) {
-                actionPlay.callOnClick();
-            }
-        }
-
-        if (requestCode == ACTION_SCREEN_CAPTURE && resultCode == RESULT_OK) {
-            Intent intent = new Intent(this, AudioCaptureService.class);
-            intent.putExtra(AudioCaptureService.EXTRA_RESULT_DATA, data);
-            startForegroundService(intent);
+                filenames = filenamesList.toArray(new String[0]);
+                refreshKeys();
+                afterAdding = false;
+                refreshFilenames();
+                if (filenames.length > 1) {
+                    actionPlay.callOnClick();
+                }
+                break;
+            case ACTION_SCREEN_CAPTURE:
+                if (resultCode != RESULT_OK) {
+                    return;
+                }
+                Intent intent = new Intent(this, AudioCaptureService.class);
+                intent.putExtra(AudioCaptureService.EXTRA_RESULT_DATA, data);
+                startForegroundService(intent);
+                break;
+            case ACTION_PROMPT_OVERLAY_PERMISSION:
+                if (!Settings.canDrawOverlays(this)) {
+                    showMsg(R.string.display_over_apps_permission_denied);
+                }
         }
     }
 

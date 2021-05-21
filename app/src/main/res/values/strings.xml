@@ -83,6 +83,7 @@
     <string name="anki_permission_denied">Could not get permission to access the AnkiDroid database</string>
     <string name="fs_permission_denied">Could not get permission to access a filesystem</string>
     <string name="recording_permission_denied">Could not get permission to record audio</string>
+    <string name="display_over_apps_permission_denied">Could not get permission to display over other apps</string>
     <string name="mi_not_exists">Music interval not found</string>
     <plurals name="mi_marked_result">
         <item quantity="one">One music interval successfully marked</item>
