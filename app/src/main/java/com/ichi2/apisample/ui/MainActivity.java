@@ -71,8 +71,9 @@ import java.util.Set;
 public class MainActivity extends AppCompatActivity implements ActivityCompat.OnRequestPermissionsResultCallback, AddingPrompter, ProgressIndicator {
 
     private static final int AD_PERM_REQUEST = 0;
-    private static final int PERMISSIONS_REQUEST_EXTERNAL_STORAGE = 1;
-    private static final int PERMISSIONS_REQUEST_RECORD_AUDIO = 2;
+    private static final int PERMISSIONS_REQUEST_EXTERNAL_STORAGE_CALLBACK_OPEN_CHOOSER = 1;
+    private static final int PERMISSIONS_REQUEST_RECORD_AUDIO_CALLBACK_CAPTURE = 2;
+    private static final int PERMISSIONS_REQUEST_EXTERNAL_STORAGE_CALLBACK_CAPTURE = 3;
 
     private static final int ACTION_SELECT_FILE = 10;
     private static final int ACTION_SCREEN_CAPTURE = 11;
@@ -553,35 +554,38 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     showMsg(R.string.recording_unsupported);
                     return;
                 }
-                // @todo: add callbacks to permission requests
-                if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-                    requestPermissions(new String[]{
-                                    Manifest.permission.RECORD_AUDIO},
-                            PERMISSIONS_REQUEST_RECORD_AUDIO
-                    );
-                    return;
-                }
-                if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                    requestPermissions(new String[]{
-                                    Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                            PERMISSIONS_REQUEST_EXTERNAL_STORAGE
-                    );
-                    return;
-                } // @fixme: remove callback here
-                // @todo: show some message here
-                if (!Settings.canDrawOverlays(MainActivity.this)) {
-                    Intent intent = new Intent(
-                            Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                            Uri.parse("package:" + getPackageName())
-                    );
-                    startActivityForResult(intent, ACTION_PROMPT_OVERLAY_PERMISSION);
-                    return;
-                }
-                MediaProjectionManager mediaProjectionManager = (MediaProjectionManager) getSystemService(Context.MEDIA_PROJECTION_SERVICE);
-                Intent intent = mediaProjectionManager.createScreenCaptureIntent();
-                startActivityForResult(intent, ACTION_SCREEN_CAPTURE);
+                handleCaptureAudio();
             }
         });
+    }
+
+    private void handleCaptureAudio () {
+        if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{
+                            Manifest.permission.RECORD_AUDIO},
+                    PERMISSIONS_REQUEST_RECORD_AUDIO_CALLBACK_CAPTURE
+            );
+            return;
+        }
+        if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{
+                            Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                    PERMISSIONS_REQUEST_EXTERNAL_STORAGE_CALLBACK_CAPTURE
+            );
+            return;
+        }
+        if (!Settings.canDrawOverlays(MainActivity.this)) {
+            Intent intent = new Intent(
+                    Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                    Uri.parse("package:" + getPackageName())
+            );
+            startActivityForResult(intent, ACTION_PROMPT_OVERLAY_PERMISSION);
+            return;
+        }
+
+        MediaProjectionManager mediaProjectionManager = (MediaProjectionManager) getSystemService(Context.MEDIA_PROJECTION_SERVICE);
+        Intent intent = mediaProjectionManager.createScreenCaptureIntent();
+        startActivityForResult(intent, ACTION_SCREEN_CAPTURE);
     }
 
     private void configureSelectFileButton() {
@@ -592,7 +596,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
                     requestPermissions(new String[]{
                                     Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                            PERMISSIONS_REQUEST_EXTERNAL_STORAGE
+                            PERMISSIONS_REQUEST_EXTERNAL_STORAGE_CALLBACK_OPEN_CHOOSER
                     );
                     return;
                 }
@@ -695,6 +699,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             case ACTION_PROMPT_OVERLAY_PERMISSION:
                 if (!Settings.canDrawOverlays(this)) {
                     showMsg(R.string.display_over_apps_permission_denied);
+                } else {
+                    handleCaptureAudio();
                 }
         }
     }
@@ -962,7 +968,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     }
                 }
                 break;
-            case PERMISSIONS_REQUEST_EXTERNAL_STORAGE:
+            case PERMISSIONS_REQUEST_EXTERNAL_STORAGE_CALLBACK_OPEN_CHOOSER:
                 if (grantResults.length > 0) {
                     if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                         handleSelectFile();
@@ -971,12 +977,21 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     }
                 }
                 break;
-            case PERMISSIONS_REQUEST_RECORD_AUDIO:
+            case PERMISSIONS_REQUEST_RECORD_AUDIO_CALLBACK_CAPTURE:
                 if (grantResults.length > 0) {
                     if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                        // @todo: add callback
+                        handleCaptureAudio();
                     } else {
                         showMsg(R.string.recording_permission_denied);
+                    }
+                }
+                break;
+            case PERMISSIONS_REQUEST_EXTERNAL_STORAGE_CALLBACK_CAPTURE:
+                if (grantResults.length > 0) {
+                    if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                        handleCaptureAudio();
+                    } else {
+                        showMsg(R.string.fs_permission_denied);
                     }
                 }
                 break;
