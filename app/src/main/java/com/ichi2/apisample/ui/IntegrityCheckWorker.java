@@ -8,6 +8,7 @@ import android.content.res.Resources;
 import android.os.Handler;
 
 import com.ichi2.apisample.R;
+import com.ichi2.apisample.helper.StringUtil;
 import com.ichi2.apisample.model.MusInterval;
 import com.ichi2.apisample.model.NotesIntegrity;
 
@@ -60,10 +61,10 @@ public class IntegrityCheckWorker implements Runnable {
         }
     }
 
-    private static final String ALLOWED_START_NOTES_STR = joinStrings(", ", MusInterval.Fields.StartNote.VALUES);
+    private static final String ALLOWED_START_NOTES_STR = StringUtil.joinStrings(", ",MusInterval.Fields.StartNote.VALUES);
     private static final String ALLOWED_DIRECTIONS_STR = String.format("%s, %s", MusInterval.Fields.Direction.ASC, MusInterval.Fields.Direction.DESC);
     private static final String ALLOWED_TIMINGS_STR = String.format("%s, %s", MusInterval.Fields.Timing.MELODIC, MusInterval.Fields.Timing.HARMONIC);
-    private static final String ALLOWED_INTERVALS_STR = joinStrings(", ", MusInterval.Fields.Interval.VALUES);
+    private static final String ALLOWED_INTERVALS_STR = StringUtil.joinStrings(", ", MusInterval.Fields.Interval.VALUES);
 
     private static String getReport(NotesIntegrity.Summary integritySummary, Context context) {
         MusInterval mi = integritySummary.getMusInterval();
@@ -162,16 +163,5 @@ public class IntegrityCheckWorker implements Runnable {
             }
         }
         return report.toString();
-    }
-
-    private static String joinStrings(String separator, String[] values) {
-        StringBuilder builder = new StringBuilder();
-        for (String value : values) {
-            if (builder.length() > 0) {
-                builder.append(separator);
-            }
-            builder.append(value);
-        }
-        return builder.toString();
     }
 }

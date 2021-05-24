@@ -41,6 +41,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.ichi2.apisample.BuildConfig;
+import com.ichi2.apisample.helper.StringUtil;
 import com.ichi2.apisample.model.AddingHandler;
 import com.ichi2.apisample.model.AddingPrompter;
 import com.ichi2.apisample.model.NotesIntegrity;
@@ -82,6 +83,11 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private static final String REF_DB_INPUT_INSTRUMENT = "inputInstrument";
     private static final String REF_DB_SAVED_INSTRUMENTS = "savedInstruments";
     private static final String REF_DB_BATCH_ADDING_NOTICE_SEEN = "batchAddingNoticeSeen";
+    private static final String REF_DB_AFTER_ADDING = "afterAdding";
+    private static final String REF_DB_NOTE_KEYS = "noteKeys";
+    private static final String REF_DB_OCTAVE_KEYS = "octaveKeys";
+    private static final String REF_DB_INTERVAL_KEYS = "intervalKeys";
+    private static final String DB_STRING_ARRAY_SEPARATOR = ",";
 
     private final static Map<String, Integer> FIELD_LABEL_STRING_IDS_SINGULAR = new HashMap<String, Integer>() {{
         put(MusInterval.Fields.DIRECTION, R.string.direction);
@@ -180,6 +186,12 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private HashSet<String> savedInstruments = new HashSet<>();
 
     private AnkiDroidHelper mAnkiDroid;
+
+    private boolean afterAdding;
+
+    private String[] noteKeys = new String[]{};
+    private String[] octaveKeys = new String[]{};
+    private String[] intervalKeys = new String[]{};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -357,15 +369,29 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     }
 
     void clearAddedFilenames() {
-        ArrayList<String> unAddedFilenames = new ArrayList<>();
-        for (String filename : filenames) {
-            if (!filename.startsWith("[sound:")) {
-                unAddedFilenames.add(filename);
-            }
-        }
-        if (unAddedFilenames.size() != filenames.length) {
-            filenames = unAddedFilenames.toArray(new String[0]);
+        if (afterAdding) {
+            refreshKeys();
+            filenames = new String[]{};
             refreshFilenames();
+            afterAdding = false;
+        }
+    }
+
+    void refreshKeys() {
+        String[] checkedNotes = getCheckedValues(checkNotes);
+        String[] checkedOctaves = getCheckedValues(checkOctaves);
+        String[] checkedIntervals = getCheckedValues(checkIntervals, CHECK_INTERVAL_ID_VALUES);
+        int permutations = checkedNotes.length * checkedOctaves.length * checkedIntervals.length;
+        noteKeys = new String[permutations];
+        octaveKeys = new String[permutations];
+        intervalKeys = new String[permutations];
+        for (int i = 0; i < permutations; i++) {
+            int octaveIdx = i / (checkedNotes.length * checkedIntervals.length);
+            octaveKeys[i] = checkedOctaves[octaveIdx];
+            int noteIdx = (i / checkedIntervals.length) % checkedNotes.length;
+            noteKeys[i] = checkedNotes[noteIdx];
+            int intervalIdx = i % checkedIntervals.length;
+            intervalKeys[i] = checkedIntervals[intervalIdx];
         }
     }
 
@@ -413,7 +439,20 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 actionPlay.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        openFilenamesDialog(uriPathNames);
+                        FilenameAdapter.UriPathName[] filenames = new FilenameAdapter.UriPathName[uriPathNames.length];
+                        for (int i = 0; i < uriPathNames.length; i++) {
+                            FilenameAdapter.UriPathName uriPathName = uriPathNames[i];
+                            String startNote = i < noteKeys.length || i < octaveKeys.length ? noteKeys[i] + octaveKeys[i] : getString(R.string.unassigned);
+                            String interval = i < intervalKeys.length ? intervalKeys[i] : getString(R.string.unassigned);
+                            String label = getString(
+                                    R.string.filename_with_key,
+                                    i + 1,
+                                    uriPathName.getName(),
+                                    startNote,
+                                    interval);
+                            filenames[i] = new FilenameAdapter.UriPathName(uriPathName.getUri(), uriPathName.getPath(), label);
+                        }
+                        openFilenamesDialog(filenames);
                     }
                 });
             } else {
@@ -561,6 +600,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 }
             }
             filenames = filenamesList.toArray(new String[0]);
+            refreshKeys();
+            afterAdding = false;
             refreshFilenames();
             if (filenames.length > 1) {
                 actionPlay.callOnClick();
@@ -640,6 +681,10 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             public void run() {
                 progressDialog.dismiss();
                 filenames = newMi.sounds;
+                noteKeys = newMi.notes;
+                octaveKeys = newMi.octaves;
+                intervalKeys = newMi.intervals;
+                afterAdding = true;
                 refreshFilenames();
                 savedInstruments.add(newMi.instrument);
                 refreshExisting();
@@ -757,6 +802,12 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         uiDbEditor.putString(REF_DB_INPUT_TEMPO, inputTempo.getText().toString());
         uiDbEditor.putString(REF_DB_INPUT_INSTRUMENT, inputInstrument.getText().toString());
         uiDbEditor.putStringSet(REF_DB_SAVED_INSTRUMENTS, savedInstruments);
+
+        uiDbEditor.putBoolean(REF_DB_AFTER_ADDING, afterAdding);
+        uiDbEditor.putString(REF_DB_NOTE_KEYS, StringUtil.joinStrings(DB_STRING_ARRAY_SEPARATOR, noteKeys));
+        uiDbEditor.putString(REF_DB_OCTAVE_KEYS, StringUtil.joinStrings(DB_STRING_ARRAY_SEPARATOR, octaveKeys));
+        uiDbEditor.putString(REF_DB_INTERVAL_KEYS, StringUtil.joinStrings(DB_STRING_ARRAY_SEPARATOR, intervalKeys));
+
         uiDbEditor.apply();
 
         super.onPause();
@@ -787,6 +838,11 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         savedInstruments = (HashSet<String>) uiDb.getStringSet(REF_DB_SAVED_INSTRUMENTS, new HashSet<String>());
         inputInstrument.setAdapter(new ArrayAdapter<>(this,
                 android.R.layout.simple_dropdown_item_1line, savedInstruments.toArray(new String[0])));
+
+        afterAdding = uiDb.getBoolean(REF_DB_AFTER_ADDING, false);
+        noteKeys = StringUtil.splitStrings(DB_STRING_ARRAY_SEPARATOR, uiDb.getString(REF_DB_NOTE_KEYS, ""));
+        octaveKeys = StringUtil.splitStrings(DB_STRING_ARRAY_SEPARATOR, uiDb.getString(REF_DB_OCTAVE_KEYS, ""));
+        intervalKeys = StringUtil.splitStrings(DB_STRING_ARRAY_SEPARATOR, uiDb.getString(REF_DB_INTERVAL_KEYS, ""));
 
         this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
     }
