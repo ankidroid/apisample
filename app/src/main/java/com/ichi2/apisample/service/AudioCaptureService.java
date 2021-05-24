@@ -20,7 +20,6 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.view.Gravity;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -32,11 +31,13 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.ichi2.apisample.R;
 import com.ichi2.apisample.helper.PcmToWavUtil;
+import com.ichi2.apisample.ui.MoveViewOnTouchListener;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
@@ -59,25 +60,26 @@ public class AudioCaptureService extends Service {
     private final static int BYTES_PER_SAMPLE = 2;
     private final static int BUFFER_SIZE_IN_BYTES = NUM_SAMPLES_PER_READ * BYTES_PER_SAMPLE;
 
-    private Thread captureThread;
     private MediaProjection projection;
     private AudioRecord record;
 
+    private Thread captureThread;
     private Handler handler;
 
+    private boolean isRecording;
     private long recordingStartedAt;
     private int recordedFilesCount;
 
-    private boolean isRecording;
-
     private WindowManager windowManager;
+
     private View overlayView;
-
-    private float dX;
-    private float dY;
-
     private TextView textTop;
+    private Button actionRecord;
     private TextView textBottom;
+
+    private View countdownView;
+    private TextView textCount;
+    private ArrayList<Runnable> countdownCallbacks;
 
     @Override
     @TargetApi(Build.VERSION_CODES.O)
@@ -105,54 +107,50 @@ public class AudioCaptureService extends Service {
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
                 PixelFormat.TRANSLUCENT
         );
-        layoutParams.gravity = Gravity.START | Gravity.TOP;
-        layoutParams.setTitle("overlayy"); // @fixme
+        layoutParams.gravity = Gravity.CENTER;
         layoutParams.x = 0;
         layoutParams.y = 0;
 
         overlayView = LayoutInflater.from(this).inflate(R.layout.overlay_recording, null, false);
-
-        View.OnTouchListener moveOnTouchListener = new View.OnTouchListener() {
-            private boolean isMoving;
-
-            @Override
-            public boolean onTouch(View view, MotionEvent motionEvent) {
-                WindowManager.LayoutParams layoutParams = (WindowManager.LayoutParams) overlayView.getLayoutParams();
-                switch (motionEvent.getAction()) {
-                    case MotionEvent.ACTION_DOWN:
-                        dX = layoutParams.x - motionEvent.getRawX();
-                        dY = layoutParams.y - motionEvent.getRawY();
-                        break;
-                    case MotionEvent.ACTION_UP:
-                        if (!isMoving) {
-                            view.performClick();
-                        } else {
-                            isMoving = false;
-                        }
-                        break;
-                    case MotionEvent.ACTION_MOVE:
-                        isMoving = true;
-                        layoutParams.x = (int) (motionEvent.getRawX() + dX);
-                        layoutParams.y = (int) (motionEvent.getRawY() + dY);
-                        windowManager.updateViewLayout(overlayView, layoutParams);
-                        break;
-                    default:
-                        return false;
-                }
-                return true;
-            }
-        };
-
+        View.OnTouchListener moveOnTouchListener = new MoveViewOnTouchListener(windowManager, overlayView);
         overlayView.setOnTouchListener(moveOnTouchListener);
 
-        final Button actionRecord = overlayView.findViewById(R.id.actionRecord);
+        countdownView = LayoutInflater.from(this).inflate(R.layout.overlay_countdown, null, false);
+        countdownView.setVisibility(View.GONE);
+
+        textCount = countdownView.findViewById(R.id.textCount);
+
+        actionRecord = overlayView.findViewById(R.id.actionRecord);
         actionRecord.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (!isRecording) {
-                    startAudioCapture();
-                    isRecording = true;
-                    actionRecord.setText(R.string.stop);
+                    actionRecord.setEnabled(false);
+                    countdownView.setVisibility(View.VISIBLE);
+
+                    countdownCallbacks = new ArrayList<>(4);
+                    final int t = 3;
+                    for (int i = 0; i < t; i++) {
+                        final int count = t - i;
+                        Runnable callback = new Runnable() {
+                            @Override
+                            public void run() {
+                                textCount.setText(String.valueOf(count));
+                            }
+                        };
+                        handler.postDelayed(callback, i * 1000);
+                        countdownCallbacks.add(callback);
+                    }
+
+                    Runnable callback = new Runnable() {
+                        @Override
+                        public void run() {
+                            handleStartCapture();
+                        }
+                    };
+                    handler.postDelayed(callback, (t) * 1000);
+                    countdownCallbacks.add(callback);
+
                 } else {
                     stopAudioCapture();
                     isRecording = false;
@@ -166,28 +164,68 @@ public class AudioCaptureService extends Service {
         actionClose.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (captureThread != null && captureThread.isAlive()) {
-                    captureThread.interrupt();
-                    record.stop();
-                    file.delete();
-                }
-                record.release();
-                projection.stop();
-                stopSelf();
+                tearDown();
             }
         });
+        actionClose.setOnTouchListener(moveOnTouchListener);
 
         textTop = overlayView.findViewById(R.id.textTop);
         textTop.setOnTouchListener(moveOnTouchListener);
         textBottom = overlayView.findViewById(R.id.textBottom);
         textBottom.setOnTouchListener(moveOnTouchListener);
 
+        Button actionSkip = countdownView.findViewById(R.id.actionSkip);
+        actionSkip.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (countdownCallbacks != null) {
+                            for (Runnable callback : countdownCallbacks) {
+                                handler.removeCallbacks(callback);
+                            }
+                        }
+                        handleStartCapture();
+                    }
+                });
+            }
+        });
+
         windowManager.addView(overlayView, layoutParams);
+        windowManager.addView(countdownView, layoutParams);
+    }
+
+    private void handleStartCapture() {
+        countdownCallbacks = null;
+        countdownView.setVisibility(View.GONE);
+        startAudioCapture();
+        isRecording = true;
+        actionRecord.setEnabled(true);
+        actionRecord.setText(R.string.stop);
+    }
+
+    private void tearDown() {
+        if (countdownCallbacks != null) {
+            for (Runnable callback : countdownCallbacks) {
+                handler.removeCallbacks(callback);
+            }
+        }
+        countdownCallbacks = null;
+        if (captureThread != null && captureThread.isAlive()) {
+            captureThread.interrupt();
+            record.stop();
+            file.delete();
+        }
+        record.release();
+        projection.stop();
+        stopSelf();
     }
 
     @Override
     public void onDestroy() {
         windowManager.removeView(overlayView);
+        windowManager.removeView(countdownView);
     }
 
     @Override

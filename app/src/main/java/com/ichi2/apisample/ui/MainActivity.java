@@ -563,7 +563,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                             PERMISSIONS_REQUEST_EXTERNAL_STORAGE
                     );
                     return;
-                }
+                } // @fixme: remove callback here
                 // @todo: show some message here
                 if (!Settings.canDrawOverlays(MainActivity.this)) {
                     Intent intent = new Intent(
