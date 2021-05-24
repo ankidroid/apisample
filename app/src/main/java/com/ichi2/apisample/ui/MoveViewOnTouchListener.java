@@ -1,8 +1,13 @@
 package com.ichi2.apisample.ui;
 
+import android.annotation.TargetApi;
+import android.os.Build;
+import android.util.DisplayMetrics;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
+
+import com.ichi2.apisample.BuildConfig;
 
 public class MoveViewOnTouchListener implements View.OnTouchListener {
     private final WindowManager windowManager;
@@ -35,8 +40,30 @@ public class MoveViewOnTouchListener implements View.OnTouchListener {
                 break;
             case MotionEvent.ACTION_MOVE:
                 isMoving = true;
-                layoutParams.x = (int) (motionEvent.getRawX() + dX);
-                layoutParams.y = (int) (motionEvent.getRawY() + dY);
+
+                DisplayMetrics displayMetrics = new DisplayMetrics();
+                windowManager.getDefaultDisplay().getMetrics(displayMetrics);
+
+                int x = (int) (motionEvent.getRawX() + dX);
+                int left = -displayMetrics.widthPixels / 2 + movableView.getWidth() / 2;
+                int right = displayMetrics.widthPixels / 2 - movableView.getWidth() / 2;
+                if (x < left) {
+                    x = left;
+                } else if (x > right) {
+                    x = right;
+                }
+                layoutParams.x = x;
+
+                int y = (int) (motionEvent.getRawY() + dY);
+                int top = -displayMetrics.heightPixels / 2 + movableView.getHeight() / 2;
+                int bot = displayMetrics.heightPixels / 2 - movableView.getHeight() / 2;
+                if (y < top) {
+                    y = top;
+                } else if (y > bot) {
+                    y = bot;
+                }
+                layoutParams.y = y;
+
                 windowManager.updateViewLayout(movableView, layoutParams);
                 break;
             default:
