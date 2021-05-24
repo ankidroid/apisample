@@ -74,10 +74,18 @@
     </plurals>
     <string name="play">Play</string>
     <string name="view_all">View all</string>
+    <string name="capture_audio">Capture audio</string>
+    <string name="record">Record</string>
+    <string name="stop">Stop</string>
+    <string name="close">Close</string>
+    <string name="recorded_files">Files recorded: %d</string>
+    <string name="countdown_skip">Skip countdown</string>
 
     <!-- MainActivity messages-->
     <string name="anki_permission_denied">Could not get permission to access the AnkiDroid database</string>
     <string name="fs_permission_denied">Could not get permission to access a filesystem</string>
+    <string name="recording_permission_denied">Could not get permission to record audio</string>
+    <string name="display_over_apps_permission_denied">Could not get permission to display over other apps</string>
     <string name="mi_not_exists">Music interval not found</string>
     <plurals name="mi_marked_result">
         <item quantity="one">One music interval successfully marked</item>
@@ -192,6 +200,7 @@
     <string name="access_error">Couldn\'t access \"%s\"</string>
     <string name="audio_playing_error">Error trying to play audio file</string>
     <string name="unassigned">Unassigned</string>
+    <string name="recording_unsupported">Audio capturing is available only on devices running Android 10 onwards</string>
 
     <!-- SettingsActivity labels, fields and buttons -->
     <string name="deck_preference_title">Deck</string>
