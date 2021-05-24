@@ -1,13 +1,9 @@
 package com.ichi2.apisample.ui;
 
-import android.annotation.TargetApi;
-import android.os.Build;
 import android.util.DisplayMetrics;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
-
-import com.ichi2.apisample.BuildConfig;
 
 public class MoveViewOnTouchListener implements View.OnTouchListener {
     private final WindowManager windowManager;

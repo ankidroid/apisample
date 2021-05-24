@@ -549,6 +549,10 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         actionCaptureAudio.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                    showMsg(R.string.recording_unsupported);
+                    return;
+                }
                 // @todo: add callbacks to permission requests
                 if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
                     requestPermissions(new String[]{

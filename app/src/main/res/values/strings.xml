@@ -200,6 +200,7 @@
     <string name="access_error">Couldn\'t access \"%s\"</string>
     <string name="audio_playing_error">Error trying to play audio file</string>
     <string name="unassigned">Unassigned</string>
+    <string name="recording_unsupported">Audio capturing is available only on devices running Android 10 onwards</string>
 
     <!-- SettingsActivity labels, fields and buttons -->
     <string name="deck_preference_title">Deck</string>
