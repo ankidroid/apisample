@@ -66,6 +66,8 @@ public class AudioCaptureService extends Service {
     private Thread captureThread;
     private Handler handler;
 
+    private File tempPcmFile;
+
     private boolean isRecording;
     private long recordingStartedAt;
     private int recordedFilesCount;
@@ -215,7 +217,7 @@ public class AudioCaptureService extends Service {
         if (captureThread != null && captureThread.isAlive()) {
             captureThread.interrupt();
             record.stop();
-            file.delete();
+            tempPcmFile.delete();
         }
         record.release();
         projection.stop();
@@ -258,18 +260,11 @@ public class AudioCaptureService extends Service {
         captureThread = new Thread(new Runnable() {
             @Override
             public void run() {
-                File outputFile = createAudioFile();
-                setFile(outputFile);
-                writeAudioToFile(outputFile);
+                tempPcmFile = createAudioFile();
+                writeAudioToFile(tempPcmFile);
             }
         });
         captureThread.start();
-    }
-
-    private File file;
-
-    private void setFile(File file) {
-        this.file = file;
     }
 
     private File createAudioFile() {
@@ -331,12 +326,12 @@ public class AudioCaptureService extends Service {
 
         try {
             PcmToWavUtil converter = new PcmToWavUtil(SAMPLE_RATE, CHANNEL_MASK, ENCODING);
-            String pathname = file.getAbsolutePath();
+            String pathname = tempPcmFile.getAbsolutePath();
             String convertedPathname = pathname.substring(0, pathname.lastIndexOf(".")) + ".wav";
             File wavFile = new File(convertedPathname);
             wavFile.createNewFile();
             converter.pcmToWav(pathname, convertedPathname);
-            file.delete();
+            tempPcmFile.delete();
 
             Intent intent = new Intent(ACTION_FILE_CREATED);
             intent.putExtra(EXTRA_PATHNAME, convertedPathname);
