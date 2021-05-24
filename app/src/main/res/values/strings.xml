@@ -75,7 +75,7 @@
     <string name="play">Play</string>
     <string name="view_all">View all</string>
     <string name="capture_audio">Capture audio</string>
-    <string name="start">Start</string>
+    <string name="record">Record</string>
     <string name="stop">Stop</string>
     <string name="close">Close</string>
     <string name="recorded_files">Files recorded: %d</string>

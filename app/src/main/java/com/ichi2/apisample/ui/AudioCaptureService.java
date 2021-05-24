@@ -160,7 +160,7 @@ public class AudioCaptureService extends Service {
                 } else {
                     stopAudioCapture();
                     isRecording = false;
-                    actionRecord.setText(R.string.start);
+                    actionRecord.setText(R.string.record);
                 }
             }
         });
@@ -174,7 +174,9 @@ public class AudioCaptureService extends Service {
         });
 
         textTop = overlayView.findViewById(R.id.textTop);
+        refreshTime(0);
         textBottom = overlayView.findViewById(R.id.textBottom);
+        textBottom.setText(getString(R.string.recorded_files, 0));
 
         Button actionSkip = countdownView.findViewById(R.id.actionSkip);
         actionSkip.setOnClickListener(new View.OnClickListener() {
@@ -355,6 +357,7 @@ public class AudioCaptureService extends Service {
                 }
             });
         } catch (IOException e) {
+            e.printStackTrace();
             throw new Error();
         }
 

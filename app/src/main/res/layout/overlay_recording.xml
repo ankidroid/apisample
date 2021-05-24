@@ -25,7 +25,7 @@
             android:id="@+id/actionRecord"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/start" />
+            android:text="@string/record" />
 
         <Button
             android:id="@+id/actionClose"
