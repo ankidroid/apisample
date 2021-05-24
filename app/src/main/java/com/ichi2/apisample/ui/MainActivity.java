@@ -57,7 +57,6 @@ import com.ichi2.apisample.model.MusInterval;
 import com.ichi2.apisample.R;
 import com.ichi2.apisample.helper.AnkiDroidHelper;
 import com.ichi2.apisample.model.ProgressIndicator;
-import com.ichi2.apisample.service.AudioCaptureService;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -84,9 +83,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private static final String TAG_CORRUPTED = "corrupted";
     private static final String TAG_SUSPICIOUS = "suspicious";
 
-    private static final String REF_DB_STATE = "com.ichi2.apisample.uistate";
+    static final String REF_DB_STATE = "com.ichi2.apisample.uistate";
+    static final String REF_DB_SELECTED_FILENAMES = "selectedFilenames";
     private static final String REF_DB_SWITCH_BATCH = "switchBatch";
-    private static final String REF_DB_SELECTED_FILENAMES = "selectedFilenames";
     private static final String REF_DB_CHECK_NOTE_ANY = "checkNoteAny";
     private static final String REF_DB_CHECK_OCTAVE_ANY = "checkOctaveAny";
     private static final String REF_DB_RADIO_GROUP_DIRECTION = "radioGroupDirection";
@@ -313,12 +312,10 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private final BroadcastReceiver messageReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            String pathname = intent.getStringExtra(AudioCaptureService.EXTRA_PATHNAME);
-            File file = new File(pathname);
-            Uri uri = FileProvider.getUriForFile(MainActivity.this, getApplicationContext().getPackageName() + ".provider", file);
+            String uriString = intent.getStringExtra(AudioCaptureService.EXTRA_URI_STRING);
             String[] newFilenames = new String[filenames.length + 1];
             System.arraycopy(filenames, 0, newFilenames, 0, filenames.length);
-            newFilenames[filenames.length] = uri.toString();
+            newFilenames[filenames.length] = uriString;
             filenames = newFilenames;
 
             refreshFilenames();
@@ -333,6 +330,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
         refreshExisting();
         refreshPermutations();
+        filenames = getStoredFilenames(this);
         refreshFilenames();
     }
 
@@ -924,8 +922,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     protected void restoreUiState() {
         final SharedPreferences uiDb = getSharedPreferences(REF_DB_STATE, Context.MODE_PRIVATE);
         switchBatch.setChecked(uiDb.getBoolean(REF_DB_SWITCH_BATCH, false));
-        Set<String> storedFilenames = uiDb.getStringSet(REF_DB_SELECTED_FILENAMES, new HashSet<String>());
-        filenames = storedFilenames.toArray(new String[0]);
+        filenames = getStoredFilenames(this);
         refreshFilenames();
         checkNoteAny.setChecked(uiDb.getBoolean(REF_DB_CHECK_NOTE_ANY, true));
         for (int i = 0; i < CHECK_NOTE_IDS.length; i++) {
@@ -953,6 +950,12 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         intervalKeys = StringUtil.splitStrings(DB_STRING_ARRAY_SEPARATOR, uiDb.getString(REF_DB_INTERVAL_KEYS, ""));
 
         this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
+    }
+
+    static String[] getStoredFilenames(Context context) {
+        final SharedPreferences uiDb = context.getSharedPreferences(REF_DB_STATE, Context.MODE_PRIVATE);
+        Set<String> storedFilenames = uiDb.getStringSet(REF_DB_SELECTED_FILENAMES, new HashSet<String>());
+        return storedFilenames.toArray(new String[0]);
     }
 
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {

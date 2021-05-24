@@ -1,4 +1,4 @@
-package com.ichi2.apisample.service;
+package com.ichi2.apisample.ui;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
@@ -7,6 +7,7 @@ import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.PixelFormat;
 import android.media.AudioAttributes;
 import android.media.AudioFormat;
@@ -14,6 +15,7 @@ import android.media.AudioPlaybackCaptureConfiguration;
 import android.media.AudioRecord;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 import android.os.Handler;
@@ -27,18 +29,20 @@ import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
+import androidx.core.content.FileProvider;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.ichi2.apisample.R;
 import com.ichi2.apisample.helper.PcmToWavUtil;
-import com.ichi2.apisample.ui.MoveViewOnTouchListener;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
@@ -46,7 +50,7 @@ public class AudioCaptureService extends Service {
     public final static String EXTRA_RESULT_DATA = "AudioCaptureService:Extra:ResultData";
 
     public final static String ACTION_FILE_CREATED = "AudioCaptureService:FileCreated";
-    public final static String EXTRA_PATHNAME = "AudioCaptureService:Extra:Pathname";
+    public final static String EXTRA_URI_STRING = "AudioCaptureService:Extra:UriString";
 
     private final static int SERVICE_ID = 1;
     private final static String NOTIFICATION_CHANNEL_ID = "AudioCapture channel";
@@ -160,7 +164,6 @@ public class AudioCaptureService extends Service {
                 }
             }
         });
-        actionRecord.setOnTouchListener(moveOnTouchListener);
 
         Button actionClose = overlayView.findViewById(R.id.actionClose);
         actionClose.setOnClickListener(new View.OnClickListener() {
@@ -169,12 +172,9 @@ public class AudioCaptureService extends Service {
                 tearDown();
             }
         });
-        actionClose.setOnTouchListener(moveOnTouchListener);
 
         textTop = overlayView.findViewById(R.id.textTop);
-        textTop.setOnTouchListener(moveOnTouchListener);
         textBottom = overlayView.findViewById(R.id.textBottom);
-        textBottom.setOnTouchListener(moveOnTouchListener);
 
         Button actionSkip = countdownView.findViewById(R.id.actionSkip);
         actionSkip.setOnClickListener(new View.OnClickListener() {
@@ -333,9 +333,18 @@ public class AudioCaptureService extends Service {
             converter.pcmToWav(pathname, convertedPathname);
             tempPcmFile.delete();
 
+            Uri uri = FileProvider.getUriForFile(this, getApplicationContext().getPackageName() + ".provider", wavFile);
+
             Intent intent = new Intent(ACTION_FILE_CREATED);
-            intent.putExtra(EXTRA_PATHNAME, convertedPathname);
+            intent.putExtra(EXTRA_URI_STRING, uri.toString());
             LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+
+            String[] filenames = MainActivity.getStoredFilenames(this);
+            ArrayList<String> newFilenames = new ArrayList<>(Arrays.asList(filenames));
+            newFilenames.add(uri.toString());
+            SharedPreferences.Editor uiDbEditor = getSharedPreferences(MainActivity.REF_DB_STATE, Context.MODE_PRIVATE).edit();
+            uiDbEditor.putStringSet(MainActivity.REF_DB_SELECTED_FILENAMES, new HashSet<>(newFilenames));
+            uiDbEditor.apply();
 
             recordedFilesCount++;
             textBottom.setText(getString(R.string.recorded_files, recordedFilesCount));

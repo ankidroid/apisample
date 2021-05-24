@@ -37,7 +37,7 @@
             android:name=".ui.SettingsActivity"
             android:label="@string/settings" />
         <service
-            android:name=".service.AudioCaptureService"
+            android:name=".ui.AudioCaptureService"
             android:foregroundServiceType="mediaProjection" />
     </application>
 
