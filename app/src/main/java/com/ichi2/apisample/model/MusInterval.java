@@ -485,6 +485,7 @@ public class MusInterval {
     }};
 
     private Map<String, ArrayList<String>> addedNotesOwnFields;
+    private ArrayList<String> originalSounds;
 
 
     /**
@@ -705,6 +706,7 @@ public class MusInterval {
         for (Map.Entry<String, FieldAccessor> ownFieldAccessor : OWN_FIELDS_ACCESSORS.entrySet()) {
             addedNotesOwnFields.put(ownFieldAccessor.getKey(), new ArrayList<String>());
         }
+        originalSounds = new ArrayList<>();
 
         addToAnki(0, miDataSet, prompter, progressIndicator);
     }
@@ -714,7 +716,7 @@ public class MusInterval {
 
         final int dataCount = dataSet.size();
         if (idx >= dataCount) {
-            prompter.addingFinished(getAddedMusInterval());
+            prompter.addingFinished(getAddingResult());
             return;
         }
 
@@ -774,7 +776,7 @@ public class MusInterval {
 
                         helper.updateNote(modelId, Long.parseLong(existingData.get(AnkiDroidHelper.KEY_ID)), newData);
                         MusInterval updatedMi = getMusIntervalFromData(newData);
-                        updateAddedNotes(updatedMi);
+                        updateAddedNotes(updatedMi, sound);
                         return updatedMi;
                     }
 
@@ -805,7 +807,7 @@ public class MusInterval {
             progressIndicator.setMessage(R.string.batch_adding, i + 1, dataCount);
         }
 
-        prompter.addingFinished(getAddedMusInterval());
+        prompter.addingFinished(getAddingResult());
     }
 
     private MusInterval handleAddToAnki(Map<String, String> data) throws AddSoundFileException,
@@ -828,17 +830,18 @@ public class MusInterval {
         }
 
         MusInterval newMi = getMusIntervalFromData(data);
-        updateAddedNotes(newMi);
+        updateAddedNotes(newMi, sound);
         return newMi;
     }
 
-    private void updateAddedNotes(MusInterval mi) {
+    private void updateAddedNotes(MusInterval mi, String originalSound) {
         for (Map.Entry<String, FieldAccessor> ownFieldAccessor : OWN_FIELDS_ACCESSORS.entrySet()) {
             String ownField = ownFieldAccessor.getKey();
             ArrayList<String> current = addedNotesOwnFields.get(ownField);
             FieldAccessor accessor = ownFieldAccessor.getValue();
             current.add(accessor.getFieldValue(mi));
             addedNotesOwnFields.put(ownField, current);
+            originalSounds.add(originalSound);
         }
     }
 
@@ -870,7 +873,7 @@ public class MusInterval {
         return builder.build();
     }
 
-    private MusInterval getAddedMusInterval() throws ValidationException {
+    private AddingResult getAddingResult() throws ValidationException {
         Builder builder = new Builder(helper)
                 .deck(deckName)
                 .model(modelName)
@@ -888,7 +891,7 @@ public class MusInterval {
         if (!version.isEmpty()) {
             builder.version(version);
         }
-        return builder.build();
+        return builder.build().new AddingResult(originalSounds.toArray(new String[0]));
     }
 
     public int getPermutationsNumber() {
@@ -933,5 +936,21 @@ public class MusInterval {
             }
         }
         return miDataSet;
+    }
+
+    public class AddingResult {
+        private final String[] originalSounds;
+
+        public AddingResult(String[] originalSounds) {
+            this.originalSounds = originalSounds;
+        }
+
+        public String[] getOriginalSounds() {
+            return originalSounds;
+        }
+
+        public MusInterval getMusInterval() {
+            return MusInterval.this;
+        }
     }
 }

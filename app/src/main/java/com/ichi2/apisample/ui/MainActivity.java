@@ -790,25 +790,45 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         final boolean tagDuplicates = sharedPreferences.getBoolean(SettingsFragment.KEY_TAG_DUPLICATES_SWITCH, SettingsFragment.DEFAULT_TAG_DUPLICATES_SWITCH);
         final String duplicateTag = TAG_APPLICATION + AnkiDroidHelper.HIERARCHICAL_TAG_SEPARATOR + TAG_DUPLICATE;
 
-        mHandler.post(new DuplicatePromptWorker(this, mHandler, tagDuplicates, duplicateTag, existingMis, handler));
+        mHandler.post(new DuplicatePromptWorker(this, tagDuplicates, duplicateTag, existingMis, handler));
     }
 
     @Override
-    public void addingFinished(final MusInterval newMi) {
+    public void addingFinished(final MusInterval.AddingResult addingResult) {
         mHandler.post(new Runnable() {
             @Override
             public void run() {
                 progressDialog.dismiss();
+
+                final String[] originalFilenames = addingResult.getOriginalSounds();
+                MusInterval newMi = addingResult.getMusInterval();
+                filenames = newMi.sounds;
+                noteKeys = newMi.notes;
+                octaveKeys = newMi.octaves;
+                intervalKeys = newMi.intervals;
+                afterAdding = true;
+                refreshFilenames();
+                savedInstruments.add(newMi.instrument);
+                refreshExisting();
+                final int nAdded = newMi.sounds.length;
+                if (nAdded == 1) {
+                    showQuantityMsg(R.plurals.mi_added, nAdded);
+                } else if (nAdded > 1) {
+                    showQuantityMsg(R.plurals.mi_added, nAdded, nAdded);
+                } else {
+                    return;
+                }
+
                 SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
                 String filesDeletion = preferences.getString(SettingsFragment.KEY_FILES_DELETION_PREFERENCE, SettingsFragment.DEFAULT_FILES_DELETION);
                 switch (filesDeletion) {
                     case SettingsFragment.VALUE_FILES_DELETION_DISABLED:
                         break;
                     case SettingsFragment.VALUE_FILES_DELETION_CREATED_ONLY:
-                        deleteCapturedFiles();
+                        deleteCapturedFiles(originalFilenames);
                         break;
                     case SettingsFragment.VALUE_FILES_DELETION_ALL:
-                        deleteAddedFiles();
+                        deleteAddedFiles(originalFilenames);
                         break;
                     default:
                     case SettingsFragment.VALUE_FILES_DELETION_ALWAYS_ASK:
@@ -817,22 +837,19 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                                 .setPositiveButton(R.string.files_deletion_all, new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialogInterface, int i) {
-                                        deleteAddedFiles();
-                                        handleAddingFinished(newMi);
+                                        deleteAddedFiles(originalFilenames);
                                     }
                                 })
                                 .setNegativeButton(R.string.files_deletion_recorded, new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialogInterface, int i) {
-                                        deleteCapturedFiles();
-                                        handleAddingFinished(newMi);
+                                        deleteCapturedFiles(originalFilenames);
                                     }
                                 })
                                 .setNeutralButton(R.string.files_deletion_none, new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialogInterface, int i) {
                                         dialogInterface.dismiss();
-                                        handleAddingFinished(newMi);
                                     }
                                 })
                                 .show();
@@ -842,7 +859,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         });
     }
 
-    private void deleteCapturedFiles() {
+    private void deleteCapturedFiles(String[] filenames) {
         for (String filename : filenames) {
             Uri uri = Uri.parse(filename);
             if ("file".equals(uri.getScheme())) {
@@ -856,7 +873,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
     }
 
-    private void deleteAddedFiles() {
+    private void deleteAddedFiles(String[] filenames) {
         for (String filename : filenames) {
             Uri uri = Uri.parse(filename);
             if ("file".equals(uri.getScheme())) {
@@ -869,23 +886,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
     }
 
-    private void handleAddingFinished(MusInterval newMi) {
-        filenames = newMi.sounds;
-        noteKeys = newMi.notes;
-        octaveKeys = newMi.octaves;
-        intervalKeys = newMi.intervals;
-        afterAdding = true;
-        refreshFilenames();
-        savedInstruments.add(newMi.instrument);
-        refreshExisting();
-        final int nAdded = newMi.sounds.length;
-        if (nAdded == 1) {
-            showQuantityMsg(R.plurals.mi_added, nAdded);
-        } else if (nAdded > 1) {
-            showQuantityMsg(R.plurals.mi_added, nAdded, nAdded);
-        }
-    }
-
     @Override
     public void processException(final Throwable t) {
         mHandler.post(new Runnable() {
@@ -894,16 +894,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 handleError(t);
             }
         });
-    }
-
-    void handleInsertion(MusInterval newMi) {
-        String[] tempFilenames = new String[filenames.length + 1];
-        System.arraycopy(filenames, 0, tempFilenames, 0, filenames.length);
-        tempFilenames[tempFilenames.length - 1] = newMi.sounds[0];
-        filenames = tempFilenames;
-        refreshFilenames();
-        savedInstruments.add(newMi.instrument);
-        refreshExisting();
     }
 
     private void configureSettingsButton() {

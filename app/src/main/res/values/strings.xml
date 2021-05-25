@@ -159,7 +159,7 @@
     <string name="add_card_error">Music interval adding to AnkiDroid failed</string>
     <string name="mandatory_field_empty">Mandatory field \"%s\" is empty</string>
     <string name="already_added">Music interval seems to be already added to AnkiDroid (try to select sound file)</string>
-    <string name="item_replaced">Music interval successfully replaced. Please run "Check media" in AnkiDroid to find and delete the orphaned old sound file</string>
+    <string name="item_replaced">Music interval replaced. Please run "Check media" in AnkiDroid to find and delete the orphaned old sound file</string>
     <string name="add_file_error">Failed to add file to AnkiDroid media</string>
     <string name="unknown_adding_error">Failed to add music interval to AnkiDroid</string>
     <string name="additional_filenames">\u0020+ %d more…</string>
@@ -201,7 +201,7 @@
     <string name="audio_playing_error">Error trying to play audio file</string>
     <string name="unassigned">Unassigned</string>
     <string name="recording_unsupported">Audio capturing is available only on devices running Android 10 onwards</string>
-    <string name="files_deletion_prompt">Do you wish to move the original inserted files to thrash?</string>
+    <string name="files_deletion_prompt">Do you wish to move the original files to thrash?</string>
     <string name="files_deletion_all">Delete all added</string>
     <string name="files_deletion_recorded">Delete recorded only</string>
     <string name="files_deletion_none">Do nothing</string>
