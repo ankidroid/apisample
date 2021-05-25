@@ -841,8 +841,8 @@ public class MusInterval {
             FieldAccessor accessor = ownFieldAccessor.getValue();
             current.add(accessor.getFieldValue(mi));
             addedNotesOwnFields.put(ownField, current);
-            originalSounds.add(originalSound);
         }
+        originalSounds.add(originalSound);
     }
 
     private MusInterval getMusIntervalFromData(Map<String, String> data) throws ValidationException {
