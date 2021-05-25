@@ -818,36 +818,25 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                                     @Override
                                     public void onClick(DialogInterface dialogInterface, int i) {
                                         deleteAddedFiles();
+                                        handleAddingFinished(newMi);
                                     }
                                 })
-                                .setNeutralButton(R.string.files_deletion_recorded, new DialogInterface.OnClickListener() {
+                                .setNegativeButton(R.string.files_deletion_recorded, new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialogInterface, int i) {
                                         deleteCapturedFiles();
+                                        handleAddingFinished(newMi);
                                     }
                                 })
-                                .setNegativeButton(R.string.files_deletion_none, new DialogInterface.OnClickListener() {
+                                .setNeutralButton(R.string.files_deletion_none, new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialogInterface, int i) {
                                         dialogInterface.dismiss();
+                                        handleAddingFinished(newMi);
                                     }
                                 })
                                 .show();
                         break;
-                }
-                filenames = newMi.sounds;
-                noteKeys = newMi.notes;
-                octaveKeys = newMi.octaves;
-                intervalKeys = newMi.intervals;
-                afterAdding = true;
-                refreshFilenames();
-                savedInstruments.add(newMi.instrument);
-                refreshExisting();
-                final int nAdded = newMi.sounds.length;
-                if (nAdded == 1) {
-                    showQuantityMsg(R.plurals.mi_added, nAdded);
-                } else if (nAdded > 1) {
-                    showQuantityMsg(R.plurals.mi_added, nAdded, nAdded);
                 }
             }
         });
@@ -877,6 +866,23 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 DocumentFile documentFile = DocumentFile.fromSingleUri(MainActivity.this, uri);
                 documentFile.delete();
             }
+        }
+    }
+
+    private void handleAddingFinished(MusInterval newMi) {
+        filenames = newMi.sounds;
+        noteKeys = newMi.notes;
+        octaveKeys = newMi.octaves;
+        intervalKeys = newMi.intervals;
+        afterAdding = true;
+        refreshFilenames();
+        savedInstruments.add(newMi.instrument);
+        refreshExisting();
+        final int nAdded = newMi.sounds.length;
+        if (nAdded == 1) {
+            showQuantityMsg(R.plurals.mi_added, nAdded);
+        } else if (nAdded > 1) {
+            showQuantityMsg(R.plurals.mi_added, nAdded, nAdded);
         }
     }
 
@@ -1356,6 +1362,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     }
 
     private void processUnknownException(Throwable e) {
+        e.printStackTrace();
         showMsg(R.string.unknown_error);
     }
 
