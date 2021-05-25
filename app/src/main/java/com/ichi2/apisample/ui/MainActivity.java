@@ -24,6 +24,8 @@ import androidx.appcompat.widget.SwitchCompat;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.FileProvider;
+import androidx.documentfile.provider.DocumentFile;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -462,6 +464,10 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     }
                 } else {
                     uri = Uri.parse(filename);
+                    if ("file".equals(uri.getScheme())) {
+                        File file = new File(uri.getPath());
+                        uri = FileProvider.getUriForFile(this, getApplicationContext().getPackageName() + ".provider", file);
+                    }
                     Cursor cursor = getContentResolver().query(uri, null, null, null, null);
                     int nameIdx = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
                     cursor.moveToFirst();
@@ -747,7 +753,21 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     @Override
                     public void run() {
                         try {
-                            getMusInterval().addToAnki(MainActivity.this, MainActivity.this);
+                            // @fixme
+                            String[] tempFilenames = MainActivity.this.filenames;
+                            String[] filenames = new String[tempFilenames.length];
+                            for (int i = 0; i < filenames.length; i++) {
+                                Uri uri = Uri.parse(tempFilenames[i]);
+                                if ("file".equals(uri.getScheme())) {
+                                    File file = new File(uri.getPath());
+                                    uri = FileProvider.getUriForFile(MainActivity.this, getApplicationContext().getPackageName() + ".provider", file);
+                                }
+                                filenames[i] = uri.toString();
+                            }
+                            MainActivity.this.filenames = filenames;
+                            MusInterval mi = getMusInterval();
+                            MainActivity.this.filenames = tempFilenames;
+                            mi.addToAnki(MainActivity.this, MainActivity.this);
                         } catch (final Throwable t) {
                             mHandler.post(new Runnable() {
                                 @Override
@@ -779,6 +799,42 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             @Override
             public void run() {
                 progressDialog.dismiss();
+                SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+                String filesDeletion = preferences.getString(SettingsFragment.KEY_FILES_DELETION_PREFERENCE, SettingsFragment.DEFAULT_FILES_DELETION);
+                switch (filesDeletion) {
+                    case SettingsFragment.VALUE_FILES_DELETION_DISABLED:
+                        break;
+                    case SettingsFragment.VALUE_FILES_DELETION_CREATED_ONLY:
+                        deleteCapturedFiles();
+                        break;
+                    case SettingsFragment.VALUE_FILES_DELETION_ALL:
+                        deleteAddedFiles();
+                        break;
+                    default:
+                    case SettingsFragment.VALUE_FILES_DELETION_ALWAYS_ASK:
+                        new AlertDialog.Builder(MainActivity.this)
+                                .setMessage(R.string.files_deletion_prompt)
+                                .setPositiveButton(R.string.files_deletion_all, new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialogInterface, int i) {
+                                        deleteAddedFiles();
+                                    }
+                                })
+                                .setNeutralButton(R.string.files_deletion_recorded, new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialogInterface, int i) {
+                                        deleteCapturedFiles();
+                                    }
+                                })
+                                .setNegativeButton(R.string.files_deletion_none, new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialogInterface, int i) {
+                                        dialogInterface.dismiss();
+                                    }
+                                })
+                                .show();
+                        break;
+                }
                 filenames = newMi.sounds;
                 noteKeys = newMi.notes;
                 octaveKeys = newMi.octaves;
@@ -795,6 +851,33 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 }
             }
         });
+    }
+
+    private void deleteCapturedFiles() {
+        for (String filename : filenames) {
+            Uri uri = Uri.parse(filename);
+            if ("file".equals(uri.getScheme())) {
+                String pathname = uri.getPath();
+                String parentDir = pathname.substring(0, pathname.lastIndexOf("/"));
+                if (AudioCaptureService.CAPTURES_DIRECTORY.equals(parentDir)) {
+                    File file = new File(pathname);
+                    file.delete();
+                }
+            }
+        }
+    }
+
+    private void deleteAddedFiles() {
+        for (String filename : filenames) {
+            Uri uri = Uri.parse(filename);
+            if ("file".equals(uri.getScheme())) {
+                File file = new File(uri.getPath());
+                file.delete();
+            } else {
+                DocumentFile documentFile = DocumentFile.fromSingleUri(MainActivity.this, uri);
+                documentFile.delete();
+            }
+        }
     }
 
     @Override

@@ -201,6 +201,10 @@
     <string name="audio_playing_error">Error trying to play audio file</string>
     <string name="unassigned">Unassigned</string>
     <string name="recording_unsupported">Audio capturing is available only on devices running Android 10 onwards</string>
+    <string name="files_deletion_prompt">Do you wish to move inserted files to thrash?</string>
+    <string name="files_deletion_recorded">Delete recorded only</string>
+    <string name="files_deletion_all">Delete all</string>
+    <string name="files_deletion_none">Do nothing</string>
 
     <!-- SettingsActivity labels, fields and buttons -->
     <string name="deck_preference_title">Deck</string>
