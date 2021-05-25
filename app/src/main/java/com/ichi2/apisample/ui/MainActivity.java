@@ -24,7 +24,6 @@ import androidx.appcompat.widget.SwitchCompat;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.FileProvider;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -85,6 +84,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
     static final String REF_DB_STATE = "com.ichi2.apisample.uistate";
     static final String REF_DB_SELECTED_FILENAMES = "selectedFilenames";
+    static final String REF_DB_AFTER_ADDING = "afterAdding";
     private static final String REF_DB_SWITCH_BATCH = "switchBatch";
     private static final String REF_DB_CHECK_NOTE_ANY = "checkNoteAny";
     private static final String REF_DB_CHECK_OCTAVE_ANY = "checkOctaveAny";
@@ -95,7 +95,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private static final String REF_DB_INPUT_INSTRUMENT = "inputInstrument";
     private static final String REF_DB_SAVED_INSTRUMENTS = "savedInstruments";
     private static final String REF_DB_BATCH_ADDING_NOTICE_SEEN = "batchAddingNoticeSeen";
-    private static final String REF_DB_AFTER_ADDING = "afterAdding";
     private static final String REF_DB_NOTE_KEYS = "noteKeys";
     private static final String REF_DB_OCTAVE_KEYS = "octaveKeys";
     private static final String REF_DB_INTERVAL_KEYS = "intervalKeys";
@@ -191,6 +190,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     }
 
     private String[] filenames = new String[]{};
+    private String[] selectedFilenames;
 
     private SoundPlayer soundPlayer;
 
@@ -312,6 +312,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private final BroadcastReceiver messageReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
+            clearAddedFilenames();
             String uriString = intent.getStringExtra(AudioCaptureService.EXTRA_URI_STRING);
             String[] newFilenames = new String[filenames.length + 1];
             System.arraycopy(filenames, 0, newFilenames, 0, filenames.length);
@@ -330,8 +331,18 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
         refreshExisting();
         refreshPermutations();
-        filenames = getStoredFilenames(this);
+        boolean selected = selectedFilenames != null && selectedFilenames.length > 0;
+        if (selected) {
+            afterAdding = false;
+            filenames = selectedFilenames;
+            selectedFilenames = null;
+        } else {
+            filenames = getStoredFilenames(this);
+        }
         refreshFilenames();
+        if (selected && filenames.length > 1) {
+            actionPlay.callOnClick();
+        }
     }
 
     void refreshPermutations() {
@@ -678,13 +689,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                         filenamesList.add(uri.toString());
                     }
                 }
-                filenames = filenamesList.toArray(new String[0]);
-                refreshKeys();
-                afterAdding = false;
-                refreshFilenames();
-                if (filenames.length > 1) {
-                    actionPlay.callOnClick();
-                }
+                selectedFilenames = filenamesList.toArray(new String[0]);
                 break;
             case ACTION_SCREEN_CAPTURE:
                 if (resultCode != RESULT_OK) {
