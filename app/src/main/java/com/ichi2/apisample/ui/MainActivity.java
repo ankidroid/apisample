@@ -24,7 +24,6 @@ import androidx.appcompat.widget.SwitchCompat;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.FileProvider;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -191,6 +190,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     }
 
     private String[] filenames = new String[]{};
+    private String[] selectedFilenames;
 
     private SoundPlayer soundPlayer;
 
@@ -330,8 +330,18 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
         refreshExisting();
         refreshPermutations();
-        filenames = getStoredFilenames(this);
+        boolean selected = selectedFilenames != null && selectedFilenames.length > 0;
+        if (selected) {
+            afterAdding = false;
+            filenames = selectedFilenames;
+            selectedFilenames = null;
+        } else {
+            filenames = getStoredFilenames(this);
+        }
         refreshFilenames();
+        if (selected && filenames.length > 1) {
+            actionPlay.callOnClick();
+        }
     }
 
     void refreshPermutations() {
@@ -678,13 +688,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                         filenamesList.add(uri.toString());
                     }
                 }
-                filenames = filenamesList.toArray(new String[0]);
-                refreshKeys();
-                afterAdding = false;
-                refreshFilenames();
-                if (filenames.length > 1) {
-                    actionPlay.callOnClick();
-                }
+                selectedFilenames = filenamesList.toArray(new String[0]);
                 break;
             case ACTION_SCREEN_CAPTURE:
                 if (resultCode != RESULT_OK) {
