@@ -223,4 +223,9 @@
     <string name="anki_dir_preference_title">AnkiDroid directory</string>
     <string name="use_default_model_check_preference_title">Use default note type</string>
     <string name="use_default_model_check_preference_summary">Enable automatic creation and updating of the used model</string>
+    <string name="files_deletion_preference_title">Automatic files deletion</string>
+    <string name="files_deletion_entry_none">Do not move any files to trash</string>
+    <string name="files_deletion_entry_created_only">Move to trash files created by MI2A once they processed</string>
+    <string name="files_deletion_entry_all">Move to trash both files created by MI2A and input files after they processed</string>
+    <string name="files_deletion_entry_always_ask">Always ask</string>
 </resources>

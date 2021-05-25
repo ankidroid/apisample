@@ -35,16 +35,28 @@ public class SettingsFragment extends PreferenceFragmentCompat {
     public static final String KEY_VERSION_FIELD_SWITCH = "preference_version_field_switch";
     public static final String KEY_TAG_DUPLICATES_SWITCH = "preference_tag_duplicates_switch";
     public static final String KEY_ANKI_DIR_PREFERENCE = "preference_anki_dir";
-
+    public static final String KEY_FILES_DELETION_PREFERENCE = "preference_files_deletion";
     private static final String KEY_FIELDS_PREFERENCE_CATEGORY = "preference_fields";
 
     private static final String TEMPLATE_KEY_FIELD_PREFERENCE = "preference_%s_field";
     private static final String TEMPLATE_KEY_MODEL_FIELD_PREFERENCE = "%s_%s_model";
 
+    public static final String VALUE_FILES_DELETION_DISABLED = "none";
+    public static final String VALUE_FILES_DELETION_CREATED_ONLY = "created_only";
+    public static final String VALUE_FILES_DELETION_ALL = "all";
+    public static final String VALUE_FILES_DELETION_ALWAYS_ASK = "always_ask";
+    public Map<String, Integer> FILES_DELETION_VALUE_ENTRIES = new HashMap<String, Integer>() {{
+        put(VALUE_FILES_DELETION_DISABLED, R.string.files_deletion_entry_none);
+        put(VALUE_FILES_DELETION_CREATED_ONLY, R.string.files_deletion_entry_created_only);
+        put(VALUE_FILES_DELETION_ALL, R.string.files_deletion_entry_all);
+        put(VALUE_FILES_DELETION_ALWAYS_ASK, R.string.files_deletion_entry_always_ask);
+    }};
+
     public static final boolean DEFAULT_USE_DEFAULT_MODEL_CHECK = true;
     public static final boolean DEFAULT_VERSION_FIELD_SWITCH = false;
     public static final boolean DEFAULT_TAG_DUPLICATES_SWITCH = true;
     public static final String DEFAULT_ANKI_DIR = Environment.getExternalStorageDirectory().getPath() + "/AnkiDroid";
+    public static final String DEFAULT_FILES_DELETION = VALUE_FILES_DELETION_ALWAYS_ASK;
 
     private static final Map<String, Integer> FIELD_PREFERENCE_LABEL_STRING_IDS = new HashMap<String, Integer>() {{
         put(MusInterval.Fields.SOUND, R.string.sound_field_list_preference_title);
@@ -242,6 +254,29 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             }
         });
         preferenceScreen.addPreference(versionFieldSwitchPreference);
+
+        ListPreference filesDeletionPreference = new ListPreference(context);
+        filesDeletionPreference.setKey(KEY_FILES_DELETION_PREFERENCE);
+        filesDeletionPreference.setTitle(R.string.files_deletion_preference_title);
+        filesDeletionPreference.setSummaryProvider(ListPreference.SimpleSummaryProvider.getInstance());
+        String[] filesDeletionValues = new String[]{
+                VALUE_FILES_DELETION_DISABLED,
+                VALUE_FILES_DELETION_CREATED_ONLY,
+                VALUE_FILES_DELETION_ALL,
+                VALUE_FILES_DELETION_ALWAYS_ASK
+        };
+        String[] filesDeletionEntries = new String[filesDeletionValues.length];
+        String[] filesDeletionEntryValues = new String[filesDeletionValues.length];
+        for (int i = 0; i < filesDeletionEntryValues.length; i++) {
+            String value = filesDeletionValues[i];
+            int resId = FILES_DELETION_VALUE_ENTRIES.get(value);
+            filesDeletionEntries[i] = getResources().getString(resId);
+            filesDeletionEntryValues[i] = value;
+        }
+        filesDeletionPreference.setEntries(filesDeletionEntries);
+        filesDeletionPreference.setEntryValues(filesDeletionEntryValues);
+        filesDeletionPreference.setDefaultValue(DEFAULT_FILES_DELETION);
+        preferenceScreen.addPreference(filesDeletionPreference);
 
         SwitchPreference tagDuplicatesSwitchPreference = new SwitchPreference(context);
         tagDuplicatesSwitchPreference.setKey(KEY_TAG_DUPLICATES_SWITCH);
