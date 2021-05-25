@@ -51,6 +51,7 @@ import android.widget.Toast;
 
 import com.ichi2.apisample.BuildConfig;
 import com.ichi2.apisample.helper.StringUtil;
+import com.ichi2.apisample.helper.UriUtil;
 import com.ichi2.apisample.model.AddingHandler;
 import com.ichi2.apisample.model.AddingPrompter;
 import com.ichi2.apisample.model.NotesIntegrity;
@@ -463,11 +464,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                         uri = Uri.fromFile(file);
                     }
                 } else {
-                    uri = Uri.parse(filename);
-                    if ("file".equals(uri.getScheme())) {
-                        File file = new File(uri.getPath());
-                        uri = FileProvider.getUriForFile(this, getApplicationContext().getPackageName() + ".provider", file);
-                    }
+                    uri = UriUtil.toContentUri(this, Uri.parse(filename));
                     Cursor cursor = getContentResolver().query(uri, null, null, null, null);
                     int nameIdx = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
                     cursor.moveToFirst();
@@ -753,15 +750,11 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     @Override
                     public void run() {
                         try {
-                            // @fixme
                             String[] tempFilenames = MainActivity.this.filenames;
                             String[] filenames = new String[tempFilenames.length];
                             for (int i = 0; i < filenames.length; i++) {
                                 Uri uri = Uri.parse(tempFilenames[i]);
-                                if ("file".equals(uri.getScheme())) {
-                                    File file = new File(uri.getPath());
-                                    uri = FileProvider.getUriForFile(MainActivity.this, getApplicationContext().getPackageName() + ".provider", file);
-                                }
+                                uri = UriUtil.toContentUri(MainActivity.this, uri);
                                 filenames[i] = uri.toString();
                             }
                             MainActivity.this.filenames = filenames;
