@@ -189,6 +189,7 @@
     <string name="validation_mandatory">value must be present</string>
     <string name="validation_positive_decimal">value must represent a positive decimal number</string>
     <string name="tempo_not_in_range">Tempo value must be in range of %d to %d (BPM)</string>
+    <string name="invalid_first_note_duration_coefficient">First note duration coefficient must be a valid decimal number</string>
     <string name="integrity_duplicates">Found %d duplicate notes</string>
     <string name="integrity_progress_title">Running integrity check…</string>
     <string name="integrity_duplicates_tagged">\u0020and marked them using tag starting with \"%s\"</string>

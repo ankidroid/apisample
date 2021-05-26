@@ -1074,7 +1074,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
     }
 
-    private MusInterval getMusInterval() throws MusInterval.ModelValidationException, MusInterval.TempoNotInRangeException {
+    private MusInterval getMusInterval() throws MusInterval.ValidationException {
         final String anyStr = getResources().getString(R.string.any);
 
         final int radioDirectionId = radioGroupDirection.getCheckedRadioButtonId();
@@ -1287,6 +1287,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             showMsg(R.string.add_file_error);
         } catch (MusInterval.TempoNotInRangeException e) {
             showMsg(R.string.tempo_not_in_range, MusInterval.Fields.Tempo.MIN_VALUE, MusInterval.Fields.Tempo.MAX_VALUE);
+        } catch (MusInterval.InvalidFirstNoteDurationCoefficientException e) {
+            showMsg(R.string.invalid_first_note_duration_coefficient);
         } catch (MusInterval.Exception e) {
             showMsg(R.string.unknown_adding_error);
         }
