@@ -16,7 +16,7 @@ android {
         release {
             storeFile file("${homePath}/src/android-keystore")
             keyAlias "nrkeystorealias"
-            storePassword "ENTER_PASSWORD" 
+            storePassword "ENTER_PASSWORD"
             keyPassword "ENTER_PASSWORD"
         }
     }
@@ -60,11 +60,10 @@ import javax.xml.namespace.QName
 import java.util.zip.ZipInputStream
 
 task buildModelResource {
-    def source = new File("./Selected Notes.apkg")
+    def source = new File(rootDir.getPath() + "/Selected Notes.apkg")
 
     def dbFileName = "collection.anki2"
-    def baseDir = "."
-    def dbFilePath = baseDir + "/" + dbFileName
+    def dbFilePath = rootDir.getPath() + "/" + dbFileName
 
     def fileInputStream = new FileInputStream(source)
     def zipInputStream = new ZipInputStream(fileInputStream)
@@ -82,11 +81,11 @@ task buildModelResource {
     zipInputStream.close()
 
     URLClassLoader loader = GroovyObject.class.classLoader
-    configurations.driver.each {File file -> loader.addURL(file.toURI().toURL())}
+    configurations.driver.each { File file -> loader.addURL(file.toURI().toURL()) }
 
-    def resFilePath = './app/src/main/res/values/model.xml'
+    def resFilePath = projectDir.getPath() + '/src/main/res/values/model.xml'
 
-    def sql = Sql.newInstance('jdbc:sqlite:' + dbFileName,'','','org.sqlite.JDBC')
+    def sql = Sql.newInstance('jdbc:sqlite:' + dbFilePath, '', '', 'org.sqlite.JDBC')
     def screen = { s -> s.replace('"', '\\"').replace("'", "\\'") }
     def fillStringArray = { root, name, arr ->
         def node = root.find { it.'@name' == name }
