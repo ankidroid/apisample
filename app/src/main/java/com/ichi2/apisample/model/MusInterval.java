@@ -2,6 +2,7 @@ package com.ichi2.apisample.model;
 
 import com.ichi2.apisample.R;
 import com.ichi2.apisample.helper.AnkiDroidHelper;
+import com.ichi2.apisample.validation.PositiveDecimalValidator;
 import com.ichi2.apisample.validation.EmptyValidator;
 import com.ichi2.apisample.validation.IntegerRangeValidator;
 import com.ichi2.apisample.validation.PatternValidator;
@@ -110,6 +111,12 @@ public class MusInterval {
             private static final Validator RANGE_VALIDATOR = new IntegerRangeValidator(Tempo.MIN_VALUE, Tempo.MAX_VALUE);
         }
 
+        public static class FirstNoteDurationCoefficient {
+            // public static final double DEFAULT_VALUE = 1;
+
+            public static final Validator FORMAT_VALIDATOR = new PositiveDecimalValidator();
+        }
+
         public static String[] getSignature(boolean versionField) {
             ArrayList<String> signature = new ArrayList<String>() {{
                 add(SOUND);
@@ -168,7 +175,8 @@ public class MusInterval {
                     VALIDATOR_EMPTY
             });
             put(FIRST_NOTE_DURATION_COEFFICIENT, new Validator[]{
-                    new PatternValidator("^\\d*$|^\\d+\\.\\d+$")
+                    // @todo: add empty validator if necessary
+                    FirstNoteDurationCoefficient.FORMAT_VALIDATOR
             });
         }};
     }
@@ -231,7 +239,7 @@ public class MusInterval {
             mHelper = helper;
         }
 
-        public MusInterval build() throws ModelValidationException, TempoNotInRangeException {
+        public MusInterval build() throws ValidationException {
             return new MusInterval(this);
         }
 
@@ -429,6 +437,7 @@ public class MusInterval {
     }
 
     public static class TempoNotInRangeException extends ValidationException { }
+    public static class InvalidFirstNoteDurationCoefficientException extends ValidationException { }
 
     private final AnkiDroidHelper helper;
 
@@ -504,7 +513,7 @@ public class MusInterval {
     /**
      * Construct an object using builder class.
      */
-    public MusInterval(Builder builder) throws ModelValidationException, TempoNotInRangeException {
+    public MusInterval(Builder builder) throws ValidationException {
         helper = builder.mHelper;
 
         relatedSoundFields = new RelatedIntervalSoundField[]{
@@ -534,7 +543,8 @@ public class MusInterval {
         validateFields(builder.mDefaultModel, builder.mFields, builder.mCards, builder.mQfmt, builder.mAfmt, builder.mCss);
     }
 
-    protected void validateFields(boolean isDefaultModel, String[] fields, String[] cards, String[] qfmt, String[] afmt, String css) throws ModelValidationException, TempoNotInRangeException {
+    protected void validateFields(boolean isDefaultModel, String[] fields, String[] cards, String[] qfmt, String[] afmt, String css)
+            throws ModelValidationException, TempoNotInRangeException, InvalidFirstNoteDurationCoefficientException {
         String[] signature = Fields.getSignature(!version.isEmpty());
 
         if (modelId == null) {
@@ -564,6 +574,10 @@ public class MusInterval {
 
         if (!tempo.isEmpty() && !Fields.Tempo.RANGE_VALIDATOR.isValid(tempo)) {
             throw new TempoNotInRangeException();
+        }
+
+        if (!Fields.FirstNoteDurationCoefficient.FORMAT_VALIDATOR.isValid(firstNoteDurationCoefficient)) {
+            throw new InvalidFirstNoteDurationCoefficientException();
         }
     }
 
