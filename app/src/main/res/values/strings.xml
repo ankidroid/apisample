@@ -219,6 +219,7 @@
     <string name="interval_field_list_preference_title">Interval</string>
     <string name="tempo_field_list_preference_title">Tempo</string>
     <string name="instrument_field_list_preference_title">Instrument</string>
+    <string name="first_note_duration_coefficient_field_list_preference_title">First note duration coefficient</string>
     <string name="version_field_list_preference_title">App version</string>
     <string name="version_field_switch_preference_title">Version stamp</string>
     <string name="version_field_switch_preference_summary">Log app version for added notes in a separate field</string>

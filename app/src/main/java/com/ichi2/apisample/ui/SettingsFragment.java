@@ -68,6 +68,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         put(MusInterval.Fields.INTERVAL, R.string.interval_field_list_preference_title);
         put(MusInterval.Fields.TEMPO, R.string.tempo_field_list_preference_title);
         put(MusInterval.Fields.INSTRUMENT, R.string.instrument_field_list_preference_title);
+        put(MusInterval.Fields.FIRST_NOTE_DURATION_COEFFICIENT, R.string.first_note_duration_coefficient_field_list_preference_title);
         put(MusInterval.Fields.VERSION, R.string.version_field_list_preference_title);
     }};
     static {
