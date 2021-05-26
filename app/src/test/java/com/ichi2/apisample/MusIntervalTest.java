@@ -646,7 +646,7 @@ public class MusIntervalTest {
         doAnswer(new Answer() {
             @Override
             public Object answer(InvocationOnMock invocation) throws Throwable {
-                MusInterval.AddingResult addingResult = (MusInterval.AddingResult) invocation.getArgument(0);
+                MusInterval.AddingResult addingResult = invocation.getArgument(0);
                 addedMusIntervals.add((addingResult.getMusInterval()));
                 return null;
             }
@@ -705,7 +705,7 @@ public class MusIntervalTest {
         doAnswer(new Answer() {
             @Override
             public Object answer(InvocationOnMock invocation) throws Throwable {
-                MusInterval.AddingResult addingResult = (MusInterval.AddingResult) invocation.getArgument(0);
+                MusInterval.AddingResult addingResult = invocation.getArgument(0);
                 addedMusIntervals.add((addingResult.getMusInterval()));
                 return null;
             }
@@ -761,7 +761,7 @@ public class MusIntervalTest {
         doAnswer(new Answer() {
             @Override
             public Object answer(InvocationOnMock invocation) throws Throwable {
-                MusInterval.AddingResult addingResult = (MusInterval.AddingResult) invocation.getArgument(0);
+                MusInterval.AddingResult addingResult = invocation.getArgument(0);
                 addedMusIntervals.add(addingResult.getMusInterval());
                 return null;
             }
@@ -922,7 +922,7 @@ public class MusIntervalTest {
         doAnswer(new Answer() {
             @Override
             public Object answer(InvocationOnMock invocation) throws Throwable {
-                MusInterval.AddingResult addingResult = (MusInterval.AddingResult) invocation.getArgument(0);
+                MusInterval.AddingResult addingResult = invocation.getArgument(0);
                 addedMusIntervals.add((addingResult.getMusInterval()));
                 return null;
             }
@@ -1509,7 +1509,7 @@ public class MusIntervalTest {
         doAnswer(new Answer() {
             @Override
             public Object answer(InvocationOnMock invocation) throws Throwable {
-                MusInterval.AddingResult addingResult = (MusInterval.AddingResult) invocation.getArgument(0);
+                MusInterval.AddingResult addingResult = invocation.getArgument(0);
                 addedMusIntervals.add((addingResult.getMusInterval()));
                 return null;
             }
@@ -1630,7 +1630,7 @@ public class MusIntervalTest {
         doAnswer(new Answer() {
             @Override
             public Object answer(InvocationOnMock invocation) throws Throwable {
-                MusInterval.AddingResult addingResult = (MusInterval.AddingResult) invocation.getArgument(0);
+                MusInterval.AddingResult addingResult = invocation.getArgument(0);
                 addedMusIntervals.add((addingResult.getMusInterval()));
                 return null;
             }
@@ -1782,7 +1782,7 @@ public class MusIntervalTest {
         doAnswer(new Answer() {
             @Override
             public Object answer(InvocationOnMock invocation) throws Throwable {
-                MusInterval.AddingResult addingResult = (MusInterval.AddingResult) invocation.getArgument(0);
+                MusInterval.AddingResult addingResult = invocation.getArgument(0);
                 addedMusIntervals.add(addingResult.getMusInterval());
                 return null;
             }
@@ -1937,7 +1937,7 @@ public class MusIntervalTest {
         doAnswer(new Answer() {
             @Override
             public Object answer(InvocationOnMock invocation) throws Throwable {
-                MusInterval.AddingResult addingResult = (MusInterval.AddingResult) invocation.getArgument(0);
+                MusInterval.AddingResult addingResult = invocation.getArgument(0);
                 addedMusIntervals.add((addingResult.getMusInterval()));
                 return null;
             }
@@ -2055,7 +2055,7 @@ public class MusIntervalTest {
         doAnswer(new Answer() {
             @Override
             public Object answer(InvocationOnMock invocation) {
-                MusInterval.AddingResult addingResult = (MusInterval.AddingResult) invocation.getArgument(0);
+                MusInterval.AddingResult addingResult = invocation.getArgument(0);
                 addedMusIntervals.add((addingResult.getMusInterval()));
                 return null;
             }
@@ -2139,7 +2139,7 @@ public class MusIntervalTest {
         doAnswer(new Answer() {
             @Override
             public Object answer(InvocationOnMock invocation) {
-                MusInterval.AddingResult addingResult = (MusInterval.AddingResult) invocation.getArgument(0);
+                MusInterval.AddingResult addingResult = invocation.getArgument(0);
                 addedMusIntervals.add((addingResult.getMusInterval()));
                 return null;
             }
@@ -2234,7 +2234,7 @@ public class MusIntervalTest {
         doAnswer(new Answer() {
             @Override
             public Object answer(InvocationOnMock invocation) {
-                MusInterval.AddingResult addingResult = (MusInterval.AddingResult) invocation.getArgument(0);
+                MusInterval.AddingResult addingResult = invocation.getArgument(0);
                 addedMusIntervals.add((addingResult.getMusInterval()));
                 return null;
             }
@@ -2332,7 +2332,7 @@ public class MusIntervalTest {
         doAnswer(new Answer() {
             @Override
             public Object answer(InvocationOnMock invocation) {
-                MusInterval.AddingResult addingResult = (MusInterval.AddingResult) invocation.getArgument(0);
+                MusInterval.AddingResult addingResult = invocation.getArgument(0);
                 addedMusIntervals.add((addingResult.getMusInterval()));
                 return null;
             }
@@ -2485,6 +2485,7 @@ public class MusIntervalTest {
             put(MusInterval.Fields.DIRECTION, "");
             put(MusInterval.Fields.TEMPO, "");
             put(MusInterval.Fields.INSTRUMENT, "");
+            put(MusInterval.Fields.FIRST_NOTE_DURATION_COEFFICIENT, "");
         }};
 
         LinkedList<Map<String, String>> searchResult = new LinkedList<Map<String, String>>() {{
@@ -2546,7 +2547,7 @@ public class MusIntervalTest {
             put(MusInterval.Fields.DIRECTION, "");
             put(MusInterval.Fields.TEMPO, "");
             put(MusInterval.Fields.INSTRUMENT, "");
-
+            put(MusInterval.Fields.FIRST_NOTE_DURATION_COEFFICIENT, "");
         }};
 
         LinkedList<Map<String, String>> searchResult = new LinkedList<Map<String, String>>() {{
@@ -2634,7 +2635,7 @@ public class MusIntervalTest {
             put(MusInterval.Fields.DIRECTION, "");
             put(MusInterval.Fields.TEMPO, "");
             put(MusInterval.Fields.INSTRUMENT, "");
-
+            put(MusInterval.Fields.FIRST_NOTE_DURATION_COEFFICIENT, "");
         }};
 
         LinkedList<Map<String, String>> searchResult = new LinkedList<Map<String, String>>() {{
@@ -2769,7 +2770,7 @@ public class MusIntervalTest {
             put(MusInterval.Fields.DIRECTION, "");
             put(MusInterval.Fields.TEMPO, "");
             put(MusInterval.Fields.INSTRUMENT, "");
-
+            put(MusInterval.Fields.FIRST_NOTE_DURATION_COEFFICIENT, "");
         }};
 
         LinkedList<Map<String, String>> searchResult = new LinkedList<Map<String, String>>() {{
@@ -2859,6 +2860,7 @@ public class MusIntervalTest {
             put(MusInterval.Fields.DIRECTION, "");
             put(MusInterval.Fields.TEMPO, "");
             put(MusInterval.Fields.INSTRUMENT, "");
+            put(MusInterval.Fields.FIRST_NOTE_DURATION_COEFFICIENT, "");
         }};
 
         LinkedList<Map<String, String>> searchResult = new LinkedList<Map<String, String>>() {{
@@ -2983,7 +2985,7 @@ public class MusIntervalTest {
             put(MusInterval.Fields.DIRECTION, "");
             put(MusInterval.Fields.TEMPO, "");
             put(MusInterval.Fields.INSTRUMENT, "");
-
+            put(MusInterval.Fields.FIRST_NOTE_DURATION_COEFFICIENT, "");
         }};
 
         LinkedList<Map<String, String>> searchResult = new LinkedList<Map<String, String>>() {{
@@ -3091,6 +3093,7 @@ public class MusIntervalTest {
             put(MusInterval.Fields.DIRECTION, "");
             put(MusInterval.Fields.TEMPO, "");
             put(MusInterval.Fields.INSTRUMENT, "");
+            put(MusInterval.Fields.FIRST_NOTE_DURATION_COEFFICIENT, "");
         }};
 
         LinkedList<Map<String, String>> searchResult = new LinkedList<Map<String, String>>() {{
@@ -3156,6 +3159,7 @@ public class MusIntervalTest {
             put(MusInterval.Fields.DIRECTION, "");
             put(MusInterval.Fields.TEMPO, "");
             put(MusInterval.Fields.INSTRUMENT, "");
+            put(MusInterval.Fields.FIRST_NOTE_DURATION_COEFFICIENT, "");
         }};
 
         final LinkedList<Map<String, String>> searchResult = new LinkedList<Map<String, String>>() {{
@@ -3238,6 +3242,7 @@ public class MusIntervalTest {
             put(MusInterval.Fields.DIRECTION, "");
             put(MusInterval.Fields.TEMPO, "");
             put(MusInterval.Fields.INSTRUMENT, "");
+            put(MusInterval.Fields.FIRST_NOTE_DURATION_COEFFICIENT, "");
         }};
 
         final LinkedList<Map<String, String>> searchResult = new LinkedList<Map<String, String>>() {{

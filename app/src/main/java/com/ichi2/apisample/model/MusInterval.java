@@ -32,6 +32,7 @@ public class MusInterval {
         public static final String INTERVAL = "interval";
         public static final String TEMPO = "tempo";
         public static final String INSTRUMENT = "instrument";
+        public static final String FIRST_NOTE_DURATION_COEFFICIENT = "first_note_duration_coefficient";
         public static final String VERSION = "mi2a_version";
 
         public static class StartNote {
@@ -120,6 +121,7 @@ public class MusInterval {
                 add(INTERVAL);
                 add(TEMPO);
                 add(INSTRUMENT);
+                add(FIRST_NOTE_DURATION_COEFFICIENT);
             }};
             if (versionField) {
                 signature.add(VERSION);
@@ -165,6 +167,9 @@ public class MusInterval {
             put(INSTRUMENT, new Validator[]{
                     VALIDATOR_EMPTY
             });
+            put(FIRST_NOTE_DURATION_COEFFICIENT, new Validator[]{
+                    new PatternValidator("^\\d*$|^\\d+\\.\\d+$")
+            });
         }};
     }
 
@@ -198,6 +203,7 @@ public class MusInterval {
             put(Fields.INTERVAL, Fields.INTERVAL);
             put(Fields.TEMPO, Fields.TEMPO);
             put(Fields.INSTRUMENT, Fields.INSTRUMENT);
+            put(Fields.FIRST_NOTE_DURATION_COEFFICIENT, Fields.FIRST_NOTE_DURATION_COEFFICIENT);
             put(Fields.VERSION, Fields.VERSION);
         }};
         private String mDeckName = DEFAULT_DECK_NAME;
@@ -211,6 +217,7 @@ public class MusInterval {
         private String[] mIntervals = new String[]{};
         private String mTempo = "";
         private String mInstrument = "";
+        private String mFirstNoteDurationCoefficient = "";
         private String mVersion = "";
 
         private boolean mDefaultModel = false;
@@ -320,6 +327,11 @@ public class MusInterval {
 
         public Builder instrument(String is) {
             mInstrument = is;
+            return this;
+        }
+
+        public Builder first_note_duration_coefficient(String fndc) {
+            mFirstNoteDurationCoefficient = fndc;
             return this;
         }
 
@@ -439,6 +451,7 @@ public class MusInterval {
     public final String[] intervals;
     public final String tempo;
     public final String instrument;
+    public final String firstNoteDurationCoefficient;
     public final String version;
 
     private interface FieldAccessor {
@@ -515,6 +528,7 @@ public class MusInterval {
         intervals = builder.mIntervals;
         tempo = builder.mTempo.trim();
         instrument = builder.mInstrument.trim();
+        firstNoteDurationCoefficient = builder.mFirstNoteDurationCoefficient;
         version = builder.mVersion;
 
         validateFields(builder.mDefaultModel, builder.mFields, builder.mCards, builder.mQfmt, builder.mAfmt, builder.mCss);
@@ -866,7 +880,8 @@ public class MusInterval {
                 .timing(data.get(modelFields.get(Fields.TIMING)))
                 .intervals(new String[]{data.get(modelFields.get(Fields.INTERVAL))})
                 .tempo(data.get(modelFields.get(Fields.TEMPO)))
-                .instrument(data.get(modelFields.get(Fields.INSTRUMENT)));
+                .instrument(data.get(modelFields.get(Fields.INSTRUMENT)))
+                .first_note_duration_coefficient(data.get(modelFields.get(Fields.FIRST_NOTE_DURATION_COEFFICIENT))); // @todo revisit
         if (!version.isEmpty()) {
             builder.version(version);
         }
@@ -887,7 +902,8 @@ public class MusInterval {
                 .timing(timing)
                 .intervals(addedNotesOwnFields.get(Builder.KEY_INTERVALS).toArray(new String[0]))
                 .tempo(tempo)
-                .instrument(instrument);
+                .instrument(instrument)
+                .first_note_duration_coefficient(firstNoteDurationCoefficient);
         if (!version.isEmpty()) {
             builder.version(version);
         }
@@ -925,6 +941,7 @@ public class MusInterval {
                     miData.put(modelFields.get(Fields.INTERVAL), interval);
                     miData.put(modelFields.get(Fields.TEMPO), tempo);
                     miData.put(modelFields.get(Fields.INSTRUMENT), instrument);
+                    miData.put(modelFields.get(Fields.FIRST_NOTE_DURATION_COEFFICIENT), firstNoteDurationCoefficient);
                     miDataSet.add(miData);
                     i++;
                 }
