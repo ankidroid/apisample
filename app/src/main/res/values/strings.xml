@@ -187,6 +187,7 @@
     <string name="validation_allowed_values">allowed values: %s</string>
     <string name="validation_range">value must an integer between %d and %d</string>
     <string name="validation_mandatory">value must be present</string>
+    <string name="validation_positive_decimal">value must represent a positive decimal number</string>
     <string name="tempo_not_in_range">Tempo value must be in range of %d to %d (BPM)</string>
     <string name="integrity_duplicates">Found %d duplicate notes</string>
     <string name="integrity_progress_title">Running integrity check…</string>

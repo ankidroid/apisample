@@ -139,7 +139,7 @@ public class MusInterval {
         private static final Validator VALIDATOR_EMPTY = new EmptyValidator();
         private static final Validator VALIDATOR_SOUND = new PatternValidator("^$|^\\[sound:.*\\]$");
 
-        static final Map<String, Validator[]> VALIDATORS = new HashMap<String, Validator[]>() {{
+        public static final Map<String, Validator[]> VALIDATORS = new HashMap<String, Validator[]>() {{
             put(SOUND, new Validator[]{
                     VALIDATOR_EMPTY,
                     VALIDATOR_SOUND
