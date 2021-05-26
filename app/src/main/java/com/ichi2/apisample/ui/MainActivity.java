@@ -24,7 +24,6 @@ import androidx.appcompat.widget.SwitchCompat;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.FileProvider;
 import androidx.documentfile.provider.DocumentFile;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.preference.PreferenceManager;
@@ -464,7 +463,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                         uri = Uri.fromFile(file);
                     }
                 } else {
-                    uri = UriUtil.toContentUri(this, Uri.parse(filename));
+                    uri = UriUtil.getContentUri(this, Uri.parse(filename));
                     Cursor cursor = getContentResolver().query(uri, null, null, null, null);
                     int nameIdx = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
                     cursor.moveToFirst();
@@ -750,17 +749,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     @Override
                     public void run() {
                         try {
-                            String[] tempFilenames = MainActivity.this.filenames;
-                            String[] filenames = new String[tempFilenames.length];
-                            for (int i = 0; i < filenames.length; i++) {
-                                Uri uri = Uri.parse(tempFilenames[i]);
-                                uri = UriUtil.toContentUri(MainActivity.this, uri);
-                                filenames[i] = uri.toString();
-                            }
-                            MainActivity.this.filenames = filenames;
-                            MusInterval mi = getMusInterval();
-                            MainActivity.this.filenames = tempFilenames;
-                            mi.addToAnki(MainActivity.this, MainActivity.this);
+                            getMusInterval().addToAnki(MainActivity.this, MainActivity.this);
                         } catch (final Throwable t) {
                             mHandler.post(new Runnable() {
                                 @Override

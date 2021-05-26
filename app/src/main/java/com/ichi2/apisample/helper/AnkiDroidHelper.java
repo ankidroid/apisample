@@ -18,7 +18,6 @@ import android.os.Environment;
 
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.core.content.FileProvider;
 
 import com.ichi2.anki.FlashCardsContract;
 import com.ichi2.anki.api.AddContentApi;
@@ -295,6 +294,7 @@ public class AnkiDroidHelper {
     // @todo: refactor once new version release of "com.ichi2.anki.api" is available
     public String addFileToAnkiMedia(String uriString) {
         Uri uri = Uri.parse(uriString);
+        uri = UriUtil.getContentUri(mContext, uri);
         mContext.grantUriPermission("com.ichi2.anki", uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
         String type = mResolver.getType(uri);
         File tempAudioFile = null;
@@ -306,7 +306,7 @@ public class AnkiDroidHelper {
             try {
                 MediaMuxer mediaMuxer = null;
                 MediaExtractor mediaExtractor = new MediaExtractor();
-                final String tempAudioPath = Environment.getExternalStorageDirectory().getPath() + "/tempOutput.mp3";
+                final String tempAudioPath = Environment.getExternalStorageDirectory().getPath() + "/MusicIntervals2Anki/TempVideoAudio.mp3";
                 mediaExtractor.setDataSource(mContext, uri, null);
                 int trackCount = mediaExtractor.getTrackCount();
                 int audioTrackindex = -1;
@@ -352,7 +352,7 @@ public class AnkiDroidHelper {
 
                 mContext.revokeUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
                 tempAudioFile = new File(tempAudioPath);
-                uri = FileProvider.getUriForFile(mContext, mContext.getApplicationContext().getPackageName() + ".provider", tempAudioFile);
+                uri = UriUtil.getUriForFile(mContext, tempAudioFile);
                 mContext.grantUriPermission("com.ichi2.anki", uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
                 uriString = uri.toString();
             } catch (IOException e) {
