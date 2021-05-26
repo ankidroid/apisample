@@ -453,6 +453,19 @@
                 android:layout_height="wrap_content" />
 
             <TextView
+                android:id="@+id/labelFirstNoteDurationCoefficient"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/first_note_duration_coefficient" />
+
+            <EditText
+                android:id="@+id/inputFirstNoteDurationCoefficient"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:inputType="numberDecimal" />
+
+            <TextView
                 android:id="@+id/labelExisting"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

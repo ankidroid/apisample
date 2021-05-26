@@ -80,6 +80,7 @@
     <string name="close">Close</string>
     <string name="recorded_files">Files recorded: %d</string>
     <string name="countdown_skip">Skip countdown</string>
+    <string name="first_note_duration_coefficient">First note duration coefficient</string>
 
     <!-- MainActivity messages-->
     <string name="anki_permission_denied">Could not get permission to access the AnkiDroid database</string>
