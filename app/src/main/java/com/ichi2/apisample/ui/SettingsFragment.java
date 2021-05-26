@@ -45,7 +45,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
     public static final String VALUE_FILES_DELETION_CREATED_ONLY = "created_only";
     public static final String VALUE_FILES_DELETION_ALL = "all";
     public static final String VALUE_FILES_DELETION_ALWAYS_ASK = "always_ask";
-    public Map<String, Integer> FILES_DELETION_VALUE_ENTRIES = new HashMap<String, Integer>() {{
+    public static final Map<String, Integer> FILES_DELETION_VALUE_ENTRIES = new HashMap<String, Integer>() {{
         put(VALUE_FILES_DELETION_DISABLED, R.string.files_deletion_entry_none);
         put(VALUE_FILES_DELETION_CREATED_ONLY, R.string.files_deletion_entry_created_only);
         put(VALUE_FILES_DELETION_ALL, R.string.files_deletion_entry_all);
