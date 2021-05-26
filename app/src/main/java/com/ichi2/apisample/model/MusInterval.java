@@ -895,7 +895,7 @@ public class MusInterval {
                 .intervals(new String[]{data.get(modelFields.get(Fields.INTERVAL))})
                 .tempo(data.get(modelFields.get(Fields.TEMPO)))
                 .instrument(data.get(modelFields.get(Fields.INSTRUMENT)))
-                .first_note_duration_coefficient(data.get(modelFields.get(Fields.FIRST_NOTE_DURATION_COEFFICIENT))); // @todo revisit
+                .first_note_duration_coefficient(data.get(modelFields.get(Fields.FIRST_NOTE_DURATION_COEFFICIENT)));
         if (!version.isEmpty()) {
             builder.version(version);
         }
