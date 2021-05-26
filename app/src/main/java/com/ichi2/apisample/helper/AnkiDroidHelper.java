@@ -295,6 +295,7 @@ public class AnkiDroidHelper {
     public String addFileToAnkiMedia(String uriString) {
         Uri uri = Uri.parse(uriString);
         uri = UriUtil.getContentUri(mContext, uri);
+        uriString = uri.toString();
         mContext.grantUriPermission("com.ichi2.anki", uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
         String type = mResolver.getType(uri);
         File tempAudioFile = null;
