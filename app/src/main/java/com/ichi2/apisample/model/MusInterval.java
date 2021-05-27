@@ -112,7 +112,7 @@ public class MusInterval {
         }
 
         public static class FirstNoteDurationCoefficient {
-            public static final double DEFAULT_VALUE = 1;
+            public static final double DEFAULT_VALUE = 1.0;
 
             public static final Validator FORMAT_VALIDATOR = new PositiveDecimalValidator();
         }

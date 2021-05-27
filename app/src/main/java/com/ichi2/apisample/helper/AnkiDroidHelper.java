@@ -448,7 +448,7 @@ public class AnkiDroidHelper {
                             ? data.get(fieldName)
                             : "%";
                     int idx = defaultFields.indexOf(fieldName);
-                    if (idx != -1 && i % (int) (n / (int) Math.pow(2, idx)) > (n / Math.pow(2, idx + 1))) {
+                    if (idx != -1 && i % (n / (int) Math.pow(2, idx)) >= (n / Math.pow(2, idx + 1))) {
                         value = "";
                     }
                     fieldsAggregated.append(value);
