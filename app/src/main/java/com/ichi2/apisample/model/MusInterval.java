@@ -26,9 +26,9 @@ public class MusInterval {
         public static final String SOUND = "sound";
         public static final String SOUND_SMALLER = "sound_smaller";
         public static final String SOUND_LARGER = "sound_larger";
-        public static final String START_NOTE = "start_note";
-        public static final String DIRECTION = "direction";
-        public static final String TIMING = "timing";
+        public static final String START_NOTE = "note1";
+        public static final String DIRECTION = "ascending_descending";
+        public static final String TIMING = "melodic_harmonic";
         public static final String INTERVAL = "interval";
         public static final String TEMPO = "tempo";
         public static final String INSTRUMENT = "instrument";
@@ -213,16 +213,53 @@ public class MusInterval {
         private String mInstrument = "";
         private String mVersion = "";
 
+        private boolean mDefaultModel = false;
+        private String[] mFields = new String[]{};
+        private String[] mCards = new String[]{};
+        private String[] mQfmt = new String[]{};
+        private String[] mAfmt = new String[]{};
+        private String mCss = "";
+
         public Builder(final AnkiDroidHelper helper) {
             mHelper = helper;
         }
 
-        public MusInterval build() throws ModelValidationException, TempoNotInRangeException {
+        public MusInterval build() throws ModelException, TempoNotInRangeException {
             return new MusInterval(this);
         }
 
         public Builder model(String mn) {
             mModelName = mn;
+            return this;
+        }
+
+        public Builder default_model(boolean dfmdl) {
+            mDefaultModel = dfmdl;
+            return this;
+        }
+
+        public Builder fields(String[] flds) {
+            mFields = flds;
+            return this;
+        }
+
+        public Builder cards(String[] cds) {
+            mCards = cds;
+            return this;
+        }
+
+        public Builder qfmt(String[] qfmt) {
+            mQfmt = qfmt;
+            return this;
+        }
+
+        public Builder afmt(String[] afmt) {
+            mAfmt = afmt;
+            return this;
+        }
+
+        public Builder css(String css) {
+            mCss = css;
             return this;
         }
 
@@ -327,10 +364,10 @@ public class MusInterval {
     public static class SoundAlreadyAddedException extends Exception {}
     public static class AddSoundFileException extends Exception {}
     public static class ValidationException extends Exception {}
-    public static class ModelValidationException extends ValidationException {
+    public static class ModelException extends ValidationException {
         private final String modelName;
 
-        public ModelValidationException(String modelName) {
+        public ModelException(String modelName) {
             super();
             this.modelName = modelName;
         }
@@ -339,16 +376,28 @@ public class MusInterval {
             return modelName;
         }
     }
-    public static class ModelDoesNotExistException extends ModelValidationException {
+    public static class ModelDoesNotExistException extends ModelException {
         public ModelDoesNotExistException(String modelName) { super(modelName); }
     }
+    public static class ModelValidationException extends ModelException {
+        private final long modelId;
+
+        public ModelValidationException(String modelName, long modelId) {
+            super(modelName);
+            this.modelId = modelId;
+        }
+
+        public long getModelId() {
+            return modelId;
+        }
+    }
     public static class NotEnoughFieldsException extends ModelValidationException {
-        public NotEnoughFieldsException(String modelName) { super(modelName); }
+        public NotEnoughFieldsException(String modelName, long modelId) { super(modelName, modelId); }
     }
     public static class ModelNotConfiguredException extends ModelValidationException {
         private final ArrayList<String> invalidModelFields;
-        public ModelNotConfiguredException(String modelName, ArrayList<String> invalidModelFields) {
-            super(modelName);
+        public ModelNotConfiguredException(String modelName, long modelId, ArrayList<String> invalidModelFields) {
+            super(modelName, modelId);
             this.invalidModelFields = invalidModelFields;
         }
 
@@ -356,6 +405,29 @@ public class MusInterval {
             return invalidModelFields;
         }
     }
+    public static class DefaultModelOutdatedException extends ModelValidationException {
+        private final String[] fields;
+        private final String[] cards;
+        private final String[] qfmt;
+        private final String[] afmt;
+        private final String css;
+
+        public DefaultModelOutdatedException(String modelName, long modelId, String[] fields, String[] cards, String[] qfmt, String[] afmt, String css) {
+            super(modelName, modelId);
+            this.fields = fields;
+            this.cards = cards;
+            this.qfmt = qfmt;
+            this.afmt = afmt;
+            this.css = css;
+        }
+
+        public String[] getFields() { return fields; }
+        public String[] getCards() { return cards; }
+        public String[] getQfmt() { return qfmt; }
+        public String[] getAfmt() { return afmt; }
+        public String getCss() { return css; }
+    }
+
     public static class TempoNotInRangeException extends ValidationException { }
 
     private final AnkiDroidHelper helper;
@@ -430,7 +502,7 @@ public class MusInterval {
     /**
      * Construct an object using builder class.
      */
-    public MusInterval(Builder builder) throws ModelValidationException, TempoNotInRangeException {
+    public MusInterval(Builder builder) throws ModelException, TempoNotInRangeException {
         helper = builder.mHelper;
 
         relatedSoundFields = new RelatedIntervalSoundField[]{
@@ -456,18 +528,21 @@ public class MusInterval {
         instrument = builder.mInstrument.trim();
         version = builder.mVersion;
 
-        validateModel();
+        validateFields(builder.mDefaultModel, builder.mFields, builder.mCards, builder.mQfmt, builder.mAfmt, builder.mCss);
     }
 
-    protected void validateModel() throws ModelValidationException, TempoNotInRangeException {
+    protected void validateFields(boolean isDefaultModel, String[] fields, String[] cards, String[] qfmt, String[] afmt, String css) throws ModelException, TempoNotInRangeException {
         String[] signature = Fields.getSignature(!version.isEmpty());
 
         if (modelId == null) {
             throw new ModelDoesNotExistException(modelName);
         }
+        if (isDefaultModel && !helper.checkCustomModel(modelId, fields, cards, qfmt, afmt, css)) {
+            throw new DefaultModelOutdatedException(Builder.DEFAULT_MODEL_NAME, modelId, fields, cards, qfmt, afmt, css);
+        }
         final ArrayList<String> modelOwnFields = new ArrayList<>(Arrays.asList(helper.getFieldList(modelId)));
         if (modelOwnFields.size() < signature.length) {
-            throw new NotEnoughFieldsException(modelName);
+            throw new NotEnoughFieldsException(modelName, modelId);
         }
         ArrayList<String> invalidModelFields = new ArrayList<>();
         for (String fieldKey : signature) {
@@ -481,7 +556,7 @@ public class MusInterval {
             }
         }
         if (!invalidModelFields.isEmpty()) {
-            throw new ModelNotConfiguredException(modelName, invalidModelFields);
+            throw new ModelNotConfiguredException(modelName, modelId, invalidModelFields);
         }
 
         if (!tempo.isEmpty() && !Fields.Tempo.RANGE_VALIDATOR.isValid(tempo)) {
@@ -591,7 +666,7 @@ public class MusInterval {
     public void addToAnki(AddingPrompter prompter, ProgressIndicator progressIndicator)
             throws CreateDeckException, AddToAnkiException, UnexpectedSoundsAmountException,
             MandatoryFieldEmptyException, SoundAlreadyAddedException, AddSoundFileException,
-            ModelValidationException, AnkiDroidHelper.InvalidAnkiDatabaseException, TempoNotInRangeException {
+            ModelException, AnkiDroidHelper.InvalidAnkiDatabaseException, TempoNotInRangeException {
         if (deckId == null) {
             deckId = helper.addNewDeck(deckName);
             if (deckId == null) {
@@ -648,7 +723,7 @@ public class MusInterval {
     }
 
     private void addToAnki(int idx, final List<Map<String, String>> dataSet, final AddingPrompter prompter, final ProgressIndicator progressIndicator)
-            throws AddToAnkiException, SoundAlreadyAddedException, AddSoundFileException, ModelValidationException,
+            throws AddToAnkiException, SoundAlreadyAddedException, AddSoundFileException, ModelException,
             AnkiDroidHelper.InvalidAnkiDatabaseException, TempoNotInRangeException {
 
         final int dataCount = dataSet.size();
@@ -680,13 +755,13 @@ public class MusInterval {
                 prompter.promptAddDuplicate(existingMis, new AddingHandler() {
                     @Override
                     public MusInterval add() throws AddSoundFileException, AddToAnkiException,
-                            AnkiDroidHelper.InvalidAnkiDatabaseException, ModelValidationException, TempoNotInRangeException {
+                            AnkiDroidHelper.InvalidAnkiDatabaseException, ModelException, TempoNotInRangeException {
                         return handleAddToAnki(miData);
                     }
 
                     @Override
                     public MusInterval replace() throws AnkiDroidHelper.InvalidAnkiDatabaseException,
-                            AddSoundFileException, ModelValidationException, TempoNotInRangeException {
+                            AddSoundFileException, ModelException, TempoNotInRangeException {
                         if (existingNotesData.size() != 1) {
                             throw new IllegalStateException("Replacing more than 1 existing note is not supported.");
                         }
@@ -712,13 +787,13 @@ public class MusInterval {
                     }
 
                     @Override
-                    public int mark() throws NoteNotExistsException, ModelValidationException,
+                    public int mark() throws NoteNotExistsException, ModelException,
                             AnkiDroidHelper.InvalidAnkiDatabaseException, TempoNotInRangeException {
                         return getMusIntervalFromData(miData).markExistingNotes();
                     }
 
                     @Override
-                    public int tag(String tag) throws NoteNotExistsException, ModelValidationException,
+                    public int tag(String tag) throws NoteNotExistsException, ModelException,
                             AnkiDroidHelper.InvalidAnkiDatabaseException, TempoNotInRangeException {
                         return getMusIntervalFromData(miData).tagExistingNotes(tag);
                     }
@@ -740,7 +815,7 @@ public class MusInterval {
     }
 
     private MusInterval handleAddToAnki(Map<String, String> data) throws AddSoundFileException,
-            AddToAnkiException, AnkiDroidHelper.InvalidAnkiDatabaseException, ModelValidationException, TempoNotInRangeException {
+            AddToAnkiException, AnkiDroidHelper.InvalidAnkiDatabaseException, ModelException, TempoNotInRangeException {
         String sound = data.get(modelFields.get(Fields.SOUND));
         String newSound = helper.addFileToAnkiMedia(sound);
         if (newSound == null || newSound.isEmpty()) {
@@ -773,7 +848,7 @@ public class MusInterval {
         }
     }
 
-    private MusInterval getMusIntervalFromData(Map<String, String> data) throws ModelValidationException, TempoNotInRangeException {
+    private MusInterval getMusIntervalFromData(Map<String, String> data) throws ModelException, TempoNotInRangeException {
         String startNote = data.get(modelFields.get(Fields.START_NOTE));
         String note = null;
         String octave = null;
@@ -801,7 +876,7 @@ public class MusInterval {
         return builder.build();
     }
 
-    private MusInterval getAddedMusInterval() throws ModelValidationException, TempoNotInRangeException {
+    private MusInterval getAddedMusInterval() throws ModelException, TempoNotInRangeException {
         Builder builder = new Builder(helper)
                 .deck(deckName)
                 .model(modelName)
