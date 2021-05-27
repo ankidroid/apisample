@@ -137,7 +137,12 @@ public class AnkiDroidHelper {
 
     public boolean checkCustomModel(long modelId, String[] fields, String[] cards, String[] qfmt, String[] afmt, String css) {
         Uri modelUri = Uri.withAppendedPath(FlashCardsContract.Model.CONTENT_URI, String.valueOf(modelId));
-        Cursor cursor = mResolver.query(modelUri, null, null, null, null);
+        Cursor cursor;
+        try {
+            cursor = mResolver.query(modelUri, null, null, null, null);
+        } catch (Exception e) {
+            throw new IllegalArgumentException();
+        }
         cursor.moveToNext();
         String existingCss = cursor.getString(cursor.getColumnIndex(FlashCardsContract.Model.CSS));
         String existingNumCards = cursor.getString(cursor.getColumnIndex(FlashCardsContract.Model.NUM_CARDS));
@@ -174,7 +179,12 @@ public class AnkiDroidHelper {
         values.put(FlashCardsContract.Model.CSS, css);
         values.put(FlashCardsContract.Model.NUM_CARDS, cards.length);
         Uri modelUri = Uri.withAppendedPath(FlashCardsContract.Model.CONTENT_URI, String.valueOf(modelId));
-        int updated = mResolver.update(modelUri, values, null, null);
+        int updated;
+        try {
+            updated = mResolver.update(modelUri, values, null, null);
+        } catch (Exception e) {
+            throw new IllegalArgumentException();
+        }
         if (updated == 0) {
             return null;
         }
