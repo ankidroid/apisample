@@ -135,6 +135,20 @@ public class AnkiDroidHelper {
         return getApi().addNewCustomModel(modelName, fields, cards, qfmt, afmt, css, null, null);
     }
 
+
+    /**
+     * Check the correspondence of the stored model's parameters to input values.
+     * A template card amount and string values equality is used for comparison.
+     * Array arguments except fields must retain order. The field array uses a subset condition.
+     * @param modelId the id of the model that is being checked
+     * @param fields: array of field names
+     * @param cards: array of names for the card templates, not necessarily ordered
+     * @param qfmt: array of formatting strings for the question side of each template in cards
+     * @param afmt: array of formatting strings for the answer side of each template in cards
+     * @param css: css styling information to be shared across all of the templates
+     * @return true if no differences were found, false otherwise
+     * @throws IllegalArgumentException if the model with the provided id does not exist
+     */
     public boolean checkCustomModel(long modelId, String[] fields, String[] cards, String[] qfmt, String[] afmt, String css) {
         Uri modelUri = Uri.withAppendedPath(FlashCardsContract.Model.CONTENT_URI, String.valueOf(modelId));
         Cursor cursor;
@@ -174,6 +188,19 @@ public class AnkiDroidHelper {
         return true;
     }
 
+    /**
+     * Updates the stored model's parameters with input values.
+     * Appends missing fields to the end of the existing ones (order is not retained).
+     * For card templates, the existing ones are updated first, new ones are inserted if needed, order is retained.
+     * @param modelId the id of the model that is being checked
+     * @param fields: array of field names
+     * @param cards: array of names for the card templates, not necessarily ordered
+     * @param qfmt: array of formatting strings for the question side of each template in cards
+     * @param afmt: array of formatting strings for the answer side of each template in cards
+     * @param css: css styling information to be shared across all of the templates
+     * @return updated model id if the operation finished successfully, null otherwise
+     * @throws IllegalArgumentException if the model with the provided id does not exist
+     */
     public Long updateCustomModel(long modelId, String[] fields, String[] cards, String[] qfmt, String[] afmt, String css) {
         ContentValues values = new ContentValues();
         values.put(FlashCardsContract.Model.CSS, css);
