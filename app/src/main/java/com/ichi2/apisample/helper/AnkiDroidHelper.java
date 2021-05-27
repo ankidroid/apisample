@@ -403,15 +403,15 @@ public class AnkiDroidHelper {
         return getApi().addNote(modelId, deckId, result, tags);
     }
 
-    public LinkedList<Map<String, String>> findNotes(long modelId, final Map<String, String> data)
+    public LinkedList<Map<String, String>> findNotes(long modelId, final Map<String, String> data, Map<String, String> defaultFieldValues)
             throws InvalidAnkiDatabase_fieldAndFieldNameCountMismatchException {
         ArrayList<Map<String, String>> dataSet = new ArrayList<Map<String, String>>() {{
             add(data);
         }};
-        return findNotes(modelId, dataSet);
+        return findNotes(modelId, dataSet, defaultFieldValues);
     }
 
-    public LinkedList<Map<String, String>> findNotes(long modelId, ArrayList<Map<String, String>> dataSet)
+    public LinkedList<Map<String, String>> findNotes(long modelId, ArrayList<Map<String, String>> dataSet, Map<String, String> defaultFieldValues)
             throws InvalidAnkiDatabase_fieldAndFieldNameCountMismatchException {
         if (dataSet.size() == 0) {
             return new LinkedList<>();
@@ -424,17 +424,38 @@ public class AnkiDroidHelper {
             if (dataCondition.length() > 0) {
                 dataCondition.append(" or ");
             }
-            StringBuilder fieldsAggregated = new StringBuilder();
+            ArrayList<String> defaultFields = new ArrayList<>();
             for (String fieldName : fieldNames) {
-                if (fieldsAggregated.length() > 0) {
-                    fieldsAggregated.append(FLDS_SEPARATOR);
+                if (data.containsKey(fieldName)) {
+                    String value = data.get(fieldName);
+                    if (!value.isEmpty() && defaultFieldValues.containsKey(fieldName) && value.equals(defaultFieldValues.get(fieldName))) {
+                        defaultFields.add(fieldName);
+                    }
                 }
-                final String value = data.containsKey(fieldName) && !data.get(fieldName).isEmpty()
-                        ? data.get(fieldName)
-                        : "%";
-                fieldsAggregated.append(value);
             }
-            dataCondition.append(String.format(Locale.US, "%s like \"%s\"", FlashCardsContract.Note.FLDS, fieldsAggregated.toString()));
+
+            int n = (int) Math.pow(2, defaultFields.size());
+            for (int i = 0; i < n; i++) {
+                StringBuilder fieldsAggregated = new StringBuilder();
+                if (i > 0) {
+                    dataCondition.append(" or ");
+                }
+                for (String fieldName : fieldNames) {
+                    if (fieldsAggregated.length() > 0) {
+                        fieldsAggregated.append(FLDS_SEPARATOR);
+                    }
+                    String value = data.containsKey(fieldName) && !data.get(fieldName).isEmpty()
+                            ? data.get(fieldName)
+                            : "%";
+                    int idx = defaultFields.indexOf(fieldName);
+                    if (idx != -1 && i % (int) (n / (int) Math.pow(2, idx)) > (n / Math.pow(2, idx + 1))) {
+                        value = "";
+                    }
+                    fieldsAggregated.append(value);
+                }
+                dataCondition.append(String.format(Locale.US, "%s like \"%s\"", FlashCardsContract.Note.FLDS, fieldsAggregated.toString()));
+            }
+
         }
 
         String selection = String.format(Locale.US, "%s=%d and (%s)",

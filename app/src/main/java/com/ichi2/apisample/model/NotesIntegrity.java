@@ -61,7 +61,7 @@ public class NotesIntegrity {
         progressIndicator.setMessage(R.string.integrity_finding_duplicates);
         countDuplicates(correctNotesData);
 
-        LinkedList<Map<String, String>> allNotesData = helper.findNotes(musInterval.modelId, new HashMap<String, String>());
+        LinkedList<Map<String, String>> allNotesData = helper.findNotes(musInterval.modelId, new HashMap<String, String>(), musInterval.modelFieldsDefaultValues);
         Map<String, Map<String, String>> soundDict = new HashMap<>();
         for (Map<String, String> noteData : allNotesData) {
             soundDict.put(noteData.getOrDefault(soundField, ""), noteData);
@@ -194,6 +194,13 @@ public class NotesIntegrity {
                 remove(AnkiDroidHelper.KEY_ID);
                 remove(AnkiDroidHelper.KEY_TAGS);
             }};
+            for (Map.Entry<String, String> fieldDefaultValue : MusInterval.Fields.DEFAULT_VALUES.entrySet()) {
+                String fieldKey = fieldDefaultValue.getKey();
+                String modelKey = musInterval.modelFields.getOrDefault(fieldKey, fieldKey);
+                if (!keyData.containsKey(modelKey) || keyData.get(modelKey).isEmpty()) {
+                    keyData.put(modelKey, fieldDefaultValue.getValue());
+                }
+            }
             LinkedList<Map<String, String>> current = keysDataNotes.getOrDefault(keyData, new LinkedList<Map<String, String>>());
             current.add(noteData);
             keysDataNotes.put(keyData, current);

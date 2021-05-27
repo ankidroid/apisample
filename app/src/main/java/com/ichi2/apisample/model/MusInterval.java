@@ -112,7 +112,7 @@ public class MusInterval {
         }
 
         public static class FirstNoteDurationCoefficient {
-            // public static final double DEFAULT_VALUE = 1;
+            public static final double DEFAULT_VALUE = 1;
 
             public static final Validator FORMAT_VALIDATOR = new PositiveDecimalValidator();
         }
@@ -135,6 +135,10 @@ public class MusInterval {
             }
             return signature.toArray(new String[0]);
         }
+
+        public static final Map<String, String> DEFAULT_VALUES = new HashMap<String, String>() {{
+            put(FIRST_NOTE_DURATION_COEFFICIENT, String.valueOf(FirstNoteDurationCoefficient.DEFAULT_VALUE));
+        }};
 
         private static final Validator VALIDATOR_EMPTY = new EmptyValidator();
         private static final Validator VALIDATOR_SOUND = new PatternValidator("^$|^\\[sound:.*\\]$");
@@ -175,7 +179,6 @@ public class MusInterval {
                     VALIDATOR_EMPTY
             });
             put(FIRST_NOTE_DURATION_COEFFICIENT, new Validator[]{
-                    // @todo: add empty validator if necessary
                     FirstNoteDurationCoefficient.FORMAT_VALIDATOR
             });
         }};
@@ -445,6 +448,7 @@ public class MusInterval {
 
     public final String modelName;
     public final Map<String, String> modelFields;
+    final Map<String, String> modelFieldsDefaultValues;
     public final Long modelId;
     public final String deckName;
     private Long deckId;
@@ -523,6 +527,11 @@ public class MusInterval {
 
         modelName = builder.mModelName;
         modelFields = builder.mModelFields;
+        modelFieldsDefaultValues = new HashMap<>();
+        for (Map.Entry<String, String> fieldDefaultValue : Fields.DEFAULT_VALUES.entrySet()) {
+            String fieldKey = fieldDefaultValue.getKey();
+            modelFieldsDefaultValues.put(modelFields.getOrDefault(fieldKey, fieldKey), fieldDefaultValue.getValue());
+        }
         modelId = helper.findModelIdByName(builder.mModelName);
         deckName = builder.mDeckName;
         deckId = helper.findDeckIdByName(builder.mDeckName);
@@ -622,7 +631,7 @@ public class MusInterval {
                 data.remove(modelFields.get(Fields.SOUND_LARGER));
                 data.remove(modelFields.get(Fields.VERSION));
             }
-            return helper.findNotes(modelId, dataSet);
+            return helper.findNotes(modelId, dataSet, modelFieldsDefaultValues);
         } else {
             return new LinkedList<>();
         }
