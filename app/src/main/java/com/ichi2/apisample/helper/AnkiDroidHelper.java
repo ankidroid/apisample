@@ -333,6 +333,7 @@ public class AnkiDroidHelper {
         final String tempAudioFilePath = Environment.getExternalStorageDirectory().getPath() + "/tempOutput.mp3";
         if (type.startsWith("video")) {
             Uri extractedAudioUri = AudioExtractionUtil.extract(mContext, uri, tempAudioFilePath);
+            // @todo: separate concerns
             mContext.revokeUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
             if (extractedAudioUri == null) {
                 return null;
