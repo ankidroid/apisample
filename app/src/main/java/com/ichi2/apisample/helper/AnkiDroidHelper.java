@@ -46,6 +46,8 @@ public class AnkiDroidHelper {
 
     public static final String DIR_MEDIA = "/collection.media/";
 
+    private static final String PACKAGE_ANKI = "com.ichi2.anki";
+
     private static final String DECK_REF_DB = "com.ichi2.anki.api.decks";
     private static final String MODEL_REF_DB = "com.ichi2.anki.api.models";
     private static final String FLDS_SEPARATOR = "\u001f";
@@ -332,7 +334,7 @@ public class AnkiDroidHelper {
     // @todo: refactor once new version release of "com.ichi2.anki.api" is available
     public String addFileToAnkiMedia(String uriString) {
         Uri uri = Uri.parse(uriString);
-        mContext.grantUriPermission("com.ichi2.anki", uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        mContext.grantUriPermission(PACKAGE_ANKI, uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
         String type = mResolver.getType(uri);
         File tempAudioFile = null;
         if (type.startsWith("video")) {
@@ -390,7 +392,7 @@ public class AnkiDroidHelper {
                 mContext.revokeUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
                 tempAudioFile = new File(tempAudioPath);
                 uri = FileProvider.getUriForFile(mContext, mContext.getApplicationContext().getPackageName() + ".provider", tempAudioFile);
-                mContext.grantUriPermission("com.ichi2.anki", uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                mContext.grantUriPermission(PACKAGE_ANKI, uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
                 uriString = uri.toString();
             } catch (IOException e) {
                 mContext.revokeUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
