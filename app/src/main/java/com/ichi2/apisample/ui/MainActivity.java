@@ -419,6 +419,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     }
                 } else {
                     uri = Uri.parse(filename);
+                    getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
                     Cursor cursor = getContentResolver().query(uri, null, null, null, null);
                     int nameIdx = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
                     cursor.moveToFirst();

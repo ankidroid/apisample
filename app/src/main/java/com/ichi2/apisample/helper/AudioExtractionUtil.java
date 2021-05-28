@@ -2,7 +2,6 @@ package com.ichi2.apisample.helper;
 
 import android.content.ContentResolver;
 import android.content.Context;
-import android.content.Intent;
 import android.media.MediaCodec;
 import android.media.MediaExtractor;
 import android.media.MediaFormat;
@@ -24,6 +23,7 @@ public class AudioExtractionUtil {
         if (!type.equals("video/mp4")) {
             return null;
         }
+        File dstFile = null;
         try {
             MediaMuxer mediaMuxer = null;
             MediaExtractor mediaExtractor = new MediaExtractor();
@@ -62,10 +62,12 @@ public class AudioExtractionUtil {
             mediaMuxer.stop();
             mediaMuxer.release();
 
-            context.revokeUriPermission(sourceUri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            File dstFile = new File(destFilePath);
+            dstFile = new File(destFilePath);
             return FileProvider.getUriForFile(context, context.getApplicationContext().getPackageName() + ".provider", dstFile);
         } catch (IOException e) {
+            if (dstFile != null && dstFile.exists()) {
+                dstFile.delete();
+            }
             return null;
         }
     }

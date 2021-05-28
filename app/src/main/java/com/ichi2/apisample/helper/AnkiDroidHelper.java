@@ -328,16 +328,13 @@ public class AnkiDroidHelper {
     public String addFileToAnkiMedia(String uriString) {
         Uri uri = Uri.parse(uriString);
         mContext.grantUriPermission(PACKAGE_ANKI, uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
         String type = mResolver.getType(uri);
         final String tempAudioFilePath = Environment.getExternalStorageDirectory().getPath() + "/tempOutput.mp3";
         if (type.startsWith("video")) {
             mContext.revokeUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
             Uri extractedAudioUri = AudioExtractionUtil.extract(mContext, uri, tempAudioFilePath);
             if (extractedAudioUri == null) {
-                File tempAudioFile = new File(tempAudioFilePath);
-                if (tempAudioFile != null && tempAudioFile.exists()) {
-                    tempAudioFile.delete();
-                }
                 return null;
             } else {
                 uri = extractedAudioUri;
@@ -345,6 +342,7 @@ public class AnkiDroidHelper {
                 uriString = uri.toString();
             }
         }
+
         ContentValues cv = new ContentValues();
         cv.put("file_uri", uriString);
         final String preferredName = "music_interval_" + (System.currentTimeMillis() / 1000L);
