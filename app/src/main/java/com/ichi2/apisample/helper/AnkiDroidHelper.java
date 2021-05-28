@@ -38,7 +38,6 @@ public class AnkiDroidHelper {
     public static final String HIERARCHICAL_TAG_SEPARATOR = "::";
 
     public static final String DIR_MEDIA = "/collection.media/";
-    public static final String PATH_TEMP_AUDIO = Environment.getExternalStorageDirectory().getPath() + "/tempOutput.mp3";
 
     private static final String PACKAGE_ANKI = "com.ichi2.anki";
 
@@ -330,11 +329,12 @@ public class AnkiDroidHelper {
         Uri uri = Uri.parse(uriString);
         mContext.grantUriPermission(PACKAGE_ANKI, uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
         String type = mResolver.getType(uri);
+        final String tempAudioFilePath = Environment.getExternalStorageDirectory().getPath() + "/tempOutput.mp3";
         if (type.startsWith("video")) {
             mContext.revokeUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            Uri extractedAudioUri = AudioExtractionUtil.extract(mContext, uri, PATH_TEMP_AUDIO);
+            Uri extractedAudioUri = AudioExtractionUtil.extract(mContext, uri, tempAudioFilePath);
             if (extractedAudioUri == null) {
-                File tempAudioFile = new File(PATH_TEMP_AUDIO);
+                File tempAudioFile = new File(tempAudioFilePath);
                 if (tempAudioFile != null && tempAudioFile.exists()) {
                     tempAudioFile.delete();
                 }
@@ -358,7 +358,7 @@ public class AnkiDroidHelper {
             return null;
         } finally {
             mContext.revokeUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            File tempAudioFile = new File(PATH_TEMP_AUDIO);
+            File tempAudioFile = new File(tempAudioFilePath);
             if (tempAudioFile != null && tempAudioFile.exists()) {
                 tempAudioFile.delete();
             }
