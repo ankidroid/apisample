@@ -10,6 +10,7 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Environment;
 
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -37,6 +38,8 @@ public class AnkiDroidHelper {
     public static final String HIERARCHICAL_TAG_SEPARATOR = "::";
 
     public static final String DIR_MEDIA = "/collection.media/";
+
+    private static final String PACKAGE_ANKI = "com.ichi2.anki";
 
     private static final String DECK_REF_DB = "com.ichi2.anki.api.decks";
     private static final String MODEL_REF_DB = "com.ichi2.anki.api.models";
@@ -323,21 +326,41 @@ public class AnkiDroidHelper {
 
     // @todo: refactor once new version release of "com.ichi2.anki.api" is available
     public String addFileToAnkiMedia(String uriString) {
+        Uri uri = Uri.parse(uriString);
+        mContext.grantUriPermission(PACKAGE_ANKI, uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+        String type = mResolver.getType(uri);
+        final String tempAudioFilePath = Environment.getExternalStorageDirectory().getPath() + "/tempOutput.mp3";
+        if (type.startsWith("video")) {
+            Uri extractedAudioUri = AudioExtractionUtil.extract(mContext, uri, tempAudioFilePath);
+            // @todo: separate concerns
+            mContext.revokeUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            if (extractedAudioUri == null) {
+                return null;
+            } else {
+                uri = extractedAudioUri;
+                mContext.grantUriPermission(PACKAGE_ANKI, uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                uriString = uri.toString();
+            }
+        }
+
         ContentValues cv = new ContentValues();
         cv.put("file_uri", uriString);
         final String preferredName = "music_interval_" + (System.currentTimeMillis() / 1000L);
         cv.put("preferred_name", preferredName);
-        final Uri fileUri = Uri.parse(uriString);
-        mContext.grantUriPermission("com.ichi2.anki", fileUri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
         try {
-            Uri uri = mResolver.insert(Uri.withAppendedPath(FlashCardsContract.AUTHORITY_URI, "media"), cv);
-            File insertedFile = new File(uri.getPath());
-            String filePath =  insertedFile.toString();
+            Uri insertedUri = mResolver.insert(Uri.withAppendedPath(FlashCardsContract.AUTHORITY_URI, "media"), cv);
+            File insertedFile = new File(insertedUri.getPath());
+            String filePath = insertedFile.toString();
             return filePath.substring(1); // get rid of the "/" at the beginning
         } catch (Exception e) {
             return null;
         } finally {
-            mContext.revokeUriPermission(fileUri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            mContext.revokeUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            File tempAudioFile = new File(tempAudioFilePath);
+            if (tempAudioFile != null && tempAudioFile.exists()) {
+                tempAudioFile.delete();
+            }
         }
     }
 
