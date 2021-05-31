@@ -545,7 +545,8 @@ public class AnkiDroidHelper {
                             EqualityChecker equalityChecker = fieldEqualityCheckers.getOrDefault(fieldName, DEFAULT_EQUALITY_CHECKER);
                             boolean matching = false;
                             for (Map<String, String> data : dataSet) {
-                                if (equalityChecker.areEqual(data.getOrDefault(fieldName, ""), field)) {
+                                String value = data.getOrDefault(fieldName, "");
+                                if (value.isEmpty() || equalityChecker.areEqual(value, field)) {
                                     matching = true;
                                     break;
                                 }
