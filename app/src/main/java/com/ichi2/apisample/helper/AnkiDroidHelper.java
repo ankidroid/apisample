@@ -470,7 +470,7 @@ public class AnkiDroidHelper {
             }
 
             // here we create two conditions for each field containing default value
-            // to account for the case of the default value empty value equality
+            // to account for the case of the default value and empty value equality
             int n = (int) Math.pow(2, defaultFields.size());
             for (int i = 0; i < n; i++) {
                 StringBuilder fieldsAggregated = new StringBuilder();
@@ -491,7 +491,7 @@ public class AnkiDroidHelper {
                     }
 
                     // decide whether or not this is the "second" condition, for which we substitute
-                    // the value that is being searched for is an empty string
+                    // the value that is being searched for with an empty string
                     int idx = defaultFields.indexOf(fieldName);
                     if (idx != -1 && i % (n / (int) Math.pow(2, idx)) >= (n / Math.pow(2, idx + 1))) {
                         expression = "";
