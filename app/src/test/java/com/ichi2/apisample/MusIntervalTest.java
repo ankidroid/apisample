@@ -370,7 +370,17 @@ public class MusIntervalTest {
         mi.addToAnki(null, null);
     }
 
-    @Test(expected = MusInterval.AddToAnkiException.class)
+    static class WasCalledAnswer implements Answer {
+        public boolean wasCalled;
+
+        @Override
+        public Object answer(InvocationOnMock invocation) {
+            wasCalled = true;
+            return null;
+        }
+    }
+
+    @Test
     @SuppressWarnings("unchecked")
     public void add_NoSuchDeck_CardShouldNotBeCreated() throws MusInterval.Exception, AnkiDroidHelper.InvalidAnkiDatabaseException {
         final long deckId = new Random().nextLong();
@@ -438,7 +448,14 @@ public class MusIntervalTest {
                 .instrument(instrument)
                 .build();
 
-        mi.addToAnki(null, null);
+        AddingPrompter prompter = mock(AddingPrompter.class);
+        WasCalledAnswer answer = new WasCalledAnswer();
+        doAnswer(answer).when(prompter).processException(any(MusInterval.AddToAnkiException.class));
+        ProgressIndicator indicator = mock(ProgressIndicator.class);
+
+        mi.addToAnki(prompter, indicator);
+
+        assertTrue(answer.wasCalled);
     }
 
     @Test
@@ -917,7 +934,7 @@ public class MusIntervalTest {
         assertFalse(Arrays.equals(mi1_2.sounds, mi2_2.sounds));
     }
 
-    @Test(expected = MusInterval.SoundAlreadyAddedException.class)
+    @Test
     @SuppressWarnings("unchecked")
     public void add_SoundFieldContainsBrackets_shouldFail() throws MusInterval.Exception, AnkiDroidHelper.InvalidAnkiDatabaseException {
         final long deckId = new Random().nextLong();
@@ -945,7 +962,13 @@ public class MusIntervalTest {
                 .instrument("violin")
                 .build();
 
-        mi.addToAnki(null, null); // should throw exception
+        AddingPrompter prompter = mock(AddingPrompter.class);
+        WasCalledAnswer answer = new WasCalledAnswer();
+        doAnswer(answer).when(prompter).processException(any(MusInterval.SoundAlreadyAddedException.class));
+
+        mi.addToAnki(prompter, null); // should throw exception
+
+        assertTrue(answer.wasCalled);
     }
 
     @Test(expected = MusInterval.NoteNotExistsException.class)
@@ -1742,7 +1765,7 @@ public class MusIntervalTest {
         AddingPrompter prompter = mock(AddingPrompter.class);
         doAnswer(new Answer() {
             @Override
-            public Object answer(InvocationOnMock invocation) throws Throwable {
+            public Object answer(InvocationOnMock invocation) {
                 musIntervalsAdded.add(((AddingHandler) invocation.getArgument(1)).add());
                 return null;
             }

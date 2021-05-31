@@ -39,6 +39,10 @@ public class DuplicatePromptWorker implements Runnable {
                     public void onClick(DialogInterface dialogInterface, int i) {
                         try {
                             MusInterval newMi = duplicateAddingHandler.add();
+                            if (newMi == null) {
+                                duplicateAddingHandler.proceed();
+                                return;
+                            }
                             if (tagDuplicates) {
                                 duplicateAddingHandler.tag(duplicateTag);
                             }
@@ -88,6 +92,10 @@ public class DuplicatePromptWorker implements Runnable {
                 public void onClick(DialogInterface dialogInterface, int i) {
                     try {
                         MusInterval newMi = duplicateAddingHandler.replace();
+                        if (newMi == null) {
+                            duplicateAddingHandler.proceed();
+                            return;
+                        }
                         mainActivity.handleInsertion(newMi);
                         mainActivity.showMsg(R.string.item_replaced);
                         duplicateAddingHandler.proceed();
