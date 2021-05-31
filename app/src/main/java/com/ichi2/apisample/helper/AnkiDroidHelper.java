@@ -196,8 +196,12 @@ public class AnkiDroidHelper {
             }
             values = new ContentValues();
             values.put(FlashCardsContract.Model.FIELD_NAME, field);
-            Uri fieldUri = mResolver.insert(fieldsUri, values);
-            if (fieldUri == null) {
+            try {
+                Uri fieldUri = mResolver.insert(fieldsUri, values);
+                if (fieldUri == null) {
+                    return null;
+                }
+            } catch (Exception e) {
                 return null;
             }
         }
