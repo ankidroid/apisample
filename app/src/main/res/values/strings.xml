@@ -80,6 +80,7 @@
     <string name="close">Close</string>
     <string name="recorded_files">Files recorded: %d</string>
     <string name="countdown_skip">Skip countdown</string>
+    <string name="first_note_duration_coefficient">First note duration coefficient</string>
 
     <!-- MainActivity messages-->
     <string name="anki_permission_denied">Could not get permission to access the AnkiDroid database</string>
@@ -153,7 +154,7 @@
     <string name="create_model_success">Successfully created note type \"%s\"</string>
     <string name="update_model_success">Successfully updated note type \"%s\"</string>
     <string name="create_model_error">Could not create note type</string>
-    <string name="update_model_error">Could not update note tyoe</string>
+    <string name="update_model_error">Could not update note type. Please sync your Anki account and try again</string>
     <string name="invalid_model">Too few fields in existing \"%s\" note type. Please add additional fields in AnkiDroid or choose another model</string>
     <string name="create_deck_error">Could not create deck \"%s\"</string>
     <string name="add_card_error">Music interval adding to AnkiDroid failed</string>
@@ -186,7 +187,9 @@
     <string name="validation_allowed_values">allowed values: %s</string>
     <string name="validation_range">value must an integer between %d and %d</string>
     <string name="validation_mandatory">value must be present</string>
+    <string name="validation_positive_decimal">value must represent a positive decimal number</string>
     <string name="tempo_not_in_range">Tempo value must be in range of %d to %d (BPM)</string>
+    <string name="invalid_first_note_duration_coefficient">First note duration coefficient must be a valid decimal number</string>
     <string name="integrity_duplicates">Found %d duplicate notes</string>
     <string name="integrity_progress_title">Running integrity check…</string>
     <string name="integrity_duplicates_tagged">\u0020and marked them using tag starting with \"%s\"</string>
@@ -219,6 +222,7 @@
     <string name="interval_field_list_preference_title">Interval</string>
     <string name="tempo_field_list_preference_title">Tempo</string>
     <string name="instrument_field_list_preference_title">Instrument</string>
+    <string name="first_note_duration_coefficient_field_list_preference_title">First note duration coefficient</string>
     <string name="version_field_list_preference_title">App version</string>
     <string name="version_field_switch_preference_title">Version stamp</string>
     <string name="version_field_switch_preference_summary">Log app version for added notes in a separate field</string>

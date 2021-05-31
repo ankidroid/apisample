@@ -96,6 +96,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private static final String REF_DB_INPUT_TEMPO = "inputTempo";
     private static final String REF_DB_INPUT_INSTRUMENT = "inputInstrument";
     private static final String REF_DB_SAVED_INSTRUMENTS = "savedInstruments";
+    private static final String REF_DB_INPUT_FIRST_NOTE_DURATION_COEFFICIENT = "firstNoteDurationCoefficient";
     private static final String REF_DB_BATCH_ADDING_NOTICE_SEEN = "batchAddingNoticeSeen";
     private static final String REF_DB_NOTE_KEYS = "noteKeys";
     private static final String REF_DB_OCTAVE_KEYS = "octaveKeys";
@@ -140,6 +141,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private CheckBox[] checkIntervals;
     private EditText inputTempo;
     private AutoCompleteTextView inputInstrument;
+    private EditText inputFirstNoteDurationCoefficient;
     private TextView labelExisting;
     private Button actionMarkExisting;
 
@@ -240,6 +242,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
         inputTempo = findViewById(R.id.inputTempo);
         inputInstrument = findViewById(R.id.inputInstrument);
+        inputFirstNoteDurationCoefficient = findViewById(R.id.inputFirstNoteDurationCoefficient);
         labelExisting = findViewById(R.id.labelExisting);
         actionMarkExisting = findViewById(R.id.actionMarkExisting);
 
@@ -265,6 +268,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
         inputTempo.addTextChangedListener(new FieldInputTextWatcher(this));
         inputInstrument.addTextChangedListener(new FieldInputTextWatcher(this));
+        inputFirstNoteDurationCoefficient.addTextChangedListener(new FieldInputTextWatcher(this));
         switchBatch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
@@ -547,6 +551,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 checkIntervalAny.setChecked(true);
                 inputTempo.setText("");
                 inputInstrument.setText("");
+                inputFirstNoteDurationCoefficient.setText("");
             }
         });
     }
@@ -972,6 +977,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         uiDbEditor.putString(REF_DB_INPUT_TEMPO, inputTempo.getText().toString());
         uiDbEditor.putString(REF_DB_INPUT_INSTRUMENT, inputInstrument.getText().toString());
         uiDbEditor.putStringSet(REF_DB_SAVED_INSTRUMENTS, savedInstruments);
+        uiDbEditor.putString(REF_DB_INPUT_FIRST_NOTE_DURATION_COEFFICIENT, inputFirstNoteDurationCoefficient.getText().toString());
 
         uiDbEditor.putBoolean(REF_DB_AFTER_ADDING, afterAdding);
         uiDbEditor.putString(REF_DB_NOTE_KEYS, StringUtil.joinStrings(DB_STRING_ARRAY_SEPARATOR, noteKeys));
@@ -1009,6 +1015,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         savedInstruments = (HashSet<String>) uiDb.getStringSet(REF_DB_SAVED_INSTRUMENTS, new HashSet<String>());
         inputInstrument.setAdapter(new ArrayAdapter<>(this,
                 android.R.layout.simple_dropdown_item_1line, savedInstruments.toArray(new String[0])));
+        inputFirstNoteDurationCoefficient.setText(uiDb.getString(REF_DB_INPUT_FIRST_NOTE_DURATION_COEFFICIENT, ""));
 
         afterAdding = uiDb.getBoolean(REF_DB_AFTER_ADDING, false);
         noteKeys = StringUtil.splitStrings(DB_STRING_ARRAY_SEPARATOR, uiDb.getString(REF_DB_NOTE_KEYS, ""));
@@ -1067,7 +1074,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
     }
 
-    private MusInterval getMusInterval() throws MusInterval.ModelValidationException, MusInterval.TempoNotInRangeException {
+    private MusInterval getMusInterval() throws MusInterval.ValidationException {
         final String anyStr = getResources().getString(R.string.any);
 
         final int radioDirectionId = radioGroupDirection.getCheckedRadioButtonId();
@@ -1102,7 +1109,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 .timing(!timingStr.equals(anyStr) ? timingStr : "")
                 .intervals(intervals)
                 .tempo(inputTempo.getText().toString())
-                .instrument(inputInstrument.getText().toString());
+                .instrument(inputInstrument.getText().toString())
+                .first_note_duration_coefficient(inputFirstNoteDurationCoefficient.getText().toString());
 
         if (versionField) {
             builder.version(BuildConfig.VERSION_NAME);
@@ -1279,6 +1287,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             showMsg(R.string.add_file_error);
         } catch (MusInterval.TempoNotInRangeException e) {
             showMsg(R.string.tempo_not_in_range, MusInterval.Fields.Tempo.MIN_VALUE, MusInterval.Fields.Tempo.MAX_VALUE);
+        } catch (MusInterval.InvalidFirstNoteDurationCoefficientException e) {
+            showMsg(R.string.invalid_first_note_duration_coefficient);
         } catch (MusInterval.Exception e) {
             showMsg(R.string.unknown_adding_error);
         }

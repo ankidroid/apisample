@@ -1,6 +1,7 @@
 package com.ichi2.apisample.model;
 
 import com.ichi2.apisample.helper.AnkiDroidHelper;
+import com.ichi2.apisample.helper.equality.EqualityChecker;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -36,7 +37,8 @@ public abstract class RelatedIntervalSoundField {
             if (relatedNoteData != null) {
                 String relatedInterval = relatedNoteData.getOrDefault(intervalField, "");
                 Map<String, String> relatedNoteKeyData = getIntervalIdentityData(relatedNoteData);
-                if (!isEqualData(keyData, relatedNoteKeyData) || !isCorrectRelation(intervalIdx, relatedInterval)) {
+                if (!isEqualData(keyData, relatedNoteKeyData, musInterval.modelFieldsDefaultValues, musInterval.modelFieldsEqualityCheckers)
+                        || !isCorrectRelation(intervalIdx, relatedInterval)) {
                     Set<Map<String, String>> pointed = suspiciousRelatedNotesData.getOrDefault(relatedSoundField, new HashSet<Map<String, String>>());
                     pointed.add(relatedNoteData);
                     suspiciousRelatedNotesData.put(relatedSoundField, pointed);
@@ -75,7 +77,13 @@ public abstract class RelatedIntervalSoundField {
         int updatedLinks = 0;
         if (isRelationPossible(intervalIdx)) {
             noteData.put(intervalField, getRelatedInterval(intervalIdx));
-            LinkedList<Map<String, String>> relatedNotesData = helper.findNotes(musInterval.modelId, noteData);
+            LinkedList<Map<String, String>> relatedNotesData = helper.findNotes(
+                    musInterval.modelId,
+                    noteData,
+                    musInterval.modelFieldsDefaultValues,
+                    musInterval.modelFieldsSearchExpressionMakers,
+                    musInterval.modelFieldsEqualityCheckers
+            );
             if (relatedNotesData != null && relatedNotesData.size() >= 1) {
                 int maxIdIdx = 0;
                 long maxId = -1;
@@ -128,13 +136,21 @@ public abstract class RelatedIntervalSoundField {
         }};
     }
 
-    private static boolean isEqualData(Map<String, String> data1, Map<String, String> data2) {
+    private static boolean isEqualData(Map<String, String> data1, Map<String, String> data2,
+                                       Map<String, String> modelFieldsDefaultValues,
+                                       Map<String, EqualityChecker> modelFieldsEqualityCheckers) {
         Set<String> keySet = data1.keySet();
         if (!keySet.equals(data2.keySet())) {
             return false;
         }
         for (String key : keySet) {
-            if (!data1.getOrDefault(key, "").equalsIgnoreCase(data2.getOrDefault(key, ""))) {
+            String defaultValue = modelFieldsDefaultValues.getOrDefault(key, "");
+            String value1 = data1.getOrDefault(key, "");
+            String value2 = data2.getOrDefault(key, "");
+            boolean defaultEquality = !defaultValue.isEmpty() &&
+                    (value1.equalsIgnoreCase(defaultValue) && value2.isEmpty() || value1.isEmpty() && value2.equalsIgnoreCase(defaultValue));
+            EqualityChecker equalityChecker = modelFieldsEqualityCheckers.getOrDefault(key, AnkiDroidHelper.DEFAULT_EQUALITY_CHECKER);
+            if (!equalityChecker.areEqual(value1, value2) && !defaultEquality) {
                 return false;
             }
         }

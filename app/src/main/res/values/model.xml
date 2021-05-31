@@ -31,6 +31,9 @@
     <item>
       interval_description
     </item>
+    <item>
+      first_note_duration_coefficient
+    </item>
   </string-array>
   <string-array name="card_names">
     
@@ -45,195 +48,30 @@
     </item>
   </string-array>
   <string name="css">
-    .card {
-  font-family: arial;
-  font-size: 20px;
-  text-align: center;
-  color: black;
-  background-color: white;
-}
-
-.the_answer {
-  font-size:40px;
-  font-face:bold;
-  color:green;
-}
-
-.hidden {
-  display:none;
-}
-
+    .card { font-family: arial; font-size: 20px; text-align: center; color: black; background-color: white; } .the_answer { font-size:40px; font-face:bold; color:green; } .hidden { display:none; }
   </string>
   <string-array name="qfmt">
     
     <item>
-      {{sound}}
-Which interval is it?
+      {{sound}} Which interval is it?
     </item>
     <item>
-      {{#sound_smaller}}
-   {{sound}} 
-   &lt;span class=\"hidden\"&gt;[sound:_1sec.mp3]&lt;/span&gt; 
-   {{sound_smaller}}
-{{/sound_smaller}}
-Which interval is &lt;b&gt;larger&lt;/b&gt;?
+      {{#sound_smaller}} {{sound}} &lt;span class=\"hidden\"&gt;[sound:_1sec.mp3]&lt;/span&gt; {{sound_smaller}} {{/sound_smaller}} Which interval is &lt;b&gt;larger&lt;/b&gt;?
     </item>
     <item>
-      {{#sound_larger}}
-   {{sound}} 
-   &lt;span class=\"hidden\"&gt;
-      [sound:_1sec.mp3]
-   &lt;/span&gt; 
-   {{sound_larger}}
-{{/sound_larger}}
-Which interval is &lt;b&gt;larger&lt;/b&gt;?
+      {{#sound_larger}} {{sound}} &lt;span class=\"hidden\"&gt; [sound:_1sec.mp3] &lt;/span&gt; {{sound_larger}} {{/sound_larger}} Which interval is &lt;b&gt;larger&lt;/b&gt;?
     </item>
   </string-array>
   <string-array name="afmt">
     
     <item>
-      {{FrontSide}}
-
-&lt;hr id=answer&gt;
-
-&lt;span class=\"hidden\"&gt;
-   [sound:_1sec.mp3]
-   {{sound}} {{sound}} {{sound}} 
-&lt;/span&gt; 
-
-{{interval_description}}
-&lt;img src=\"_wils_{{note1}}_{{ascending_descending}}_{{melodic_harmonic}}_{{interval}}.jpg\" onerror=\"this.style.display=\'none\'\"/&gt;
-&lt;img src=\"_wila_{{interval}}_.jpg\" onerror=\"this.style.display=\'none\'\"/&gt;
-&lt;div id=\"interval_longer_name\" class=\"the_answer\"&gt;
-&lt;/div&gt;
-{{note1}}, {{ascending_descending}}, {{melodic_harmonic}}, &lt;span id=\"interval_short_name\"&gt;{{interval}}&lt;/span&gt;; {{tempo}}BPM, {{instrument}}&lt;br&gt;
-{{Tags}}
-
-&lt;script&gt;
-var Intervals = [
-    {
-      name: [\'P1\',\'P1\',
-         \'unison\',\'Perfect unison\']
-    },
-    {
-      name: [\'m2\',\'min2\',
-         \'Minor 2nd\',\'Minor second\']
-    },
-    {
-      name: [\'M2\',\'Maj2\',
-         \'Major 2nd\',\'Major second\']
-    },
-    {
-      name: [\'m3\',\'min3\',
-         \'Minor 3rd\',\'Minor third\']
-    },
-    {
-      name: [\'M3\',\'Maj3\',
-         \'Major 3rd\',\'Major third\']
-    }
-];
-
-var intervalLength = {
-    \'min2\': 1,
-    \'Maj2\': 2,
-    \'min3\': 3,
-    \'Maj3\': 4
-};
-
-thisIntervalLength =
-    intervalLength[
-        document.getElementById(
-            \"interval_short_name\"
-        ).innerText];
-
-document.getElementById(\"interval_longer_name\")
-    .innerHTML = \'&lt;BR&gt;\'
-        + \'*\'.repeat(thisIntervalLength) 
-        + \'&lt;BR&gt;&lt;small&gt;\' 
-        + Intervals[thisIntervalLength].name[2]
-        + \'&lt;/small&gt;\';  
-
-&lt;/script&gt;
-
-
+      {{FrontSide}} &lt;hr id=answer&gt; &lt;span class=\"hidden\"&gt; [sound:_1sec.mp3] {{sound}} {{sound}} {{sound}} &lt;/span&gt; {{interval_description}} &lt;img src=\"_wils_{{note1}}_{{ascending_descending}}_{{melodic_harmonic}}_{{interval}}.jpg\" onerror=\"this.style.display=\'none\'\"/&gt; &lt;img src=\"_wila_{{interval}}_.jpg\" onerror=\"this.style.display=\'none\'\"/&gt; &lt;div id=\"interval_longer_name\" class=\"the_answer\"&gt; &lt;/div&gt; {{note1}}, {{ascending_descending}}, {{melodic_harmonic}}, &lt;span id=\"interval_short_name\"&gt;{{interval}}&lt;/span&gt;; {{tempo}}BPM, {{instrument}}&lt;br&gt; {{Tags}} &lt;script&gt; var Intervals = [ { name: [\'P1\',\'P1\', \'unison\',\'Perfect unison\'] }, { name: [\'m2\',\'min2\', \'Minor 2nd\',\'Minor second\'] }, { name: [\'M2\',\'Maj2\', \'Major 2nd\',\'Major second\'] }, { name: [\'m3\',\'min3\', \'Minor 3rd\',\'Minor third\'] }, { name: [\'M3\',\'Maj3\', \'Major 3rd\',\'Major third\'] } ]; var intervalLength = { \'min2\': 1, \'Maj2\': 2, \'min3\': 3, \'Maj3\': 4 }; thisIntervalLength = intervalLength[ document.getElementById( \"interval_short_name\" ).innerText]; document.getElementById(\"interval_longer_name\") .innerHTML = \'&lt;BR&gt;\' + \'*\'.repeat(thisIntervalLength) + \'&lt;BR&gt;&lt;small&gt;\' + Intervals[thisIntervalLength].name[2] + \'&lt;/small&gt;\'; &lt;/script&gt;
     </item>
     <item>
-      {{FrontSide}}
-
-&lt;hr id=answer&gt;
-
-&lt;span class=\"hidden\"&gt;
-   [sound:_1sec.mp3]
-   {{sound}} {{sound_smaller}}
-   {{sound}} {{sound_smaller}}
-   {{sound}} {{sound_smaller}}
-&lt;/span&gt; 
-&lt;img id=\"buttons\"/&gt;
-&lt;br&gt; 
-{{note1}}, {{ascending_descending}}, {{melodic_harmonic}}: {{interval}} - &lt;span id=\"smaller_one\"&gt;&lt;/span&gt;; {{tempo}}BPM, {{instrument}}&lt;br&gt;
-{{Tags}}
-
-&lt;script&gt;
-var intervalShortName2num = {
-    \'min2\': 1,
-    \'Maj2\': 2,
-    \'min3\': 3,
-    \'Maj3\': 4
-};
-
-var intervalNum2ShortName = [ \'P1\', \'min2\', \'Maj2\', \'min3\', \'Maj2\'];
-
-shortName2 = 
-    intervalNum2ShortName[
-        intervalShortName2num[
-            \'{{text:interval}}\']-1
-    ];
-document.getElementById(\"smaller_one\").innerText =
-    shortName2;
-
-document.getElementById(\"buttons\").src=\"_wila_{{text:interval}}_\"+shortName2+\".jpg\";
-
-&lt;/script&gt;
-
-
+      {{FrontSide}} &lt;hr id=answer&gt; &lt;span class=\"hidden\"&gt; [sound:_1sec.mp3] {{sound}} {{sound_smaller}} {{sound}} {{sound_smaller}} {{sound}} {{sound_smaller}} &lt;/span&gt; &lt;img id=\"buttons\"/&gt; &lt;br&gt; {{note1}}, {{ascending_descending}}, {{melodic_harmonic}}: {{interval}} - &lt;span id=\"smaller_one\"&gt;&lt;/span&gt;; {{tempo}}BPM, {{instrument}}&lt;br&gt; {{Tags}} &lt;script&gt; var intervalShortName2num = { \'min2\': 1, \'Maj2\': 2, \'min3\': 3, \'Maj3\': 4 }; var intervalNum2ShortName = [ \'P1\', \'min2\', \'Maj2\', \'min3\', \'Maj2\']; shortName2 = intervalNum2ShortName[ intervalShortName2num[ \'{{text:interval}}\']-1 ]; document.getElementById(\"smaller_one\").innerText = shortName2; document.getElementById(\"buttons\").src=\"_wila_{{text:interval}}_\"+shortName2+\".jpg\"; &lt;/script&gt;
     </item>
     <item>
-      {{FrontSide}}
-
-&lt;hr id=answer&gt;
-
-&lt;span class=\"hidden\"&gt;
-   [sound:_1sec.mp3]
-   {{sound}} {{sound_larger}}
-   {{sound}} {{sound_larger}}
-   {{sound}} {{sound_larger}}
-&lt;/span&gt; 
-&lt;img id=\"buttons\"/&gt;
-&lt;br&gt; 
-{{note1}}, {{ascending_descending}}, {{melodic_harmonic}}: {{interval}} - &lt;span id=\"larger_one\"&gt;&lt;/span&gt;; {{tempo}}BPM, {{instrument}}&lt;br&gt;
-{{Tags}}
-
-&lt;script&gt;
-var intervalShortName2num = {
-    \'min2\': 1,
-    \'Maj2\': 2
-};
-
-var intervalNum2ShortName = [ \'P1\', \'min2\', \'Maj2\'];
-
-shortName2 = 
-    intervalNum2ShortName[
-        intervalShortName2num[
-            \'{{text:interval}}\']+1
-    ];
-document.getElementById(\"larger_one\").innerText =
-    shortName2;
-
-document.getElementById(\"buttons\").src=\"_wila_{{text:interval}}_\"+shortName2+\".jpg\";
-
-&lt;/script&gt;
-
-
+      {{FrontSide}} &lt;hr id=answer&gt; &lt;span class=\"hidden\"&gt; [sound:_1sec.mp3] {{sound}} {{sound_larger}} {{sound}} {{sound_larger}} {{sound}} {{sound_larger}} &lt;/span&gt; &lt;img id=\"buttons\"/&gt; &lt;br&gt; {{note1}}, {{ascending_descending}}, {{melodic_harmonic}}: {{interval}} - &lt;span id=\"larger_one\"&gt;&lt;/span&gt;; {{tempo}}BPM, {{instrument}}&lt;br&gt; {{Tags}} &lt;script&gt; var intervalShortName2num = { \'min2\': 1, \'Maj2\': 2 }; var intervalNum2ShortName = [ \'P1\', \'min2\', \'Maj2\']; shortName2 = intervalNum2ShortName[ intervalShortName2num[ \'{{text:interval}}\']+1 ]; document.getElementById(\"larger_one\").innerText = shortName2; document.getElementById(\"buttons\").src=\"_wila_{{text:interval}}_\"+shortName2+\".jpg\"; &lt;/script&gt;
     </item>
   </string-array>
 </resources>
