@@ -403,15 +403,41 @@ public class AnkiDroidHelper {
         return getApi().addNote(modelId, deckId, result, tags);
     }
 
-    public LinkedList<Map<String, String>> findNotes(long modelId, final Map<String, String> data, Map<String, String> defaultFieldValues)
+    public interface SearchExpressionMaker {
+        String getExpression(String value);
+        boolean isDefinite();
+    }
+    public static final SearchExpressionMaker DEFAULT_SEARCH_EXPRESSION_MAKER = new SearchExpressionMaker() {
+        @Override
+        public String getExpression(String value) {
+            return !value.isEmpty() ? value : "%";
+        }
+
+        @Override
+        public boolean isDefinite() {
+            return true;
+        }
+    };
+
+    public interface EqualityChecker {
+        boolean areEqual(String v1, String v2);
+    }
+    public static final EqualityChecker DEFAULT_EQUALITY_CHECKER = new EqualityChecker() {
+        @Override
+        public boolean areEqual(String v1, String v2) {
+            return v1.equalsIgnoreCase(v2);
+        }
+    };
+
+    public LinkedList<Map<String, String>> findNotes(long modelId, final Map<String, String> data, Map<String, String> fieldDefaultValues, Map<String, SearchExpressionMaker> fieldSearchExpressionMakers, Map<String, EqualityChecker> fieldEqualityCheckers)
             throws InvalidAnkiDatabase_fieldAndFieldNameCountMismatchException {
         ArrayList<Map<String, String>> dataSet = new ArrayList<Map<String, String>>() {{
             add(data);
         }};
-        return findNotes(modelId, dataSet, defaultFieldValues);
+        return findNotes(modelId, dataSet, fieldDefaultValues, fieldSearchExpressionMakers, fieldEqualityCheckers);
     }
 
-    public LinkedList<Map<String, String>> findNotes(long modelId, ArrayList<Map<String, String>> dataSet, Map<String, String> defaultFieldValues)
+    public LinkedList<Map<String, String>> findNotes(long modelId, ArrayList<Map<String, String>> dataSet, Map<String, String> fieldDefaultValues, Map<String, SearchExpressionMaker> fieldSearchExpressionMakers, Map<String, EqualityChecker> fieldEqualityCheckers)
             throws InvalidAnkiDatabase_fieldAndFieldNameCountMismatchException {
         if (dataSet.size() == 0) {
             return new LinkedList<>();
@@ -428,7 +454,9 @@ public class AnkiDroidHelper {
             for (String fieldName : fieldNames) {
                 if (data.containsKey(fieldName)) {
                     String value = data.get(fieldName);
-                    if (!value.isEmpty() && defaultFieldValues.containsKey(fieldName) && value.equals(defaultFieldValues.get(fieldName))) {
+                    if (!value.isEmpty()
+                            && fieldDefaultValues.containsKey(fieldName)
+                            && fieldEqualityCheckers.getOrDefault(fieldName, DEFAULT_EQUALITY_CHECKER).areEqual(value, fieldDefaultValues.get(fieldName))) {
                         defaultFields.add(fieldName);
                     }
                 }
@@ -444,14 +472,20 @@ public class AnkiDroidHelper {
                     if (fieldsAggregated.length() > 0) {
                         fieldsAggregated.append(FLDS_SEPARATOR);
                     }
-                    String value = data.containsKey(fieldName) && !data.get(fieldName).isEmpty()
-                            ? data.get(fieldName)
-                            : "%";
+
+                    String expression;
+                    if (data.containsKey(fieldName)) {
+                        String value = data.get(fieldName);
+                        expression = fieldSearchExpressionMakers.getOrDefault(fieldName, DEFAULT_SEARCH_EXPRESSION_MAKER).getExpression(value);
+                    } else {
+                        expression = "%";
+                    }
+
                     int idx = defaultFields.indexOf(fieldName);
                     if (idx != -1 && i % (n / (int) Math.pow(2, idx)) >= (n / Math.pow(2, idx + 1))) {
-                        value = "";
+                        expression = "";
                     }
-                    fieldsAggregated.append(value);
+                    fieldsAggregated.append(expression);
                 }
                 dataCondition.append(String.format(Locale.US, "%s like \"%s\"", FlashCardsContract.Note.FLDS, fieldsAggregated.toString()));
             }
@@ -476,6 +510,7 @@ public class AnkiDroidHelper {
         }
 
         try {
+            rows:
             while (notesTableCursor.moveToNext()) {
                 int idIndex = notesTableCursor.getColumnIndexOrThrow(FlashCardsContract.Note._ID);
                 int fldsIndex = notesTableCursor.getColumnIndexOrThrow(FlashCardsContract.Note.FLDS);
@@ -494,7 +529,23 @@ public class AnkiDroidHelper {
                     item.put(KEY_TAGS, notesTableCursor.getString(tagsIndex));
 
                     for (int i = 0; i < fieldNames.length; ++i) {
-                        item.put(fieldNames[i], fields[i]);
+                        String fieldName = fieldNames[i];
+                        String field = fields[i];
+                        SearchExpressionMaker expressionMaker = fieldSearchExpressionMakers.getOrDefault(fieldName, DEFAULT_SEARCH_EXPRESSION_MAKER);
+                        if (!expressionMaker.isDefinite()) {
+                            EqualityChecker equalityChecker = fieldEqualityCheckers.getOrDefault(fieldName, DEFAULT_EQUALITY_CHECKER);
+                            boolean matching = false;
+                            for (Map<String, String> data : dataSet) {
+                                if (equalityChecker.areEqual(data.getOrDefault(fieldName, ""), field)) {
+                                    matching = true;
+                                    break;
+                                }
+                            }
+                            if (!matching) {
+                                continue rows;
+                            }
+                        }
+                        item.put(fieldName, field);
                     }
 
                     result.add(item);

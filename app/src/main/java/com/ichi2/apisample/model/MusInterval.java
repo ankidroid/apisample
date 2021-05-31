@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -138,6 +139,78 @@ public class MusInterval {
 
         public static final Map<String, String> DEFAULT_VALUES = new HashMap<String, String>() {{
             put(FIRST_NOTE_DURATION_COEFFICIENT, String.valueOf(FirstNoteDurationCoefficient.DEFAULT_VALUE));
+        }};
+
+        public static final Map<String, AnkiDroidHelper.SearchExpressionMaker> SEARCH_EXPRESSION_MAKERS = new HashMap<String, AnkiDroidHelper.SearchExpressionMaker>() {{
+            put(TEMPO, new AnkiDroidHelper.SearchExpressionMaker() {
+                @Override
+                public String getExpression(String value) {
+                    value = value.trim();
+                    if (value.isEmpty()) {
+                        return "%";
+                    }
+                    int number;
+                    try {
+                        number = Integer.parseInt(value);
+                        return String.format(Locale.US, "%%%d%%", number);
+                    } catch (java.lang.Exception e) {
+                        return value;
+                    }
+                }
+
+                @Override
+                public boolean isDefinite() {
+                    return false;
+                }
+            });
+            put(FIRST_NOTE_DURATION_COEFFICIENT, new AnkiDroidHelper.SearchExpressionMaker() {
+                @Override
+                public String getExpression(String value) {
+                    value = value.trim();
+                    if (value.isEmpty()) {
+                        return "%";
+                    }
+                    double number;
+                    try {
+                        number = Double.parseDouble(value);
+                        if (number % 1 == 0) {
+                            return String.format(Locale.US, "%%%d%%", (int) number);
+                        } else {
+                            return String.format(Locale.US, "%%%s%%", number);
+                        }
+                    } catch (java.lang.Exception e) {
+                        return value;
+                    }
+                }
+
+                @Override
+                public boolean isDefinite() {
+                    return false;
+                }
+            });
+        }};
+
+        public static final Map<String, AnkiDroidHelper.EqualityChecker> EQUALITY_CHECKERS = new HashMap<String, AnkiDroidHelper.EqualityChecker>() {{
+            put(TEMPO, new AnkiDroidHelper.EqualityChecker() {
+                @Override
+                public boolean areEqual(String v1, String v2) {
+                    try { // @fixme
+                        return Integer.parseInt(v1.trim()) == Integer.parseInt(v2.trim());
+                    } catch (java.lang.Exception e) {
+                        return false;
+                    }
+                }
+            });
+            put(FIRST_NOTE_DURATION_COEFFICIENT, new AnkiDroidHelper.EqualityChecker() {
+                @Override
+                public boolean areEqual(String v1, String v2) {
+                    try {
+                        return Double.parseDouble(v1.trim()) == Double.parseDouble(v2.trim());
+                    } catch (java.lang.Exception e) {
+                        return false;
+                    }
+                }
+            });
         }};
 
         private static final Validator VALIDATOR_EMPTY = new EmptyValidator();
@@ -449,6 +522,8 @@ public class MusInterval {
     public final String modelName;
     public final Map<String, String> modelFields;
     final Map<String, String> modelFieldsDefaultValues;
+    final Map<String, AnkiDroidHelper.SearchExpressionMaker> modelFieldsSearchExpressionMakers;
+    final Map<String, AnkiDroidHelper.EqualityChecker> modelFieldsEqualityCheckers;
     public final Long modelId;
     public final String deckName;
     private Long deckId;
@@ -528,9 +603,19 @@ public class MusInterval {
         modelName = builder.mModelName;
         modelFields = builder.mModelFields;
         modelFieldsDefaultValues = new HashMap<>();
-        for (Map.Entry<String, String> fieldDefaultValue : Fields.DEFAULT_VALUES.entrySet()) {
-            String fieldKey = fieldDefaultValue.getKey();
-            modelFieldsDefaultValues.put(modelFields.getOrDefault(fieldKey, fieldKey), fieldDefaultValue.getValue());
+        modelFieldsSearchExpressionMakers = new HashMap<>();
+        modelFieldsEqualityCheckers = new HashMap<>();
+        for (String fieldKey : Fields.getSignature(true)) {
+            String modelField = modelFields.getOrDefault(fieldKey, fieldKey);
+            if (Fields.DEFAULT_VALUES.containsKey(fieldKey)) {
+                modelFieldsDefaultValues.put(modelField, Fields.DEFAULT_VALUES.get(fieldKey));
+            }
+            if (Fields.SEARCH_EXPRESSION_MAKERS.containsKey(fieldKey)) {
+                modelFieldsSearchExpressionMakers.put(modelField, Fields.SEARCH_EXPRESSION_MAKERS.get(fieldKey));
+            }
+            if (Fields.EQUALITY_CHECKERS.containsKey(fieldKey)) {
+                modelFieldsEqualityCheckers.put(modelField, Fields.EQUALITY_CHECKERS.get(fieldKey));
+            }
         }
         modelId = helper.findModelIdByName(builder.mModelName);
         deckName = builder.mDeckName;
@@ -631,7 +716,13 @@ public class MusInterval {
                 data.remove(modelFields.get(Fields.SOUND_LARGER));
                 data.remove(modelFields.get(Fields.VERSION));
             }
-            return helper.findNotes(modelId, dataSet, modelFieldsDefaultValues);
+            return helper.findNotes(
+                    modelId,
+                    dataSet,
+                    modelFieldsDefaultValues,
+                    modelFieldsSearchExpressionMakers,
+                    modelFieldsEqualityCheckers
+            );
         } else {
             return new LinkedList<>();
         }
