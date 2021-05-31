@@ -136,7 +136,9 @@ public abstract class RelatedIntervalSoundField {
         }};
     }
 
-    private static boolean isEqualData(Map<String, String> data1, Map<String, String> data2, Map<String, String> modelFieldsDefaultValues, Map<String, EqualityChecker> modelFieldsEqualityCheckers) {
+    private static boolean isEqualData(Map<String, String> data1, Map<String, String> data2,
+                                       Map<String, String> modelFieldsDefaultValues,
+                                       Map<String, EqualityChecker> modelFieldsEqualityCheckers) {
         Set<String> keySet = data1.keySet();
         if (!keySet.equals(data2.keySet())) {
             return false;

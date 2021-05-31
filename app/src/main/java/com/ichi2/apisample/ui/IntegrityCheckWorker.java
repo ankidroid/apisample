@@ -73,7 +73,8 @@ public class IntegrityCheckWorker implements Runnable {
         put(MusInterval.Fields.DIRECTION, new GetStringArgs(R.string.validation_allowed_values, ALLOWED_DIRECTIONS_STR));
         put(MusInterval.Fields.TIMING, new GetStringArgs(R.string.validation_allowed_values, ALLOWED_TIMINGS_STR));
         put(MusInterval.Fields.INTERVAL, new GetStringArgs(R.string.validation_allowed_values, ALLOWED_INTERVALS_STR));
-        put(MusInterval.Fields.TEMPO, new GetStringArgs(R.string.validation_range, MusInterval.Fields.Tempo.MIN_VALUE, MusInterval.Fields.Tempo.MAX_VALUE));
+        put(MusInterval.Fields.TEMPO, new GetStringArgs(R.string.validation_range,
+                MusInterval.Fields.Tempo.MIN_VALUE, MusInterval.Fields.Tempo.MAX_VALUE));
         put(MusInterval.Fields.INSTRUMENT, new GetStringArgs(R.string.validation_mandatory));
         put(MusInterval.Fields.FIRST_NOTE_DURATION_COEFFICIENT, new GetStringArgs(R.string.validation_positive_decimal));
     }};

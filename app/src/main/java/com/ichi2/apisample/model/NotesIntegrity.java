@@ -209,7 +209,10 @@ public class NotesIntegrity {
                 }
             }
             for (String key : keyData.keySet()) {
-                SearchExpressionMaker expressionMaker = musInterval.modelFieldsSearchExpressionMakers.getOrDefault(key, AnkiDroidHelper.DEFAULT_SEARCH_EXPRESSION_MAKER);
+                SearchExpressionMaker expressionMaker = musInterval.modelFieldsSearchExpressionMakers.getOrDefault(
+                        key,
+                        AnkiDroidHelper.DEFAULT_SEARCH_EXPRESSION_MAKER
+                );
                 String value = keyData.get(key);
                 keyData.put(key, expressionMaker.getExpression(value));
             }
