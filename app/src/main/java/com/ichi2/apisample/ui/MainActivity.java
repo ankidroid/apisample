@@ -306,7 +306,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private void validateModel() {
         try {
             getMusInterval();
-        } catch (MusInterval.ModelValidationException e) {
+        } catch (MusInterval.ModelException e) {
             processMusIntervalException(e);
         } catch (MusInterval.ValidationException e) {
             // ignore other validation errors aside from model
@@ -468,6 +468,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     }
                 } else {
                     uri = UriUtil.getContentUri(this, Uri.parse(filename));
+                    getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
                     Cursor cursor = getContentResolver().query(uri, null, null, null, null);
                     int nameIdx = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
                     cursor.moveToFirst();
@@ -1225,7 +1226,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     .setPositiveButton(R.string.update, new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
                             Long updatedModelId = mAnkiDroid.updateCustomModel(
-                                    mAnkiDroid.findModelIdByName(modelName),
+                                    e.getModelId(),
                                     e.getFields(),
                                     e.getCards(),
                                     e.getQfmt(),
