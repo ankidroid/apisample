@@ -550,7 +550,9 @@ public class AnkiDroidHelper {
                             boolean matching = false;
                             for (Map<String, String> data : dataSet) {
                                 String value = data.getOrDefault(fieldName, "");
-                                if (value.isEmpty() || equalityChecker.areEqual(value, field)) {
+                                boolean defaultEquality = field.isEmpty() && fieldDefaultValues.containsKey(fieldName)
+                                        && equalityChecker.areEqual(value, fieldDefaultValues.get(fieldName));
+                                if (value.isEmpty() || equalityChecker.areEqual(value, field) || defaultEquality) {
                                     matching = true;
                                     break;
                                 }
