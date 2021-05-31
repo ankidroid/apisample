@@ -8,24 +8,17 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
-import android.media.MediaCodec;
-import android.media.MediaExtractor;
-import android.media.MediaFormat;
-import android.media.MediaMuxer;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.core.content.FileProvider;
 
 import com.ichi2.anki.FlashCardsContract;
 import com.ichi2.anki.api.AddContentApi;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -45,6 +38,8 @@ public class AnkiDroidHelper {
     public static final String HIERARCHICAL_TAG_SEPARATOR = "::";
 
     public static final String DIR_MEDIA = "/collection.media/";
+
+    private static final String PACKAGE_ANKI = "com.ichi2.anki";
 
     private static final String DECK_REF_DB = "com.ichi2.anki.api.decks";
     private static final String MODEL_REF_DB = "com.ichi2.anki.api.models";
@@ -143,9 +138,28 @@ public class AnkiDroidHelper {
         return getApi().addNewCustomModel(modelName, fields, cards, qfmt, afmt, css, null, null);
     }
 
+
+    /**
+     * Check the correspondence of the stored model's parameters to input values.
+     * A template card amount and string values equality is used for comparison.
+     * Array arguments except fields must retain order. The field array uses a subset condition.
+     * @param modelId the id of the model that is being checked
+     * @param fields: array of field names
+     * @param cards: array of names for the card templates, not necessarily ordered
+     * @param qfmt: array of formatting strings for the question side of each template in cards
+     * @param afmt: array of formatting strings for the answer side of each template in cards
+     * @param css: css styling information to be shared across all of the templates
+     * @return true if no differences were found, false otherwise
+     * @throws IllegalArgumentException if the model with the provided id does not exist
+     */
     public boolean checkCustomModel(long modelId, String[] fields, String[] cards, String[] qfmt, String[] afmt, String css) {
         Uri modelUri = Uri.withAppendedPath(FlashCardsContract.Model.CONTENT_URI, String.valueOf(modelId));
-        Cursor cursor = mResolver.query(modelUri, null, null, null, null);
+        Cursor cursor;
+        try {
+            cursor = mResolver.query(modelUri, null, null, null, null);
+        } catch (Exception e) {
+            throw new IllegalArgumentException();
+        }
         cursor.moveToNext();
         String existingCss = cursor.getString(cursor.getColumnIndex(FlashCardsContract.Model.CSS));
         String existingNumCards = cursor.getString(cursor.getColumnIndex(FlashCardsContract.Model.NUM_CARDS));
@@ -177,12 +191,30 @@ public class AnkiDroidHelper {
         return true;
     }
 
+    /**
+     * Updates the stored model's parameters with input values.
+     * Appends missing fields to the end of the existing ones (order is not retained).
+     * For card templates, the existing ones are updated first, new ones are inserted if needed, order is retained.
+     * @param modelId the id of the model that is being checked
+     * @param fields: array of field names
+     * @param cards: array of names for the card templates, not necessarily ordered
+     * @param qfmt: array of formatting strings for the question side of each template in cards
+     * @param afmt: array of formatting strings for the answer side of each template in cards
+     * @param css: css styling information to be shared across all of the templates
+     * @return updated model id if the operation finished successfully, null otherwise
+     * @throws IllegalArgumentException if the model with the provided id does not exist
+     */
     public Long updateCustomModel(long modelId, String[] fields, String[] cards, String[] qfmt, String[] afmt, String css) {
         ContentValues values = new ContentValues();
         values.put(FlashCardsContract.Model.CSS, css);
         values.put(FlashCardsContract.Model.NUM_CARDS, cards.length);
         Uri modelUri = Uri.withAppendedPath(FlashCardsContract.Model.CONTENT_URI, String.valueOf(modelId));
-        int updated = mResolver.update(modelUri, values, null, null);
+        int updated;
+        try {
+            updated = mResolver.update(modelUri, values, null, null);
+        } catch (Exception e) {
+            throw new IllegalArgumentException();
+        }
         if (updated == 0) {
             return null;
         }
@@ -295,74 +327,23 @@ public class AnkiDroidHelper {
     // @todo: refactor once new version release of "com.ichi2.anki.api" is available
     public String addFileToAnkiMedia(String uriString) {
         Uri uri = Uri.parse(uriString);
-        mContext.grantUriPermission("com.ichi2.anki", uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        mContext.grantUriPermission(PACKAGE_ANKI, uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
         String type = mResolver.getType(uri);
-        File tempAudioFile = null;
+        final String tempAudioFilePath = Environment.getExternalStorageDirectory().getPath() + "/tempOutput.mp3";
         if (type.startsWith("video")) {
-            if (!type.equals("video/mp4")) {
-                mContext.revokeUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            Uri extractedAudioUri = AudioExtractionUtil.extract(mContext, uri, tempAudioFilePath);
+            // @todo: separate concerns
+            mContext.revokeUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            if (extractedAudioUri == null) {
                 return null;
-            }
-            try {
-                MediaMuxer mediaMuxer = null;
-                MediaExtractor mediaExtractor = new MediaExtractor();
-                final String tempAudioPath = Environment.getExternalStorageDirectory().getPath() + "/tempOutput.mp3";
-                mediaExtractor.setDataSource(mContext, uri, null);
-                int trackCount = mediaExtractor.getTrackCount();
-                int audioTrackindex = -1;
-                int framerate = -1;
-                for (int i = 0; i < trackCount; i++) {
-                    MediaFormat trackFormat = mediaExtractor.getTrackFormat(i);
-                    String mime = trackFormat.getString(MediaFormat.KEY_MIME);
-                    if (mime.startsWith("audio/")) {
-                        mediaExtractor.selectTrack(i);
-                        mediaMuxer = new MediaMuxer(tempAudioPath, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
-                        audioTrackindex = mediaMuxer.addTrack(trackFormat);
-                        mediaMuxer.start();
-                    }
-                    if (mime.startsWith("video/")) {
-                        framerate = trackFormat.getInteger(MediaFormat.KEY_FRAME_RATE);
-                        break;
-                    }
-                }
-
-                if (mediaMuxer == null) {
-                    mContext.revokeUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                    return null;
-                }
-
-                MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
-                bufferInfo.presentationTimeUs = 0;
-
-                ByteBuffer byteBuffer = ByteBuffer.allocate(500 * 1024);
-
-                int i;
-                while ((i = mediaExtractor.readSampleData(byteBuffer, 0)) > 0) {
-                    bufferInfo.offset = 0;
-                    bufferInfo.size = i;
-                    bufferInfo.flags = mediaExtractor.getSampleFlags();
-                    bufferInfo.presentationTimeUs += 1000 * 1000 / framerate;
-                    mediaMuxer.writeSampleData(audioTrackindex, byteBuffer, bufferInfo);
-                    mediaExtractor.advance();
-                }
-
-                mediaExtractor.release();
-                mediaMuxer.stop();
-                mediaMuxer.release();
-
-                mContext.revokeUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                tempAudioFile = new File(tempAudioPath);
-                uri = FileProvider.getUriForFile(mContext, mContext.getApplicationContext().getPackageName() + ".provider", tempAudioFile);
-                mContext.grantUriPermission("com.ichi2.anki", uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            } else {
+                uri = extractedAudioUri;
+                mContext.grantUriPermission(PACKAGE_ANKI, uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
                 uriString = uri.toString();
-            } catch (IOException e) {
-                mContext.revokeUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                if (tempAudioFile != null && tempAudioFile.exists()) {
-                    tempAudioFile.delete();
-                }
-                return null;
             }
         }
+
         ContentValues cv = new ContentValues();
         cv.put("file_uri", uriString);
         final String preferredName = "music_interval_" + (System.currentTimeMillis() / 1000L);
@@ -370,13 +351,14 @@ public class AnkiDroidHelper {
         try {
             Uri insertedUri = mResolver.insert(Uri.withAppendedPath(FlashCardsContract.AUTHORITY_URI, "media"), cv);
             File insertedFile = new File(insertedUri.getPath());
-            String filePath =  insertedFile.toString();
+            String filePath = insertedFile.toString();
             return filePath.substring(1); // get rid of the "/" at the beginning
         } catch (Exception e) {
             return null;
         } finally {
             mContext.revokeUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            if (tempAudioFile != null && tempAudioFile.exists()) {
+            File tempAudioFile = new File(tempAudioFilePath);
+            if (tempAudioFile.exists()) {
                 tempAudioFile.delete();
             }
         }
