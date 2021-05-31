@@ -2,6 +2,7 @@ package com.ichi2.apisample.model;
 
 import com.ichi2.apisample.R;
 import com.ichi2.apisample.helper.AnkiDroidHelper;
+import com.ichi2.apisample.helper.search.SearchExpressionMaker;
 import com.ichi2.apisample.validation.Validator;
 
 import java.util.ArrayList;
@@ -208,7 +209,7 @@ public class NotesIntegrity {
                 }
             }
             for (String key : keyData.keySet()) {
-                AnkiDroidHelper.SearchExpressionMaker expressionMaker = musInterval.modelFieldsSearchExpressionMakers.getOrDefault(key, AnkiDroidHelper.DEFAULT_SEARCH_EXPRESSION_MAKER);
+                SearchExpressionMaker expressionMaker = musInterval.modelFieldsSearchExpressionMakers.getOrDefault(key, AnkiDroidHelper.DEFAULT_SEARCH_EXPRESSION_MAKER);
                 String value = keyData.get(key);
                 keyData.put(key, expressionMaker.getExpression(value));
             }

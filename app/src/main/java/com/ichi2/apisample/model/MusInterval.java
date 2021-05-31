@@ -2,6 +2,12 @@ package com.ichi2.apisample.model;
 
 import com.ichi2.apisample.R;
 import com.ichi2.apisample.helper.AnkiDroidHelper;
+import com.ichi2.apisample.helper.equality.DoubleEqualityChecker;
+import com.ichi2.apisample.helper.equality.EqualityChecker;
+import com.ichi2.apisample.helper.equality.IntegerEqualityChecker;
+import com.ichi2.apisample.helper.search.DoubleSearchExpressionMaker;
+import com.ichi2.apisample.helper.search.IntegerSearchExpressionMaker;
+import com.ichi2.apisample.helper.search.SearchExpressionMaker;
 import com.ichi2.apisample.validation.PositiveDecimalValidator;
 import com.ichi2.apisample.validation.EmptyValidator;
 import com.ichi2.apisample.validation.IntegerRangeValidator;
@@ -141,76 +147,14 @@ public class MusInterval {
             put(FIRST_NOTE_DURATION_COEFFICIENT, String.valueOf(FirstNoteDurationCoefficient.DEFAULT_VALUE));
         }};
 
-        public static final Map<String, AnkiDroidHelper.SearchExpressionMaker> SEARCH_EXPRESSION_MAKERS = new HashMap<String, AnkiDroidHelper.SearchExpressionMaker>() {{
-            put(TEMPO, new AnkiDroidHelper.SearchExpressionMaker() {
-                @Override
-                public String getExpression(String value) {
-                    value = value.trim();
-                    if (value.isEmpty()) {
-                        return "%";
-                    }
-                    int number;
-                    try {
-                        number = Integer.parseInt(value);
-                        return String.format(Locale.US, "%%%d%%", number);
-                    } catch (java.lang.Exception e) {
-                        return value;
-                    }
-                }
-
-                @Override
-                public boolean isDefinitive() {
-                    return false;
-                }
-            });
-            put(FIRST_NOTE_DURATION_COEFFICIENT, new AnkiDroidHelper.SearchExpressionMaker() {
-                @Override
-                public String getExpression(String value) {
-                    value = value.trim();
-                    if (value.isEmpty()) {
-                        return "%";
-                    }
-                    double number;
-                    try {
-                        number = Double.parseDouble(value);
-                        if (number % 1 == 0) {
-                            return String.format(Locale.US, "%%%d%%", (int) number);
-                        } else {
-                            return String.format(Locale.US, "%%%s%%", number);
-                        }
-                    } catch (java.lang.Exception e) {
-                        return value;
-                    }
-                }
-
-                @Override
-                public boolean isDefinitive() {
-                    return false;
-                }
-            });
+        public static final Map<String, SearchExpressionMaker> SEARCH_EXPRESSION_MAKERS = new HashMap<String, SearchExpressionMaker>() {{
+            put(TEMPO, new IntegerSearchExpressionMaker());
+            put(FIRST_NOTE_DURATION_COEFFICIENT, new DoubleSearchExpressionMaker());
         }};
 
-        public static final Map<String, AnkiDroidHelper.EqualityChecker> EQUALITY_CHECKERS = new HashMap<String, AnkiDroidHelper.EqualityChecker>() {{
-            put(TEMPO, new AnkiDroidHelper.EqualityChecker() {
-                @Override
-                public boolean areEqual(String v1, String v2) {
-                    try { // @fixme
-                        return Integer.parseInt(v1.trim()) == Integer.parseInt(v2.trim());
-                    } catch (java.lang.Exception e) {
-                        return false;
-                    }
-                }
-            });
-            put(FIRST_NOTE_DURATION_COEFFICIENT, new AnkiDroidHelper.EqualityChecker() {
-                @Override
-                public boolean areEqual(String v1, String v2) {
-                    try {
-                        return Double.parseDouble(v1.trim()) == Double.parseDouble(v2.trim());
-                    } catch (java.lang.Exception e) {
-                        return false;
-                    }
-                }
-            });
+        public static final Map<String, EqualityChecker> EQUALITY_CHECKERS = new HashMap<String, EqualityChecker>() {{
+            put(TEMPO, new IntegerEqualityChecker());
+            put(FIRST_NOTE_DURATION_COEFFICIENT, new DoubleEqualityChecker());
         }};
 
         private static final Validator VALIDATOR_EMPTY = new EmptyValidator();
@@ -522,8 +466,8 @@ public class MusInterval {
     public final String modelName;
     public final Map<String, String> modelFields;
     final Map<String, String> modelFieldsDefaultValues;
-    final Map<String, AnkiDroidHelper.SearchExpressionMaker> modelFieldsSearchExpressionMakers;
-    final Map<String, AnkiDroidHelper.EqualityChecker> modelFieldsEqualityCheckers;
+    final Map<String, SearchExpressionMaker> modelFieldsSearchExpressionMakers;
+    final Map<String, EqualityChecker> modelFieldsEqualityCheckers;
     public final Long modelId;
     public final String deckName;
     private Long deckId;

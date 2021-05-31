@@ -1,6 +1,7 @@
 package com.ichi2.apisample.model;
 
 import com.ichi2.apisample.helper.AnkiDroidHelper;
+import com.ichi2.apisample.helper.equality.EqualityChecker;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -135,7 +136,7 @@ public abstract class RelatedIntervalSoundField {
         }};
     }
 
-    private static boolean isEqualData(Map<String, String> data1, Map<String, String> data2, Map<String, String> modelFieldsDefaultValues, Map<String, AnkiDroidHelper.EqualityChecker> modelFieldsEqualityCheckers) {
+    private static boolean isEqualData(Map<String, String> data1, Map<String, String> data2, Map<String, String> modelFieldsDefaultValues, Map<String, EqualityChecker> modelFieldsEqualityCheckers) {
         Set<String> keySet = data1.keySet();
         if (!keySet.equals(data2.keySet())) {
             return false;
@@ -146,7 +147,7 @@ public abstract class RelatedIntervalSoundField {
             String value2 = data2.getOrDefault(key, "");
             boolean defaultEquality = !defaultValue.isEmpty() &&
                     (value1.equalsIgnoreCase(defaultValue) && value2.isEmpty() || value1.isEmpty() && value2.equalsIgnoreCase(defaultValue));
-            AnkiDroidHelper.EqualityChecker equalityChecker = modelFieldsEqualityCheckers.getOrDefault(key, AnkiDroidHelper.DEFAULT_EQUALITY_CHECKER);
+            EqualityChecker equalityChecker = modelFieldsEqualityCheckers.getOrDefault(key, AnkiDroidHelper.DEFAULT_EQUALITY_CHECKER);
             if (!equalityChecker.areEqual(value1, value2) && !defaultEquality) {
                 return false;
             }

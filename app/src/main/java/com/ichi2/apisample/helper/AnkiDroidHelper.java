@@ -21,6 +21,8 @@ import androidx.core.content.ContextCompat;
 
 import com.ichi2.anki.FlashCardsContract;
 import com.ichi2.anki.api.AddContentApi;
+import com.ichi2.apisample.helper.equality.EqualityChecker;
+import com.ichi2.apisample.helper.search.SearchExpressionMaker;
 
 import java.io.File;
 import java.io.IOException;
@@ -403,10 +405,6 @@ public class AnkiDroidHelper {
         return getApi().addNote(modelId, deckId, result, tags);
     }
 
-    public interface SearchExpressionMaker {
-        String getExpression(String value);
-        boolean isDefinitive();
-    }
     public static final SearchExpressionMaker DEFAULT_SEARCH_EXPRESSION_MAKER = new SearchExpressionMaker() {
         @Override
         public String getExpression(String value) {
@@ -419,9 +417,6 @@ public class AnkiDroidHelper {
         }
     };
 
-    public interface EqualityChecker {
-        boolean areEqual(String v1, String v2);
-    }
     public static final EqualityChecker DEFAULT_EQUALITY_CHECKER = new EqualityChecker() {
         @Override
         public boolean areEqual(String v1, String v2) {
