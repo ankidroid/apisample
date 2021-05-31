@@ -159,7 +159,7 @@ public class MusInterval {
                 }
 
                 @Override
-                public boolean isDefinite() {
+                public boolean isDefinitive() {
                     return false;
                 }
             });
@@ -184,7 +184,7 @@ public class MusInterval {
                 }
 
                 @Override
-                public boolean isDefinite() {
+                public boolean isDefinitive() {
                     return false;
                 }
             });

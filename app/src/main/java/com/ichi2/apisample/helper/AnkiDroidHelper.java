@@ -405,7 +405,7 @@ public class AnkiDroidHelper {
 
     public interface SearchExpressionMaker {
         String getExpression(String value);
-        boolean isDefinite();
+        boolean isDefinitive();
     }
     public static final SearchExpressionMaker DEFAULT_SEARCH_EXPRESSION_MAKER = new SearchExpressionMaker() {
         @Override
@@ -414,7 +414,7 @@ public class AnkiDroidHelper {
         }
 
         @Override
-        public boolean isDefinite() {
+        public boolean isDefinitive() {
             return true;
         }
     };
@@ -429,7 +429,10 @@ public class AnkiDroidHelper {
         }
     };
 
-    public LinkedList<Map<String, String>> findNotes(long modelId, final Map<String, String> data, Map<String, String> fieldDefaultValues, Map<String, SearchExpressionMaker> fieldSearchExpressionMakers, Map<String, EqualityChecker> fieldEqualityCheckers)
+    public LinkedList<Map<String, String>> findNotes(long modelId, final Map<String, String> data,
+                                                     Map<String, String> fieldDefaultValues,
+                                                     Map<String, SearchExpressionMaker> fieldSearchExpressionMakers,
+                                                     Map<String, EqualityChecker> fieldEqualityCheckers)
             throws InvalidAnkiDatabase_fieldAndFieldNameCountMismatchException {
         ArrayList<Map<String, String>> dataSet = new ArrayList<Map<String, String>>() {{
             add(data);
@@ -437,7 +440,10 @@ public class AnkiDroidHelper {
         return findNotes(modelId, dataSet, fieldDefaultValues, fieldSearchExpressionMakers, fieldEqualityCheckers);
     }
 
-    public LinkedList<Map<String, String>> findNotes(long modelId, ArrayList<Map<String, String>> dataSet, Map<String, String> fieldDefaultValues, Map<String, SearchExpressionMaker> fieldSearchExpressionMakers, Map<String, EqualityChecker> fieldEqualityCheckers)
+    public LinkedList<Map<String, String>> findNotes(long modelId, ArrayList<Map<String, String>> dataSet,
+                                                     Map<String, String> fieldDefaultValues,
+                                                     Map<String, SearchExpressionMaker> fieldSearchExpressionMakers,
+                                                     Map<String, EqualityChecker> fieldEqualityCheckers)
             throws InvalidAnkiDatabase_fieldAndFieldNameCountMismatchException {
         if (dataSet.size() == 0) {
             return new LinkedList<>();
@@ -454,14 +460,18 @@ public class AnkiDroidHelper {
             for (String fieldName : fieldNames) {
                 if (data.containsKey(fieldName)) {
                     String value = data.get(fieldName);
-                    if (!value.isEmpty()
-                            && fieldDefaultValues.containsKey(fieldName)
-                            && fieldEqualityCheckers.getOrDefault(fieldName, DEFAULT_EQUALITY_CHECKER).areEqual(value, fieldDefaultValues.get(fieldName))) {
-                        defaultFields.add(fieldName);
+                    if (!value.isEmpty() && fieldDefaultValues.containsKey(fieldName)) {
+                        EqualityChecker equalityChecker = fieldEqualityCheckers.getOrDefault(fieldName, DEFAULT_EQUALITY_CHECKER);
+                        String defaultValue = fieldDefaultValues.get(fieldName);
+                        if (equalityChecker.areEqual(value, defaultValue)) {
+                            defaultFields.add(fieldName);
+                        }
                     }
                 }
             }
 
+            // here we create two conditions for each field containing default value
+            // to account for the case of the default value empty value equality
             int n = (int) Math.pow(2, defaultFields.size());
             for (int i = 0; i < n; i++) {
                 StringBuilder fieldsAggregated = new StringBuilder();
@@ -481,6 +491,8 @@ public class AnkiDroidHelper {
                         expression = "%";
                     }
 
+                    // decide whether or not this is the "second" condition, for which we substitute
+                    // the value that is being searched for is an empty string
                     int idx = defaultFields.indexOf(fieldName);
                     if (idx != -1 && i % (n / (int) Math.pow(2, idx)) >= (n / Math.pow(2, idx + 1))) {
                         expression = "";
@@ -531,8 +543,10 @@ public class AnkiDroidHelper {
                     for (int i = 0; i < fieldNames.length; ++i) {
                         String fieldName = fieldNames[i];
                         String field = fields[i];
+                        // additional filtering for non-definitive expressions
+                        // can be computationally expensive
                         SearchExpressionMaker expressionMaker = fieldSearchExpressionMakers.getOrDefault(fieldName, DEFAULT_SEARCH_EXPRESSION_MAKER);
-                        if (!expressionMaker.isDefinite()) {
+                        if (!expressionMaker.isDefinitive()) {
                             EqualityChecker equalityChecker = fieldEqualityCheckers.getOrDefault(fieldName, DEFAULT_EQUALITY_CHECKER);
                             boolean matching = false;
                             for (Map<String, String> data : dataSet) {
