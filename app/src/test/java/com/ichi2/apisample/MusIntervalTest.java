@@ -1765,7 +1765,7 @@ public class MusIntervalTest {
         AddingPrompter prompter = mock(AddingPrompter.class);
         doAnswer(new Answer() {
             @Override
-            public Object answer(InvocationOnMock invocation) throws Throwable {
+            public Object answer(InvocationOnMock invocation) {
                 musIntervalsAdded.add(((AddingHandler) invocation.getArgument(1)).add());
                 return null;
             }
