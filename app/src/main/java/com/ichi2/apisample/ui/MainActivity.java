@@ -475,8 +475,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                         uri = Uri.fromFile(file);
                     }
                 } else {
-                    uri = UriUtil.getContentUri(this, Uri.parse(filename));
-                    Cursor cursor = getContentResolver().query(uri, null, null, null, null);
+                    uri = Uri.parse(filename);
+                    Cursor cursor = getContentResolver().query(UriUtil.getContentUri(this, uri), null, null, null, null);
                     int nameIdx = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
                     cursor.moveToFirst();
                     name = cursor.getString(nameIdx);
@@ -499,15 +499,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                         FilenameAdapter.UriPathName[] filenames = new FilenameAdapter.UriPathName[uriPathNames.length];
                         for (int i = 0; i < uriPathNames.length; i++) {
                             FilenameAdapter.UriPathName uriPathName = uriPathNames[i];
-                            String startNote = i < noteKeys.length || i < octaveKeys.length ? noteKeys[i] + octaveKeys[i] : getString(R.string.unassigned);
-                            String interval = i < intervalKeys.length ? intervalKeys[i] : getString(R.string.unassigned);
-                            String label = getString(
-                                    R.string.filename_with_key,
-                                    i + 1,
-                                    uriPathName.getName(),
-                                    startNote,
-                                    interval);
-                            filenames[i] = new FilenameAdapter.UriPathName(uriPathName.getUri(), uriPathName.getPath(), uriPathName.getName(), label);
+                            filenames[i] = createLabel(uriPathName, i);
                         }
                         openFilenamesDialog(filenames);
                     }
@@ -525,6 +517,18 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             resetPlayButton();
         }
         textFilename.setText(text);
+    }
+
+    FilenameAdapter.UriPathName createLabel(FilenameAdapter.UriPathName uriPathName, int i) {
+        String startNote = i < noteKeys.length || i < octaveKeys.length ? noteKeys[i] + octaveKeys[i] : getString(R.string.unassigned);
+        String interval = i < intervalKeys.length ? intervalKeys[i] : getString(R.string.unassigned);
+        String label = getString(
+                R.string.filename_with_key,
+                i + 1,
+                uriPathName.getName(),
+                startNote,
+                interval);
+        return new FilenameAdapter.UriPathName(uriPathName.getUri(), uriPathName.getPath(), uriPathName.getName(), label);
     }
 
     private void openFilenamesDialog(final FilenameAdapter.UriPathName[] uriPathNames) {
@@ -558,6 +562,10 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             @Override
             public void onClick(View v) {
                 filenames = new String[]{};
+                afterAdding = false;
+                mismatchingSorting = false;
+                sortByName = false;
+                sortByDate = false;
                 resetPlayButton();
                 textFilename.setText("");
                 checkNoteAny.setChecked(true);
@@ -760,6 +768,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                                             uriStrings[j] = uriList.get(sortedNameIdx).toString();
                                         }
                                         sortByName = true;
+                                        sortByDate = false;
                                         filenames = uriStrings;
                                         refreshFilenames();
                                         actionPlay.callOnClick();
@@ -774,6 +783,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                                             uriStrings[j] = uriList.get(sortedLastModifiedIdx).toString();
                                         }
                                         sortByDate = true;
+                                        sortByName = false;
                                         filenames = uriStrings;
                                         refreshFilenames();
                                         actionPlay.callOnClick();
@@ -791,6 +801,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     uriStrings[i] = uriList.get(sortedNameIdx).toString();
                 }
 
+                mismatchingSorting = false;
+                sortByName = false;
+                sortByDate = false;
                 selectedFilenames = uriStrings;
                 break;
             case ACTION_SCREEN_CAPTURE:
@@ -889,6 +902,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 octaveKeys = newMi.octaves;
                 intervalKeys = newMi.intervals;
                 afterAdding = true;
+                mismatchingSorting = false;
+                sortByName = false;
+                sortByDate = false;
                 refreshFilenames();
                 savedInstruments.add(newMi.instrument);
                 savedInstrumentsAdapter.add(newMi.instrument);

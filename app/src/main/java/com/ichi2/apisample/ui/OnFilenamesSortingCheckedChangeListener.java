@@ -10,7 +10,9 @@ import android.widget.RadioGroup;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.ichi2.apisample.R;
+import com.ichi2.apisample.helper.UriUtil;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Comparator;
 
@@ -32,12 +34,16 @@ public class OnFilenamesSortingCheckedChangeListener implements RadioGroup.OnChe
         ContentResolver resolver = mainActivity.getContentResolver();
         for (FilenameAdapter.UriPathName uriPathName : uriPathNames) {
             Uri uri = uriPathName.getUri();
-            Cursor cursor = resolver.query(uri, null, null, null, null);
+            Cursor cursor = resolver.query(UriUtil.getContentUri(mainActivity, uri), null, null, null, null);
             int nameIdx = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
             int lastModifiedIdx = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_LAST_MODIFIED);
             cursor.moveToFirst();
             names.add(cursor.getString(nameIdx));
-            lastModifiedValues.add(cursor.getLong(lastModifiedIdx));
+            lastModifiedValues.add(
+                    lastModifiedIdx != -1 ?
+                            cursor.getLong(lastModifiedIdx) :
+                            new File(uri.getPath()).lastModified()
+            );
             cursor.close();
         }
 
@@ -52,24 +58,16 @@ public class OnFilenamesSortingCheckedChangeListener implements RadioGroup.OnChe
                     return s.compareTo(t1);
                 }
             });
-
             for (int j = 0; j < sortedUriPathNames.length; j++) {
                 int sortedNameIdx = names.indexOf(namesSorted.get(j));
                 FilenameAdapter.UriPathName uriPathName = uriPathNames[sortedNameIdx];
-                String startNote = j < mainActivity.noteKeys.length || j < mainActivity.octaveKeys.length ? mainActivity.noteKeys[j] + mainActivity.octaveKeys[j] : mainActivity.getString(R.string.unassigned);
-                String interval = j < mainActivity.intervalKeys.length ? mainActivity.intervalKeys[j] : mainActivity.getString(R.string.unassigned);
-                String label = mainActivity.getString(
-                        R.string.filename_with_key,
-                        j + 1,
-                        uriPathName.getName(),
-                        startNote,
-                        interval);
-                sortedUriPathNames[j] = new FilenameAdapter.UriPathName(uriPathName.getUri(), uriPathName.getPath(), uriPathName.getName(), label);
+                sortedUriPathNames[j] = mainActivity.createLabel(uriPathName, j);
                 uriStrings[j] = sortedUriPathNames[j].getUri().toString();
             }
             mainActivity.sortByName = true;
             mainActivity.sortByDate = false;
             mainActivity.filenames = uriStrings;
+
         } else if (i == R.id.radioByDate) {
             final ArrayList<Long> lastModifiedSorted = new ArrayList<>(lastModifiedValues);
             lastModifiedSorted.sort(new Comparator<Long>() {
@@ -81,15 +79,7 @@ public class OnFilenamesSortingCheckedChangeListener implements RadioGroup.OnChe
             for (int j = 0; j < sortedUriPathNames.length; j++) {
                 int sortedLastModifiedIdx = lastModifiedValues.indexOf(lastModifiedSorted.get(j));
                 FilenameAdapter.UriPathName uriPathName = uriPathNames[sortedLastModifiedIdx];
-                String startNote = j < mainActivity.noteKeys.length || j < mainActivity.octaveKeys.length ? mainActivity.noteKeys[j] + mainActivity.octaveKeys[j] : mainActivity.getString(R.string.unassigned);
-                String interval = j < mainActivity.intervalKeys.length ? mainActivity.intervalKeys[j] : mainActivity.getString(R.string.unassigned);
-                String label = mainActivity.getString(
-                        R.string.filename_with_key,
-                        j + 1,
-                        uriPathName.getName(),
-                        startNote,
-                        interval);
-                sortedUriPathNames[j] = new FilenameAdapter.UriPathName(uriPathName.getUri(), uriPathName.getPath(), uriPathName.getName(), label);
+                sortedUriPathNames[j] = mainActivity.createLabel(uriPathName, j);
                 uriStrings[j] = sortedUriPathNames[j].getUri().toString();
             }
             mainActivity.sortByName = false;
