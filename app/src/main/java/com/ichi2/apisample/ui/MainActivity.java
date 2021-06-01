@@ -6,6 +6,7 @@ import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.ClipData;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -31,6 +32,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.os.Handler;
+import android.provider.DocumentsContract;
 import android.provider.OpenableColumns;
 import android.provider.Settings;
 import android.view.LayoutInflater;
@@ -62,6 +64,7 @@ import com.ichi2.apisample.model.ProgressIndicator;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -338,7 +341,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
         refreshExisting();
         refreshPermutations();
-        boolean selected = selectedFilenames != null && selectedFilenames.length > 0;
+        boolean selected = selectedFilenames != null;
         if (selected) {
             afterAdding = false;
             filenames = selectedFilenames;
@@ -682,22 +685,98 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 if (resultCode != RESULT_OK) {
                     return;
                 }
-                ArrayList<String> filenamesList = new ArrayList<>();
+                final ArrayList<Uri> uriList = new ArrayList<>();
                 if (data != null) {
                     ClipData clipData = data.getClipData();
                     if (clipData != null) {
                         for (int i = 0; i < clipData.getItemCount(); i++) {
                             Uri uri = clipData.getItemAt(i).getUri();
                             getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                            filenamesList.add(uri.toString());
+                            uriList.add(uri);
                         }
                     } else {
                         Uri uri = data.getData();
                         getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                        filenamesList.add(uri.toString());
+                        uriList.add(uri);
                     }
                 }
-                selectedFilenames = filenamesList.toArray(new String[0]);
+
+                final ArrayList<String> names = new ArrayList<>(uriList.size());
+                final ArrayList<Long> lastModifiedValues = new ArrayList<>(uriList.size());
+                ContentResolver resolver = getContentResolver();
+                for (Uri uri : uriList) {
+                    Cursor cursor = resolver.query(uri, null, null, null, null);
+                    int nameIdx = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+                    int lastModifiedIdx = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_LAST_MODIFIED);
+                    cursor.moveToFirst();
+                    names.add(cursor.getString(nameIdx));
+                    lastModifiedValues.add(cursor.getLong(lastModifiedIdx));
+                    cursor.close();
+                }
+
+                final ArrayList<String> namesSorted = new ArrayList<>(names);
+                namesSorted.sort(new Comparator<String>() {
+                    @Override
+                    public int compare(String s, String t1) {
+                        return s.compareTo(t1);
+                    }
+                });
+
+                final ArrayList<Long> lastModifiedSorted = new ArrayList<>(lastModifiedValues);
+                lastModifiedSorted.sort(new Comparator<Long>() {
+                    @Override
+                    public int compare(Long s, Long t1) {
+                        return Long.compare(s, t1);
+                    }
+                });
+
+                String[] uriStrings = new String[uriList.size()];
+                for (int i = 0; i < uriList.size(); i++) {
+                    int sortedNameIdx = names.indexOf(namesSorted.get(i));
+                    int sortedLastModifiedIdx = lastModifiedValues.indexOf(lastModifiedSorted.get(i));
+                    if (sortedNameIdx != sortedLastModifiedIdx) {
+                        selectedFilenames = new String[]{};
+                        new AlertDialog.Builder(this)
+                                .setMessage("mismatching sort")
+                                .setNegativeButton("use name", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialogInterface, int i) {
+                                        String[] uriStrings = new String[uriList.size()];
+                                        for (int j = 0; j < uriList.size(); j++) {
+                                            int sortedNameIdx = names.indexOf(namesSorted.get(j));
+                                            uriStrings[j] = uriList.get(sortedNameIdx).toString();
+                                        }
+                                        filenames = uriStrings;
+                                        refreshFilenames();
+                                        actionPlay.callOnClick();
+                                    }
+                                })
+                                .setPositiveButton("use date", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialogInterface, int i) {
+                                        String[] uriStrings = new String[uriList.size()];
+                                        for (int j = 0; j < uriList.size(); j++) {
+                                            int sortedLastModifiedIdx = lastModifiedValues.indexOf(lastModifiedSorted.get(j));
+                                            uriStrings[j] = uriList.get(sortedLastModifiedIdx).toString();
+                                        }
+                                        filenames = uriStrings;
+                                        refreshFilenames();
+                                        actionPlay.callOnClick();
+                                    }
+                                })
+                                .setNeutralButton("cancel", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialogInterface, int i) {
+                                        dialogInterface.dismiss();
+                                    }
+                                })
+                                .show();
+                        return;
+                    }
+                    uriStrings[i] = uriList.get(sortedNameIdx).toString();
+                }
+
+                selectedFilenames = uriStrings;
                 break;
             case ACTION_SCREEN_CAPTURE:
                 if (resultCode != RESULT_OK) {
