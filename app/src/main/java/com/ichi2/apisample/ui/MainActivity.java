@@ -89,7 +89,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private static final String TAG_SUSPICIOUS = "suspicious";
 
     static final String REF_DB_STATE = "com.ichi2.apisample.uistate";
-    static final String REF_DB_SELECTED_FILENAMES = "selectedFilenames";
+    static final String REF_DB_SELECTED_FILENAMES = "selectedFilenamesArr";
     static final String REF_DB_AFTER_ADDING = "afterAdding";
     private static final String REF_DB_MISMATCHING_SORTING = "mismatchingSorting";
     private static final String REF_DB_SORT_BY_NAME = "sortByName";
@@ -499,10 +499,63 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 actionPlay.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        FilenameAdapter.UriPathName[] filenames = new FilenameAdapter.UriPathName[uriPathNames.length];
-                        for (int i = 0; i < uriPathNames.length; i++) {
-                            FilenameAdapter.UriPathName uriPathName = uriPathNames[i];
-                            filenames[i] = createLabel(uriPathName, i);
+                        FilenameAdapter.UriPathName[] filenames;
+                        if (!mismatchingSorting) {
+                            filenames = uriPathNames;
+                        } else {
+                            ArrayList<String> names = new ArrayList<>(uriPathNames.length);
+                            ArrayList<Long> lastModifiedValues = new ArrayList<>(uriPathNames.length);
+                            ContentResolver resolver = getContentResolver();
+                            for (FilenameAdapter.UriPathName uriPathName : uriPathNames) {
+                                Uri uri = uriPathName.getUri();
+                                Cursor cursor = resolver.query(UriUtil.getContentUri(MainActivity.this, uri), null, null, null, null);
+                                int nameIdx = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+                                int lastModifiedIdx = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_LAST_MODIFIED);
+                                cursor.moveToFirst();
+                                names.add(cursor.getString(nameIdx));
+                                lastModifiedValues.add(
+                                        lastModifiedIdx != -1 ?
+                                                cursor.getLong(lastModifiedIdx) :
+                                                new File(uri.getPath()).lastModified()
+                                );
+                                cursor.close();
+                            }
+
+                            FilenameAdapter.UriPathName[] sortedUriPathNames = new FilenameAdapter.UriPathName[uriPathNames.length];
+
+                            if (sortByName) {
+                                final ArrayList<String> namesSorted = new ArrayList<>(names);
+                                namesSorted.sort(new Comparator<String>() {
+                                    @Override
+                                    public int compare(String s, String t1) {
+                                        return s.compareTo(t1);
+                                    }
+                                });
+                                for (int j = 0; j < sortedUriPathNames.length; j++) {
+                                    int sortedNameIdx = names.indexOf(namesSorted.get(j));
+                                    FilenameAdapter.UriPathName uriPathName = uriPathNames[sortedNameIdx];
+                                    sortedUriPathNames[j] = createLabel(uriPathName, j);
+                                }
+
+                            } else if (sortByDate) {
+                                final ArrayList<Long> lastModifiedSorted = new ArrayList<>(lastModifiedValues);
+                                lastModifiedSorted.sort(new Comparator<Long>() {
+                                    @Override
+                                    public int compare(Long s, Long t1) {
+                                        return Long.compare(s, t1);
+                                    }
+                                });
+                                for (int j = 0; j < sortedUriPathNames.length; j++) {
+                                    int sortedLastModifiedIdx = lastModifiedValues.indexOf(lastModifiedSorted.get(j));
+                                    FilenameAdapter.UriPathName uriPathName = uriPathNames[sortedLastModifiedIdx];
+                                    sortedUriPathNames[j] = createLabel(uriPathName, j);
+                                }
+                            }
+
+                            filenames = sortedUriPathNames;
+                        }
+                        for (int i = 0; i < filenames.length; i++) {
+                            filenames[i] = createLabel(filenames[i], i);
                         }
                         openFilenamesDialog(filenames);
                     }
@@ -1074,7 +1127,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         final SharedPreferences.Editor uiDbEditor = getSharedPreferences(REF_DB_STATE, Context.MODE_PRIVATE).edit();
 
         uiDbEditor.putBoolean(REF_DB_SWITCH_BATCH, switchBatch.isChecked());
-        uiDbEditor.putStringSet(REF_DB_SELECTED_FILENAMES, new HashSet<>(Arrays.asList(filenames)));
+        uiDbEditor.putString(REF_DB_SELECTED_FILENAMES, StringUtil.joinStrings(DB_STRING_ARRAY_SEPARATOR, filenames));
         uiDbEditor.putBoolean(REF_DB_CHECK_NOTE_ANY, checkNoteAny.isChecked());
         for (int i = 0; i < CHECK_NOTE_IDS.length; i++) {
             uiDbEditor.putBoolean(String.valueOf(CHECK_NOTE_IDS[i]), checkNotes[i].isChecked());
@@ -1149,8 +1202,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
     static String[] getStoredFilenames(Context context) {
         final SharedPreferences uiDb = context.getSharedPreferences(REF_DB_STATE, Context.MODE_PRIVATE);
-        Set<String> storedFilenames = uiDb.getStringSet(REF_DB_SELECTED_FILENAMES, new HashSet<String>());
-        return storedFilenames.toArray(new String[0]);
+        return StringUtil.splitStrings(DB_STRING_ARRAY_SEPARATOR, uiDb.getString(REF_DB_SELECTED_FILENAMES, ""));
     }
 
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
