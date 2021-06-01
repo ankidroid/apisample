@@ -814,8 +814,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                         mismatchingSorting = true;
                         selectedFilenames = new String[]{};
                         new AlertDialog.Builder(this)
-                                .setMessage("mismatching sort")
-                                .setNegativeButton("use name", new DialogInterface.OnClickListener() {
+                                .setMessage(R.string.mismatching_sorting)
+                                .setNegativeButton(R.string.sort_by_name, new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialogInterface, int i) {
                                         String[] uriStrings = new String[uriList.size()];
@@ -830,7 +830,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                                         actionPlay.callOnClick();
                                     }
                                 })
-                                .setPositiveButton("use date", new DialogInterface.OnClickListener() {
+                                .setPositiveButton(R.string.sort_by_date, new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialogInterface, int i) {
                                         String[] uriStrings = new String[uriList.size()];
@@ -845,7 +845,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                                         actionPlay.callOnClick();
                                     }
                                 })
-                                .setNeutralButton("cancel", new DialogInterface.OnClickListener() {
+                                .setNeutralButton(R.string.cancel, new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialogInterface, int i) {
                                         dialogInterface.dismiss();

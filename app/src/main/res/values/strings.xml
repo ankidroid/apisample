@@ -211,6 +211,9 @@
     <string name="files_deletion_all">Delete all added</string>
     <string name="files_deletion_recorded">Delete recorded only</string>
     <string name="files_deletion_none">Do nothing</string>
+    <string name="mismatching_sorting">The selected files have different order when sorted by name and modification date. Please choose which order should be used for batch adding (you will be able to change it later in file list).</string>
+    <string name="sort_by_name">Sort by name</string>
+    <string name="sort_by_date">Sort by date</string>
 
     <!-- SettingsActivity labels, fields and buttons -->
     <string name="deck_preference_title">Deck</string>
