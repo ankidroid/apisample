@@ -197,13 +197,13 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
     }
 
-    private String[] filenames = new String[]{};
+    String[] filenames = new String[]{};
     private String[] selectedFilenames;
     private boolean mismatchingSorting;
-    private boolean sortByName;
-    private boolean sortByDate;
+    boolean sortByName;
+    boolean sortByDate;
 
-    private SoundPlayer soundPlayer;
+    SoundPlayer soundPlayer;
 
     private Integer permutationsNumber;
 
@@ -214,9 +214,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
     private boolean afterAdding;
 
-    private String[] noteKeys = new String[]{};
-    private String[] octaveKeys = new String[]{};
-    private String[] intervalKeys = new String[]{};
+    String[] noteKeys = new String[]{};
+    String[] octaveKeys = new String[]{};
+    String[] intervalKeys = new String[]{};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -540,82 +540,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         radioByName.setChecked(sortByName);
         RadioButton radioByDate = radioGroupSorting.findViewById(R.id.radioByDate);
         radioByDate.setChecked(sortByDate);
-        radioGroupSorting.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(RadioGroup radioGroup, int i) {
-                ArrayList<String> names = new ArrayList<>(uriPathNames.length);
-                ArrayList<Long> lastModifiedValues = new ArrayList<>(uriPathNames.length);
-                ContentResolver resolver = getContentResolver();
-                for (FilenameAdapter.UriPathName uriPathName : uriPathNames) {
-                    Uri uri = uriPathName.getUri();
-                    Cursor cursor = resolver.query(uri, null, null, null, null);
-                    int nameIdx = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
-                    int lastModifiedIdx = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_LAST_MODIFIED);
-                    cursor.moveToFirst();
-                    names.add(cursor.getString(nameIdx));
-                    lastModifiedValues.add(cursor.getLong(lastModifiedIdx));
-                    cursor.close();
-                }
-
-                FilenameAdapter.UriPathName[] sortedUriPathNames = new FilenameAdapter.UriPathName[uriPathNames.length];
-                String[] uriStrings = new String[uriPathNames.length];
-
-                if (i == R.id.radioByName) {
-                    final ArrayList<String> namesSorted = new ArrayList<>(names);
-                    namesSorted.sort(new Comparator<String>() {
-                        @Override
-                        public int compare(String s, String t1) {
-                            return s.compareTo(t1);
-                        }
-                    });
-
-                    for (int j = 0; j < sortedUriPathNames.length; j++) {
-                        int sortedNameIdx = names.indexOf(namesSorted.get(j));
-                        FilenameAdapter.UriPathName uriPathName = uriPathNames[sortedNameIdx];
-                        String startNote = j < noteKeys.length || j < octaveKeys.length ? noteKeys[j] + octaveKeys[j] : getString(R.string.unassigned);
-                        String interval = j < intervalKeys.length ? intervalKeys[j] : getString(R.string.unassigned);
-                        String label = getString(
-                                R.string.filename_with_key,
-                                j + 1,
-                                uriPathName.getName(),
-                                startNote,
-                                interval);
-                        sortedUriPathNames[j] = new FilenameAdapter.UriPathName(uriPathName.getUri(), uriPathName.getPath(), uriPathName.getName(), label);
-                        uriStrings[j] = sortedUriPathNames[j].getUri().toString();
-                    }
-                    sortByName = true;
-                    sortByDate = false;
-                    filenames = uriStrings;
-                } else if (i == R.id.radioByDate) {
-                    final ArrayList<Long> lastModifiedSorted = new ArrayList<>(lastModifiedValues);
-                    lastModifiedSorted.sort(new Comparator<Long>() {
-                        @Override
-                        public int compare(Long s, Long t1) {
-                            return Long.compare(s, t1);
-                        }
-                    });
-                    for (int j = 0; j < sortedUriPathNames.length; j++) {
-                        int sortedLastModifiedIdx = lastModifiedValues.indexOf(lastModifiedSorted.get(j));
-                        FilenameAdapter.UriPathName uriPathName = uriPathNames[sortedLastModifiedIdx];
-                        String startNote = j < noteKeys.length || j < octaveKeys.length ? noteKeys[j] + octaveKeys[j] : getString(R.string.unassigned);
-                        String interval = j < intervalKeys.length ? intervalKeys[j] : getString(R.string.unassigned);
-                        String label = getString(
-                                R.string.filename_with_key,
-                                j + 1,
-                                uriPathName.getName(),
-                                startNote,
-                                interval);
-                        sortedUriPathNames[j] = new FilenameAdapter.UriPathName(uriPathName.getUri(), uriPathName.getPath(), uriPathName.getName(), label);
-                        uriStrings[j] = sortedUriPathNames[j].getUri().toString();
-                    }
-                    sortByName = false;
-                    sortByDate = true;
-                    filenames = uriStrings;
-                }
-
-                recyclerView.setAdapter(new FilenameAdapter(sortedUriPathNames, soundPlayer));
-            }
-        });
+        radioGroupSorting.setOnCheckedChangeListener(new OnFilenamesSortingCheckedChangeListener(this, uriPathNames, recyclerView));
         new AlertDialog.Builder(this)
                 .setView(dialogView)
                 .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
