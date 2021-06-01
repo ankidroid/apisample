@@ -81,7 +81,7 @@
     <string name="recorded_files">Files recorded: %d</string>
     <string name="countdown_skip">Skip countdown</string>
     <string name="first_note_duration_coefficient">First note duration coefficient</string>
-    <string name="sort_by">Order files by:</string>
+    <string name="sort_by">Order by:</string>
     <string name="name">Name</string>
     <string name="modification_date">Modification date</string>
 

@@ -91,6 +91,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     static final String REF_DB_STATE = "com.ichi2.apisample.uistate";
     static final String REF_DB_SELECTED_FILENAMES = "selectedFilenames";
     static final String REF_DB_AFTER_ADDING = "afterAdding";
+    private static final String REF_DB_MISMATCHING_SORTING = "mismatchingSorting";
+    private static final String REF_DB_SORT_BY_NAME = "sortByName";
+    private static final String REF_DB_SORT_BY_DATE = "sortByDate";
     private static final String REF_DB_SWITCH_BATCH = "switchBatch";
     private static final String REF_DB_CHECK_NOTE_ANY = "checkNoteAny";
     private static final String REF_DB_CHECK_OCTAVE_ANY = "checkOctaveAny";
@@ -1092,6 +1095,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         uiDbEditor.putString(REF_DB_INPUT_FIRST_NOTE_DURATION_COEFFICIENT, inputFirstNoteDurationCoefficient.getText().toString());
 
         uiDbEditor.putBoolean(REF_DB_AFTER_ADDING, afterAdding);
+        uiDbEditor.putBoolean(REF_DB_MISMATCHING_SORTING, mismatchingSorting);
+        uiDbEditor.putBoolean(REF_DB_SORT_BY_NAME, sortByName);
+        uiDbEditor.putBoolean(REF_DB_SORT_BY_DATE, sortByDate);
         uiDbEditor.putString(REF_DB_NOTE_KEYS, StringUtil.joinStrings(DB_STRING_ARRAY_SEPARATOR, noteKeys));
         uiDbEditor.putString(REF_DB_OCTAVE_KEYS, StringUtil.joinStrings(DB_STRING_ARRAY_SEPARATOR, octaveKeys));
         uiDbEditor.putString(REF_DB_INTERVAL_KEYS, StringUtil.joinStrings(DB_STRING_ARRAY_SEPARATOR, intervalKeys));
@@ -1131,6 +1137,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         inputFirstNoteDurationCoefficient.setText(uiDb.getString(REF_DB_INPUT_FIRST_NOTE_DURATION_COEFFICIENT, ""));
 
         afterAdding = uiDb.getBoolean(REF_DB_AFTER_ADDING, false);
+        mismatchingSorting = uiDb.getBoolean(REF_DB_MISMATCHING_SORTING, false);
+        sortByName = uiDb.getBoolean(REF_DB_SORT_BY_NAME, false);
+        sortByDate = uiDb.getBoolean(REF_DB_SORT_BY_DATE, false);
         noteKeys = StringUtil.splitStrings(DB_STRING_ARRAY_SEPARATOR, uiDb.getString(REF_DB_NOTE_KEYS, ""));
         octaveKeys = StringUtil.splitStrings(DB_STRING_ARRAY_SEPARATOR, uiDb.getString(REF_DB_OCTAVE_KEYS, ""));
         intervalKeys = StringUtil.splitStrings(DB_STRING_ARRAY_SEPARATOR, uiDb.getString(REF_DB_INTERVAL_KEYS, ""));
