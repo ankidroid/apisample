@@ -45,6 +45,7 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
@@ -198,6 +199,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
     private String[] filenames = new String[]{};
     private String[] selectedFilenames;
+    private boolean mismatchingSorting;
+    private boolean sortByName;
+    private boolean sortByDate;
 
     private SoundPlayer soundPlayer;
 
@@ -523,12 +527,77 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         textFilename.setText(text);
     }
 
-    public void openFilenamesDialog(FilenameAdapter.UriPathName[] uriPathNames) {
+    public void openFilenamesDialog(final FilenameAdapter.UriPathName[] uriPathNames) {
         ViewGroup viewGroup = findViewById(R.id.content);
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_filenames, viewGroup, false);
-        RecyclerView recyclerView = dialogView.findViewById(R.id.recyclerView);
+        final RecyclerView recyclerView = dialogView.findViewById(R.id.recyclerView);
         recyclerView.setAdapter(new FilenameAdapter(uriPathNames, soundPlayer));
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        LinearLayout layoutSorting = dialogView.findViewById(R.id.layoutSorting);
+        layoutSorting.setVisibility(mismatchingSorting ? View.VISIBLE : View.GONE);
+        RadioGroup radioGroupSorting = layoutSorting.findViewById(R.id.radioGroupSorting);
+        RadioButton radioByName = radioGroupSorting.findViewById(R.id.radioByName);
+        radioByName.setChecked(sortByName);
+        RadioButton radioByDate = radioGroupSorting.findViewById(R.id.radioByDate);
+        radioByDate.setChecked(sortByDate);
+        radioGroupSorting.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup radioGroup, int i) {
+                ArrayList<String> names = new ArrayList<>(uriPathNames.length);
+                ArrayList<Long> lastModifiedValues = new ArrayList<>(uriPathNames.length);
+                ContentResolver resolver = getContentResolver();
+                for (FilenameAdapter.UriPathName uriPathName : uriPathNames) {
+                    Uri uri = uriPathName.getUri();
+                    Cursor cursor = resolver.query(uri, null, null, null, null);
+                    int nameIdx = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+                    int lastModifiedIdx = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_LAST_MODIFIED);
+                    cursor.moveToFirst();
+                    names.add(cursor.getString(nameIdx));
+                    lastModifiedValues.add(cursor.getLong(lastModifiedIdx));
+                    cursor.close();
+                }
+
+                FilenameAdapter.UriPathName[] sortedUriPathNames = new FilenameAdapter.UriPathName[uriPathNames.length];
+                String[] uriStrings = new String[uriPathNames.length];
+
+                if (i == R.id.radioByName) {
+                    final ArrayList<String> namesSorted = new ArrayList<>(names);
+                    namesSorted.sort(new Comparator<String>() {
+                        @Override
+                        public int compare(String s, String t1) {
+                            return s.compareTo(t1);
+                        }
+                    });
+
+                    for (int j = 0; j < sortedUriPathNames.length; j++) {
+                        int sortedNameIdx = names.indexOf(namesSorted.get(j));
+                        sortedUriPathNames[j] = uriPathNames[sortedNameIdx];
+                        uriStrings[j] = sortedUriPathNames[j].getUri().toString();
+                    }
+                    sortByName = true;
+                    sortByDate = false;
+                    filenames = uriStrings;
+                } else if (i == R.id.radioByDate) {
+                    final ArrayList<Long> lastModifiedSorted = new ArrayList<>(lastModifiedValues);
+                    lastModifiedSorted.sort(new Comparator<Long>() {
+                        @Override
+                        public int compare(Long s, Long t1) {
+                            return Long.compare(s, t1);
+                        }
+                    });
+                    for (int j = 0; j < sortedUriPathNames.length; j++) {
+                        int sortedLastModifiedIdx = lastModifiedValues.indexOf(lastModifiedSorted.get(j));
+                        sortedUriPathNames[j] = uriPathNames[sortedLastModifiedIdx];
+                        uriStrings[j] = sortedUriPathNames[j].getUri().toString();
+                    }
+                    sortByName = false;
+                    sortByDate = true;
+                    filenames = uriStrings;
+                }
+
+                recyclerView.setAdapter(new FilenameAdapter(sortedUriPathNames, soundPlayer));
+            }
+        });
         new AlertDialog.Builder(this)
                 .setView(dialogView)
                 .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
@@ -735,6 +804,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     int sortedNameIdx = names.indexOf(namesSorted.get(i));
                     int sortedLastModifiedIdx = lastModifiedValues.indexOf(lastModifiedSorted.get(i));
                     if (sortedNameIdx != sortedLastModifiedIdx) {
+                        mismatchingSorting = true;
                         selectedFilenames = new String[]{};
                         new AlertDialog.Builder(this)
                                 .setMessage("mismatching sort")
@@ -746,6 +816,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                                             int sortedNameIdx = names.indexOf(namesSorted.get(j));
                                             uriStrings[j] = uriList.get(sortedNameIdx).toString();
                                         }
+                                        sortByName = true;
                                         filenames = uriStrings;
                                         refreshFilenames();
                                         actionPlay.callOnClick();
@@ -759,6 +830,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                                             int sortedLastModifiedIdx = lastModifiedValues.indexOf(lastModifiedSorted.get(j));
                                             uriStrings[j] = uriList.get(sortedLastModifiedIdx).toString();
                                         }
+                                        sortByDate = true;
                                         filenames = uriStrings;
                                         refreshFilenames();
                                         actionPlay.callOnClick();
