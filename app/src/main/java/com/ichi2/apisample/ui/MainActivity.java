@@ -482,11 +482,11 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     name = cursor.getString(nameIdx);
                     cursor.close();
                 }
-                uriPathNames[i] = new FilenameAdapter.UriPathName(uri, path, name);
+                uriPathNames[i] = new FilenameAdapter.UriPathName(uri, path, name, name);
             }
             final FilenameAdapter.UriPathName uriFirst = uriPathNames[0];
 
-            text.append(uriFirst.getName());
+            text.append(uriFirst.getLabel());
 
             actionPlay.setEnabled(true);
             if (filenames.length > 1) {
@@ -507,7 +507,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                                     uriPathName.getName(),
                                     startNote,
                                     interval);
-                            filenames[i] = new FilenameAdapter.UriPathName(uriPathName.getUri(), uriPathName.getPath(), label);
+                            filenames[i] = new FilenameAdapter.UriPathName(uriPathName.getUri(), uriPathName.getPath(), uriPathName.getName(), label);
                         }
                         openFilenamesDialog(filenames);
                     }
@@ -527,7 +527,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         textFilename.setText(text);
     }
 
-    public void openFilenamesDialog(final FilenameAdapter.UriPathName[] uriPathNames) {
+    private void openFilenamesDialog(final FilenameAdapter.UriPathName[] uriPathNames) {
         ViewGroup viewGroup = findViewById(R.id.content);
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_filenames, viewGroup, false);
         final RecyclerView recyclerView = dialogView.findViewById(R.id.recyclerView);
@@ -571,7 +571,16 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
                     for (int j = 0; j < sortedUriPathNames.length; j++) {
                         int sortedNameIdx = names.indexOf(namesSorted.get(j));
-                        sortedUriPathNames[j] = uriPathNames[sortedNameIdx];
+                        FilenameAdapter.UriPathName uriPathName = uriPathNames[sortedNameIdx];
+                        String startNote = j < noteKeys.length || j < octaveKeys.length ? noteKeys[j] + octaveKeys[j] : getString(R.string.unassigned);
+                        String interval = j < intervalKeys.length ? intervalKeys[j] : getString(R.string.unassigned);
+                        String label = getString(
+                                R.string.filename_with_key,
+                                j + 1,
+                                uriPathName.getName(),
+                                startNote,
+                                interval);
+                        sortedUriPathNames[j] = new FilenameAdapter.UriPathName(uriPathName.getUri(), uriPathName.getPath(), uriPathName.getName(), label);
                         uriStrings[j] = sortedUriPathNames[j].getUri().toString();
                     }
                     sortByName = true;
@@ -587,7 +596,16 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     });
                     for (int j = 0; j < sortedUriPathNames.length; j++) {
                         int sortedLastModifiedIdx = lastModifiedValues.indexOf(lastModifiedSorted.get(j));
-                        sortedUriPathNames[j] = uriPathNames[sortedLastModifiedIdx];
+                        FilenameAdapter.UriPathName uriPathName = uriPathNames[sortedLastModifiedIdx];
+                        String startNote = j < noteKeys.length || j < octaveKeys.length ? noteKeys[j] + octaveKeys[j] : getString(R.string.unassigned);
+                        String interval = j < intervalKeys.length ? intervalKeys[j] : getString(R.string.unassigned);
+                        String label = getString(
+                                R.string.filename_with_key,
+                                j + 1,
+                                uriPathName.getName(),
+                                startNote,
+                                interval);
+                        sortedUriPathNames[j] = new FilenameAdapter.UriPathName(uriPathName.getUri(), uriPathName.getPath(), uriPathName.getName(), label);
                         uriStrings[j] = sortedUriPathNames[j].getUri().toString();
                     }
                     sortByName = false;
