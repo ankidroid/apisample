@@ -130,7 +130,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
     private SwitchCompat switchBatch;
     private TextView textFilename;
-    private Button actionPlay;
+    Button actionPlay;
     private Button actionCaptureAudio;
     private Button actionSelectFile;
     private CheckBox checkNoteAny;
