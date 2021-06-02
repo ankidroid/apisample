@@ -504,9 +504,10 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     }
 
     void refreshFilenameText(String firstName) {
-        String text = !firstName.isEmpty() ?
-                firstName + getString(R.string.additional_filenames, filenames.length - 1) :
-                "";
+        String text = firstName;
+        if (filenames != null && filenames.length > 1) {
+            text += getString(R.string.additional_filenames, filenames.length - 1);
+        }
         textFilename.setText(text);
     }
 
