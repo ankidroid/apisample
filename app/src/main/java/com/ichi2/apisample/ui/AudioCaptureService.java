@@ -344,18 +344,18 @@ public class AudioCaptureService extends Service {
 
             SharedPreferences uiDb = getSharedPreferences(MainActivity.REF_DB_STATE, Context.MODE_PRIVATE);
             boolean afterAdding = uiDb.getBoolean(MainActivity.REF_DB_AFTER_ADDING, false);
-            SharedPreferences.Editor uiDbEditor = uiDb.edit();
             ArrayList<String> newFilenames;
             if (afterAdding) {
                 newFilenames = new ArrayList<>();
+                SharedPreferences.Editor uiDbEditor = uiDb.edit();
                 uiDbEditor.putBoolean(MainActivity.REF_DB_AFTER_ADDING, false);
+                uiDbEditor.apply();
             } else {
                 String[] filenames = MainActivity.getStoredFilenames(this);
                 newFilenames = new ArrayList<>(Arrays.asList(filenames));
             }
             newFilenames.add(uri.toString());
-            uiDbEditor.putStringSet(MainActivity.REF_DB_SELECTED_FILENAMES, new HashSet<>(newFilenames));
-            uiDbEditor.apply();
+            MainActivity.storeFilenames(this, newFilenames.toArray(new String[0]));
 
             recordedFilesCount++;
             textBottom.setText(getString(R.string.recorded_files, recordedFilesCount));
