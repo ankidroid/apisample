@@ -195,6 +195,14 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
     }
 
+    private final ArrayList<AlertDialog> activeOnStartDialogs = new ArrayList<>();
+    private final DialogInterface.OnDismissListener onStartDialogDismissListener = new DialogInterface.OnDismissListener() {
+        @Override
+        public void onDismiss(DialogInterface dialogInterface) {
+            activeOnStartDialogs.remove(dialogInterface);
+        }
+    };
+
     String[] filenames = new String[]{};
     private String[] selectedFilenames;
     boolean mismatchingSorting;
@@ -1291,7 +1299,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             }
         } catch (MusInterval.ModelDoesNotExistException e) {
             final String modelName = e.getModelName();
-            new AlertDialog.Builder(this)
+            AlertDialog dialog = new AlertDialog.Builder(this)
                     .setMessage(String.format(
                             getResources().getString(R.string.create_model),
                             modelName))
@@ -1305,10 +1313,13 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                             dialog.cancel();
                         }
                     })
-                    .show();
+                    .create();
+            activeOnStartDialogs.add(dialog);
+            dialog.setOnDismissListener(onStartDialogDismissListener);
+            dialog.show();
         } catch (final MusInterval.DefaultModelOutdatedException e) {
             final String modelName = e.getModelName();
-            new AlertDialog.Builder(this)
+            AlertDialog dialog = new AlertDialog.Builder(this)
                     .setMessage(String.format(
                             getResources().getString(R.string.update_model),
                             modelName))
@@ -1335,8 +1346,10 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                             dialog.cancel();
                         }
                     })
-                    .show();
-
+                    .create();
+            activeOnStartDialogs.add(dialog);
+            dialog.setOnDismissListener(onStartDialogDismissListener);
+            dialog.show();
         } catch (MusInterval.NotEnoughFieldsException e) {
             showMsg(R.string.invalid_model, e.getModelName());
         } catch (MusInterval.ModelNotConfiguredException e) {
@@ -1349,7 +1362,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 }
                 fieldsStr.append(String.format("\"%s\"", SettingsFragment.getFieldPreferenceLabelString(field, this)));
             }
-            new AlertDialog.Builder(this)
+            AlertDialog dialog = new AlertDialog.Builder(this)
                     .setMessage(
                             getResources().getQuantityString(R.plurals.invalid_model_fields, invalidModelFields.size(), modelName, fieldsStr.toString()))
                     .setPositiveButton(R.string.configure, new DialogInterface.OnClickListener() {
@@ -1362,7 +1375,10 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                             dialog.cancel();
                         }
                     })
-                    .show();
+                    .create();
+            activeOnStartDialogs.add(dialog);
+            dialog.setOnDismissListener(onStartDialogDismissListener);
+            dialog.show();
         } catch (MusInterval.NoteNotExistsException e) {
             showMsg(R.string.mi_not_exists);
         } catch (MusInterval.CreateDeckException e) {
@@ -1421,6 +1437,14 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             preferenceEditor.putString(modelFieldPreferenceKey, fieldKey);
         }
         preferenceEditor.apply();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        for (AlertDialog dialog : activeOnStartDialogs) {
+            dialog.dismiss();
+        }
     }
 
     private void processInvalidAnkiDatabase(AnkiDroidHelper.InvalidAnkiDatabaseException invalidAnkiDatabaseException) {
