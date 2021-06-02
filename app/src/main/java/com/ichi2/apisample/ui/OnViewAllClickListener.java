@@ -87,12 +87,16 @@ public class OnViewAllClickListener implements View.OnClickListener {
                 }
             }
 
-            filenames = sortedUriPathNames;
+            filenames = sortedUriPathNames; // @fixme do we need to sort here?
         }
         for (int i = 0; i < filenames.length; i++) {
             filenames[i] = mainActivity.makeLabel(filenames[i], i);
         }
 
+        showDialog(filenames);
+    }
+
+    private void showDialog(FilenameAdapter.UriPathName[] uriPathNames) {
         ViewGroup viewGroup = mainActivity.findViewById(R.id.content);
         View dialogView = LayoutInflater.from(mainActivity).inflate(R.layout.dialog_filenames, viewGroup, false);
 

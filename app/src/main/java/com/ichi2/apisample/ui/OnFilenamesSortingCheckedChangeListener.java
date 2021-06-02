@@ -66,7 +66,6 @@ public class OnFilenamesSortingCheckedChangeListener implements RadioGroup.OnChe
             }
             mainActivity.sortByName = true;
             mainActivity.sortByDate = false;
-            mainActivity.filenames = uriStrings;
 
         } else if (i == R.id.radioByDate) {
             final ArrayList<Long> lastModifiedSorted = new ArrayList<>(lastModifiedValues);
@@ -84,9 +83,10 @@ public class OnFilenamesSortingCheckedChangeListener implements RadioGroup.OnChe
             }
             mainActivity.sortByName = false;
             mainActivity.sortByDate = true;
-            mainActivity.filenames = uriStrings;
         }
 
+        mainActivity.filenames = uriStrings;
+        mainActivity.refreshFilenameText(sortedUriPathNames[0].getName());
         recyclerView.setAdapter(new FilenameAdapter(sortedUriPathNames, mainActivity.soundPlayer));
     }
 }

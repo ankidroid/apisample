@@ -451,7 +451,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     }
 
     private void refreshFilenames() {
-        StringBuilder text = new StringBuilder();
         if (filenames.length > 0) {
             SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
             String ankiDir = preferences.getString(SettingsFragment.KEY_ANKI_DIR_PREFERENCE, SettingsFragment.DEFAULT_ANKI_DIR);
@@ -482,11 +481,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             }
 
             final FilenameAdapter.UriPathName uriFirst = uriPathNames[0];
-            text.append(uriFirst.getLabel());
 
             actionPlay.setEnabled(true);
             if (filenames.length > 1) {
-                text.append(getString(R.string.additional_filenames, filenames.length - 1));
                 actionPlay.setText(R.string.view_all);
                 actionPlay.setOnClickListener(new OnViewAllClickListener(this, uriPathNames));
             } else {
@@ -499,10 +496,17 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 });
             }
 
+            refreshFilenameText(uriFirst.getName());
         } else {
             resetPlayButton();
+            refreshFilenameText("");
         }
+    }
 
+    void refreshFilenameText(String firstName) {
+        String text = !firstName.isEmpty() ?
+                firstName + getString(R.string.additional_filenames, filenames.length - 1) :
+                "";
         textFilename.setText(text);
     }
 
