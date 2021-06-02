@@ -529,14 +529,18 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         LinearLayout layoutSorting = dialogView.findViewById(R.id.layoutSorting);
-        layoutSorting.setVisibility(mismatchingSorting ? View.VISIBLE : View.GONE);
 
-        RadioGroup radioGroupSorting = layoutSorting.findViewById(R.id.radioGroupSorting);
-        RadioButton radioByName = radioGroupSorting.findViewById(R.id.radioByName);
-        radioByName.setChecked(sortByName);
-        RadioButton radioByDate = radioGroupSorting.findViewById(R.id.radioByDate);
-        radioByDate.setChecked(sortByDate);
-        radioGroupSorting.setOnCheckedChangeListener(new OnFilenamesSortingCheckedChangeListener(this, uriPathNames, recyclerView));
+        if (mismatchingSorting) {
+            RadioGroup radioGroupSorting = layoutSorting.findViewById(R.id.radioGroupSorting);
+            RadioButton radioByName = radioGroupSorting.findViewById(R.id.radioByName);
+            radioByName.setChecked(sortByName);
+            RadioButton radioByDate = radioGroupSorting.findViewById(R.id.radioByDate);
+            radioByDate.setChecked(sortByDate);
+            radioGroupSorting.setOnCheckedChangeListener(new OnFilenamesSortingCheckedChangeListener(this, uriPathNames, recyclerView));
+        } else {
+            layoutSorting.setVisibility(View.GONE);
+        }
+
         new AlertDialog.Builder(this)
                 .setView(dialogView)
                 .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
