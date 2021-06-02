@@ -193,7 +193,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
     }
 
-    private final ArrayList<AlertDialog> onStartValidationDialogs = new ArrayList<>();
+    private final ArrayList<AlertDialog> activeStartValidationDialogs = new ArrayList<>();
 
     private String[] filenames = new String[]{};
     private String[] selectedFilenames;
@@ -1224,7 +1224,13 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                         }
                     })
                     .create();
-            onStartValidationDialogs.add(dialog);
+            activeStartValidationDialogs.add(dialog);
+            dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                @Override
+                public void onDismiss(DialogInterface dialogInterface) {
+                    activeStartValidationDialogs.remove(dialogInterface);
+                }
+            });
             dialog.show();
         } catch (final MusInterval.DefaultModelOutdatedException e) {
             final String modelName = e.getModelName();
@@ -1256,7 +1262,13 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                         }
                     })
                     .create();
-            onStartValidationDialogs.add(dialog);
+            activeStartValidationDialogs.add(dialog);
+            dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                @Override
+                public void onDismiss(DialogInterface dialogInterface) {
+                    activeStartValidationDialogs.remove(dialogInterface);
+                }
+            });
             dialog.show();
         } catch (MusInterval.NotEnoughFieldsException e) {
             showMsg(R.string.invalid_model, e.getModelName());
@@ -1284,7 +1296,13 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                         }
                     })
                     .create();
-            onStartValidationDialogs.add(dialog);
+            activeStartValidationDialogs.add(dialog);
+            dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                @Override
+                public void onDismiss(DialogInterface dialogInterface) {
+                    activeStartValidationDialogs.remove(dialogInterface);
+                }
+            });
             dialog.show();
         } catch (MusInterval.NoteNotExistsException e) {
             showMsg(R.string.mi_not_exists);
@@ -1349,7 +1367,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     @Override
     protected void onStop() {
         super.onStop();
-        for (AlertDialog dialog : onStartValidationDialogs) {
+        for (AlertDialog dialog : activeStartValidationDialogs) {
             dialog.dismiss();
         }
     }
