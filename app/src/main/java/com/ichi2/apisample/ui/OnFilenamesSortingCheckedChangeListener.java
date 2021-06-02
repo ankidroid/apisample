@@ -52,12 +52,7 @@ public class OnFilenamesSortingCheckedChangeListener implements RadioGroup.OnChe
 
         if (i == R.id.radioByName) {
             final ArrayList<String> namesSorted = new ArrayList<>(names);
-            namesSorted.sort(new Comparator<String>() {
-                @Override
-                public int compare(String s, String t1) {
-                    return s.compareTo(t1);
-                }
-            });
+            namesSorted.sort(MainActivity.COMPARATOR_FILE_NAME);
             for (int j = 0; j < sortedUriPathNames.length; j++) {
                 int sortedNameIdx = names.indexOf(namesSorted.get(j));
                 FilenameAdapter.UriPathName uriPathName = uriPathNames[sortedNameIdx];
@@ -70,12 +65,7 @@ public class OnFilenamesSortingCheckedChangeListener implements RadioGroup.OnChe
 
         } else if (i == R.id.radioByDate) {
             final ArrayList<Long> lastModifiedSorted = new ArrayList<>(lastModifiedValues);
-            lastModifiedSorted.sort(new Comparator<Long>() {
-                @Override
-                public int compare(Long s, Long t1) {
-                    return Long.compare(s, t1);
-                }
-            });
+            lastModifiedSorted.sort(MainActivity.COMPARATOR_FILE_LAST_MODIFIED);
             for (int j = 0; j < sortedUriPathNames.length; j++) {
                 int sortedLastModifiedIdx = lastModifiedValues.indexOf(lastModifiedSorted.get(j));
                 FilenameAdapter.UriPathName uriPathName = uriPathNames[sortedLastModifiedIdx];

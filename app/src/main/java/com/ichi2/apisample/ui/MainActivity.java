@@ -199,7 +199,19 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private String[] selectedFilenames;
     boolean mismatchingSorting;
     boolean sortByName;
+    static final Comparator<String> COMPARATOR_FILE_NAME = new Comparator<String>() {
+        @Override
+        public int compare(String s, String t1) {
+            return s.compareTo(t1);
+        }
+    };
     boolean sortByDate;
+    static final Comparator<Long> COMPARATOR_FILE_LAST_MODIFIED = new Comparator<Long>() {
+        @Override
+        public int compare(Long s, Long t1) {
+            return Long.compare(s, t1);
+        }
+    };
 
     SoundPlayer soundPlayer;
 
@@ -703,19 +715,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 }
 
                 final ArrayList<String> namesSorted = new ArrayList<>(names);
-                namesSorted.sort(new Comparator<String>() {
-                    @Override
-                    public int compare(String s, String t1) {
-                        return s.compareTo(t1);
-                    }
-                });
+                namesSorted.sort(COMPARATOR_FILE_NAME);
                 final ArrayList<Long> lastModifiedSorted = new ArrayList<>(lastModifiedValues);
-                lastModifiedSorted.sort(new Comparator<Long>() {
-                    @Override
-                    public int compare(Long s, Long t1) {
-                        return Long.compare(s, t1);
-                    }
-                });
+                lastModifiedSorted.sort(COMPARATOR_FILE_LAST_MODIFIED);
 
                 String[] uriStrings = new String[uriList.size()];
                 for (int i = 0; i < uriList.size(); i++) {
