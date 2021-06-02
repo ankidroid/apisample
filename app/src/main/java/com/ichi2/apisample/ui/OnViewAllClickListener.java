@@ -26,7 +26,8 @@ public class OnViewAllClickListener implements View.OnClickListener {
     @Override
     public void onClick(View view) {
         for (int i = 0; i < uriPathNames.length; i++) {
-            uriPathNames[i] = mainActivity.makeLabel(uriPathNames[i], i);
+            FilenameAdapter.UriPathName uriPathName = uriPathNames[i];
+            uriPathName.setLabel(mainActivity.getFilenameLabel(uriPathName.getName(), i));
         }
 
         ViewGroup viewGroup = mainActivity.findViewById(R.id.content);

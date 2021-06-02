@@ -477,7 +477,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     name = cursor.getString(nameIdx);
                     cursor.close();
                 }
-                uriPathNames[i] = new FilenameAdapter.UriPathName(uri, path, name, name);
+                String label = getFilenameLabel(name, i);
+                uriPathNames[i] = new FilenameAdapter.UriPathName(uri, path, name, label);
             }
 
             final FilenameAdapter.UriPathName uriFirst = uriPathNames[0];
@@ -511,16 +512,16 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         textFilename.setText(text);
     }
 
-    FilenameAdapter.UriPathName makeLabel(FilenameAdapter.UriPathName uriPathName, int pos) {
+    String getFilenameLabel(String name, int pos) {
         String startNote = pos < noteKeys.length || pos < octaveKeys.length ? noteKeys[pos] + octaveKeys[pos] : getString(R.string.unassigned);
         String interval = pos < intervalKeys.length ? intervalKeys[pos] : getString(R.string.unassigned);
-        String label = getString(
+        return getString(
                 R.string.filename_with_key,
                 pos + 1,
-                uriPathName.getName(),
+                name,
                 startNote,
-                interval);
-        return new FilenameAdapter.UriPathName(uriPathName.getUri(), uriPathName.getPath(), uriPathName.getName(), label);
+                interval
+        );
     }
 
     private void configureClearAllButton() {

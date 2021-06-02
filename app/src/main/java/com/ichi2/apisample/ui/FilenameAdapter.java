@@ -70,7 +70,7 @@ public class FilenameAdapter extends RecyclerView.Adapter<FilenameAdapter.ViewHo
         private final Uri uri;
         private final String path;
         private final String name;
-        private final String label;
+        private String label;
 
         public UriPathName(Uri uri, String path, String name, String label) {
             this.uri = uri;
@@ -91,8 +91,8 @@ public class FilenameAdapter extends RecyclerView.Adapter<FilenameAdapter.ViewHo
             return name;
         }
 
-        public String getLabel() {
-            return label;
+        public void setLabel(String label) {
+            this.label = label;
         }
     }
 }
