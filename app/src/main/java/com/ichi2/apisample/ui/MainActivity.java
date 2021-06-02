@@ -796,8 +796,11 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 intervalKeys = newMi.intervals;
                 afterAdding = true;
                 refreshFilenames();
-                savedInstruments.add(newMi.instrument);
-                savedInstrumentsAdapter.add(newMi.instrument);
+                String addedInstrument = newMi.instrument;
+                savedInstruments.add(addedInstrument);
+                if (!savedInstruments.contains(addedInstrument)) {
+                    savedInstrumentsAdapter.add(addedInstrument);
+                }
                 refreshExisting();
                 final int nAdded = newMi.sounds.length;
                 if (nAdded == 1) {
@@ -1016,7 +1019,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         inputInstrument.setText(uiDb.getString(REF_DB_INPUT_INSTRUMENT, ""));
         savedInstruments = (HashSet<String>) uiDb.getStringSet(REF_DB_SAVED_INSTRUMENTS, new HashSet<String>());
         savedInstrumentsAdapter = new ArrayAdapter<>(this,
-                android.R.layout.simple_dropdown_item_1line, savedInstruments.toArray(new String[0]));
+                android.R.layout.simple_dropdown_item_1line, new ArrayList<>(savedInstruments));
         inputInstrument.setAdapter(savedInstrumentsAdapter);
         inputFirstNoteDurationCoefficient.setText(uiDb.getString(REF_DB_INPUT_FIRST_NOTE_DURATION_COEFFICIENT, ""));
 
