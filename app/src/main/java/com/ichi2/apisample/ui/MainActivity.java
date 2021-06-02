@@ -200,7 +200,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
     String[] filenames = new String[]{};
     private String[] selectedFilenames;
-    private boolean mismatchingSorting;
+    boolean mismatchingSorting;
     boolean sortByName;
     boolean sortByDate;
 
@@ -492,69 +492,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 text.append(getString(R.string.additional_filenames, filenames.length - 1));
 
                 actionPlay.setText(R.string.view_all);
-                actionPlay.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        FilenameAdapter.UriPathName[] filenames;
-                        if (!mismatchingSorting) {
-                            filenames = uriPathNames;
-                        } else {
-                            ArrayList<String> names = new ArrayList<>(uriPathNames.length);
-                            ArrayList<Long> lastModifiedValues = new ArrayList<>(uriPathNames.length);
-                            for (FilenameAdapter.UriPathName uriPathName : uriPathNames) {
-                                Uri uri = uriPathName.getUri();
-                                Cursor cursor = resolver.query(UriUtil.getContentUri(MainActivity.this, uri), null, null, null, null);
-                                int nameIdx = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
-                                int lastModifiedIdx = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_LAST_MODIFIED);
-                                cursor.moveToFirst();
-                                names.add(cursor.getString(nameIdx));
-                                lastModifiedValues.add(
-                                        lastModifiedIdx != -1 ?
-                                                cursor.getLong(lastModifiedIdx) :
-                                                new File(uri.getPath()).lastModified()
-                                );
-                                cursor.close();
-                            }
-
-                            FilenameAdapter.UriPathName[] sortedUriPathNames = new FilenameAdapter.UriPathName[uriPathNames.length];
-
-                            if (sortByName) {
-                                final ArrayList<String> namesSorted = new ArrayList<>(names);
-                                namesSorted.sort(new Comparator<String>() {
-                                    @Override
-                                    public int compare(String s, String t1) {
-                                        return s.compareTo(t1);
-                                    }
-                                });
-                                for (int j = 0; j < sortedUriPathNames.length; j++) {
-                                    int sortedNameIdx = names.indexOf(namesSorted.get(j));
-                                    FilenameAdapter.UriPathName uriPathName = uriPathNames[sortedNameIdx];
-                                    sortedUriPathNames[j] = makeLabel(uriPathName, j);
-                                }
-
-                            } else if (sortByDate) {
-                                final ArrayList<Long> lastModifiedSorted = new ArrayList<>(lastModifiedValues);
-                                lastModifiedSorted.sort(new Comparator<Long>() {
-                                    @Override
-                                    public int compare(Long s, Long t1) {
-                                        return Long.compare(s, t1);
-                                    }
-                                });
-                                for (int j = 0; j < sortedUriPathNames.length; j++) {
-                                    int sortedLastModifiedIdx = lastModifiedValues.indexOf(lastModifiedSorted.get(j));
-                                    FilenameAdapter.UriPathName uriPathName = uriPathNames[sortedLastModifiedIdx];
-                                    sortedUriPathNames[j] = makeLabel(uriPathName, j);
-                                }
-                            }
-
-                            filenames = sortedUriPathNames;
-                        }
-                        for (int i = 0; i < filenames.length; i++) {
-                            filenames[i] = makeLabel(filenames[i], i);
-                        }
-                        openFilenamesDialog(filenames);
-                    }
-                });
+                actionPlay.setOnClickListener(new OnViewAllClickListener(this, uriPathNames));
             } else {
                 actionPlay.setText(R.string.play);
                 actionPlay.setOnClickListener(new View.OnClickListener() {
@@ -582,7 +520,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         return new FilenameAdapter.UriPathName(uriPathName.getUri(), uriPathName.getPath(), uriPathName.getName(), label);
     }
 
-    private void openFilenamesDialog(final FilenameAdapter.UriPathName[] uriPathNames) {
+    void openFilenamesDialog(final FilenameAdapter.UriPathName[] uriPathNames) {
         ViewGroup viewGroup = findViewById(R.id.content);
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_filenames, viewGroup, false);
 
