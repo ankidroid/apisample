@@ -61,7 +61,7 @@ public class OnFilenamesSortingCheckedChangeListener implements RadioGroup.OnChe
             for (int j = 0; j < sortedUriPathNames.length; j++) {
                 int sortedNameIdx = names.indexOf(namesSorted.get(j));
                 FilenameAdapter.UriPathName uriPathName = uriPathNames[sortedNameIdx];
-                sortedUriPathNames[j] = mainActivity.createLabel(uriPathName, j);
+                sortedUriPathNames[j] = mainActivity.makeLabel(uriPathName, j);
                 uriStrings[j] = sortedUriPathNames[j].getUri().toString();
             }
             mainActivity.sortByName = true;
@@ -79,7 +79,7 @@ public class OnFilenamesSortingCheckedChangeListener implements RadioGroup.OnChe
             for (int j = 0; j < sortedUriPathNames.length; j++) {
                 int sortedLastModifiedIdx = lastModifiedValues.indexOf(lastModifiedSorted.get(j));
                 FilenameAdapter.UriPathName uriPathName = uriPathNames[sortedLastModifiedIdx];
-                sortedUriPathNames[j] = mainActivity.createLabel(uriPathName, j);
+                sortedUriPathNames[j] = mainActivity.makeLabel(uriPathName, j);
                 uriStrings[j] = sortedUriPathNames[j].getUri().toString();
             }
             mainActivity.sortByName = false;

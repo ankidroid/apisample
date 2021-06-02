@@ -459,6 +459,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
             String ankiDir = preferences.getString(SettingsFragment.KEY_ANKI_DIR_PREFERENCE, SettingsFragment.DEFAULT_ANKI_DIR);
 
+            final ContentResolver resolver = getContentResolver();
             final FilenameAdapter.UriPathName[] uriPathNames = new FilenameAdapter.UriPathName[filenames.length];
             for (int i = 0; i < uriPathNames.length; i++) {
                 String filename = filenames[i];
@@ -470,14 +471,11 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     path = ankiDir + AnkiDroidHelper.DIR_MEDIA
                             + filename.substring(7, filename.length() - 1);
                     File file = new File(path);
-                    if (!file.exists()) {
-                        uri = null;
-                    } else {
-                        uri = Uri.fromFile(file);
-                    }
+                    uri = file.exists() ? Uri.fromFile(file) : null;
                 } else {
                     uri = Uri.parse(filename);
-                    Cursor cursor = getContentResolver().query(UriUtil.getContentUri(this, uri), null, null, null, null);
+                    Uri contentUri = UriUtil.getContentUri(this, uri);
+                    Cursor cursor = resolver.query(contentUri, null, null, null, null);
                     int nameIdx = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
                     cursor.moveToFirst();
                     name = cursor.getString(nameIdx);
@@ -503,7 +501,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                         } else {
                             ArrayList<String> names = new ArrayList<>(uriPathNames.length);
                             ArrayList<Long> lastModifiedValues = new ArrayList<>(uriPathNames.length);
-                            ContentResolver resolver = getContentResolver();
                             for (FilenameAdapter.UriPathName uriPathName : uriPathNames) {
                                 Uri uri = uriPathName.getUri();
                                 Cursor cursor = resolver.query(UriUtil.getContentUri(MainActivity.this, uri), null, null, null, null);
@@ -532,7 +529,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                                 for (int j = 0; j < sortedUriPathNames.length; j++) {
                                     int sortedNameIdx = names.indexOf(namesSorted.get(j));
                                     FilenameAdapter.UriPathName uriPathName = uriPathNames[sortedNameIdx];
-                                    sortedUriPathNames[j] = createLabel(uriPathName, j);
+                                    sortedUriPathNames[j] = makeLabel(uriPathName, j);
                                 }
 
                             } else if (sortByDate) {
@@ -546,14 +543,14 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                                 for (int j = 0; j < sortedUriPathNames.length; j++) {
                                     int sortedLastModifiedIdx = lastModifiedValues.indexOf(lastModifiedSorted.get(j));
                                     FilenameAdapter.UriPathName uriPathName = uriPathNames[sortedLastModifiedIdx];
-                                    sortedUriPathNames[j] = createLabel(uriPathName, j);
+                                    sortedUriPathNames[j] = makeLabel(uriPathName, j);
                                 }
                             }
 
                             filenames = sortedUriPathNames;
                         }
                         for (int i = 0; i < filenames.length; i++) {
-                            filenames[i] = createLabel(filenames[i], i);
+                            filenames[i] = makeLabel(filenames[i], i);
                         }
                         openFilenamesDialog(filenames);
                     }
@@ -573,12 +570,12 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         textFilename.setText(text);
     }
 
-    FilenameAdapter.UriPathName createLabel(FilenameAdapter.UriPathName uriPathName, int i) {
-        String startNote = i < noteKeys.length || i < octaveKeys.length ? noteKeys[i] + octaveKeys[i] : getString(R.string.unassigned);
-        String interval = i < intervalKeys.length ? intervalKeys[i] : getString(R.string.unassigned);
+    FilenameAdapter.UriPathName makeLabel(FilenameAdapter.UriPathName uriPathName, int pos) {
+        String startNote = pos < noteKeys.length || pos < octaveKeys.length ? noteKeys[pos] + octaveKeys[pos] : getString(R.string.unassigned);
+        String interval = pos < intervalKeys.length ? intervalKeys[pos] : getString(R.string.unassigned);
         String label = getString(
                 R.string.filename_with_key,
-                i + 1,
+                pos + 1,
                 uriPathName.getName(),
                 startNote,
                 interval);
@@ -588,11 +585,14 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private void openFilenamesDialog(final FilenameAdapter.UriPathName[] uriPathNames) {
         ViewGroup viewGroup = findViewById(R.id.content);
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_filenames, viewGroup, false);
+
         final RecyclerView recyclerView = dialogView.findViewById(R.id.recyclerView);
         recyclerView.setAdapter(new FilenameAdapter(uriPathNames, soundPlayer));
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
+
         LinearLayout layoutSorting = dialogView.findViewById(R.id.layoutSorting);
         layoutSorting.setVisibility(mismatchingSorting ? View.VISIBLE : View.GONE);
+
         RadioGroup radioGroupSorting = layoutSorting.findViewById(R.id.radioGroupSorting);
         RadioButton radioByName = radioGroupSorting.findViewById(R.id.radioByName);
         radioByName.setChecked(sortByName);
@@ -813,21 +813,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                         selectedFilenames = new String[]{};
                         new AlertDialog.Builder(this)
                                 .setMessage(R.string.mismatching_sorting)
-                                .setNegativeButton(R.string.sort_by_name, new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialogInterface, int i) {
-                                        String[] uriStrings = new String[uriList.size()];
-                                        for (int j = 0; j < uriList.size(); j++) {
-                                            int sortedNameIdx = names.indexOf(namesSorted.get(j));
-                                            uriStrings[j] = uriList.get(sortedNameIdx).toString();
-                                        }
-                                        sortByName = true;
-                                        sortByDate = false;
-                                        filenames = uriStrings;
-                                        refreshFilenames();
-                                        actionPlay.callOnClick();
-                                    }
-                                })
                                 .setPositiveButton(R.string.sort_by_date, new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialogInterface, int i) {
@@ -843,10 +828,19 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                                         actionPlay.callOnClick();
                                     }
                                 })
-                                .setNeutralButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                                .setNegativeButton(R.string.sort_by_name, new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialogInterface, int i) {
-                                        dialogInterface.dismiss();
+                                        String[] uriStrings = new String[uriList.size()];
+                                        for (int j = 0; j < uriList.size(); j++) {
+                                            int sortedNameIdx = names.indexOf(namesSorted.get(j));
+                                            uriStrings[j] = uriList.get(sortedNameIdx).toString();
+                                        }
+                                        sortByName = true;
+                                        sortByDate = false;
+                                        filenames = uriStrings;
+                                        refreshFilenames();
+                                        actionPlay.callOnClick();
                                     }
                                 })
                                 .show();
