@@ -28,8 +28,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.documentfile.provider.DocumentFile;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.preference.PreferenceManager;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 import android.os.Handler;
 import android.provider.DocumentsContract;
@@ -45,7 +43,6 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
@@ -483,14 +480,13 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 }
                 uriPathNames[i] = new FilenameAdapter.UriPathName(uri, path, name, name);
             }
-            final FilenameAdapter.UriPathName uriFirst = uriPathNames[0];
 
+            final FilenameAdapter.UriPathName uriFirst = uriPathNames[0];
             text.append(uriFirst.getLabel());
 
             actionPlay.setEnabled(true);
             if (filenames.length > 1) {
                 text.append(getString(R.string.additional_filenames, filenames.length - 1));
-
                 actionPlay.setText(R.string.view_all);
                 actionPlay.setOnClickListener(new OnViewAllClickListener(this, uriPathNames));
             } else {
@@ -502,9 +498,11 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     }
                 });
             }
+
         } else {
             resetPlayButton();
         }
+
         textFilename.setText(text);
     }
 
@@ -518,38 +516,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 startNote,
                 interval);
         return new FilenameAdapter.UriPathName(uriPathName.getUri(), uriPathName.getPath(), uriPathName.getName(), label);
-    }
-
-    void openFilenamesDialog(final FilenameAdapter.UriPathName[] uriPathNames) {
-        ViewGroup viewGroup = findViewById(R.id.content);
-        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_filenames, viewGroup, false);
-
-        final RecyclerView recyclerView = dialogView.findViewById(R.id.recyclerView);
-        recyclerView.setAdapter(new FilenameAdapter(uriPathNames, soundPlayer));
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-
-        LinearLayout layoutSorting = dialogView.findViewById(R.id.layoutSorting);
-
-        if (mismatchingSorting) {
-            RadioGroup radioGroupSorting = layoutSorting.findViewById(R.id.radioGroupSorting);
-            RadioButton radioByName = radioGroupSorting.findViewById(R.id.radioByName);
-            radioByName.setChecked(sortByName);
-            RadioButton radioByDate = radioGroupSorting.findViewById(R.id.radioByDate);
-            radioByDate.setChecked(sortByDate);
-            radioGroupSorting.setOnCheckedChangeListener(new OnFilenamesSortingCheckedChangeListener(this, uriPathNames, recyclerView));
-        } else {
-            layoutSorting.setVisibility(View.GONE);
-        }
-
-        new AlertDialog.Builder(this)
-                .setView(dialogView)
-                .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        dialogInterface.dismiss();
-                    }
-                })
-                .show();
     }
 
     private void configureClearAllButton() {
@@ -717,9 +683,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     }
                 }
 
+                ContentResolver resolver = getContentResolver();
                 final ArrayList<String> names = new ArrayList<>(uriList.size());
                 final ArrayList<Long> lastModifiedValues = new ArrayList<>(uriList.size());
-                ContentResolver resolver = getContentResolver();
                 for (Uri uri : uriList) {
                     Cursor cursor = resolver.query(uri, null, null, null, null);
                     int nameIdx = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
@@ -737,7 +703,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                         return s.compareTo(t1);
                     }
                 });
-
                 final ArrayList<Long> lastModifiedSorted = new ArrayList<>(lastModifiedValues);
                 lastModifiedSorted.sort(new Comparator<Long>() {
                     @Override
