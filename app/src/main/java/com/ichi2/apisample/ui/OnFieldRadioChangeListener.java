@@ -3,7 +3,7 @@ package com.ichi2.apisample.ui;
 import android.widget.RadioGroup;
 
 public class OnFieldRadioChangeListener implements RadioGroup.OnCheckedChangeListener {
-    private MainActivity mainActivity;
+    private final MainActivity mainActivity;
 
     public OnFieldRadioChangeListener(MainActivity mainActivity) {
         this.mainActivity = mainActivity;
