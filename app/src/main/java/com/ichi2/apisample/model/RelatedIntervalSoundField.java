@@ -148,7 +148,8 @@ public abstract class RelatedIntervalSoundField {
             String value1 = data1.getOrDefault(key, "");
             String value2 = data2.getOrDefault(key, "");
             boolean defaultEquality = !defaultValue.isEmpty() &&
-                    (value1.equalsIgnoreCase(defaultValue) && value2.isEmpty() || value1.isEmpty() && value2.equalsIgnoreCase(defaultValue));
+                    ((value1.equalsIgnoreCase(defaultValue) && value2.isEmpty() || value1.isEmpty() && value2.equalsIgnoreCase(defaultValue))
+                            || (value1.isEmpty() && value2.isEmpty()));
             EqualityChecker equalityChecker = modelFieldsEqualityCheckers.getOrDefault(key, AnkiDroidHelper.DEFAULT_EQUALITY_CHECKER);
             if (!equalityChecker.areEqual(value1, value2) && !defaultEquality) {
                 return false;
