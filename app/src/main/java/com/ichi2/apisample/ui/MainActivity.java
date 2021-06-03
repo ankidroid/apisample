@@ -85,10 +85,11 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
     static final String REF_DB_STATE = "com.ichi2.apisample.uistate";
     static final String REF_DB_SELECTED_FILENAMES = "selectedFilenamesArr";
+    static final String REF_DB_MISMATCHING_SORTING = "mismatchingSorting";
+    static final String REF_DB_SORT_BY_NAME = "sortByName";
+    static final String REF_DB_SORT_BY_DATE = "sortByDate";
+    static final String REF_DB_AFTER_SELECTING = "afterSelecting";
     static final String REF_DB_AFTER_ADDING = "afterAdding";
-    private static final String REF_DB_MISMATCHING_SORTING = "mismatchingSorting";
-    private static final String REF_DB_SORT_BY_NAME = "sortByName";
-    private static final String REF_DB_SORT_BY_DATE = "sortByDate";
     private static final String REF_DB_SWITCH_BATCH = "switchBatch";
     private static final String REF_DB_CHECK_NOTE_ANY = "checkNoteAny";
     private static final String REF_DB_CHECK_OCTAVE_ANY = "checkOctaveAny";
@@ -221,6 +222,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
     };
 
+    private boolean afterSelecting;
+
     SoundPlayer soundPlayer;
 
     private Integer permutationsNumber;
@@ -344,6 +347,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private final BroadcastReceiver messageReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
+            clearSelectedFilenames();
             clearAddedFilenames();
             String uriString = intent.getStringExtra(AudioCaptureService.EXTRA_URI_STRING);
             String[] newFilenames = new String[filenames.length + 1];
@@ -440,6 +444,17 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             final int unmarkedCount = existingCount - markedCount;
             actionMarkExisting.setText(getString(R.string.action_mark_n, unmarkedCount));
             actionMarkExisting.setEnabled(unmarkedCount > 0);
+        }
+    }
+
+    private void clearSelectedFilenames() {
+        if (afterSelecting) {
+            filenames = new String[]{};
+            refreshFilenames();
+            afterSelecting = false;
+            mismatchingSorting = false;
+            sortByName = false;
+            sortByDate = false;
         }
     }
 
@@ -554,6 +569,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 mismatchingSorting = false;
                 sortByName = false;
                 sortByDate = false;
+                afterSelecting = false;
                 resetPlayButton();
                 textFilename.setText("");
                 checkNoteAny.setChecked(true);
@@ -747,6 +763,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                                         sortByDate = true;
                                         sortByName = false;
                                         filenames = uriStrings;
+                                        afterSelecting = true;
                                         refreshFilenames();
                                         actionPlay.callOnClick();
                                     }
@@ -762,6 +779,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                                         sortByName = true;
                                         sortByDate = false;
                                         filenames = uriStrings;
+                                        afterSelecting = true;
                                         refreshFilenames();
                                         actionPlay.callOnClick();
                                     }
@@ -776,6 +794,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 sortByName = false;
                 sortByDate = false;
                 selectedFilenames = uriStrings;
+                afterSelecting = true;
                 break;
             case ACTION_SCREEN_CAPTURE:
                 if (resultCode != RESULT_OK) {
@@ -869,6 +888,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 final String[] originalFilenames = addingResult.getOriginalSounds();
                 MusInterval newMi = addingResult.getMusInterval();
                 filenames = newMi.sounds;
+                afterSelecting = false;
                 noteKeys = newMi.notes;
                 octaveKeys = newMi.octaves;
                 intervalKeys = newMi.intervals;
@@ -1046,6 +1066,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
         uiDbEditor.putBoolean(REF_DB_SWITCH_BATCH, switchBatch.isChecked());
         storeFilenames(this, filenames);
+        uiDbEditor.putBoolean(REF_DB_AFTER_SELECTING, afterSelecting);
         uiDbEditor.putBoolean(REF_DB_CHECK_NOTE_ANY, checkNoteAny.isChecked());
         for (int i = 0; i < CHECK_NOTE_IDS.length; i++) {
             uiDbEditor.putBoolean(String.valueOf(CHECK_NOTE_IDS[i]), checkNotes[i].isChecked());
@@ -1085,6 +1106,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         switchBatch.setChecked(uiDb.getBoolean(REF_DB_SWITCH_BATCH, false));
         filenames = getStoredFilenames(this);
         refreshFilenames();
+        afterSelecting = uiDb.getBoolean(REF_DB_AFTER_SELECTING, false);
         checkNoteAny.setChecked(uiDb.getBoolean(REF_DB_CHECK_NOTE_ANY, true));
         for (int i = 0; i < CHECK_NOTE_IDS.length; i++) {
             checkNotes[i].setChecked(uiDb.getBoolean(String.valueOf(CHECK_NOTE_IDS[i]), false));

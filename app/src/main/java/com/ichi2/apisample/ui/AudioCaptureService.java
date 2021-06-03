@@ -343,11 +343,16 @@ public class AudioCaptureService extends Service {
             LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
 
             SharedPreferences uiDb = getSharedPreferences(MainActivity.REF_DB_STATE, Context.MODE_PRIVATE);
+            boolean afterSelecting = uiDb.getBoolean(MainActivity.REF_DB_AFTER_SELECTING, false);
             boolean afterAdding = uiDb.getBoolean(MainActivity.REF_DB_AFTER_ADDING, false);
             ArrayList<String> newFilenames;
-            if (afterAdding) {
+            if (afterSelecting || afterAdding) {
                 newFilenames = new ArrayList<>();
                 SharedPreferences.Editor uiDbEditor = uiDb.edit();
+                uiDbEditor.putBoolean(MainActivity.REF_DB_MISMATCHING_SORTING, false);
+                uiDbEditor.putBoolean(MainActivity.REF_DB_SORT_BY_NAME, false);
+                uiDbEditor.putBoolean(MainActivity.REF_DB_SORT_BY_DATE, false);
+                uiDbEditor.putBoolean(MainActivity.REF_DB_AFTER_SELECTING, false);
                 uiDbEditor.putBoolean(MainActivity.REF_DB_AFTER_ADDING, false);
                 uiDbEditor.apply();
             } else {
