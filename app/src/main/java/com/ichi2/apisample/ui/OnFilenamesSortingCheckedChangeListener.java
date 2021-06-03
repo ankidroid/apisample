@@ -14,7 +14,6 @@ import com.ichi2.apisample.helper.UriUtil;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Comparator;
 
 public class OnFilenamesSortingCheckedChangeListener implements RadioGroup.OnCheckedChangeListener {
     private final MainActivity mainActivity;

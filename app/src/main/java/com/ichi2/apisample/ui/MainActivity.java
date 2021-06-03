@@ -709,6 +709,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 if (resultCode != RESULT_OK) {
                     return;
                 }
+
                 final ArrayList<Uri> uriList = new ArrayList<>();
                 if (data != null) {
                     ClipData clipData = data.getClipData();
@@ -750,41 +751,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     if (sortedNameIdx != sortedLastModifiedIdx) {
                         mismatchingSorting = true;
                         selectedFilenames = new String[]{};
-                        new AlertDialog.Builder(this)
-                                .setMessage(R.string.mismatching_sorting)
-                                .setPositiveButton(R.string.sort_by_date, new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialogInterface, int i) {
-                                        String[] uriStrings = new String[uriList.size()];
-                                        for (int j = 0; j < uriList.size(); j++) {
-                                            int sortedLastModifiedIdx = lastModifiedValues.indexOf(lastModifiedSorted.get(j));
-                                            uriStrings[j] = uriList.get(sortedLastModifiedIdx).toString();
-                                        }
-                                        sortByDate = true;
-                                        sortByName = false;
-                                        filenames = uriStrings;
-                                        afterSelecting = true;
-                                        refreshFilenames();
-                                        actionPlay.callOnClick();
-                                    }
-                                })
-                                .setNegativeButton(R.string.sort_by_name, new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialogInterface, int i) {
-                                        String[] uriStrings = new String[uriList.size()];
-                                        for (int j = 0; j < uriList.size(); j++) {
-                                            int sortedNameIdx = names.indexOf(namesSorted.get(j));
-                                            uriStrings[j] = uriList.get(sortedNameIdx).toString();
-                                        }
-                                        sortByName = true;
-                                        sortByDate = false;
-                                        filenames = uriStrings;
-                                        afterSelecting = true;
-                                        refreshFilenames();
-                                        actionPlay.callOnClick();
-                                    }
-                                })
-                                .show();
+                        showMismatchingSortingDialog(uriList, names, namesSorted, lastModifiedValues, lastModifiedSorted);
                         return;
                     }
                     uriStrings[i] = uriList.get(sortedNameIdx).toString();
@@ -811,6 +778,44 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     handleCaptureAudio();
                 }
         }
+    }
+
+    private void showMismatchingSortingDialog(final ArrayList<Uri> uriList, final ArrayList<String> names, final ArrayList<String> namesSorted, final ArrayList<Long> lastModifiedValues, final ArrayList<Long> lastModifiedSorted) {
+        new AlertDialog.Builder(this)
+                .setMessage(R.string.mismatching_sorting)
+                .setPositiveButton(R.string.sort_by_date, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        String[] uriStrings = new String[uriList.size()];
+                        for (int j = 0; j < uriList.size(); j++) {
+                            int sortedLastModifiedIdx = lastModifiedValues.indexOf(lastModifiedSorted.get(j));
+                            uriStrings[j] = uriList.get(sortedLastModifiedIdx).toString();
+                        }
+                        sortByDate = true;
+                        sortByName = false;
+                        filenames = uriStrings;
+                        afterSelecting = true;
+                        refreshFilenames();
+                        actionPlay.callOnClick();
+                    }
+                })
+                .setNegativeButton(R.string.sort_by_name, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        String[] uriStrings = new String[uriList.size()];
+                        for (int j = 0; j < uriList.size(); j++) {
+                            int sortedNameIdx = names.indexOf(namesSorted.get(j));
+                            uriStrings[j] = uriList.get(sortedNameIdx).toString();
+                        }
+                        sortByName = true;
+                        sortByDate = false;
+                        filenames = uriStrings;
+                        afterSelecting = true;
+                        refreshFilenames();
+                        actionPlay.callOnClick();
+                    }
+                })
+                .show();
     }
 
     private void configureMarkExistingButton() {
