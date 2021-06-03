@@ -332,7 +332,7 @@ public class AudioCaptureService extends Service {
             String convertedPathname = pathname.substring(0, pathname.lastIndexOf(".")) + ".wav";
             File wavFile = new File(convertedPathname);
             wavFile.createNewFile();
-            converter.pcmToWav(pathname, convertedPathname);
+            converter.convert(pathname, convertedPathname);
             tempPcmFile.delete();
 
             Uri uri = FileProvider.getUriForFile(this, getApplicationContext().getPackageName() + ".provider", wavFile);

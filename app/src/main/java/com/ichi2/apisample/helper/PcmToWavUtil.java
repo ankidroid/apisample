@@ -45,7 +45,7 @@ public class PcmToWavUtil {
      * @param inFilename  source file path
      * @param outFilename target file path
      */
-    public void pcmToWav(String inFilename, String outFilename) {
+    public void convert(String inFilename, String outFilename) {
         FileInputStream in;
         FileOutputStream out;
         long totalAudioLen;
