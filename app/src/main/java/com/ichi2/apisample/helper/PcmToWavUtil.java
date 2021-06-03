@@ -8,6 +8,9 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+/**
+ * source: https://www.cnblogs.com/renhui/p/7457321.html
+ */
 public class PcmToWavUtil {
 
     /**
