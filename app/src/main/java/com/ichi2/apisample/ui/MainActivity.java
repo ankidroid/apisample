@@ -1,17 +1,22 @@
 package com.ichi2.apisample.ui;
 
 import android.Manifest;
+import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
 import android.content.ClipData;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.database.Cursor;
+import android.media.projection.MediaProjectionManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -19,12 +24,14 @@ import androidx.appcompat.widget.SwitchCompat;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.os.Handler;
 import android.provider.OpenableColumns;
+import android.provider.Settings;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -62,18 +69,23 @@ import java.util.Set;
 public class MainActivity extends AppCompatActivity implements ActivityCompat.OnRequestPermissionsResultCallback, AddingPrompter, ProgressIndicator {
 
     private static final int AD_PERM_REQUEST = 0;
-    private static final int PERMISSIONS_REQUEST_EXTERNAL_STORAGE = 1;
+    private static final int PERMISSIONS_REQUEST_EXTERNAL_STORAGE_CALLBACK_OPEN_CHOOSER = 1;
+    private static final int PERMISSIONS_REQUEST_RECORD_AUDIO_CALLBACK_CAPTURE = 2;
+    private static final int PERMISSIONS_REQUEST_EXTERNAL_STORAGE_CALLBACK_CAPTURE = 3;
 
     private static final int ACTION_SELECT_FILE = 10;
+    private static final int ACTION_SCREEN_CAPTURE = 11;
+    private static final int ACTION_PROMPT_OVERLAY_PERMISSION = 12;
 
     private static final String TAG_APPLICATION = "mi2a";
     private static final String TAG_DUPLICATE = "duplicate";
     private static final String TAG_CORRUPTED = "corrupted";
     private static final String TAG_SUSPICIOUS = "suspicious";
 
-    private static final String REF_DB_STATE = "com.ichi2.apisample.uistate";
+    static final String REF_DB_STATE = "com.ichi2.apisample.uistate";
+    static final String REF_DB_SELECTED_FILENAMES = "selectedFilenames";
+    static final String REF_DB_AFTER_ADDING = "afterAdding";
     private static final String REF_DB_SWITCH_BATCH = "switchBatch";
-    private static final String REF_DB_SELECTED_FILENAMES = "selectedFilenames";
     private static final String REF_DB_CHECK_NOTE_ANY = "checkNoteAny";
     private static final String REF_DB_CHECK_OCTAVE_ANY = "checkOctaveAny";
     private static final String REF_DB_RADIO_GROUP_DIRECTION = "radioGroupDirection";
@@ -83,7 +95,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private static final String REF_DB_INPUT_INSTRUMENT = "inputInstrument";
     private static final String REF_DB_SAVED_INSTRUMENTS = "savedInstruments";
     private static final String REF_DB_BATCH_ADDING_NOTICE_SEEN = "batchAddingNoticeSeen";
-    private static final String REF_DB_AFTER_ADDING = "afterAdding";
     private static final String REF_DB_NOTE_KEYS = "noteKeys";
     private static final String REF_DB_OCTAVE_KEYS = "octaveKeys";
     private static final String REF_DB_INTERVAL_KEYS = "intervalKeys";
@@ -115,6 +126,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private SwitchCompat switchBatch;
     private TextView textFilename;
     private Button actionPlay;
+    private Button actionCaptureAudio;
     private Button actionSelectFile;
     private CheckBox checkNoteAny;
     private CheckBox[] checkNotes;
@@ -178,6 +190,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     }
 
     private String[] filenames = new String[]{};
+    private String[] selectedFilenames;
 
     private SoundPlayer soundPlayer;
 
@@ -204,6 +217,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         switchBatch = findViewById(R.id.switchBatch);
         textFilename = findViewById(R.id.textFilename);
         actionPlay = findViewById(R.id.actionPlay);
+        actionCaptureAudio = findViewById(R.id.actionCaptureAudio);
         actionSelectFile = findViewById(R.id.actionSelectFile);
         checkNoteAny = findViewById(R.id.checkNoteAny);
         checkNotes = new CheckBox[CHECK_NOTE_IDS.length];
@@ -261,6 +275,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         mHandler = new Handler();
 
         configureClearAllButton();
+        configureCaptureAudioButton();
         configureSelectFileButton();
         configureMarkExistingButton();
         configureAddToAnkiButton();
@@ -294,12 +309,40 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
     }
 
+    private final BroadcastReceiver messageReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            clearAddedFilenames();
+            String uriString = intent.getStringExtra(AudioCaptureService.EXTRA_URI_STRING);
+            String[] newFilenames = new String[filenames.length + 1];
+            System.arraycopy(filenames, 0, newFilenames, 0, filenames.length);
+            newFilenames[filenames.length] = uriString;
+            filenames = newFilenames;
+
+            refreshFilenames();
+        }
+    };
+
     @Override
     protected void onResume() {
         super.onResume();
+
+        LocalBroadcastManager.getInstance(this).registerReceiver(messageReceiver, new IntentFilter(AudioCaptureService.ACTION_FILE_CREATED));
+
         refreshExisting();
         refreshPermutations();
+        boolean selected = selectedFilenames != null && selectedFilenames.length > 0;
+        if (selected) {
+            afterAdding = false;
+            filenames = selectedFilenames;
+            selectedFilenames = null;
+        } else {
+            filenames = getStoredFilenames(this);
+        }
         refreshFilenames();
+        if (selected && filenames.length > 1) {
+            actionPlay.callOnClick();
+        }
     }
 
     void refreshPermutations() {
@@ -419,7 +462,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     }
                 } else {
                     uri = Uri.parse(filename);
-                    getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    // getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    // @todo: investigate this
                     Cursor cursor = getContentResolver().query(uri, null, null, null, null);
                     int nameIdx = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
                     cursor.moveToFirst();
@@ -513,6 +557,48 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         actionPlay.setEnabled(false);
     }
 
+    private void configureCaptureAudioButton() {
+        actionCaptureAudio.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                    showMsg(R.string.recording_unsupported);
+                    return;
+                }
+                handleCaptureAudio();
+            }
+        });
+    }
+
+    private void handleCaptureAudio () {
+        if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{
+                            Manifest.permission.RECORD_AUDIO},
+                    PERMISSIONS_REQUEST_RECORD_AUDIO_CALLBACK_CAPTURE
+            );
+            return;
+        }
+        if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{
+                            Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                    PERMISSIONS_REQUEST_EXTERNAL_STORAGE_CALLBACK_CAPTURE
+            );
+            return;
+        }
+        if (!Settings.canDrawOverlays(MainActivity.this)) {
+            Intent intent = new Intent(
+                    Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                    Uri.parse("package:" + getPackageName())
+            );
+            startActivityForResult(intent, ACTION_PROMPT_OVERLAY_PERMISSION);
+            return;
+        }
+
+        MediaProjectionManager mediaProjectionManager = (MediaProjectionManager) getSystemService(Context.MEDIA_PROJECTION_SERVICE);
+        Intent intent = mediaProjectionManager.createScreenCaptureIntent();
+        startActivityForResult(intent, ACTION_SCREEN_CAPTURE);
+    }
+
     private void configureSelectFileButton() {
         final Button actionSelectFile = findViewById(R.id.actionSelectFile);
         actionSelectFile.setOnClickListener(new View.OnClickListener() {
@@ -521,7 +607,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
                     requestPermissions(new String[]{
                                     Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                            PERMISSIONS_REQUEST_EXTERNAL_STORAGE
+                            PERMISSIONS_REQUEST_EXTERNAL_STORAGE_CALLBACK_OPEN_CHOOSER
                     );
                     return;
                 }
@@ -582,32 +668,45 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     }
 
     @Override
+    @TargetApi(Build.VERSION_CODES.Q)
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-
-        if (requestCode == ACTION_SELECT_FILE && resultCode == RESULT_OK) {
-            ArrayList<String> filenamesList = new ArrayList<>();
-            if (data != null) {
-                ClipData clipData = data.getClipData();
-                if (clipData != null) {
-                    for (int i = 0; i < clipData.getItemCount(); i++) {
-                        Uri uri = clipData.getItemAt(i).getUri();
+        switch (requestCode) {
+            case ACTION_SELECT_FILE:
+                if (resultCode != RESULT_OK) {
+                    return;
+                }
+                ArrayList<String> filenamesList = new ArrayList<>();
+                if (data != null) {
+                    ClipData clipData = data.getClipData();
+                    if (clipData != null) {
+                        for (int i = 0; i < clipData.getItemCount(); i++) {
+                            Uri uri = clipData.getItemAt(i).getUri();
+                            getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                            filenamesList.add(uri.toString());
+                        }
+                    } else {
+                        Uri uri = data.getData();
                         getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
                         filenamesList.add(uri.toString());
                     }
-                } else {
-                    Uri uri = data.getData();
-                    getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                    filenamesList.add(uri.toString());
                 }
-            }
-            filenames = filenamesList.toArray(new String[0]);
-            refreshKeys();
-            afterAdding = false;
-            refreshFilenames();
-            if (filenames.length > 1) {
-                actionPlay.callOnClick();
-            }
+                selectedFilenames = filenamesList.toArray(new String[0]);
+                break;
+            case ACTION_SCREEN_CAPTURE:
+                if (resultCode != RESULT_OK) {
+                    return;
+                }
+                Intent intent = new Intent(this, AudioCaptureService.class);
+                intent.putExtra(AudioCaptureService.EXTRA_RESULT_DATA, data);
+                startForegroundService(intent);
+                break;
+            case ACTION_PROMPT_OVERLAY_PERMISSION:
+                if (!Settings.canDrawOverlays(this)) {
+                    showMsg(R.string.display_over_apps_permission_denied);
+                } else {
+                    handleCaptureAudio();
+                }
         }
     }
 
@@ -822,14 +921,15 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
         uiDbEditor.apply();
 
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(messageReceiver);
+
         super.onPause();
     }
 
     protected void restoreUiState() {
         final SharedPreferences uiDb = getSharedPreferences(REF_DB_STATE, Context.MODE_PRIVATE);
         switchBatch.setChecked(uiDb.getBoolean(REF_DB_SWITCH_BATCH, false));
-        Set<String> storedFilenames = uiDb.getStringSet(REF_DB_SELECTED_FILENAMES, new HashSet<String>());
-        filenames = storedFilenames.toArray(new String[0]);
+        filenames = getStoredFilenames(this);
         refreshFilenames();
         checkNoteAny.setChecked(uiDb.getBoolean(REF_DB_CHECK_NOTE_ANY, true));
         for (int i = 0; i < CHECK_NOTE_IDS.length; i++) {
@@ -859,6 +959,12 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
     }
 
+    static String[] getStoredFilenames(Context context) {
+        final SharedPreferences uiDb = context.getSharedPreferences(REF_DB_STATE, Context.MODE_PRIVATE);
+        Set<String> storedFilenames = uiDb.getStringSet(REF_DB_SELECTED_FILENAMES, new HashSet<String>());
+        return storedFilenames.toArray(new String[0]);
+    }
+
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         switch (requestCode) {
             case AD_PERM_REQUEST:
@@ -872,10 +978,28 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     }
                 }
                 break;
-            case PERMISSIONS_REQUEST_EXTERNAL_STORAGE:
+            case PERMISSIONS_REQUEST_EXTERNAL_STORAGE_CALLBACK_OPEN_CHOOSER:
                 if (grantResults.length > 0) {
                     if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                         handleSelectFile();
+                    } else {
+                        showMsg(R.string.fs_permission_denied);
+                    }
+                }
+                break;
+            case PERMISSIONS_REQUEST_RECORD_AUDIO_CALLBACK_CAPTURE:
+                if (grantResults.length > 0) {
+                    if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                        handleCaptureAudio();
+                    } else {
+                        showMsg(R.string.recording_permission_denied);
+                    }
+                }
+                break;
+            case PERMISSIONS_REQUEST_EXTERNAL_STORAGE_CALLBACK_CAPTURE:
+                if (grantResults.length > 0) {
+                    if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                        handleCaptureAudio();
                     } else {
                         showMsg(R.string.fs_permission_denied);
                     }

@@ -358,7 +358,7 @@ public class AnkiDroidHelper {
         } finally {
             mContext.revokeUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
             File tempAudioFile = new File(tempAudioFilePath);
-            if (tempAudioFile != null && tempAudioFile.exists()) {
+            if (tempAudioFile.exists()) {
                 tempAudioFile.delete();
             }
         }

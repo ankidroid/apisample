@@ -71,15 +71,23 @@
                         android:id="@+id/actionPlay"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_weight="0.5"
+                        android:layout_weight="0.2
+"
                         android:text="@string/play" />
+
+                    <Button
+                        android:id="@+id/actionCaptureAudio"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.4"
+                        android:text="@string/capture_audio" />
 
                     <Button
                         android:id="@+id/actionSelectFile"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_weight="0.5"
                         android:layout_gravity="end"
+                        android:layout_weight="0.4"
                         android:text="@string/action_select_file" />
                 </LinearLayout>
 

@@ -23,7 +23,6 @@ public class AudioExtractionUtil {
         if (!type.equals("video/mp4")) {
             return null;
         }
-        File dstFile = null;
         try {
             MediaMuxer mediaMuxer = null;
             MediaExtractor mediaExtractor = new MediaExtractor();
@@ -62,12 +61,9 @@ public class AudioExtractionUtil {
             mediaMuxer.stop();
             mediaMuxer.release();
 
-            dstFile = new File(destFilePath);
+            File dstFile = new File(destFilePath);
             return FileProvider.getUriForFile(context, context.getApplicationContext().getPackageName() + ".provider", dstFile);
         } catch (IOException e) {
-            if (dstFile != null && dstFile.exists()) {
-                dstFile.delete();
-            }
             return null;
         }
     }
