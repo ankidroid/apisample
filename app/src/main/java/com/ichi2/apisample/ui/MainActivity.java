@@ -302,7 +302,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private void validateModel() {
         try {
             getMusInterval();
-        } catch (MusInterval.ModelValidationException e) {
+        } catch (MusInterval.ModelException e) {
             processMusIntervalException(e);
         } catch (MusInterval.ValidationException e) {
             // ignore other validation errors aside from model
@@ -1067,7 +1067,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
     }
 
-    private MusInterval getMusInterval() throws MusInterval.ModelValidationException, MusInterval.TempoNotInRangeException {
+    private MusInterval getMusInterval() throws MusInterval.ModelException, MusInterval.TempoNotInRangeException {
         final String anyStr = getResources().getString(R.string.any);
 
         final int radioDirectionId = radioGroupDirection.getCheckedRadioButtonId();
@@ -1217,7 +1217,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     .setPositiveButton(R.string.update, new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
                             Long updatedModelId = mAnkiDroid.updateCustomModel(
-                                    mAnkiDroid.findModelIdByName(modelName),
+                                    e.getModelId(),
                                     e.getFields(),
                                     e.getCards(),
                                     e.getQfmt(),
