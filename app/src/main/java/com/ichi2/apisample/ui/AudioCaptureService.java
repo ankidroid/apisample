@@ -29,7 +29,6 @@ import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
-import androidx.core.content.FileProvider;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.ichi2.apisample.R;
@@ -47,6 +46,8 @@ import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 public class AudioCaptureService extends Service {
+    public final static String CAPTURES_DIRECTORY = Environment.getExternalStorageDirectory().getPath() + "/MusicIntervals2Anki/AudioCaptures";
+
     public final static String EXTRA_RESULT_DATA = "AudioCaptureService:Extra:ResultData";
 
     public final static String ACTION_FILE_CREATED = "AudioCaptureService:FileCreated";
@@ -270,7 +271,7 @@ public class AudioCaptureService extends Service {
     }
 
     private File createAudioFile() {
-        File capturesDir = new File(Environment.getExternalStorageDirectory().getPath() + "/AudioCaptures");
+        File capturesDir = new File(CAPTURES_DIRECTORY);
         if (!capturesDir.exists()) {
             capturesDir.mkdirs();
         }
@@ -335,7 +336,7 @@ public class AudioCaptureService extends Service {
             converter.convert(pathname, convertedPathname);
             tempPcmFile.delete();
 
-            Uri uri = FileProvider.getUriForFile(this, getApplicationContext().getPackageName() + ".provider", wavFile);
+            Uri uri = Uri.fromFile(wavFile);
 
             Intent intent = new Intent(ACTION_FILE_CREATED);
             intent.putExtra(EXTRA_URI_STRING, uri.toString());

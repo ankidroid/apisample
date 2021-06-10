@@ -327,8 +327,9 @@ public class AnkiDroidHelper {
     // @todo: refactor once new version release of "com.ichi2.anki.api" is available
     public String addFileToAnkiMedia(String uriString) {
         Uri uri = Uri.parse(uriString);
+        uri = UriUtil.getContentUri(mContext, uri);
+        uriString = uri.toString();
         mContext.grantUriPermission(PACKAGE_ANKI, uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
-
         String type = mResolver.getType(uri);
         final String tempAudioFilePath = Environment.getExternalStorageDirectory().getPath() + "/tempOutput.mp3";
         if (type.startsWith("video")) {

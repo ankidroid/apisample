@@ -645,10 +645,11 @@ public class MusIntervalTest {
         doAnswer(new Answer() {
             @Override
             public Object answer(InvocationOnMock invocation) {
-                addedMusIntervals.add((MusInterval) invocation.getArgument(0));
+                MusInterval.AddingResult addingResult = invocation.getArgument(0);
+                addedMusIntervals.add((addingResult.getMusInterval()));
                 return null;
             }
-        }).when(prompter).addingFinished(any(MusInterval.class));
+        }).when(prompter).addingFinished(any(MusInterval.AddingResult.class));
 
         ProgressIndicator indicator = mock(ProgressIndicator.class);
 
@@ -703,10 +704,11 @@ public class MusIntervalTest {
         doAnswer(new Answer() {
             @Override
             public Object answer(InvocationOnMock invocation) {
-                addedMusIntervals.add((MusInterval) invocation.getArgument(0));
+                MusInterval.AddingResult addingResult = invocation.getArgument(0);
+                addedMusIntervals.add((addingResult.getMusInterval()));
                 return null;
             }
-        }).when(prompter).addingFinished(any(MusInterval.class));
+        }).when(prompter).addingFinished(any(MusInterval.AddingResult.class));
 
         ProgressIndicator indicator = mock(ProgressIndicator.class);
 
@@ -758,10 +760,11 @@ public class MusIntervalTest {
         doAnswer(new Answer() {
             @Override
             public Object answer(InvocationOnMock invocation) {
-                addedMusIntervals.add((MusInterval) invocation.getArgument(0));
+                MusInterval.AddingResult addingResult = invocation.getArgument(0);
+                addedMusIntervals.add(addingResult.getMusInterval());
                 return null;
             }
-        }).when(prompter).addingFinished(any(MusInterval.class));
+        }).when(prompter).addingFinished(any(MusInterval.AddingResult.class));
 
         ProgressIndicator indicator = mock(ProgressIndicator.class);
 
@@ -918,10 +921,11 @@ public class MusIntervalTest {
         doAnswer(new Answer() {
             @Override
             public Object answer(InvocationOnMock invocation) {
-                addedMusIntervals.add((MusInterval) invocation.getArgument(0));
+                MusInterval.AddingResult addingResult = invocation.getArgument(0);
+                addedMusIntervals.add((addingResult.getMusInterval()));
                 return null;
             }
-        }).when(prompter).addingFinished(any(MusInterval.class));
+        }).when(prompter).addingFinished(any(MusInterval.AddingResult.class));
 
         ProgressIndicator indicator = mock(ProgressIndicator.class);
 
@@ -1504,10 +1508,11 @@ public class MusIntervalTest {
         doAnswer(new Answer() {
             @Override
             public Object answer(InvocationOnMock invocation) {
-                addedMusIntervals.add((MusInterval) invocation.getArgument(0));
+                MusInterval.AddingResult addingResult = invocation.getArgument(0);
+                addedMusIntervals.add((addingResult.getMusInterval()));
                 return null;
             }
-        }).when(prompter).addingFinished(any(MusInterval.class));
+        }).when(prompter).addingFinished(any(MusInterval.AddingResult.class));
 
         ProgressIndicator indicator = mock(ProgressIndicator.class);
 
@@ -1624,10 +1629,11 @@ public class MusIntervalTest {
         doAnswer(new Answer() {
             @Override
             public Object answer(InvocationOnMock invocation) {
-                addedMusIntervals.add((MusInterval) invocation.getArgument(0));
+                MusInterval.AddingResult addingResult = invocation.getArgument(0);
+                addedMusIntervals.add((addingResult.getMusInterval()));
                 return null;
             }
-        }).when(prompter).addingFinished(any(MusInterval.class));
+        }).when(prompter).addingFinished(any(MusInterval.AddingResult.class));
 
         ProgressIndicator indicator = mock(ProgressIndicator.class);
 
@@ -1775,10 +1781,11 @@ public class MusIntervalTest {
         doAnswer(new Answer() {
             @Override
             public Object answer(InvocationOnMock invocation) {
-                addedMusIntervals.add((MusInterval) invocation.getArgument(0));
+                MusInterval.AddingResult addingResult = invocation.getArgument(0);
+                addedMusIntervals.add(addingResult.getMusInterval());
                 return null;
             }
-        }).when(prompter).addingFinished(any(MusInterval.class));
+        }).when(prompter).addingFinished(any(MusInterval.AddingResult.class));
 
         ProgressIndicator indicator = mock(ProgressIndicator.class);
 
@@ -1929,10 +1936,11 @@ public class MusIntervalTest {
         doAnswer(new Answer() {
             @Override
             public Object answer(InvocationOnMock invocation) {
-                addedMusIntervals.add((MusInterval) invocation.getArgument(0));
+                MusInterval.AddingResult addingResult = invocation.getArgument(0);
+                addedMusIntervals.add((addingResult.getMusInterval()));
                 return null;
             }
-        }).when(prompter).addingFinished(any(MusInterval.class));
+        }).when(prompter).addingFinished(any(MusInterval.AddingResult.class));
 
         ProgressIndicator indicator = mock(ProgressIndicator.class);
 
@@ -2046,10 +2054,11 @@ public class MusIntervalTest {
         doAnswer(new Answer() {
             @Override
             public Object answer(InvocationOnMock invocation) {
-                addedMusIntervals.add((MusInterval) invocation.getArgument(0));
+                MusInterval.AddingResult addingResult = invocation.getArgument(0);
+                addedMusIntervals.add((addingResult.getMusInterval()));
                 return null;
             }
-        }).when(prompter).addingFinished(any(MusInterval.class));
+        }).when(prompter).addingFinished(any(MusInterval.AddingResult.class));
 
         ProgressIndicator indicator = mock(ProgressIndicator.class);
 
@@ -2129,10 +2138,11 @@ public class MusIntervalTest {
         doAnswer(new Answer() {
             @Override
             public Object answer(InvocationOnMock invocation) {
-                addedMusIntervals.add((MusInterval) invocation.getArgument(0));
+                MusInterval.AddingResult addingResult = invocation.getArgument(0);
+                addedMusIntervals.add((addingResult.getMusInterval()));
                 return null;
             }
-        }).when(prompter).addingFinished(any(MusInterval.class));
+        }).when(prompter).addingFinished(any(MusInterval.AddingResult.class));
 
         ProgressIndicator indicator = mock(ProgressIndicator.class);
 
@@ -2223,10 +2233,11 @@ public class MusIntervalTest {
         doAnswer(new Answer() {
             @Override
             public Object answer(InvocationOnMock invocation) {
-                addedMusIntervals.add((MusInterval) invocation.getArgument(0));
+                MusInterval.AddingResult addingResult = invocation.getArgument(0);
+                addedMusIntervals.add((addingResult.getMusInterval()));
                 return null;
             }
-        }).when(prompter).addingFinished(any(MusInterval.class));
+        }).when(prompter).addingFinished(any(MusInterval.AddingResult.class));
 
         ProgressIndicator indicator = mock(ProgressIndicator.class);
 
@@ -2320,10 +2331,11 @@ public class MusIntervalTest {
         doAnswer(new Answer() {
             @Override
             public Object answer(InvocationOnMock invocation) {
-                addedMusIntervals.add((MusInterval) invocation.getArgument(0));
+                MusInterval.AddingResult addingResult = invocation.getArgument(0);
+                addedMusIntervals.add((addingResult.getMusInterval()));
                 return null;
             }
-        }).when(prompter).addingFinished(any(MusInterval.class));
+        }).when(prompter).addingFinished(any(MusInterval.AddingResult.class));
 
         ProgressIndicator indicator = mock(ProgressIndicator.class);
 

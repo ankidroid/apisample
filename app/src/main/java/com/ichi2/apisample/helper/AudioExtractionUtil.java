@@ -62,7 +62,7 @@ public class AudioExtractionUtil {
             mediaMuxer.release();
 
             File dstFile = new File(destFilePath);
-            return FileProvider.getUriForFile(context, context.getApplicationContext().getPackageName() + ".provider", dstFile);
+            return UriUtil.getUriForFile(context, dstFile);
         } catch (IOException e) {
             return null;
         }

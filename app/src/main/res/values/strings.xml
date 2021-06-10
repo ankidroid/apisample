@@ -159,7 +159,7 @@
     <string name="add_card_error">Music interval adding to AnkiDroid failed</string>
     <string name="mandatory_field_empty">Mandatory field \"%s\" is empty</string>
     <string name="already_added">Music interval seems to be already added to AnkiDroid (try to select sound file)</string>
-    <string name="item_replaced">Music interval successfully replaced. Please run "Check media" in AnkiDroid to find and delete the orphaned old sound file</string>
+    <string name="item_replaced">Music interval replaced. Please run "Check media" in AnkiDroid to find and delete the orphaned old sound file</string>
     <string name="add_file_error">Failed to add file to AnkiDroid media</string>
     <string name="unknown_adding_error">Failed to add music interval to AnkiDroid</string>
     <string name="additional_filenames">\u0020+ %d more…</string>
@@ -201,6 +201,10 @@
     <string name="audio_playing_error">Error trying to play audio file</string>
     <string name="unassigned">Unassigned</string>
     <string name="recording_unsupported">Audio capturing is available only on devices running Android 10 onwards</string>
+    <string name="files_deletion_prompt">Do you wish to move the original files to thrash?</string>
+    <string name="files_deletion_all">Delete all added</string>
+    <string name="files_deletion_recorded">Delete recorded only</string>
+    <string name="files_deletion_none">Do nothing</string>
 
     <!-- SettingsActivity labels, fields and buttons -->
     <string name="deck_preference_title">Deck</string>
@@ -223,4 +227,9 @@
     <string name="anki_dir_preference_title">AnkiDroid directory</string>
     <string name="use_default_model_check_preference_title">Use default note type</string>
     <string name="use_default_model_check_preference_summary">Enable automatic creation and updating of the used model</string>
+    <string name="files_deletion_preference_title">Automatic files deletion</string>
+    <string name="files_deletion_entry_none">Do not move any files to trash</string>
+    <string name="files_deletion_entry_created_only">Move to trash files created by MI2A once they processed</string>
+    <string name="files_deletion_entry_all">Move to trash both files created by MI2A and input files after they processed</string>
+    <string name="files_deletion_entry_always_ask">Always ask</string>
 </resources>

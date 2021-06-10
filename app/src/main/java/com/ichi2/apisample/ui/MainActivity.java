@@ -24,6 +24,7 @@ import androidx.appcompat.widget.SwitchCompat;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.documentfile.provider.DocumentFile;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -49,6 +50,7 @@ import android.widget.Toast;
 
 import com.ichi2.apisample.BuildConfig;
 import com.ichi2.apisample.helper.StringUtil;
+import com.ichi2.apisample.helper.UriUtil;
 import com.ichi2.apisample.model.AddingHandler;
 import com.ichi2.apisample.model.AddingPrompter;
 import com.ichi2.apisample.model.NotesIntegrity;
@@ -461,9 +463,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                         uri = Uri.fromFile(file);
                     }
                 } else {
-                    uri = Uri.parse(filename);
-                    // getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                    // @todo: investigate this
+                    uri = UriUtil.getContentUri(this, Uri.parse(filename));
                     Cursor cursor = getContentResolver().query(uri, null, null, null, null);
                     int nameIdx = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
                     cursor.moveToFirst();
@@ -772,15 +772,18 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         final boolean tagDuplicates = sharedPreferences.getBoolean(SettingsFragment.KEY_TAG_DUPLICATES_SWITCH, SettingsFragment.DEFAULT_TAG_DUPLICATES_SWITCH);
         final String duplicateTag = TAG_APPLICATION + AnkiDroidHelper.HIERARCHICAL_TAG_SEPARATOR + TAG_DUPLICATE;
 
-        mHandler.post(new DuplicatePromptWorker(this, mHandler, tagDuplicates, duplicateTag, existingMis, handler));
+        mHandler.post(new DuplicatePromptWorker(this, tagDuplicates, duplicateTag, existingMis, handler));
     }
 
     @Override
-    public void addingFinished(final MusInterval newMi) {
+    public void addingFinished(final MusInterval.AddingResult addingResult) {
         mHandler.post(new Runnable() {
             @Override
             public void run() {
                 progressDialog.dismiss();
+
+                final String[] originalFilenames = addingResult.getOriginalSounds();
+                MusInterval newMi = addingResult.getMusInterval();
                 filenames = newMi.sounds;
                 noteKeys = newMi.notes;
                 octaveKeys = newMi.octaves;
@@ -794,9 +797,75 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     showQuantityMsg(R.plurals.mi_added, nAdded);
                 } else if (nAdded > 1) {
                     showQuantityMsg(R.plurals.mi_added, nAdded, nAdded);
+                } else {
+                    return;
+                }
+
+                SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+                String filesDeletion = preferences.getString(SettingsFragment.KEY_FILES_DELETION_PREFERENCE, SettingsFragment.DEFAULT_FILES_DELETION);
+                switch (filesDeletion) {
+                    case SettingsFragment.VALUE_FILES_DELETION_DISABLED:
+                        break;
+                    case SettingsFragment.VALUE_FILES_DELETION_CREATED_ONLY:
+                        deleteCapturedFiles(originalFilenames);
+                        break;
+                    case SettingsFragment.VALUE_FILES_DELETION_ALL:
+                        deleteAddedFiles(originalFilenames);
+                        break;
+                    default:
+                    case SettingsFragment.VALUE_FILES_DELETION_ALWAYS_ASK:
+                        new AlertDialog.Builder(MainActivity.this)
+                                .setMessage(R.string.files_deletion_prompt)
+                                .setPositiveButton(R.string.files_deletion_all, new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialogInterface, int i) {
+                                        deleteAddedFiles(originalFilenames);
+                                    }
+                                })
+                                .setNegativeButton(R.string.files_deletion_recorded, new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialogInterface, int i) {
+                                        deleteCapturedFiles(originalFilenames);
+                                    }
+                                })
+                                .setNeutralButton(R.string.files_deletion_none, new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialogInterface, int i) {
+                                        dialogInterface.dismiss();
+                                    }
+                                })
+                                .show();
+                        break;
                 }
             }
         });
+    }
+
+    private void deleteCapturedFiles(String[] filenames) {
+        for (String filename : filenames) {
+            Uri uri = Uri.parse(filename);
+            if ("file".equals(uri.getScheme())) {
+                String pathname = uri.getPath();
+                String parentDir = pathname.substring(0, pathname.lastIndexOf("/"));
+                if (AudioCaptureService.CAPTURES_DIRECTORY.equals(parentDir)) {
+                    File file = new File(pathname);
+                    file.delete();
+                }
+            }
+        }
+    }
+
+    private void deleteAddedFiles(String[] filenames) {
+        for (String filename : filenames) {
+            Uri uri = Uri.parse(filename);
+            if ("file".equals(uri.getScheme())) {
+                File file = new File(uri.getPath());
+                file.delete();
+            } else {
+                DocumentFile documentFile = DocumentFile.fromSingleUri(MainActivity.this, uri);
+                documentFile.delete();
+            }
+        }
     }
 
     @Override
@@ -807,16 +876,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 handleError(t);
             }
         });
-    }
-
-    void handleInsertion(MusInterval newMi) {
-        String[] tempFilenames = new String[filenames.length + 1];
-        System.arraycopy(filenames, 0, tempFilenames, 0, filenames.length);
-        tempFilenames[tempFilenames.length - 1] = newMi.sounds[0];
-        filenames = tempFilenames;
-        refreshFilenames();
-        savedInstruments.add(newMi.instrument);
-        refreshExisting();
     }
 
     private void configureSettingsButton() {
@@ -1275,6 +1334,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     }
 
     private void processUnknownException(Throwable e) {
+        e.printStackTrace();
         showMsg(R.string.unknown_error);
     }
 
