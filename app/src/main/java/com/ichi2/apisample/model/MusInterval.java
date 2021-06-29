@@ -594,7 +594,7 @@ public class MusInterval {
     }
 
     protected void validateFields(boolean isDefaultModel, String[] fields, String[] cards, String[] qfmt, String[] afmt, String css)
-            throws ModelValidationException, TempoNotInRangeException, InvalidFirstNoteDurationCoefficientException {
+            throws ModelException, TempoNotInRangeException, InvalidFirstNoteDurationCoefficientException {
         String[] signature = Fields.getSignature(!version.isEmpty());
 
         if (modelId == null) {
