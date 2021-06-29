@@ -20,7 +20,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -77,8 +76,9 @@ public class MusInterval {
         }
 
         public static class Interval {
+            public static final String VALUE_UNISON = "Uni";
             public static final String[] VALUES = new String[]{
-                    "Uni",
+                    VALUE_UNISON,
                     "min2", "Maj2",
                     "min3", "Maj3",
                     "P4",
@@ -1006,7 +1006,7 @@ public class MusInterval {
                     String soundLarger = soundsLargerProvided && soundsLarger.length > i ? soundsLarger[i] : "";
                     miData.put(modelFields.get(Fields.SOUND_LARGER), soundLarger);
                     miData.put(modelFields.get(Fields.START_NOTE), note + octave);
-                    miData.put(modelFields.get(Fields.DIRECTION), direction);
+                    miData.put(modelFields.get(Fields.DIRECTION), !Fields.Interval.VALUE_UNISON.equals(interval) ? direction : "");
                     miData.put(modelFields.get(Fields.TIMING), timing);
                     miData.put(modelFields.get(Fields.INTERVAL), interval);
                     miData.put(modelFields.get(Fields.TEMPO), tempo);
