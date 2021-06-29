@@ -42,7 +42,7 @@ public class MusIntervalTest {
     final static String[] ALL_OCTAVES = new String[]{"1", "2", "3", "4", "5", "6"};
 
     final static String defaultNote = ALL_NOTES[1]; // C#
-    final static String defaultOctave = ALL_NOTES[2]; // 3
+    final static String defaultOctave = ALL_OCTAVES[2]; // 3
     final static String defaultStartNote = defaultNote + defaultOctave; // C#3
     final static String note2 = ALL_NOTES[1]; // C#
     final static String octave2 = ALL_OCTAVES[1]; // 2
