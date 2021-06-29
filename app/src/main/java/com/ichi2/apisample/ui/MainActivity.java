@@ -148,6 +148,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private TextView labelExisting;
     private Button actionMarkExisting;
 
+    private Toast toast;
+
     private ProgressDialog progressDialog;
 
     private Handler mHandler;
@@ -1472,6 +1474,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         for (AlertDialog dialog : activeOnStartDialogs) {
             dialog.dismiss();
         }
+        if (toast != null) {
+            toast.cancel();
+        }
     }
 
     private void processInvalidAnkiDatabase(AnkiDroidHelper.InvalidAnkiDatabaseException invalidAnkiDatabaseException) {
@@ -1496,8 +1501,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     void showQuantityMsg(int msgResId, int quantity, Object ...formatArgs) {
         displayToast(getResources().getQuantityString(msgResId, quantity, formatArgs));
     }
-
-    private Toast toast;
 
     private void displayToast(String text) {
         if (toast != null) {
