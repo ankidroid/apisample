@@ -50,7 +50,7 @@ public class OnViewAllClickListener implements View.OnClickListener {
             layoutSorting.setVisibility(View.GONE);
         }
 
-        new AlertDialog.Builder(mainActivity)
+        AlertDialog dialog = new AlertDialog.Builder(mainActivity)
                 .setView(dialogView)
                 .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
                     @Override
@@ -58,6 +58,9 @@ public class OnViewAllClickListener implements View.OnClickListener {
                         dialogInterface.dismiss();
                     }
                 })
-                .show();
+                .create();
+        mainActivity.activeOnStartDialogs.add(dialog);
+        dialog.setOnDismissListener(mainActivity.onStartDialogDismissListener);
+        dialog.show();
     }
 }
