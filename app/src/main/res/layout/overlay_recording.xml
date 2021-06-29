@@ -21,13 +21,13 @@
         android:layout_height="match_parent"
         android:orientation="horizontal">
 
-        <Button
+        <com.ichi2.apisample.ui.TouchableButton
             android:id="@+id/actionRecord"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/record" />
 
-        <Button
+        <com.ichi2.apisample.ui.TouchableButton
             android:id="@+id/actionClose"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
