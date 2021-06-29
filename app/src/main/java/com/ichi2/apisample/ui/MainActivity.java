@@ -716,12 +716,10 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     if (clipData != null) {
                         for (int i = 0; i < clipData.getItemCount(); i++) {
                             Uri uri = clipData.getItemAt(i).getUri();
-                            getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
                             uriList.add(uri);
                         }
                     } else {
                         Uri uri = data.getData();
-                        getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
                         uriList.add(uri);
                     }
                 }
