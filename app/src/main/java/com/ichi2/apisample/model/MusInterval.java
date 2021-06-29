@@ -176,8 +176,7 @@ public class MusInterval {
                     new PatternValidator(StartNote.getValidationPattern())
             });
             put(DIRECTION, new Validator[]{
-                    VALIDATOR_EMPTY,
-                    new PatternValidator(String.format("(?i)%s|%s", Direction.ASC, Direction.DESC))
+                    new PatternValidator(String.format("^$|(?i)%s|%s", Direction.ASC, Direction.DESC))
             });
             put(TIMING, new Validator[]{
                     VALIDATOR_EMPTY,
