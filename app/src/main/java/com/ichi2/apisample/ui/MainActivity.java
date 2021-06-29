@@ -505,6 +505,22 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     uri = file.exists() ? Uri.fromFile(file) : null;
                 } else {
                     uri = Uri.parse(filename);
+
+                    boolean exists;
+                    if ("file".equals(uri.getScheme())) {
+                        File file = new File(uri.getPath());
+                        exists = file.exists();
+                    } else {
+                        DocumentFile documentFile = DocumentFile.fromSingleUri(MainActivity.this, uri);
+                        exists = documentFile != null && documentFile.exists();
+                    }
+                    if (!exists) {
+                        filenames = new String[]{};
+                        refreshFilenames();
+                        showMsg(R.string.filenames_refreshing_error);
+                        return;
+                    }
+
                     Uri contentUri = UriUtil.getContentUri(this, uri);
                     Cursor cursor = resolver.query(contentUri, null, null, null, null);
                     int nameIdx = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
