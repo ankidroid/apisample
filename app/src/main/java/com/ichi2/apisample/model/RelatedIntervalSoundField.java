@@ -60,6 +60,10 @@ public abstract class RelatedIntervalSoundField {
         final String interval = noteData.getOrDefault(intervalField, "");
         final int intervalIdx = MusInterval.Fields.Interval.getIndex(interval);
 
+        final String unisonInterval = MusInterval.Fields.Interval.VALUE_UNISON;
+        final String directionField = musInterval.modelFields.getOrDefault(MusInterval.Fields.DIRECTION, MusInterval.Fields.DIRECTION);
+        final String direction = noteData.getOrDefault(directionField, "");
+
         final String relatedSoundFieldKey = getFieldKey();
         final String relatedSoundField = musInterval.modelFields.getOrDefault(relatedSoundFieldKey, relatedSoundFieldKey);
         String relatedSound = noteData.remove(relatedSoundField);
@@ -76,7 +80,11 @@ public abstract class RelatedIntervalSoundField {
 
         int updatedLinks = 0;
         if (isRelationPossible(intervalIdx)) {
-            noteData.put(intervalField, getRelatedInterval(intervalIdx));
+            String relatedInterval = getRelatedInterval(intervalIdx);
+            noteData.put(intervalField, relatedInterval);
+            if (unisonInterval.equalsIgnoreCase(interval) || unisonInterval.equals(relatedInterval)) {
+                noteData.put(directionField, "");
+            }
             LinkedList<Map<String, String>> relatedNotesData = helper.findNotes(
                     musInterval.modelId,
                     noteData,
@@ -109,6 +117,7 @@ public abstract class RelatedIntervalSoundField {
         }
 
         noteData.put(intervalField, interval);
+        noteData.put(directionField, direction);
         noteData.put(relatedSoundField, relatedSound);
         noteData.put(reverseRelatedSoundField, reverseRelatedSound);
         noteData.put(soundField, sound);
