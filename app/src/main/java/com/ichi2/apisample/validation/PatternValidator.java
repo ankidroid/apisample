@@ -1,6 +1,6 @@
 package com.ichi2.apisample.validation;
 
-public class PatternValidator implements Validator {
+public class PatternValidator implements FieldValidator {
     private final String pattern;
 
     public PatternValidator(String pattern) {

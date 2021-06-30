@@ -8,10 +8,12 @@ import com.ichi2.apisample.helper.equality.IntegerEqualityChecker;
 import com.ichi2.apisample.helper.search.DoubleSearchExpressionMaker;
 import com.ichi2.apisample.helper.search.IntegerSearchExpressionMaker;
 import com.ichi2.apisample.helper.search.SearchExpressionMaker;
+import com.ichi2.apisample.validation.NoteValidator;
 import com.ichi2.apisample.validation.PositiveDecimalValidator;
 import com.ichi2.apisample.validation.EmptyValidator;
 import com.ichi2.apisample.validation.IntegerRangeValidator;
 import com.ichi2.apisample.validation.PatternValidator;
+import com.ichi2.apisample.validation.FieldValidator;
 import com.ichi2.apisample.validation.Validator;
 
 import java.util.ArrayList;
@@ -68,6 +70,22 @@ public class MusInterval {
         public static class Direction {
             public static final String ASC = "ascending";
             public static final String DESC = "descending";
+
+            private static final NoteValidator PRESENCE_VALIDATOR = new NoteValidator() {
+                @Override
+                public boolean isValid(Map<String, String> data, Map<String, String> modelFields) {
+                    String directionField = modelFields.getOrDefault(Fields.DIRECTION, Fields.DIRECTION);
+                    String direction = data.getOrDefault(directionField, "");
+                    String intervalField = modelFields.getOrDefault(Fields.INTERVAL, Fields.INTERVAL);
+                    String interval = data.getOrDefault(intervalField, "");
+                    return !direction.trim().isEmpty() || Fields.Interval.VALUE_UNISON.equalsIgnoreCase(interval);
+                }
+
+                @Override
+                public String getErrorTag() {
+                    return "empty";
+                }
+            };
         }
 
         public static class Timing {
@@ -115,13 +133,13 @@ public class MusInterval {
             public static final int MIN_VALUE = 20;
             public static final int MAX_VALUE = 400;
 
-            private static final Validator RANGE_VALIDATOR = new IntegerRangeValidator(Tempo.MIN_VALUE, Tempo.MAX_VALUE);
+            private static final FieldValidator RANGE_VALIDATOR = new IntegerRangeValidator(Tempo.MIN_VALUE, Tempo.MAX_VALUE);
         }
 
         public static class FirstNoteDurationCoefficient {
             public static final double DEFAULT_VALUE = 1.0;
 
-            public static final Validator FORMAT_VALIDATOR = new PositiveDecimalValidator();
+            public static final FieldValidator FORMAT_VALIDATOR = new PositiveDecimalValidator();
         }
 
         public static String[] getSignature(boolean versionField) {
@@ -157,9 +175,8 @@ public class MusInterval {
             put(FIRST_NOTE_DURATION_COEFFICIENT, new DoubleEqualityChecker());
         }};
 
-        private static final Validator VALIDATOR_EMPTY = new EmptyValidator();
-        private static final Validator VALIDATOR_SOUND = new PatternValidator("^$|^\\[sound:.*\\]$");
-
+        private static final FieldValidator VALIDATOR_EMPTY = new EmptyValidator();
+        private static final FieldValidator VALIDATOR_SOUND = new PatternValidator("^$|^\\[sound:.*\\]$");
         public static final Map<String, Validator[]> VALIDATORS = new HashMap<String, Validator[]>() {{
             put(SOUND, new Validator[]{
                     VALIDATOR_EMPTY,
@@ -176,6 +193,7 @@ public class MusInterval {
                     new PatternValidator(StartNote.getValidationPattern())
             });
             put(DIRECTION, new Validator[]{
+                    Direction.PRESENCE_VALIDATOR,
                     new PatternValidator(String.format("^$|(?i)%s|%s", Direction.ASC, Direction.DESC))
             });
             put(TIMING, new Validator[]{
