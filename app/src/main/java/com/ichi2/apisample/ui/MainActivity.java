@@ -1470,6 +1470,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         for (AlertDialog dialog : activeOnStartDialogs) {
             dialog.dismiss();
         }
+        soundPlayer.stop();
     }
 
     private void processInvalidAnkiDatabase(AnkiDroidHelper.InvalidAnkiDatabaseException invalidAnkiDatabaseException) {
