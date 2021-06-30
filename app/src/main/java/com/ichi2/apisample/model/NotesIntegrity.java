@@ -159,7 +159,7 @@ public class NotesIntegrity {
             boolean noteValid = true;
             for (Map.Entry<String, Validator[]> validators : MusInterval.Fields.VALIDATORS.entrySet()) {
                 String fieldKey = validators.getKey();
-                String value = noteData.getOrDefault(musInterval.modelFields.getOrDefault(fieldKey, fieldKey), "");
+                String field = musInterval.modelFields.getOrDefault(fieldKey, fieldKey);
                 for (Validator validator : validators.getValue()) {
                     final String errorTag = (
                             corruptedTag
@@ -173,6 +173,7 @@ public class NotesIntegrity {
 
                     boolean isValid;
                     if (validator instanceof FieldValidator) {
+                        String value = noteData.getOrDefault(field, "");
                         isValid = ((FieldValidator) validator).isValid(value);
                     } else if (validator instanceof NoteValidator) {
                         isValid = ((NoteValidator) validator).isValid(noteData, musInterval.modelFields);
