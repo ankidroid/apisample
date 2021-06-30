@@ -59,9 +59,11 @@ public class OnViewAllClickListener implements View.OnClickListener {
                     }
                 })
                 .create();
+        mainActivity.activeOnStartDialogs.add(dialog);
         dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
             @Override
             public void onDismiss(DialogInterface dialogInterface) {
+                mainActivity.onStartDialogDismissListener.onDismiss(dialogInterface);
                 mainActivity.soundPlayer.stop();
             }
         });
