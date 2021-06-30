@@ -148,6 +148,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private TextView labelExisting;
     private Button actionMarkExisting;
 
+    private Toast toast;
+
     private ProgressDialog progressDialog;
 
     private Handler mHandler;
@@ -1471,6 +1473,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             dialog.dismiss();
         }
         soundPlayer.stop();
+        if (toast != null) {
+            toast.cancel();
+        }
     }
 
     private void processInvalidAnkiDatabase(AnkiDroidHelper.InvalidAnkiDatabaseException invalidAnkiDatabaseException) {
@@ -1489,10 +1494,18 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     }
 
     void showMsg(int msgResId, Object ...formatArgs) {
-        Toast.makeText(MainActivity.this, getResources().getString(msgResId, formatArgs), Toast.LENGTH_LONG).show();
+        displayToast(getResources().getString(msgResId, formatArgs));
     }
 
     void showQuantityMsg(int msgResId, int quantity, Object ...formatArgs) {
-        Toast.makeText(MainActivity.this, getResources().getQuantityString(msgResId, quantity, formatArgs), Toast.LENGTH_LONG).show();
+        displayToast(getResources().getQuantityString(msgResId, quantity, formatArgs));
+    }
+
+    private void displayToast(String text) {
+        if (toast != null) {
+            toast.cancel();
+        }
+        toast = Toast.makeText(this, text, Toast.LENGTH_LONG);
+        toast.show();
     }
 }
