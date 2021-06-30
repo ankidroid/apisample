@@ -41,7 +41,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
@@ -81,7 +80,7 @@ public class AudioCaptureService extends Service {
 
     private View overlayView;
     private TextView textTop;
-    private Button actionRecord;
+    private TouchableButton actionRecord;
     private TextView textBottom;
 
     private View countdownView;
@@ -165,8 +164,9 @@ public class AudioCaptureService extends Service {
                 }
             }
         });
+        actionRecord.setOnTouchListener(moveOnTouchListener);
 
-        Button actionClose = overlayView.findViewById(R.id.actionClose);
+        TouchableButton actionClose = overlayView.findViewById(R.id.actionClose);
         actionClose.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -176,6 +176,7 @@ public class AudioCaptureService extends Service {
                 startActivity(intent);
             }
         });
+        actionClose.setOnTouchListener(moveOnTouchListener);
 
         textTop = overlayView.findViewById(R.id.textTop);
         refreshTime(0);
