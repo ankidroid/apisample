@@ -196,8 +196,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
     }
 
-    private final ArrayList<AlertDialog> activeOnStartDialogs = new ArrayList<>();
-    private final DialogInterface.OnDismissListener onStartDialogDismissListener = new DialogInterface.OnDismissListener() {
+    final ArrayList<AlertDialog> activeOnStartDialogs = new ArrayList<>();
+    final DialogInterface.OnDismissListener onStartDialogDismissListener = new DialogInterface.OnDismissListener() {
         @Override
         public void onDismiss(DialogInterface dialogInterface) {
             activeOnStartDialogs.remove(dialogInterface);
@@ -716,12 +716,10 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     if (clipData != null) {
                         for (int i = 0; i < clipData.getItemCount(); i++) {
                             Uri uri = clipData.getItemAt(i).getUri();
-                            getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
                             uriList.add(uri);
                         }
                     } else {
                         Uri uri = data.getData();
-                        getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
                         uriList.add(uri);
                     }
                 }
