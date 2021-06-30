@@ -1,6 +1,6 @@
 package com.ichi2.apisample.validation;
 
-public class IntegerRangeValidator implements Validator {
+public class IntegerRangeValidator implements FieldValidator {
     private final int minValue;
     private final int maxValue;
 

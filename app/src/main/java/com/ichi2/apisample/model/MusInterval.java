@@ -2,16 +2,21 @@ package com.ichi2.apisample.model;
 
 import com.ichi2.apisample.R;
 import com.ichi2.apisample.helper.AnkiDroidHelper;
-import com.ichi2.apisample.helper.equality.DoubleEqualityChecker;
+import com.ichi2.apisample.helper.equality.DoubleValueEqualityChecker;
 import com.ichi2.apisample.helper.equality.EqualityChecker;
-import com.ichi2.apisample.helper.equality.IntegerEqualityChecker;
+import com.ichi2.apisample.helper.equality.FieldEqualityChecker;
+import com.ichi2.apisample.helper.equality.IntegerValueEqualityChecker;
+import com.ichi2.apisample.helper.equality.NoteEqualityChecker;
 import com.ichi2.apisample.helper.search.DoubleSearchExpressionMaker;
 import com.ichi2.apisample.helper.search.IntegerSearchExpressionMaker;
 import com.ichi2.apisample.helper.search.SearchExpressionMaker;
+import com.ichi2.apisample.validation.FixableNoteValidator;
+import com.ichi2.apisample.validation.NoteValidator;
 import com.ichi2.apisample.validation.PositiveDecimalValidator;
 import com.ichi2.apisample.validation.EmptyValidator;
 import com.ichi2.apisample.validation.IntegerRangeValidator;
 import com.ichi2.apisample.validation.PatternValidator;
+import com.ichi2.apisample.validation.FieldValidator;
 import com.ichi2.apisample.validation.Validator;
 
 import java.util.ArrayList;
@@ -20,7 +25,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -69,6 +73,64 @@ public class MusInterval {
         public static class Direction {
             public static final String ASC = "ascending";
             public static final String DESC = "descending";
+
+            private static final NoteEqualityChecker EQUALITY_CHECKER =
+                    new NoteEqualityChecker(new String[]{DIRECTION, INTERVAL}) {
+                        private static final int IDX_DIRECTION = 0;
+                        private static final int IDX_INTERVAL = 1;
+
+                        @Override
+                        public boolean areEqual(Map<String, String> data1, Map<String, String> data2) {
+                            String directionField = modelFields[IDX_DIRECTION];
+                            String intervalField = modelFields[IDX_INTERVAL];
+                            String direction1 = data1.getOrDefault(directionField, "");
+                            String direction2 = data2.getOrDefault(directionField, "");
+                            String interval1 = data1.getOrDefault(intervalField, "");
+                            String interval2 = data2.getOrDefault(intervalField, "");
+                            return direction1.equalsIgnoreCase(direction2) ||
+                                    interval1.equalsIgnoreCase(Interval.VALUE_UNISON) ||
+                                    interval2.equalsIgnoreCase(Interval.VALUE_UNISON);
+                        }
+                    };
+
+            private static final FixableNoteValidator NON_EMPTY_UNISON_VALIDATOR = new FixableNoteValidator() {
+                @Override
+                public boolean fix(long modelId, long noteId, Map<String, String> data, Map<String, String> modelFields, AnkiDroidHelper helper) {
+                    String directionField = modelFields.getOrDefault(DIRECTION, DIRECTION);
+                    data.replace(directionField, "");
+                    return helper.updateNote(modelId, noteId, data);
+                }
+
+                @Override
+                public boolean isValid(Map<String, String> data, Map<String, String> modelFields) {
+                    String directionField = modelFields.getOrDefault(Fields.DIRECTION, Fields.DIRECTION);
+                    String direction = data.getOrDefault(directionField, "");
+                    String intervalField = modelFields.getOrDefault(Fields.INTERVAL, Fields.INTERVAL);
+                    String interval = data.getOrDefault(intervalField, "");
+                    return !Fields.Interval.VALUE_UNISON.equalsIgnoreCase(interval) || direction.trim().isEmpty();
+                }
+
+                @Override
+                public String getErrorTag() {
+                    return "non-empty";
+                }
+            };
+
+            private static final NoteValidator EMPTY_NON_UNISON_VALIDATOR = new NoteValidator() {
+                @Override
+                public boolean isValid(Map<String, String> data, Map<String, String> modelFields) {
+                    String directionField = modelFields.getOrDefault(Fields.DIRECTION, Fields.DIRECTION);
+                    String direction = data.getOrDefault(directionField, "");
+                    String intervalField = modelFields.getOrDefault(Fields.INTERVAL, Fields.INTERVAL);
+                    String interval = data.getOrDefault(intervalField, "");
+                    return !direction.trim().isEmpty() || Fields.Interval.VALUE_UNISON.equalsIgnoreCase(interval);
+                }
+
+                @Override
+                public String getErrorTag() {
+                    return "empty";
+                }
+            };
         }
 
         public static class Timing {
@@ -77,8 +139,9 @@ public class MusInterval {
         }
 
         public static class Interval {
+            public static final String VALUE_UNISON = "Uni";
             public static final String[] VALUES = new String[]{
-                    "Uni",
+                    VALUE_UNISON,
                     "min2", "Maj2",
                     "min3", "Maj3",
                     "P4",
@@ -115,13 +178,13 @@ public class MusInterval {
             public static final int MIN_VALUE = 20;
             public static final int MAX_VALUE = 400;
 
-            private static final Validator RANGE_VALIDATOR = new IntegerRangeValidator(Tempo.MIN_VALUE, Tempo.MAX_VALUE);
+            private static final FieldValidator RANGE_VALIDATOR = new IntegerRangeValidator(Tempo.MIN_VALUE, Tempo.MAX_VALUE);
         }
 
         public static class FirstNoteDurationCoefficient {
             public static final double DEFAULT_VALUE = 1.0;
 
-            public static final Validator FORMAT_VALIDATOR = new PositiveDecimalValidator();
+            public static final FieldValidator FORMAT_VALIDATOR = new PositiveDecimalValidator();
         }
 
         public static String[] getSignature(boolean versionField) {
@@ -153,13 +216,13 @@ public class MusInterval {
         }};
 
         public static final Map<String, EqualityChecker> EQUALITY_CHECKERS = new HashMap<String, EqualityChecker>() {{
-            put(TEMPO, new IntegerEqualityChecker());
-            put(FIRST_NOTE_DURATION_COEFFICIENT, new DoubleEqualityChecker());
+            put(DIRECTION, Direction.EQUALITY_CHECKER);
+            put(TEMPO, new FieldEqualityChecker(TEMPO, new IntegerValueEqualityChecker()));
+            put(FIRST_NOTE_DURATION_COEFFICIENT, new FieldEqualityChecker(FIRST_NOTE_DURATION_COEFFICIENT, new DoubleValueEqualityChecker()));
         }};
 
-        private static final Validator VALIDATOR_EMPTY = new EmptyValidator();
-        private static final Validator VALIDATOR_SOUND = new PatternValidator("^$|^\\[sound:.*\\]$");
-
+        private static final FieldValidator VALIDATOR_EMPTY = new EmptyValidator();
+        private static final FieldValidator VALIDATOR_SOUND = new PatternValidator("^$|^\\[sound:.*\\]$");
         public static final Map<String, Validator[]> VALIDATORS = new HashMap<String, Validator[]>() {{
             put(SOUND, new Validator[]{
                     VALIDATOR_EMPTY,
@@ -176,8 +239,9 @@ public class MusInterval {
                     new PatternValidator(StartNote.getValidationPattern())
             });
             put(DIRECTION, new Validator[]{
-                    VALIDATOR_EMPTY,
-                    new PatternValidator(String.format("(?i)%s|%s", Direction.ASC, Direction.DESC))
+                    Direction.NON_EMPTY_UNISON_VALIDATOR,
+                    Direction.EMPTY_NON_UNISON_VALIDATOR,
+                    new PatternValidator(String.format("^$|(?i)%s|%s", Direction.ASC, Direction.DESC))
             });
             put(TIMING, new Validator[]{
                     VALIDATOR_EMPTY,
@@ -570,7 +634,20 @@ public class MusInterval {
                 modelFieldsSearchExpressionMakers.put(modelField, Fields.SEARCH_EXPRESSION_MAKERS.get(fieldKey));
             }
             if (Fields.EQUALITY_CHECKERS.containsKey(fieldKey)) {
-                modelFieldsEqualityCheckers.put(modelField, Fields.EQUALITY_CHECKERS.get(fieldKey));
+                EqualityChecker equalityChecker = Fields.EQUALITY_CHECKERS.get(fieldKey);
+                if (equalityChecker instanceof FieldEqualityChecker) {
+                    ((FieldEqualityChecker) equalityChecker).setField(modelField);
+                } else if (equalityChecker instanceof NoteEqualityChecker) {
+                    NoteEqualityChecker noteEqualityChecker = (NoteEqualityChecker) equalityChecker;
+                    String[] fields = noteEqualityChecker.getModelFields();
+                    String[] modelFields = new String[fields.length];
+                    for (int i = 0; i < modelFields.length; i++) {
+                        String field = fields[i];
+                        modelFields[i] = this.modelFields.getOrDefault(field, field);
+                    }
+                    noteEqualityChecker.setModelFields(modelFields);
+                }
+                modelFieldsEqualityCheckers.put(modelField, equalityChecker);
             }
         }
         modelId = helper.findModelIdByName(builder.mModelName);
@@ -1006,7 +1083,7 @@ public class MusInterval {
                     String soundLarger = soundsLargerProvided && soundsLarger.length > i ? soundsLarger[i] : "";
                     miData.put(modelFields.get(Fields.SOUND_LARGER), soundLarger);
                     miData.put(modelFields.get(Fields.START_NOTE), note + octave);
-                    miData.put(modelFields.get(Fields.DIRECTION), direction);
+                    miData.put(modelFields.get(Fields.DIRECTION), !Fields.Interval.VALUE_UNISON.equals(interval) ? direction : "");
                     miData.put(modelFields.get(Fields.TIMING), timing);
                     miData.put(modelFields.get(Fields.INTERVAL), interval);
                     miData.put(modelFields.get(Fields.TEMPO), tempo);

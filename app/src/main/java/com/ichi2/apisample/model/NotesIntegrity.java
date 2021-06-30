@@ -3,6 +3,9 @@ package com.ichi2.apisample.model;
 import com.ichi2.apisample.R;
 import com.ichi2.apisample.helper.AnkiDroidHelper;
 import com.ichi2.apisample.helper.search.SearchExpressionMaker;
+import com.ichi2.apisample.validation.FieldValidator;
+import com.ichi2.apisample.validation.FixableNoteValidator;
+import com.ichi2.apisample.validation.NoteValidator;
 import com.ichi2.apisample.validation.Validator;
 
 import java.util.ArrayList;
@@ -153,11 +156,11 @@ public class NotesIntegrity {
             long noteId = Long.parseLong(noteData.get(AnkiDroidHelper.KEY_ID));
             String noteTags = noteData.get(AnkiDroidHelper.KEY_TAGS).toLowerCase();
 
-            boolean valid = true;
-            for (Map.Entry<String, Validator[]> fieldValidators : MusInterval.Fields.VALIDATORS.entrySet()) {
-                String fieldKey = fieldValidators.getKey();
-                String value = noteData.getOrDefault(musInterval.modelFields.getOrDefault(fieldKey, fieldKey), "");
-                for (Validator validator : fieldValidators.getValue()) {
+            boolean noteValid = true;
+            for (Map.Entry<String, Validator[]> validators : MusInterval.Fields.VALIDATORS.entrySet()) {
+                String fieldKey = validators.getKey();
+                String field = musInterval.modelFields.getOrDefault(fieldKey, fieldKey);
+                for (Validator validator : validators.getValue()) {
                     final String errorTag = (
                             corruptedTag
                                     + AnkiDroidHelper.HIERARCHICAL_TAG_SEPARATOR
@@ -167,14 +170,28 @@ public class NotesIntegrity {
                     ).toLowerCase();
                     final String errorTagCheckStr = String.format(" %s ", errorTag);
                     boolean hasErrorTag = noteTags.contains(errorTagCheckStr);
-                    if (!validator.isValid(value)) {
+
+                    boolean isValid;
+                    if (validator instanceof FieldValidator) {
+                        String value = noteData.getOrDefault(field, "");
+                        isValid = ((FieldValidator) validator).isValid(value);
+                    } else if (validator instanceof NoteValidator) {
+                        isValid = ((NoteValidator) validator).isValid(noteData, musInterval.modelFields);
+                        if (!isValid && validator instanceof FixableNoteValidator) {
+                            isValid = ((FixableNoteValidator) validator).fix(musInterval.modelId, noteId, noteData, musInterval.modelFields, helper);
+                        }
+                    } else {
+                        throw new IllegalStateException();
+                    }
+
+                    if (!isValid) {
                         int currentCount = corruptedFieldCounts.getOrDefault(fieldKey, 0);
                         corruptedFieldCounts.put(fieldKey, currentCount + 1);
                         if (!hasErrorTag) {
                             final String errorTagAddStr = String.format("%s", errorTag);
                             helper.addTagToNote(noteId, noteTags + errorTagAddStr);
                         }
-                        valid = false;
+                        noteValid = false;
                         break;
                     } else if (hasErrorTag) {
                         helper.updateNoteTags(noteId, noteTags.replace(errorTagCheckStr, " "));
@@ -183,7 +200,7 @@ public class NotesIntegrity {
                 }
             }
 
-            if (valid) {
+            if (noteValid) {
                 correctNotesData.add(noteData);
             }
         }
