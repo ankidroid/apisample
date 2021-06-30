@@ -4,6 +4,7 @@ import com.ichi2.apisample.R;
 import com.ichi2.apisample.helper.AnkiDroidHelper;
 import com.ichi2.apisample.helper.search.SearchExpressionMaker;
 import com.ichi2.apisample.validation.FieldValidator;
+import com.ichi2.apisample.validation.FixableNoteValidator;
 import com.ichi2.apisample.validation.NoteValidator;
 import com.ichi2.apisample.validation.Validator;
 
@@ -169,14 +170,19 @@ public class NotesIntegrity {
                     ).toLowerCase();
                     final String errorTagCheckStr = String.format(" %s ", errorTag);
                     boolean hasErrorTag = noteTags.contains(errorTagCheckStr);
+
                     boolean isValid;
                     if (validator instanceof FieldValidator) {
                         isValid = ((FieldValidator) validator).isValid(value);
                     } else if (validator instanceof NoteValidator) {
                         isValid = ((NoteValidator) validator).isValid(noteData, musInterval.modelFields);
+                        if (!isValid && validator instanceof FixableNoteValidator) {
+                            isValid = ((FixableNoteValidator) validator).fix(musInterval.modelId, noteId, noteData, musInterval.modelFields, helper);
+                        }
                     } else {
                         throw new IllegalStateException();
                     }
+
                     if (!isValid) {
                         int currentCount = corruptedFieldCounts.getOrDefault(fieldKey, 0);
                         corruptedFieldCounts.put(fieldKey, currentCount + 1);

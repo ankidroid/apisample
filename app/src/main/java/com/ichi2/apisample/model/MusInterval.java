@@ -8,6 +8,7 @@ import com.ichi2.apisample.helper.equality.IntegerEqualityChecker;
 import com.ichi2.apisample.helper.search.DoubleSearchExpressionMaker;
 import com.ichi2.apisample.helper.search.IntegerSearchExpressionMaker;
 import com.ichi2.apisample.helper.search.SearchExpressionMaker;
+import com.ichi2.apisample.validation.FixableNoteValidator;
 import com.ichi2.apisample.validation.NoteValidator;
 import com.ichi2.apisample.validation.PositiveDecimalValidator;
 import com.ichi2.apisample.validation.EmptyValidator;
@@ -71,7 +72,30 @@ public class MusInterval {
             public static final String ASC = "ascending";
             public static final String DESC = "descending";
 
-            private static final NoteValidator PRESENCE_VALIDATOR = new NoteValidator() {
+            private static final FixableNoteValidator NON_EMPTY_UNISON_VALIDATOR = new FixableNoteValidator() {
+                @Override
+                public boolean fix(long modelId, long noteId, Map<String, String> data, Map<String, String> modelFields, AnkiDroidHelper helper) {
+                    String directionField = modelFields.getOrDefault(DIRECTION, DIRECTION);
+                    data.replace(directionField, "");
+                    return helper.updateNote(modelId, noteId, data);
+                }
+
+                @Override
+                public boolean isValid(Map<String, String> data, Map<String, String> modelFields) {
+                    String directionField = modelFields.getOrDefault(Fields.DIRECTION, Fields.DIRECTION);
+                    String direction = data.getOrDefault(directionField, "");
+                    String intervalField = modelFields.getOrDefault(Fields.INTERVAL, Fields.INTERVAL);
+                    String interval = data.getOrDefault(intervalField, "");
+                    return !Fields.Interval.VALUE_UNISON.equalsIgnoreCase(interval) || direction.trim().isEmpty();
+                }
+
+                @Override
+                public String getErrorTag() {
+                    return "non-empty";
+                }
+            };
+
+            private static final NoteValidator EMPTY_NON_UNISON_VALIDATOR = new NoteValidator() {
                 @Override
                 public boolean isValid(Map<String, String> data, Map<String, String> modelFields) {
                     String directionField = modelFields.getOrDefault(Fields.DIRECTION, Fields.DIRECTION);
@@ -193,7 +217,8 @@ public class MusInterval {
                     new PatternValidator(StartNote.getValidationPattern())
             });
             put(DIRECTION, new Validator[]{
-                    Direction.PRESENCE_VALIDATOR,
+                    Direction.NON_EMPTY_UNISON_VALIDATOR,
+                    Direction.EMPTY_NON_UNISON_VALIDATOR,
                     new PatternValidator(String.format("^$|(?i)%s|%s", Direction.ASC, Direction.DESC))
             });
             put(TIMING, new Validator[]{
