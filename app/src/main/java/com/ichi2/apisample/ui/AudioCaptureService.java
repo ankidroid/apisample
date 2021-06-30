@@ -171,6 +171,9 @@ public class AudioCaptureService extends Service {
             @Override
             public void onClick(View view) {
                 tearDown();
+                Intent intent = new Intent(AudioCaptureService.this, MainActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
             }
         });
 
