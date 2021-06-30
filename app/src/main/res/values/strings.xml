@@ -214,6 +214,7 @@
     <string name="mismatching_sorting">The selected files have different order when sorted by name and modification date.\nPlease choose which order should be used for batch adding (you\'ll be able to change it later in the file list)</string>
     <string name="sort_by_name">Sort by name</string>
     <string name="sort_by_date">Sort by date</string>
+    <string name="filenames_refreshing_error">Error loading selected files from the saved state</string>
 
     <!-- SettingsActivity labels, fields and buttons -->
     <string name="deck_preference_title">Deck</string>
