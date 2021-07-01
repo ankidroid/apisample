@@ -221,7 +221,11 @@ public class AudioCaptureService extends Service {
         actionDiscardLatest.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                recordings.removeLast();
+                Recording discardedRecording = recordings.removeLast();
+                Uri uri = discardedRecording.getUri();
+                String path = uri.getPath();
+                new File(path).delete();
+
                 textBottom.setText(getString(R.string.recorded_files, recordings.size()));
                 if (recordings.size() == 0) {
                     layoutLatestActions.setVisibility(View.GONE);
