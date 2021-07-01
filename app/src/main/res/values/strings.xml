@@ -150,7 +150,8 @@
         <item quantity="other">Automatically filled %d link fields</item>
     </plurals>
     <string name="create_model">Note type \"%s\" is not found. Create it?</string>
-    <string name="update_model">Note type \"%s\" is outdated. Update it?</string>
+    <string name="update_default_model">Default note type \"%s\" is outdated. Update it?</string>
+    <string name="use_custom_model">Use custom model</string>
     <string name="create">Create</string>
     <string name="update">Update</string>
     <string name="configure">Configure</string>
