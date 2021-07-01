@@ -149,8 +149,9 @@
         <item quantity="one">Automatically filled one link field</item>
         <item quantity="other">Automatically filled %d link fields</item>
     </plurals>
-    <string name="create_model">Note type \"%s\" is not found. Create it?</string>
-    <string name="update_model">Note type \"%s\" is outdated. Update it?</string>
+    <string name="create_model">Note type \"%s\" is not found in AnkiDroid. Create it?</string>
+    <string name="update_default_model">Default note type \"%s\" is outdated in AnkiDroid. Update it?</string>
+    <string name="use_custom_model">Use custom model</string>
     <string name="create">Create</string>
     <string name="update">Update</string>
     <string name="configure">Configure</string>
@@ -159,7 +160,7 @@
     <string name="create_model_success">Successfully created note type \"%s\"</string>
     <string name="update_model_success">Successfully updated note type \"%s\"</string>
     <string name="create_model_error">Could not create note type</string>
-    <string name="update_model_error">Could not update note type. Please sync your Anki account and try again</string>
+    <string name="update_model_error">The update requires a full upload of the database upon next collection sync.\nPlease synchronize changes with other devices if needed and accept \"Force full sync\" in AnkiDroid->Settings->Advanced to allow automatic update of the note type.</string>
     <string name="invalid_model">Too few fields in existing \"%s\" note type. Please add additional fields in AnkiDroid or choose another model</string>
     <string name="create_deck_error">Could not create deck \"%s\"</string>
     <string name="add_card_error">Music interval adding to AnkiDroid failed</string>

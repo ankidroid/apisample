@@ -1370,7 +1370,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             final String modelName = e.getModelName();
             AlertDialog dialog = new AlertDialog.Builder(this)
                     .setMessage(String.format(
-                            getResources().getString(R.string.update_model),
+                            getResources().getString(R.string.update_default_model),
                             modelName))
                     .setPositiveButton(R.string.update, new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
@@ -1386,11 +1386,27 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                                 updateModelPreferences(updatedModelId);
                                 showMsg(R.string.update_model_success, MusInterval.Builder.DEFAULT_MODEL_NAME);
                             } else {
-                                showMsg(R.string.update_model_error);
+                                new AlertDialog.Builder(MainActivity.this)
+                                        .setMessage(R.string.update_model_error)
+                                        .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialogInterface, int i) {
+                                                dialogInterface.dismiss();
+                                            }
+                                        })
+                                        .show();
                             }
                         }
                     })
-                    .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                    .setNegativeButton(R.string.use_custom_model, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            SharedPreferences.Editor preferenceEditor = PreferenceManager.getDefaultSharedPreferences(MainActivity.this).edit();
+                            preferenceEditor.putBoolean(SettingsFragment.KEY_USE_DEFAULT_MODEL_CHECK, false);
+                            preferenceEditor.apply();
+                        }
+                    })
+                    .setNeutralButton(R.string.cancel, new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
                             dialog.cancel();
                         }

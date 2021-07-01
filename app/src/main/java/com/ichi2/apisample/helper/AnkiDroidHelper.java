@@ -167,7 +167,7 @@ public class AnkiDroidHelper {
         cursor.moveToNext();
         String existingCss = cursor.getString(cursor.getColumnIndex(FlashCardsContract.Model.CSS));
         String existingNumCards = cursor.getString(cursor.getColumnIndex(FlashCardsContract.Model.NUM_CARDS));
-        if (!existingCss.equals(css) || Integer.parseInt(existingNumCards) != cards.length) {
+        if (!StringUtil.strip(existingCss).equals(css) || Integer.parseInt(existingNumCards) != cards.length) {
             return false;
         }
 
@@ -187,7 +187,9 @@ public class AnkiDroidHelper {
             String existingName = cursor.getString(colIdxName);
             String existingQfmt = cursor.getString(colIdxQfmt);
             String existingAfmt = cursor.getString(colIdxAfmt);
-            if (!existingName.equals(cards[i]) || !existingQfmt.equals(qfmt[i]) || !existingAfmt.equals(afmt[i])) {
+            if (!StringUtil.strip(existingName).equals(cards[i]) ||
+                    !StringUtil.strip(existingQfmt).equals(qfmt[i]) ||
+                    !StringUtil.strip(existingAfmt).equals(afmt[i])) {
                 return false;
             }
         }
@@ -209,27 +211,14 @@ public class AnkiDroidHelper {
      * @throws IllegalArgumentException if the model with the provided id does not exist
      */
     public Long updateCustomModel(long modelId, String[] fields, String[] cards, String[] qfmt, String[] afmt, String css) {
-        ContentValues values = new ContentValues();
-        values.put(FlashCardsContract.Model.CSS, css);
-        values.put(FlashCardsContract.Model.NUM_CARDS, cards.length);
         Uri modelUri = Uri.withAppendedPath(FlashCardsContract.Model.CONTENT_URI, String.valueOf(modelId));
-        int updated;
-        try {
-            updated = mResolver.update(modelUri, values, null, null);
-        } catch (Exception e) {
-            throw new IllegalArgumentException();
-        }
-        if (updated == 0) {
-            return null;
-        }
-
         Uri fieldsUri = Uri.withAppendedPath(modelUri, "fields");
         Set<String> existingFields = new HashSet<>(Arrays.asList(getFieldList(modelId)));
         for (String field : fields) {
             if (existingFields.contains(field)) {
                 continue;
             }
-            values = new ContentValues();
+            ContentValues values = new ContentValues();
             values.put(FlashCardsContract.Model.FIELD_NAME, field);
             try {
                 Uri fieldUri = mResolver.insert(fieldsUri, values);
@@ -241,6 +230,19 @@ public class AnkiDroidHelper {
             }
         }
 
+        ContentValues modelValues = new ContentValues();
+        modelValues.put(FlashCardsContract.Model.CSS, css);
+        modelValues.put(FlashCardsContract.Model.NUM_CARDS, cards.length);
+        int updated;
+        try {
+            updated = mResolver.update(modelUri, modelValues, null, null);
+        } catch (Exception e) {
+            throw new IllegalArgumentException();
+        }
+        if (updated == 0) {
+            return null;
+        }
+
         Uri templatesUri = Uri.withAppendedPath(modelUri, "templates");
         Cursor cursor = mResolver.query(templatesUri, null, null, null, null);
         int templatesCount = cursor.getCount();
@@ -250,7 +252,7 @@ public class AnkiDroidHelper {
         int i = 0;
         for (; i < last; i++) {
             Uri templateUri = Uri.withAppendedPath(templatesUri, Integer.toString(i));
-            values = new ContentValues();
+            ContentValues values = new ContentValues();
             values.put(FlashCardsContract.CardTemplate.NAME, cards[i]);
             values.put(FlashCardsContract.CardTemplate.QUESTION_FORMAT, qfmt[i]);
             values.put(FlashCardsContract.CardTemplate.ANSWER_FORMAT, afmt[i]);
@@ -261,7 +263,7 @@ public class AnkiDroidHelper {
         }
         if (templatesToAdd) {
             for (; i < cards.length; i++) {
-                values = new ContentValues();
+                ContentValues values = new ContentValues();
                 values.put(FlashCardsContract.CardTemplate.NAME, cards[i]);
                 values.put(FlashCardsContract.CardTemplate.QUESTION_FORMAT, qfmt[i]);
                 values.put(FlashCardsContract.CardTemplate.ANSWER_FORMAT, afmt[i]);
