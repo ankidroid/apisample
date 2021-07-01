@@ -61,10 +61,28 @@ public class IntegrityCheckWorker implements Runnable {
         }
     }
 
-    private static final String ALLOWED_START_NOTES_STR = StringUtil.joinStrings(", ",MusInterval.Fields.StartNote.VALUES);
+    private static final String ALLOWED_START_NOTES_STR = StringUtil.joinStrings(", ", MusInterval.Fields.StartNote.VALUES);
     private static final String ALLOWED_DIRECTIONS_STR = String.format("%s, %s", MusInterval.Fields.Direction.ASC, MusInterval.Fields.Direction.DESC);
     private static final String ALLOWED_TIMINGS_STR = String.format("%s, %s", MusInterval.Fields.Timing.MELODIC, MusInterval.Fields.Timing.HARMONIC);
     private static final String ALLOWED_INTERVALS_STR = StringUtil.joinStrings(", ", MusInterval.Fields.Interval.VALUES);
+    private static final Map<String, GetStringArgs> FIELD_VALIDATION_STRING_ARGS = new HashMap<String, GetStringArgs>() {{
+        put(MusInterval.Fields.SOUND, new GetStringArgs(R.string.validation_sound));
+        put(MusInterval.Fields.SOUND_SMALLER, new GetStringArgs(R.string.validation_sound));
+        put(MusInterval.Fields.SOUND_LARGER, new GetStringArgs(R.string.validation_sound));
+        put(MusInterval.Fields.START_NOTE, new GetStringArgs(R.string.validation_allowed_values, ALLOWED_START_NOTES_STR));
+        put(MusInterval.Fields.DIRECTION, new GetStringArgs(R.string.validation_allowed_values, ALLOWED_DIRECTIONS_STR));
+        put(MusInterval.Fields.TIMING, new GetStringArgs(R.string.validation_allowed_values, ALLOWED_TIMINGS_STR));
+        put(MusInterval.Fields.INTERVAL, new GetStringArgs(R.string.validation_allowed_values, ALLOWED_INTERVALS_STR));
+        put(MusInterval.Fields.TEMPO, new GetStringArgs(R.string.validation_range,
+                MusInterval.Fields.Tempo.MIN_VALUE, MusInterval.Fields.Tempo.MAX_VALUE));
+        put(MusInterval.Fields.INSTRUMENT, new GetStringArgs(R.string.validation_mandatory));
+        put(MusInterval.Fields.FIRST_NOTE_DURATION_COEFFICIENT, new GetStringArgs(R.string.validation_positive_decimal));
+    }};
+    static {
+        if (!FIELD_VALIDATION_STRING_ARGS.keySet().equals(MusInterval.Fields.VALIDATORS.keySet())) {
+            throw new AssertionError();
+        }
+    }
 
     private static String getReport(NotesIntegrity.Summary integritySummary, Context context) {
         MusInterval mi = integritySummary.getMusInterval();
@@ -83,17 +101,6 @@ public class IntegrityCheckWorker implements Runnable {
         int autoFilledRelationsCount = integritySummary.getAutoFilledRelationsCount();
         int duplicateNotesCount = integritySummary.getDuplicateNotesCount();
 
-        Map<String, String> fieldValidationMessages = new HashMap<>();
-        fieldValidationMessages.put(MusInterval.Fields.SOUND, context.getString(R.string.validation_sound));
-        fieldValidationMessages.put(MusInterval.Fields.SOUND_SMALLER, context.getString(R.string.validation_sound));
-        fieldValidationMessages.put(MusInterval.Fields.SOUND_LARGER, context.getString(R.string.validation_sound));
-        fieldValidationMessages.put(MusInterval.Fields.START_NOTE, context.getString(R.string.validation_allowed_values, ALLOWED_START_NOTES_STR));
-        fieldValidationMessages.put(MusInterval.Fields.DIRECTION, context.getString(R.string.validation_allowed_values, ALLOWED_DIRECTIONS_STR));
-        fieldValidationMessages.put(MusInterval.Fields.TIMING, context.getString(R.string.validation_allowed_values, ALLOWED_TIMINGS_STR));
-        fieldValidationMessages.put(MusInterval.Fields.INTERVAL, context.getString(R.string.validation_allowed_values, ALLOWED_INTERVALS_STR));
-        fieldValidationMessages.put(MusInterval.Fields.TEMPO, context.getString(R.string.validation_range, MusInterval.Fields.Tempo.MIN_VALUE, MusInterval.Fields.Tempo.MAX_VALUE));
-        fieldValidationMessages.put(MusInterval.Fields.INSTRUMENT, context.getString(R.string.validation_mandatory));
-
         StringBuilder report = new StringBuilder();
         Resources res = context.getResources();
         report.append(res.getString(R.string.integrity_check_completed, notesCount));
@@ -110,7 +117,9 @@ public class IntegrityCheckWorker implements Runnable {
                 if (count > 0) {
                     String field = mi.modelFields.getOrDefault(fieldKey, fieldKey);
                     report.append("\n\n");
-                    report.append(res.getString(R.string.integrity_field_corrupted, field, count, fieldValidationMessages.get(fieldKey)));
+                    GetStringArgs fieldValidationStringArgs = FIELD_VALIDATION_STRING_ARGS.get(fieldKey);
+                    String fieldValidationString = res.getString(fieldValidationStringArgs.getResId(), fieldValidationStringArgs.getFormatArgs());
+                    report.append(res.getString(R.string.integrity_field_corrupted, field, count, fieldValidationString));
                 }
             }
         }

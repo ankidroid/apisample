@@ -2,6 +2,7 @@ package com.ichi2.apisample.model;
 
 import com.ichi2.apisample.R;
 import com.ichi2.apisample.helper.AnkiDroidHelper;
+import com.ichi2.apisample.helper.search.SearchExpressionMaker;
 import com.ichi2.apisample.validation.Validator;
 
 import java.util.ArrayList;
@@ -19,7 +20,7 @@ public class NotesIntegrity {
     private final String suspiciousTag;
     private final String duplicateTag;
 
-    private ProgressIndicator progressIndicator;
+    private final ProgressIndicator progressIndicator;
 
     private int notesCount;
 
@@ -61,7 +62,13 @@ public class NotesIntegrity {
         progressIndicator.setMessage(R.string.integrity_finding_duplicates);
         countDuplicates(correctNotesData);
 
-        LinkedList<Map<String, String>> allNotesData = helper.findNotes(musInterval.modelId, new HashMap<String, String>());
+        LinkedList<Map<String, String>> allNotesData = helper.findNotes(
+                musInterval.modelId,
+                new HashMap<String, String>(),
+                musInterval.modelFieldsDefaultValues,
+                musInterval.modelFieldsSearchExpressionMakers,
+                musInterval.modelFieldsEqualityCheckers
+        );
         Map<String, Map<String, String>> soundDict = new HashMap<>();
         for (Map<String, String> noteData : allNotesData) {
             soundDict.put(noteData.getOrDefault(soundField, ""), noteData);
@@ -194,6 +201,21 @@ public class NotesIntegrity {
                 remove(AnkiDroidHelper.KEY_ID);
                 remove(AnkiDroidHelper.KEY_TAGS);
             }};
+            for (Map.Entry<String, String> fieldDefaultValue : MusInterval.Fields.DEFAULT_VALUES.entrySet()) {
+                String fieldKey = fieldDefaultValue.getKey();
+                String modelKey = musInterval.modelFields.getOrDefault(fieldKey, fieldKey);
+                if (!keyData.containsKey(modelKey) || keyData.get(modelKey).isEmpty()) {
+                    keyData.put(modelKey, fieldDefaultValue.getValue());
+                }
+            }
+            for (String key : keyData.keySet()) {
+                SearchExpressionMaker expressionMaker = musInterval.modelFieldsSearchExpressionMakers.getOrDefault(
+                        key,
+                        AnkiDroidHelper.DEFAULT_SEARCH_EXPRESSION_MAKER
+                );
+                String value = keyData.get(key);
+                keyData.put(key, expressionMaker.getExpression(value));
+            }
             LinkedList<Map<String, String>> current = keysDataNotes.getOrDefault(keyData, new LinkedList<Map<String, String>>());
             current.add(noteData);
             keysDataNotes.put(keyData, current);
