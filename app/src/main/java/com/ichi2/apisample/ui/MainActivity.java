@@ -671,6 +671,11 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     .setNegativeButton(R.string.clear, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialogInterface, int i) {
+                            for (String filename : filenames) {
+                                Uri uri = Uri.parse(filename);
+                                String path = uri.getPath();
+                                new File(path).delete();
+                            }
                             filenames = new String[]{};
                             refreshFilenames();
                             afterCapturing = false;
