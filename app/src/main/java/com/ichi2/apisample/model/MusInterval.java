@@ -44,7 +44,7 @@ public class MusInterval {
         public static final String INTERVAL = "interval";
         public static final String TEMPO = "tempo";
         public static final String INSTRUMENT = "instrument";
-        public static final String FIRST_NOTE_DURATION_COEFFICIENT = "first_note_duration_coefficient";
+        public static final String FIRST_NOTE_DURATION_COEFFICIENT = "note1.duration";
         public static final String VERSION = "mi2a_version";
 
         public static class StartNote {
