@@ -349,14 +349,20 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private final BroadcastReceiver messageReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            clearSelectedFilenames();
-            clearAddedFilenames();
-            String uriString = intent.getStringExtra(AudioCaptureService.EXTRA_URI_STRING);
-            String[] newFilenames = new String[filenames.length + 1];
-            System.arraycopy(filenames, 0, newFilenames, 0, filenames.length);
-            newFilenames[filenames.length] = uriString;
-            filenames = newFilenames;
+            String[] newFilenames;
+            if (intent.hasExtra(AudioCaptureService.EXTRA_URI_STRING)) {
+                clearSelectedFilenames();
+                clearAddedFilenames();
+                String uriString = intent.getStringExtra(AudioCaptureService.EXTRA_URI_STRING);
+                newFilenames = new String[filenames.length + 1];
+                System.arraycopy(filenames, 0, newFilenames, 0, filenames.length);
+                newFilenames[filenames.length] = uriString;
 
+            } else {
+                newFilenames = new String[filenames.length - 1];
+                System.arraycopy(filenames, 0, newFilenames, 0, filenames.length - 1);
+            }
+            filenames = newFilenames;
             refreshFilenames();
         }
     };
@@ -365,7 +371,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     protected void onResume() {
         super.onResume();
 
-        LocalBroadcastManager.getInstance(this).registerReceiver(messageReceiver, new IntentFilter(AudioCaptureService.ACTION_FILE_CREATED));
+        LocalBroadcastManager.getInstance(this).registerReceiver(messageReceiver, new IntentFilter(AudioCaptureService.ACTION_FILES_UPDATED));
 
         refreshExisting();
         refreshPermutations();

@@ -52,7 +52,7 @@ public class AudioCaptureService extends Service {
 
     public final static String EXTRA_RESULT_DATA = "AudioCaptureService:Extra:ResultData";
 
-    public final static String ACTION_FILE_CREATED = "AudioCaptureService:FileCreated";
+    public final static String ACTION_FILES_UPDATED = "AudioCaptureService:FilesUpdated";
     public final static String EXTRA_URI_STRING = "AudioCaptureService:Extra:UriString";
 
     private final static int SERVICE_ID = 1;
@@ -221,6 +221,9 @@ public class AudioCaptureService extends Service {
         actionDiscardLatest.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                Intent intent = new Intent(ACTION_FILES_UPDATED);
+                LocalBroadcastManager.getInstance(AudioCaptureService.this).sendBroadcast(intent);
+
                 Recording discardedRecording = recordings.removeLast();
                 Uri uri = discardedRecording.getUri();
                 String path = uri.getPath();
@@ -403,7 +406,7 @@ public class AudioCaptureService extends Service {
 
             Uri uri = Uri.fromFile(wavFile);
 
-            Intent intent = new Intent(ACTION_FILE_CREATED);
+            Intent intent = new Intent(ACTION_FILES_UPDATED);
             intent.putExtra(EXTRA_URI_STRING, uri.toString());
             LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
 
