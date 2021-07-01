@@ -298,7 +298,9 @@ public class AudioCaptureService extends Service {
         }
         record.release();
         projection.stop();
-        mediaPlayer.stop();
+        if (mediaPlayer.isPlaying()) {
+            mediaPlayer.stop();
+        }
         stopSelf();
     }
 
