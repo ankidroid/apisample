@@ -224,6 +224,13 @@ public class AudioCaptureService extends Service {
                 Intent intent = new Intent(ACTION_FILES_UPDATED);
                 LocalBroadcastManager.getInstance(AudioCaptureService.this).sendBroadcast(intent);
 
+                String[] filenames = MainActivity.getStoredFilenames(AudioCaptureService.this);
+                if (filenames.length > 0) {
+                    String[] newFilenames = new String[filenames.length - 1];
+                    System.arraycopy(filenames, 0, newFilenames, 0, filenames.length - 1);
+                    MainActivity.storeFilenames(AudioCaptureService.this, newFilenames);
+                }
+
                 Recording discardedRecording = recordings.removeLast();
                 Uri uri = discardedRecording.getUri();
                 String path = uri.getPath();
