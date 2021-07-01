@@ -89,6 +89,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     static final String REF_DB_SORT_BY_NAME = "sortByName";
     static final String REF_DB_SORT_BY_DATE = "sortByDate";
     static final String REF_DB_AFTER_SELECTING = "afterSelecting";
+    static final String REF_DB_AFTER_CAPTURING = "afterCapturing";
     static final String REF_DB_AFTER_ADDING = "afterAdding";
     private static final String REF_DB_SWITCH_BATCH = "switchBatch";
     private static final String REF_DB_CHECK_NOTE_ANY = "checkNoteAny";
@@ -225,6 +226,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     };
 
     private boolean afterSelecting;
+    private boolean afterCapturing;
 
     SoundPlayer soundPlayer;
 
@@ -357,10 +359,13 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 newFilenames = new String[filenames.length + 1];
                 System.arraycopy(filenames, 0, newFilenames, 0, filenames.length);
                 newFilenames[filenames.length] = uriString;
-
+                afterCapturing = true;
             } else {
                 newFilenames = new String[filenames.length - 1];
                 System.arraycopy(filenames, 0, newFilenames, 0, filenames.length - 1);
+                if (newFilenames.length == 0) {
+                    afterCapturing = false;
+                }
             }
             filenames = newFilenames;
             refreshFilenames();
@@ -377,6 +382,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         refreshPermutations();
         boolean selected = selectedFilenames != null;
         if (selected) {
+            afterCapturing = false;
             afterAdding = false;
             filenames = selectedFilenames;
             selectedFilenames = null;
@@ -594,6 +600,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 sortByName = false;
                 sortByDate = false;
                 afterSelecting = false;
+                afterCapturing = false;
                 resetPlayButton();
                 textFilename.setText("");
                 checkNoteAny.setChecked(true);
@@ -651,6 +658,44 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             return;
         }
 
+
+        if (afterCapturing) {
+            new AlertDialog.Builder(this)
+                    .setMessage(getResources().getQuantityString(R.plurals.recordings_clearing_prompt, filenames.length, filenames.length))
+                    .setPositiveButton(R.string.add_more, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int which) {
+                            handleInitiateCapturing();
+                        }
+                    })
+                    .setNegativeButton(R.string.clear, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            for (String filename : filenames) {
+                                Uri uri = Uri.parse(filename);
+                                String path = uri.getPath();
+                                new File(path).delete();
+                            }
+                            filenames = new String[]{};
+                            refreshFilenames();
+                            afterCapturing = false;
+                            handleInitiateCapturing();
+                        }
+                    })
+                    .setNeutralButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            dialogInterface.dismiss();
+                        }
+                    })
+                    .show();
+            return;
+        }
+
+        handleInitiateCapturing();
+    }
+
+    private void handleInitiateCapturing() {
         MediaProjectionManager mediaProjectionManager = (MediaProjectionManager) getSystemService(Context.MEDIA_PROJECTION_SERVICE);
         Intent intent = mediaProjectionManager.createScreenCaptureIntent();
         startActivityForResult(intent, ACTION_SCREEN_CAPTURE);
@@ -698,17 +743,19 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     public void onClick(DialogInterface dialogInterface, int i) {
                         dialogInterface.dismiss();
                     }
-                }).setOnDismissListener(new DialogInterface.OnDismissListener() {
-            @Override
-            public void onDismiss(DialogInterface dialogInterface) {
-                if (checkRemember.isChecked()) {
-                    SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(MainActivity.this).edit();
-                    editor.putBoolean(REF_DB_BATCH_ADDING_NOTICE_SEEN, true);
-                    editor.apply();
-                }
-                openChooser();
-            }
-        }).show();
+                })
+                .setOnDismissListener(new DialogInterface.OnDismissListener() {
+                    @Override
+                    public void onDismiss(DialogInterface dialogInterface) {
+                        if (checkRemember.isChecked()) {
+                            SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(MainActivity.this).edit();
+                            editor.putBoolean(REF_DB_BATCH_ADDING_NOTICE_SEEN, true);
+                            editor.apply();
+                        }
+                        openChooser();
+                    }
+                })
+                .show();
     }
 
     private void openChooser() {
@@ -791,6 +838,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 }
                 Intent intent = new Intent(this, AudioCaptureService.class);
                 intent.putExtra(AudioCaptureService.EXTRA_RESULT_DATA, data);
+                if (afterCapturing) {
+                    intent.putExtra(AudioCaptureService.EXTRA_RECORDINGS, filenames);
+                }
                 startForegroundService(intent);
                 break;
             case ACTION_PROMPT_OVERLAY_PERMISSION:
@@ -916,6 +966,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 MusInterval newMi = addingResult.getMusInterval();
                 filenames = newMi.sounds;
                 afterSelecting = false;
+                afterCapturing = false;
                 noteKeys = newMi.notes;
                 octaveKeys = newMi.octaves;
                 intervalKeys = newMi.intervals;
@@ -1094,6 +1145,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         uiDbEditor.putBoolean(REF_DB_SWITCH_BATCH, switchBatch.isChecked());
         storeFilenames(this, filenames);
         uiDbEditor.putBoolean(REF_DB_AFTER_SELECTING, afterSelecting);
+        uiDbEditor.putBoolean(REF_DB_AFTER_CAPTURING, afterCapturing);
         uiDbEditor.putBoolean(REF_DB_CHECK_NOTE_ANY, checkNoteAny.isChecked());
         for (int i = 0; i < CHECK_NOTE_IDS.length; i++) {
             uiDbEditor.putBoolean(String.valueOf(CHECK_NOTE_IDS[i]), checkNotes[i].isChecked());
@@ -1134,6 +1186,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         filenames = getStoredFilenames(this);
         refreshFilenames();
         afterSelecting = uiDb.getBoolean(REF_DB_AFTER_SELECTING, false);
+        afterCapturing = uiDb.getBoolean(REF_DB_AFTER_CAPTURING, false);
         checkNoteAny.setChecked(uiDb.getBoolean(REF_DB_CHECK_NOTE_ANY, true));
         for (int i = 0; i < CHECK_NOTE_IDS.length; i++) {
             checkNotes[i].setChecked(uiDb.getBoolean(String.valueOf(CHECK_NOTE_IDS[i]), false));

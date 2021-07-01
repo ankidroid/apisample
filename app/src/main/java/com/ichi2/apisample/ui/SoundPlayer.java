@@ -39,6 +39,8 @@ public class SoundPlayer {
     }
 
     public void stop() {
-        mediaPlayer.stop();
+        if (mediaPlayer.isPlaying()) {
+            mediaPlayer.stop();
+        }
     }
 }
