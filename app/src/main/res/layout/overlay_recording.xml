@@ -4,10 +4,10 @@
     android:layout_height="wrap_content"
     android:background="#80808080"
     android:orientation="vertical"
-    android:paddingLeft="32dp"
-    android:paddingTop="8dp"
-    android:paddingRight="32dp"
-    android:paddingBottom="8dp">
+    android:paddingLeft="16dp"
+    android:paddingTop="4dp"
+    android:paddingRight="16dp"
+    android:paddingBottom="4dp">
 
     <TextView
         android:id="@+id/textTop"
@@ -41,4 +41,35 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:textColor="#FFFFFF" />
+
+    <TextView
+        android:id="@+id/textLatest"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="16dp"
+        android:textColor="#FFFFFF"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:id="@+id/layoutLatestActions"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:visibility="gone">
+
+        <com.ichi2.apisample.ui.TouchableButton
+            android:id="@+id/actionPlayLatest"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/play" />
+
+        <com.ichi2.apisample.ui.TouchableButton
+            android:id="@+id/actionDiscardLatest"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/discard" />
+    </LinearLayout>
 </LinearLayout>

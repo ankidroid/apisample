@@ -13,6 +13,7 @@ import android.media.AudioAttributes;
 import android.media.AudioFormat;
 import android.media.AudioPlaybackCaptureConfiguration;
 import android.media.AudioRecord;
+import android.media.MediaPlayer;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
 import android.net.Uri;
@@ -25,6 +26,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
@@ -41,6 +43,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
@@ -49,7 +52,7 @@ public class AudioCaptureService extends Service {
 
     public final static String EXTRA_RESULT_DATA = "AudioCaptureService:Extra:ResultData";
 
-    public final static String ACTION_FILE_CREATED = "AudioCaptureService:FileCreated";
+    public final static String ACTION_FILES_UPDATED = "AudioCaptureService:FilesUpdated";
     public final static String EXTRA_URI_STRING = "AudioCaptureService:Extra:UriString";
 
     private final static int SERVICE_ID = 1;
@@ -74,7 +77,6 @@ public class AudioCaptureService extends Service {
 
     private boolean isRecording;
     private long recordingStartedAt;
-    private int recordedFilesCount;
 
     private WindowManager windowManager;
 
@@ -86,6 +88,13 @@ public class AudioCaptureService extends Service {
     private View countdownView;
     private TextView textCount;
     private ArrayList<Runnable> countdownCallbacks;
+
+    private TextView textLatest;
+    private LinearLayout layoutLatestActions;
+
+    private LinkedList<Recording> recordings;
+
+    private MediaPlayer mediaPlayer;
 
     @Override
     @TargetApi(Build.VERSION_CODES.O)
@@ -178,6 +187,67 @@ public class AudioCaptureService extends Service {
         });
         actionClose.setOnTouchListener(moveOnTouchListener);
 
+        textLatest = overlayView.findViewById(R.id.textLatest);
+
+        layoutLatestActions = overlayView.findViewById(R.id.layoutLatestActions);
+
+        recordings = new LinkedList<>();
+
+        mediaPlayer = new MediaPlayer();
+        mediaPlayer.setAudioAttributes(
+                new AudioAttributes.Builder()
+                        .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                        .setUsage(AudioAttributes.USAGE_MEDIA)
+                        .build()
+        );
+
+        TouchableButton actionPlayLatest = overlayView.findViewById(R.id.actionPlayLatest);
+        actionPlayLatest.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                try {
+                    mediaPlayer.reset();
+                    mediaPlayer.setDataSource(AudioCaptureService.this, recordings.getLast().getUri());
+                    mediaPlayer.prepare();
+                    mediaPlayer.start();
+                } catch (IOException e) {
+                    throw new Error();
+                }
+            }
+        });
+        actionPlayLatest.setOnTouchListener(moveOnTouchListener);
+
+        TouchableButton actionDiscardLatest = overlayView.findViewById(R.id.actionDiscardLatest);
+        actionDiscardLatest.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(ACTION_FILES_UPDATED);
+                LocalBroadcastManager.getInstance(AudioCaptureService.this).sendBroadcast(intent);
+
+                String[] filenames = MainActivity.getStoredFilenames(AudioCaptureService.this);
+                if (filenames.length > 0) {
+                    String[] newFilenames = new String[filenames.length - 1];
+                    System.arraycopy(filenames, 0, newFilenames, 0, filenames.length - 1);
+                    MainActivity.storeFilenames(AudioCaptureService.this, newFilenames);
+                }
+
+                Recording discardedRecording = recordings.removeLast();
+                Uri uri = discardedRecording.getUri();
+                String path = uri.getPath();
+                new File(path).delete();
+
+                textBottom.setText(getString(R.string.recorded_files, recordings.size()));
+                if (recordings.size() == 0) {
+                    layoutLatestActions.setVisibility(View.GONE);
+                    textLatest.setVisibility(View.GONE);
+                } else {
+                    Recording recording = recordings.getLast();
+                    textLatest.setText(getString(R.string.latest_file, recording.getDurationStr()));
+                }
+            }
+        });
+        actionDiscardLatest.setOnTouchListener(moveOnTouchListener);
+
         textTop = overlayView.findViewById(R.id.textTop);
         refreshTime(0);
         textBottom = overlayView.findViewById(R.id.textBottom);
@@ -228,6 +298,7 @@ public class AudioCaptureService extends Service {
         }
         record.release();
         projection.stop();
+        mediaPlayer.stop();
         stopSelf();
     }
 
@@ -342,7 +413,7 @@ public class AudioCaptureService extends Service {
 
             Uri uri = Uri.fromFile(wavFile);
 
-            Intent intent = new Intent(ACTION_FILE_CREATED);
+            Intent intent = new Intent(ACTION_FILES_UPDATED);
             intent.putExtra(EXTRA_URI_STRING, uri.toString());
             LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
 
@@ -366,8 +437,14 @@ public class AudioCaptureService extends Service {
             newFilenames.add(uri.toString());
             MainActivity.storeFilenames(this, newFilenames.toArray(new String[0]));
 
-            recordedFilesCount++;
-            textBottom.setText(getString(R.string.recorded_files, recordedFilesCount));
+            long duration = System.currentTimeMillis() - recordingStartedAt;
+            String durationStr = String.format(Locale.US, "%.2f", (double) duration / 1000d);
+            Recording recording = new Recording(uri, durationStr);
+            recordings.add(recording);
+            textBottom.setText(getString(R.string.recorded_files, recordings.size()));
+            textLatest.setVisibility(View.VISIBLE);
+            textLatest.setText(getString(R.string.latest_file, recording.getDurationStr()));
+            layoutLatestActions.setVisibility(View.VISIBLE);
             handler.post(new Runnable() {
                 @Override
                 public void run() {
@@ -398,5 +475,23 @@ public class AudioCaptureService extends Service {
     @Override
     public IBinder onBind(Intent intent) {
         return null;
+    }
+
+    private static class Recording {
+        private final Uri uri;
+        private final String durationStr;
+
+        public Recording(Uri uri, String durationStr) {
+            this.uri = uri;
+            this.durationStr = durationStr;
+        }
+
+        public Uri getUri() {
+            return uri;
+        }
+
+        public String getDurationStr() {
+            return durationStr;
+        }
     }
 }

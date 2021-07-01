@@ -79,6 +79,8 @@
     <string name="stop">Stop</string>
     <string name="close">Close</string>
     <string name="recorded_files">Files recorded: %d</string>
+    <string name="discard">Discard</string>
+    <string name="latest_file">Latest file (%ss)</string>
     <string name="countdown_skip">Skip countdown</string>
     <string name="first_note_duration_coefficient">First note duration coefficient</string>
     <string name="sort_by">Order by:</string>
