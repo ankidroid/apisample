@@ -80,7 +80,7 @@
     <string name="close">Close</string>
     <string name="recorded_files">Files recorded: %d</string>
     <string name="discard">Discard</string>
-    <string name="latest_file">Latest file (%ss)</string>
+    <string name="latest_file">Latest file (%.2fs)</string>
     <string name="countdown_skip">Skip countdown</string>
     <string name="first_note_duration_coefficient">First note duration coefficient</string>
     <string name="sort_by">Order by:</string>
@@ -149,6 +149,12 @@
         <item quantity="one">Automatically filled one link field</item>
         <item quantity="other">Automatically filled %d link fields</item>
     </plurals>
+    <plurals name="recordings_clearing_prompt">
+        <item quantity="one">The filename field contains one previously captured recording.\nDo you wish to clear it and start over or append subsequent recordings to it?</item>
+        <item quantity="other">The filename field contains %d previously captured recordings.\nDo you wish to clear them and start over or append subsequent recordings to the list?</item>
+    </plurals>
+    <string name="clear">Clear</string>
+    <string name="add_more">Add more</string>
     <string name="create_model">Note type \"%s\" is not found in AnkiDroid. Create it?</string>
     <string name="update_default_model">Default note type \"%s\" is outdated in AnkiDroid. Update it?</string>
     <string name="use_custom_model">Use custom model</string>
