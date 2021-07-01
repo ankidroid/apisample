@@ -167,7 +167,7 @@ public class AnkiDroidHelper {
         cursor.moveToNext();
         String existingCss = cursor.getString(cursor.getColumnIndex(FlashCardsContract.Model.CSS));
         String existingNumCards = cursor.getString(cursor.getColumnIndex(FlashCardsContract.Model.NUM_CARDS));
-        if (!existingCss.equals(css) || Integer.parseInt(existingNumCards) != cards.length) {
+        if (!StringUtil.strip(existingCss).equals(css) || Integer.parseInt(existingNumCards) != cards.length) {
             return false;
         }
 
@@ -187,7 +187,9 @@ public class AnkiDroidHelper {
             String existingName = cursor.getString(colIdxName);
             String existingQfmt = cursor.getString(colIdxQfmt);
             String existingAfmt = cursor.getString(colIdxAfmt);
-            if (!existingName.equals(cards[i]) || !existingQfmt.equals(qfmt[i]) || !existingAfmt.equals(afmt[i])) {
+            if (!StringUtil.strip(existingName).equals(cards[i]) ||
+                    !StringUtil.strip(existingQfmt).equals(qfmt[i]) ||
+                    !StringUtil.strip(existingAfmt).equals(afmt[i])) {
                 return false;
             }
         }

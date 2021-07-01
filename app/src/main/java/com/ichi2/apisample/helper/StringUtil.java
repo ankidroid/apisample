@@ -15,4 +15,8 @@ public class StringUtil {
     public static String[] splitStrings(String separator, String str) {
         return !str.isEmpty() ? str.split(separator) : new String[]{};
     }
+
+    public static String strip(String str) {
+        return str.replace('\n', ' ').trim().replaceAll(" +", " ");
+    }
 }
