@@ -1386,7 +1386,15 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                                 updateModelPreferences(updatedModelId);
                                 showMsg(R.string.update_model_success, MusInterval.Builder.DEFAULT_MODEL_NAME);
                             } else {
-                                showMsg(R.string.update_model_error);
+                                new AlertDialog.Builder(MainActivity.this)
+                                        .setMessage(R.string.update_model_error)
+                                        .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialogInterface, int i) {
+                                                dialogInterface.dismiss();
+                                            }
+                                        })
+                                        .show();
                             }
                         }
                     })
