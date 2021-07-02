@@ -9,12 +9,15 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.PixelFormat;
+import android.graphics.Typeface;
 import android.media.AudioAttributes;
 import android.media.AudioFormat;
+import android.media.AudioManager;
 import android.media.AudioPlaybackCaptureConfiguration;
 import android.media.AudioRecord;
 import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
+import android.media.ToneGenerator;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
 import android.net.Uri;
@@ -97,6 +100,7 @@ public class AudioCaptureService extends Service {
     private LinkedList<Recording> recordings;
 
     private MediaPlayer mediaPlayer;
+    private ToneGenerator toneGenerator;
 
     @Override
     @TargetApi(Build.VERSION_CODES.O)
@@ -165,7 +169,7 @@ public class AudioCaptureService extends Service {
                             handleStartCapture();
                         }
                     };
-                    handler.postDelayed(callback, (t) * 1000);
+                    handler.postDelayed(callback, t * 1000);
                     countdownCallbacks.add(callback);
 
                 } else {
@@ -202,6 +206,7 @@ public class AudioCaptureService extends Service {
                         .setUsage(AudioAttributes.USAGE_MEDIA)
                         .build()
         );
+        toneGenerator = new ToneGenerator(AudioManager.STREAM_SYSTEM, 25);
 
         TouchableButton actionPlayLatest = overlayView.findViewById(R.id.actionPlayLatest);
         actionPlayLatest.setOnClickListener(new View.OnClickListener() {
@@ -265,14 +270,14 @@ public class AudioCaptureService extends Service {
         actionSkip.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                if (countdownCallbacks != null) {
+                    for (Runnable callback : countdownCallbacks) {
+                        handler.removeCallbacks(callback);
+                    }
+                }
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-                        if (countdownCallbacks != null) {
-                            for (Runnable callback : countdownCallbacks) {
-                                handler.removeCallbacks(callback);
-                            }
-                        }
                         handleStartCapture();
                     }
                 });
@@ -290,6 +295,8 @@ public class AudioCaptureService extends Service {
         isRecording = true;
         actionRecord.setEnabled(true);
         actionRecord.setText(R.string.stop);
+        textTop.setTypeface(null, Typeface.BOLD);
+        toneGenerator.startTone(ToneGenerator.TONE_CDMA_ALERT_CALL_GUARD, 150);
     }
 
     private void tearDown() {
@@ -479,6 +486,7 @@ public class AudioCaptureService extends Service {
             handler.post(new Runnable() {
                 @Override
                 public void run() {
+                    textTop.setTypeface(null, Typeface.NORMAL);
                     refreshTime(0);
                 }
             });
