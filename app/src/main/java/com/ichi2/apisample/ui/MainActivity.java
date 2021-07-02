@@ -805,8 +805,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 afterAdding = true;
                 refreshFilenames();
                 String addedInstrument = newMi.instrument;
-                savedInstruments.add(addedInstrument);
                 if (!savedInstruments.contains(addedInstrument)) {
+                    savedInstruments.add(addedInstrument);
                     savedInstrumentsAdapter.add(addedInstrument);
                 }
                 refreshExisting();

@@ -644,7 +644,7 @@ public class MusIntervalTest {
         AddingPrompter prompter = mock(AddingPrompter.class);
         doAnswer(new Answer() {
             @Override
-            public Object answer(InvocationOnMock invocation) throws Throwable {
+            public Object answer(InvocationOnMock invocation) {
                 MusInterval.AddingResult addingResult = invocation.getArgument(0);
                 addedMusIntervals.add((addingResult.getMusInterval()));
                 return null;
@@ -703,7 +703,7 @@ public class MusIntervalTest {
         AddingPrompter prompter = mock(AddingPrompter.class);
         doAnswer(new Answer() {
             @Override
-            public Object answer(InvocationOnMock invocation) throws Throwable {
+            public Object answer(InvocationOnMock invocation) {
                 MusInterval.AddingResult addingResult = invocation.getArgument(0);
                 addedMusIntervals.add((addingResult.getMusInterval()));
                 return null;
@@ -759,7 +759,7 @@ public class MusIntervalTest {
         AddingPrompter prompter = mock(AddingPrompter.class);
         doAnswer(new Answer() {
             @Override
-            public Object answer(InvocationOnMock invocation) throws Throwable {
+            public Object answer(InvocationOnMock invocation) {
                 MusInterval.AddingResult addingResult = invocation.getArgument(0);
                 addedMusIntervals.add(addingResult.getMusInterval());
                 return null;
@@ -920,7 +920,7 @@ public class MusIntervalTest {
         AddingPrompter prompter = mock(AddingPrompter.class);
         doAnswer(new Answer() {
             @Override
-            public Object answer(InvocationOnMock invocation) throws Throwable {
+            public Object answer(InvocationOnMock invocation) {
                 MusInterval.AddingResult addingResult = invocation.getArgument(0);
                 addedMusIntervals.add((addingResult.getMusInterval()));
                 return null;
@@ -1507,7 +1507,7 @@ public class MusIntervalTest {
         AddingPrompter prompter = mock(AddingPrompter.class);
         doAnswer(new Answer() {
             @Override
-            public Object answer(InvocationOnMock invocation) throws Throwable {
+            public Object answer(InvocationOnMock invocation) {
                 MusInterval.AddingResult addingResult = invocation.getArgument(0);
                 addedMusIntervals.add((addingResult.getMusInterval()));
                 return null;
@@ -1628,7 +1628,7 @@ public class MusIntervalTest {
         AddingPrompter prompter = mock(AddingPrompter.class);
         doAnswer(new Answer() {
             @Override
-            public Object answer(InvocationOnMock invocation) throws Throwable {
+            public Object answer(InvocationOnMock invocation) {
                 MusInterval.AddingResult addingResult = invocation.getArgument(0);
                 addedMusIntervals.add((addingResult.getMusInterval()));
                 return null;
@@ -1771,7 +1771,7 @@ public class MusIntervalTest {
         AddingPrompter prompter = mock(AddingPrompter.class);
         doAnswer(new Answer() {
             @Override
-            public Object answer(InvocationOnMock invocation) throws Throwable {
+            public Object answer(InvocationOnMock invocation) {
                 musIntervalsAdded.add(((AddingHandler) invocation.getArgument(1)).add());
                 return null;
             }
@@ -1780,7 +1780,7 @@ public class MusIntervalTest {
         final LinkedList<MusInterval> addedMusIntervals = new LinkedList<>();
         doAnswer(new Answer() {
             @Override
-            public Object answer(InvocationOnMock invocation) throws Throwable {
+            public Object answer(InvocationOnMock invocation) {
                 MusInterval.AddingResult addingResult = invocation.getArgument(0);
                 addedMusIntervals.add(addingResult.getMusInterval());
                 return null;
@@ -1935,7 +1935,7 @@ public class MusIntervalTest {
         AddingPrompter prompter = mock(AddingPrompter.class);
         doAnswer(new Answer() {
             @Override
-            public Object answer(InvocationOnMock invocation) throws Throwable {
+            public Object answer(InvocationOnMock invocation) {
                 MusInterval.AddingResult addingResult = invocation.getArgument(0);
                 addedMusIntervals.add((addingResult.getMusInterval()));
                 return null;
