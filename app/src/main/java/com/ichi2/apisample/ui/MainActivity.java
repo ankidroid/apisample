@@ -201,6 +201,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private Integer permutationsNumber;
 
     private HashSet<String> savedInstruments = new HashSet<>();
+    private ArrayAdapter<String> savedInstrumentsAdapter;
 
     private AnkiDroidHelper mAnkiDroid;
 
@@ -795,7 +796,11 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 intervalKeys = newMi.intervals;
                 afterAdding = true;
                 refreshFilenames();
-                savedInstruments.add(newMi.instrument);
+                String addedInstrument = newMi.instrument;
+                if (!savedInstruments.contains(addedInstrument)) {
+                    savedInstruments.add(addedInstrument);
+                    savedInstrumentsAdapter.add(addedInstrument);
+                }
                 refreshExisting();
                 final int nAdded = newMi.sounds.length;
                 if (nAdded == 1) {
@@ -1013,8 +1018,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         inputTempo.setText(uiDb.getString(REF_DB_INPUT_TEMPO, ""));
         inputInstrument.setText(uiDb.getString(REF_DB_INPUT_INSTRUMENT, ""));
         savedInstruments = (HashSet<String>) uiDb.getStringSet(REF_DB_SAVED_INSTRUMENTS, new HashSet<String>());
-        inputInstrument.setAdapter(new ArrayAdapter<>(this,
-                android.R.layout.simple_dropdown_item_1line, savedInstruments.toArray(new String[0])));
+        savedInstrumentsAdapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_dropdown_item_1line, new ArrayList<>(savedInstruments));
+        inputInstrument.setAdapter(savedInstrumentsAdapter);
         inputFirstNoteDurationCoefficient.setText(uiDb.getString(REF_DB_INPUT_FIRST_NOTE_DURATION_COEFFICIENT, ""));
 
         afterAdding = uiDb.getBoolean(REF_DB_AFTER_ADDING, false);
