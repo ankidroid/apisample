@@ -43,8 +43,10 @@ public class OnViewAllClickListener implements View.OnClickListener {
             RadioGroup radioGroupSorting = layoutSorting.findViewById(R.id.radioGroupSorting);
             RadioButton radioByName = radioGroupSorting.findViewById(R.id.radioByName);
             radioByName.setChecked(mainActivity.sortByName);
+            radioByName.setEnabled(!mainActivity.intersectingNames);
             RadioButton radioByDate = radioGroupSorting.findViewById(R.id.radioByDate);
             radioByDate.setChecked(mainActivity.sortByDate);
+            radioByDate.setEnabled(!mainActivity.intersectingDates);
             radioGroupSorting.setOnCheckedChangeListener(new OnFilenamesSortingCheckedChangeListener(mainActivity, uriPathNames, recyclerView));
         } else {
             layoutSorting.setVisibility(View.GONE);
