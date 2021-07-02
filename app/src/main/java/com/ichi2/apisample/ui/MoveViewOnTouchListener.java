@@ -35,8 +35,6 @@ public class MoveViewOnTouchListener implements View.OnTouchListener {
                 }
                 break;
             case MotionEvent.ACTION_MOVE:
-                isMoving = true;
-
                 DisplayMetrics displayMetrics = new DisplayMetrics();
                 windowManager.getDefaultDisplay().getMetrics(displayMetrics);
 
@@ -48,7 +46,6 @@ public class MoveViewOnTouchListener implements View.OnTouchListener {
                 } else if (x > right) {
                     x = right;
                 }
-                layoutParams.x = x;
 
                 int y = (int) (motionEvent.getRawY() + dY);
                 int top = -displayMetrics.heightPixels / 2 + movableView.getHeight() / 2;
@@ -58,9 +55,13 @@ public class MoveViewOnTouchListener implements View.OnTouchListener {
                 } else if (y > bot) {
                     y = bot;
                 }
-                layoutParams.y = y;
 
-                windowManager.updateViewLayout(movableView, layoutParams);
+                if (x != layoutParams.x || y != layoutParams.y) {
+                    isMoving = true;
+                    layoutParams.x = x;
+                    layoutParams.y = y;
+                    windowManager.updateViewLayout(movableView, layoutParams);
+                }
                 break;
             default:
                 return false;
