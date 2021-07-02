@@ -319,6 +319,8 @@ public class AudioCaptureService extends Service {
         if (mediaPlayer.isPlaying()) {
             mediaPlayer.stop();
         }
+        mediaPlayer.release();
+        toneGenerator.release();
         stopSelf();
     }
 

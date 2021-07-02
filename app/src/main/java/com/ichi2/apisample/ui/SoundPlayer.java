@@ -43,4 +43,8 @@ public class SoundPlayer {
             mediaPlayer.stop();
         }
     }
+
+    public void release() {
+        mediaPlayer.release();
+    }
 }
