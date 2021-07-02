@@ -225,6 +225,9 @@
     <string name="sort_by_name">Sort by name</string>
     <string name="sort_by_date">Sort by date</string>
     <string name="filenames_refreshing_error">Error loading selected files from the saved state</string>
+    <string name="intersecting_sorting_keys">The selected list of files cannot be processed as it contains both entries with identical names and last modification dates, hence cannot be sorted</string>
+    <string name="intersecting_names">Some of the selected files have equal name - only sorting by last modification date is available</string>
+    <string name="intersecting_dates">Some of the selected files have equal last modification date - only sorting by name is available</string>
 
     <!-- SettingsActivity labels, fields and buttons -->
     <string name="deck_preference_title">Deck</string>

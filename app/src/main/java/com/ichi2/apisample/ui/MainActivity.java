@@ -19,16 +19,6 @@ import android.media.projection.MediaProjectionManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.appcompat.widget.SwitchCompat;
-import androidx.appcompat.widget.Toolbar;
-import androidx.core.app.ActivityCompat;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.documentfile.provider.DocumentFile;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-import androidx.preference.PreferenceManager;
-
 import android.os.Handler;
 import android.provider.DocumentsContract;
 import android.provider.OpenableColumns;
@@ -48,15 +38,24 @@ import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SwitchCompat;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.documentfile.provider.DocumentFile;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.preference.PreferenceManager;
+
 import com.ichi2.apisample.BuildConfig;
+import com.ichi2.apisample.R;
+import com.ichi2.apisample.helper.AnkiDroidHelper;
 import com.ichi2.apisample.helper.StringUtil;
 import com.ichi2.apisample.helper.UriUtil;
 import com.ichi2.apisample.model.AddingHandler;
 import com.ichi2.apisample.model.AddingPrompter;
-import com.ichi2.apisample.model.NotesIntegrity;
 import com.ichi2.apisample.model.MusInterval;
-import com.ichi2.apisample.R;
-import com.ichi2.apisample.helper.AnkiDroidHelper;
+import com.ichi2.apisample.model.NotesIntegrity;
 import com.ichi2.apisample.model.ProgressIndicator;
 
 import java.io.File;
@@ -86,7 +85,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     static final String REF_DB_STATE = "com.ichi2.apisample.uistate";
     static final String REF_DB_SELECTED_FILENAMES = "selectedFilenamesArr";
     static final String REF_DB_MISMATCHING_SORTING = "mismatchingSorting";
+    static final String REF_DB_INTERSECTING_NAMES = "intersectingNames";
     static final String REF_DB_SORT_BY_NAME = "sortByName";
+    static final String REF_DB_INTERSECTING_DATES = "intersectingDates";
     static final String REF_DB_SORT_BY_DATE = "sortByDate";
     static final String REF_DB_AFTER_SELECTING = "afterSelecting";
     static final String REF_DB_AFTER_CAPTURING = "afterCapturing";
@@ -210,6 +211,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     String[] filenames = new String[]{};
     private String[] selectedFilenames;
     boolean mismatchingSorting;
+    boolean intersectingNames;
     boolean sortByName;
     static final Comparator<String> COMPARATOR_FILE_NAME = new Comparator<String>() {
         @Override
@@ -217,8 +219,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             return s.compareTo(t1);
         }
     };
+    boolean intersectingDates;
     boolean sortByDate;
-    static final Comparator<Long> COMPARATOR_FILE_LAST_MODIFIED = new Comparator<Long>() {
+    static final Comparator<Long> COMPARATOR_FILE_DATE = new Comparator<Long>() {
         @Override
         public int compare(Long s, Long t1) {
             return Long.compare(s, t1);
@@ -392,6 +395,17 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         refreshFilenames();
         if (selected && filenames.length > 1) {
             actionPlay.callOnClick();
+            if (mismatchingSorting) {
+                new AlertDialog.Builder(this)
+                        .setMessage(intersectingNames ? R.string.intersecting_names : R.string.intersecting_dates)
+                        .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                dialogInterface.dismiss();
+                            }
+                        })
+                        .show();
+            }
         }
     }
 
@@ -467,7 +481,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             refreshFilenames();
             afterSelecting = false;
             mismatchingSorting = false;
+            intersectingNames = false;
             sortByName = false;
+            intersectingDates = false;
             sortByDate = false;
         }
     }
@@ -597,7 +613,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 filenames = new String[]{};
                 afterAdding = false;
                 mismatchingSorting = false;
+                intersectingNames = false;
                 sortByName = false;
+                intersectingDates = false;
                 sortByDate = false;
                 afterSelecting = false;
                 afterCapturing = false;
@@ -797,39 +815,57 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
                 ContentResolver resolver = getContentResolver();
                 final ArrayList<String> names = new ArrayList<>(uriList.size());
-                final ArrayList<Long> lastModifiedValues = new ArrayList<>(uriList.size());
+                final ArrayList<Long> dates = new ArrayList<>(uriList.size());
                 for (Uri uri : uriList) {
                     Cursor cursor = resolver.query(uri, null, null, null, null);
                     int nameIdx = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
-                    int lastModifiedIdx = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_LAST_MODIFIED);
+                    int dateIdx = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_LAST_MODIFIED);
                     cursor.moveToFirst();
                     names.add(cursor.getString(nameIdx));
-                    lastModifiedValues.add(cursor.getLong(lastModifiedIdx));
+                    dates.add(cursor.getLong(dateIdx));
                     cursor.close();
                 }
 
+                intersectingNames = new HashSet<>(names).size() != names.size();
                 final ArrayList<String> namesSorted = new ArrayList<>(names);
                 namesSorted.sort(COMPARATOR_FILE_NAME);
-                final ArrayList<Long> lastModifiedSorted = new ArrayList<>(lastModifiedValues);
-                lastModifiedSorted.sort(COMPARATOR_FILE_LAST_MODIFIED);
+                intersectingDates = new HashSet<>(dates).size() != dates.size();
+                final ArrayList<Long> datesSorted = new ArrayList<>(dates);
+                datesSorted.sort(COMPARATOR_FILE_DATE);
 
-                String[] uriStrings = new String[uriList.size()];
-                for (int i = 0; i < uriList.size(); i++) {
-                    int sortedNameIdx = names.indexOf(namesSorted.get(i));
-                    int sortedLastModifiedIdx = lastModifiedValues.indexOf(lastModifiedSorted.get(i));
-                    if (sortedNameIdx != sortedLastModifiedIdx) {
-                        mismatchingSorting = true;
-                        selectedFilenames = new String[]{};
-                        showMismatchingSortingDialog(uriList, names, namesSorted, lastModifiedValues, lastModifiedSorted);
-                        return;
+                boolean areKeysUnique = !intersectingNames && !intersectingDates;
+
+                String[] uriStrings;
+                if (intersectingNames && intersectingDates) {
+                    uriStrings = new String[]{};
+                    new AlertDialog.Builder(this)
+                            .setMessage(R.string.intersecting_sorting_keys)
+                            .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    dialogInterface.dismiss();
+                                }
+                            })
+                            .show();
+                } else {
+                    uriStrings = new String[uriList.size()];
+                    for (int i = 0; i < uriList.size(); i++) {
+                        int sortedNameIdx = names.indexOf(namesSorted.get(i));
+                        int sortedDateIdx = dates.indexOf(datesSorted.get(i));
+                        if (areKeysUnique && sortedNameIdx != sortedDateIdx) {
+                            mismatchingSorting = true;
+                            selectedFilenames = new String[]{};
+                            showMismatchingSortingDialog(uriList, names, namesSorted, dates, datesSorted);
+                            return;
+                        }
+                        uriStrings[i] = uriList.get(!intersectingNames ? sortedNameIdx : sortedDateIdx).toString();
                     }
-                    uriStrings[i] = uriList.get(sortedNameIdx).toString();
                 }
 
-                mismatchingSorting = false;
-                sortByName = false;
-                sortByDate = false;
                 selectedFilenames = uriStrings;
+                sortByName = !intersectingNames && intersectingDates;
+                sortByDate = !intersectingDates && intersectingNames;
+                mismatchingSorting = sortByName || sortByDate;
                 afterSelecting = true;
                 break;
             case ACTION_SCREEN_CAPTURE:
@@ -972,7 +1008,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 intervalKeys = newMi.intervals;
                 afterAdding = true;
                 mismatchingSorting = false;
+                intersectingNames = false;
                 sortByName = false;
+                intersectingDates = false;
                 sortByDate = false;
                 refreshFilenames();
                 String addedInstrument = newMi.instrument;
@@ -1167,7 +1205,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
         uiDbEditor.putBoolean(REF_DB_AFTER_ADDING, afterAdding);
         uiDbEditor.putBoolean(REF_DB_MISMATCHING_SORTING, mismatchingSorting);
+        uiDbEditor.putBoolean(REF_DB_INTERSECTING_NAMES, intersectingNames);
         uiDbEditor.putBoolean(REF_DB_SORT_BY_NAME, sortByName);
+        uiDbEditor.putBoolean(REF_DB_INTERSECTING_DATES, intersectingDates);
         uiDbEditor.putBoolean(REF_DB_SORT_BY_DATE, sortByDate);
         uiDbEditor.putString(REF_DB_NOTE_KEYS, StringUtil.joinStrings(DB_STRING_ARRAY_SEPARATOR, noteKeys));
         uiDbEditor.putString(REF_DB_OCTAVE_KEYS, StringUtil.joinStrings(DB_STRING_ARRAY_SEPARATOR, octaveKeys));
@@ -1211,7 +1251,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
         afterAdding = uiDb.getBoolean(REF_DB_AFTER_ADDING, false);
         mismatchingSorting = uiDb.getBoolean(REF_DB_MISMATCHING_SORTING, false);
+        intersectingNames = uiDb.getBoolean(REF_DB_INTERSECTING_NAMES, false);
         sortByName = uiDb.getBoolean(REF_DB_SORT_BY_NAME, false);
+        intersectingDates = uiDb.getBoolean(REF_DB_INTERSECTING_DATES, false);
         sortByDate = uiDb.getBoolean(REF_DB_SORT_BY_DATE, false);
         noteKeys = StringUtil.splitStrings(DB_STRING_ARRAY_SEPARATOR, uiDb.getString(REF_DB_NOTE_KEYS, ""));
         octaveKeys = StringUtil.splitStrings(DB_STRING_ARRAY_SEPARATOR, uiDb.getString(REF_DB_OCTAVE_KEYS, ""));

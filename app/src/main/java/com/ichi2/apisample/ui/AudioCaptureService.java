@@ -454,7 +454,9 @@ public class AudioCaptureService extends Service {
             if (afterSelecting || afterAdding) {
                 newFilenames = new ArrayList<>();
                 uiDbEditor.putBoolean(MainActivity.REF_DB_MISMATCHING_SORTING, false);
+                uiDbEditor.putBoolean(MainActivity.REF_DB_INTERSECTING_NAMES, false);
                 uiDbEditor.putBoolean(MainActivity.REF_DB_SORT_BY_NAME, false);
+                uiDbEditor.putBoolean(MainActivity.REF_DB_INTERSECTING_DATES, false);
                 uiDbEditor.putBoolean(MainActivity.REF_DB_SORT_BY_DATE, false);
                 uiDbEditor.putBoolean(MainActivity.REF_DB_AFTER_SELECTING, false);
                 uiDbEditor.putBoolean(MainActivity.REF_DB_AFTER_ADDING, false);
