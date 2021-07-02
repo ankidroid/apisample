@@ -38,7 +38,6 @@ import androidx.core.app.NotificationCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.ichi2.apisample.R;
-import com.ichi2.apisample.helper.PcmToWavUtil;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -50,6 +49,8 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
+
+import linc.com.pcmdecoder.PCMDecoder;
 
 public class AudioCaptureService extends Service {
     public final static String CAPTURES_DIRECTORY = Environment.getExternalStorageDirectory().getPath() + "/MusicIntervals2Anki/AudioCaptures";
@@ -65,8 +66,10 @@ public class AudioCaptureService extends Service {
     private final static String NOTIFICATION_CHANNEL_NAME = "Audio Capture Service Channel";
 
     private final int ENCODING = AudioFormat.ENCODING_PCM_16BIT;
+    private final int WORD_LENGTH = 16;
     private final int SAMPLE_RATE = 44100;
     private final int CHANNEL_MASK = AudioFormat.CHANNEL_IN_STEREO;
+    private final int CHANNEL_COUNT = 2;
 
     private final static int NUM_SAMPLES_PER_READ = 1024;
     private final static int BYTES_PER_SAMPLE = 2;
@@ -439,15 +442,20 @@ public class AudioCaptureService extends Service {
         }
 
         try {
-            PcmToWavUtil converter = new PcmToWavUtil(SAMPLE_RATE, CHANNEL_MASK, ENCODING);
             String pathname = tempPcmFile.getAbsolutePath();
-            String convertedPathname = pathname.substring(0, pathname.lastIndexOf(".")) + ".wav";
-            File wavFile = new File(convertedPathname);
-            wavFile.createNewFile();
-            converter.convert(pathname, convertedPathname);
+            String convertedPathname = pathname.substring(0, pathname.lastIndexOf(".")) + ".mp3";
+            File convertedFile = new File(convertedPathname);
+            convertedFile.createNewFile();
+            PCMDecoder.encodeToMp3(
+                    pathname,
+                    CHANNEL_COUNT,
+                    SAMPLE_RATE * WORD_LENGTH * CHANNEL_COUNT,
+                    SAMPLE_RATE,
+                    convertedPathname
+            );
             tempPcmFile.delete();
 
-            Uri uri = Uri.fromFile(wavFile);
+            Uri uri = Uri.fromFile(convertedFile);
 
             Intent intent = new Intent(ACTION_FILES_UPDATED);
             intent.putExtra(EXTRA_URI_STRING, uri.toString());
