@@ -206,7 +206,7 @@ public class AudioCaptureService extends Service {
                         .setUsage(AudioAttributes.USAGE_MEDIA)
                         .build()
         );
-        toneGenerator = new ToneGenerator(AudioManager.STREAM_SYSTEM, 100);
+        toneGenerator = new ToneGenerator(AudioManager.STREAM_SYSTEM, 25);
 
         TouchableButton actionPlayLatest = overlayView.findViewById(R.id.actionPlayLatest);
         actionPlayLatest.setOnClickListener(new View.OnClickListener() {
