@@ -151,6 +151,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private Button actionMarkExisting;
 
     private Toast toast;
+    private String lastToastText;
 
     private ProgressDialog progressDialog;
 
@@ -1635,10 +1636,11 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     }
 
     private void displayToast(String text) {
-        if (toast != null) {
+        if (toast != null && text.equals(lastToastText)) {
             toast.cancel();
         }
         toast = Toast.makeText(this, text, Toast.LENGTH_LONG);
+        lastToastText = text;
         toast.show();
     }
 }

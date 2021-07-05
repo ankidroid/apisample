@@ -3,6 +3,11 @@ package com.ichi2.apisample.ui;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.res.Resources;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.TextView;
 
 import com.ichi2.apisample.R;
 import com.ichi2.apisample.helper.AnkiDroidHelper;
@@ -30,47 +35,60 @@ public class DuplicatePromptWorker implements Runnable {
 
     @Override
     public void run() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(mainActivity)
-                .setPositiveButton(R.string.add_anyway, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        try {
-                            MusInterval newMi = duplicateAddingHandler.add();
-                            if (newMi == null) {
-                                duplicateAddingHandler.proceed();
-                                return;
-                            }
-                            if (tagDuplicates) {
-                                duplicateAddingHandler.tag(duplicateTag);
-                            }
-                            duplicateAddingHandler.proceed();
-                        } catch (Throwable e) {
-                            mainActivity.handleError(e);
-                        }
+        ViewGroup viewGroup = mainActivity.findViewById(R.id.content);
+        View dialogView = LayoutInflater.from(mainActivity).inflate(R.layout.dialog_adding_duplicate, viewGroup, false);
+        final AlertDialog dialog = new AlertDialog.Builder(mainActivity)
+                .setView(dialogView)
+                .create();
+
+        Button actionAdd = dialogView.findViewById(R.id.actionAddDuplicate);
+        actionAdd.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                try {
+                    MusInterval newMi = duplicateAddingHandler.add();
+                    if (newMi == null) {
+                        return;
                     }
-                });
+                    if (tagDuplicates) {
+                        duplicateAddingHandler.tag(duplicateTag);
+                    }
+                } catch (Throwable e) {
+                    mainActivity.handleError(e);
+                }
+                dialog.dismiss();
+            }
+        });
+
+        Button actionMark = dialogView.findViewById(R.id.actionMarkDuplicates);
         int existingCount = existingMis.length;
         MusInterval existingMi = existingMis[0];
         try {
             int markedCount = existingMi.getExistingMarkedNotesCount();
             if (existingCount > markedCount) {
-                builder.setNeutralButton(R.string.mark_existing, new DialogInterface.OnClickListener() {
+                actionMark.setOnClickListener(new View.OnClickListener() {
                     @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
+                    public void onClick(View view) {
                         try {
                             final int count = duplicateAddingHandler.mark();
                             mainActivity.showQuantityMsg(R.plurals.mi_marked_result, count, count);
                             mainActivity.refreshExisting();
-                            duplicateAddingHandler.proceed();
                         } catch (Throwable e) {
                             mainActivity.handleError(e);
                         }
+                        dialog.dismiss();
                     }
                 });
+
+            } else {
+                actionMark.setVisibility(View.GONE);
             }
         } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
-            // simply don't give the option to mark if unable to count existing
+            actionMark.setVisibility(View.GONE);
         }
+
+        TextView textMsg = dialogView.findViewById(R.id.textDuplicateMsg);
+        Button actionReplace = dialogView.findViewById(R.id.actionReplaceDuplicate);
         Resources res = mainActivity.getResources();
         String msg;
         if (existingCount == 1) {
@@ -82,23 +100,23 @@ public class DuplicatePromptWorker implements Runnable {
                     existingMi.intervals[0],
                     existingMi.tempo,
                     existingMi.instrument);
-            builder.setNegativeButton(R.string.replace_existing, new DialogInterface.OnClickListener() {
+            actionReplace.setOnClickListener(new View.OnClickListener() {
                 @Override
-                public void onClick(DialogInterface dialogInterface, int i) {
+                public void onClick(View view) {
                     try {
                         MusInterval newMi = duplicateAddingHandler.replace();
                         if (newMi == null) {
-                            duplicateAddingHandler.proceed();
                             return;
                         }
                         mainActivity.showMsg(R.string.item_replaced);
-                        duplicateAddingHandler.proceed();
                     } catch (Throwable e) {
                         mainActivity.handleError(e);
                     }
+                    dialog.dismiss();
                 }
             });
         } else {
+            actionReplace.setVisibility(View.GONE);
             msg = res.getQuantityString(R.plurals.duplicate_warning, existingCount,
                     existingCount,
                     existingMi.notes[0] + existingMi.octaves[0],
@@ -108,6 +126,7 @@ public class DuplicatePromptWorker implements Runnable {
                     existingMi.tempo,
                     existingMi.instrument);
         }
+
         if (existingCount > 1) {
             if (tagDuplicates) {
                 try {
@@ -117,9 +136,18 @@ public class DuplicatePromptWorker implements Runnable {
                 }
             }
         }
-        builder.setOnCancelListener(new DialogInterface.OnCancelListener() {
+
+        Button actionSkip = dialogView.findViewById(R.id.actionSkipDuplicate);
+        actionSkip.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onCancel(DialogInterface dialogInterface) {
+            public void onClick(View view) {
+                dialog.dismiss();
+            }
+        });
+
+        dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialogInterface) {
                 try {
                     duplicateAddingHandler.proceed();
                 } catch (Throwable e) {
@@ -127,7 +155,8 @@ public class DuplicatePromptWorker implements Runnable {
                 }
             }
         });
-        builder.setMessage(msg);
-        builder.show();
+
+        textMsg.setText(msg);
+        dialog.show();
     }
 }
