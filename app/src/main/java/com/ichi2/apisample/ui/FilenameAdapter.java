@@ -18,18 +18,18 @@ public class FilenameAdapter extends RecyclerView.Adapter<FilenameAdapter.ViewHo
     private final OnGroupPlayClickListener[] groupListeners;
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        private final TextView textView;
+        private final TextView textFilename;
         private final Button actionPlay;
 
         public ViewHolder(View view) {
             super(view);
 
-            textView = view.findViewById(R.id.textFilename);
+            textFilename = view.findViewById(R.id.textFilename);
             actionPlay = view.findViewById(R.id.actionPlay);
         }
 
-        public TextView getTextView() {
-            return textView;
+        public TextView getTextFilename() {
+            return textFilename;
         }
 
         public Button getActionPlay() {
@@ -64,14 +64,28 @@ public class FilenameAdapter extends RecyclerView.Adapter<FilenameAdapter.ViewHo
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        int i = holder.getAdapterPosition();
-        final UriPathName uriPathName = uriPathNames[i];
-        holder.getTextView().setText(uriPathName.getLabel());
+        UriPathName uriPathName = uriPathNames[position];
+        String label = uriPathName.getLabel();
+        TextView textFilename = holder.getTextFilename();
+        textFilename.setText(label);
+
         Button actionPlay = holder.getActionPlay();
-        OnPlayClickListener listener = listeners[i];
-        actionPlay.setText(listener.isPlaying() ? R.string.stop : R.string.play);
+        actionPlay.setOnClickListener(groupListeners[position]);
+    }
+
+    @Override
+    public void onViewAttachedToWindow(@NonNull ViewHolder holder) {
+        int position = holder.getAdapterPosition();
+        OnPlayClickListener listener = listeners[position];
+        Button actionPlay = holder.getActionPlay();
         listener.setActionPlay(actionPlay);
-        actionPlay.setOnClickListener(groupListeners[i]);
+        actionPlay.setText(listener.isPlaying() ? R.string.stop : R.string.play);
+    }
+
+    @Override
+    public void onViewDetachedFromWindow(@NonNull ViewHolder holder) {
+        int position = holder.getAdapterPosition();
+        listeners[position].setActionPlay(null);
     }
 
     @Override

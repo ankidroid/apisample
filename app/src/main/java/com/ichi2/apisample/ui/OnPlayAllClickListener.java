@@ -83,9 +83,7 @@ public class OnPlayAllClickListener implements View.OnClickListener {
 
     void stop() {
         for (Runnable callback : callbacks) {
-            if (callback != null) {
-                mainActivity.handler.removeCallbacks(callback);
-            }
+            mainActivity.handler.removeCallbacks(callback);
         }
         handleStopPlaying();
     }
