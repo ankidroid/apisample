@@ -18,7 +18,7 @@ public class OnGroupPlayClickListener implements View.OnClickListener {
         onPlayClickListener.onClick(view);
         for (OnPlayClickListener memberListener : memberListeners) {
             if (onPlayClickListener != memberListener) {
-                onPlayClickListener.stop();
+                memberListener.stop();
             }
         }
     }
