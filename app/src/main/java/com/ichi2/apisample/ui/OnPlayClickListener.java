@@ -40,9 +40,6 @@ public class OnPlayClickListener implements View.OnClickListener {
         String path = uriPathName.getPath();
         mainActivity.soundPlayer.play(uri, path);
 
-        if (actionPlay != null) {
-            actionPlay.setText(R.string.stop);
-        }
         long duration = AudioUtil.getDuration(mainActivity, uri);
         callback = new Runnable() {
             @Override
@@ -51,6 +48,10 @@ public class OnPlayClickListener implements View.OnClickListener {
             }
         };
         mainActivity.handler.postDelayed(callback, duration);
+
+        if (actionPlay != null) {
+            actionPlay.setText(R.string.stop);
+        }
         isPlaying = true;
     }
 

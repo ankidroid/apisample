@@ -48,14 +48,21 @@ public class OnViewAllClickListener implements View.OnClickListener {
         final OnPlayAllClickListener playAllListener = new OnPlayAllClickListener(mainActivity, uriPathNames, null, null);
 
         final FilenameAdapter adapter = new FilenameAdapter(mainActivity, uriPathNames, playAllListener);
-        playAllListener.setListeners(adapter.getListeners());
-
         final RecyclerView recyclerView = dialogView.findViewById(R.id.recyclerView);
         recyclerView.setAdapter(adapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(mainActivity));
 
-        LinearLayout layoutSorting = dialogView.findViewById(R.id.layoutSorting);
+        playAllListener.setListeners(adapter.getListeners());
+        dialog.setOnShowListener(new DialogInterface.OnShowListener() {
+            @Override
+            public void onShow(DialogInterface dialogInterface) {
+                Button actionPlayAll = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
+                playAllListener.setActionPlayAll(actionPlayAll);
+                actionPlayAll.setOnClickListener(playAllListener);
+            }
+        });
 
+        LinearLayout layoutSorting = dialogView.findViewById(R.id.layoutSorting);
         if (mainActivity.mismatchingSorting) {
             RadioGroup radioGroupSorting = layoutSorting.findViewById(R.id.radioGroupSorting);
             RadioButton radioByName = radioGroupSorting.findViewById(R.id.radioByName);
@@ -69,14 +76,6 @@ public class OnViewAllClickListener implements View.OnClickListener {
             layoutSorting.setVisibility(View.GONE);
         }
 
-        dialog.setOnShowListener(new DialogInterface.OnShowListener() {
-            @Override
-            public void onShow(DialogInterface dialogInterface) {
-                Button actionPlayAll = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
-                playAllListener.setActionPlayAll(actionPlayAll);
-                actionPlayAll.setOnClickListener(playAllListener);
-            }
-        });
         mainActivity.activeOnStartDialogs.add(dialog);
         dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
             @Override

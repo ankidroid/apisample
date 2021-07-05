@@ -41,17 +41,14 @@ public class OnPlayAllClickListener implements View.OnClickListener {
 
     @Override
     public void onClick(final View view) {
-        if (isPlaying) {
-            mainActivity.soundPlayer.stop();
-            for (OnPlayClickListener listener : listeners) {
-                listener.stop();
-            }
-            stop();
-            return;
-        }
-
         for (OnPlayClickListener listener : listeners) {
             listener.stop();
+        }
+
+        if (isPlaying) {
+            mainActivity.soundPlayer.stop();
+            stop();
+            return;
         }
 
         long timeout = 0;
@@ -77,6 +74,7 @@ public class OnPlayAllClickListener implements View.OnClickListener {
         };
         mainActivity.handler.postDelayed(callback, timeout);
         callbacks[callbacks.length - 1] = callback;
+
         actionPlayAll.setText(R.string.stop);
         isPlaying = true;
     }
