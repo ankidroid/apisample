@@ -15,7 +15,9 @@ public class OnGroupPlayClickListener implements View.OnClickListener {
 
     @Override
     public void onClick(View view) {
-        allListener.stop();
+        if (allListener.isPlaying()) {
+            allListener.stop();
+        }
         listener.onClick(view);
         for (OnPlayClickListener groupListener : groupListeners) {
             if (listener != groupListener) {

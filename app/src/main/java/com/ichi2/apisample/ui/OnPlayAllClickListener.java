@@ -43,6 +43,9 @@ public class OnPlayAllClickListener implements View.OnClickListener {
     public void onClick(final View view) {
         if (isPlaying) {
             mainActivity.soundPlayer.stop();
+            for (OnPlayClickListener listener : listeners) {
+                listener.stop();
+            }
             stop();
             return;
         }
@@ -79,9 +82,6 @@ public class OnPlayAllClickListener implements View.OnClickListener {
     }
 
     void stop() {
-        for (OnPlayClickListener listener : listeners) {
-            listener.stop();
-        }
         for (Runnable callback : callbacks) {
             if (callback != null) {
                 mainActivity.handler.removeCallbacks(callback);

@@ -85,7 +85,7 @@ public class OnFilenamesSortingCheckedChangeListener implements RadioGroup.OnChe
         if (playAllListener.isPlaying()) {
             playAllListener.stop();
         }
-        playAllListener.setUriPathNames(uriPathNames);
+        playAllListener.setUriPathNames(sortedUriPathNames);
         FilenameAdapter adapter = new FilenameAdapter(mainActivity, sortedUriPathNames, playAllListener);
         playAllListener.setListeners(adapter.getListeners());
         recyclerView.setAdapter(adapter);
