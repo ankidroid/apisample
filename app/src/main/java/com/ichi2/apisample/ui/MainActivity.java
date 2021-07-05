@@ -325,8 +325,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         configureSettingsButton();
         configureCheckIntegrityButton();
 
-        soundPlayer = new SoundPlayer(this);
-
         mAnkiDroid = new AnkiDroidHelper(this);
     }
 
@@ -408,6 +406,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                         .show();
             }
         }
+
+        soundPlayer = new SoundPlayer(this);
     }
 
     void refreshPermutations() {
@@ -1218,6 +1218,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
         LocalBroadcastManager.getInstance(this).unregisterReceiver(messageReceiver);
 
+        soundPlayer.stop();
+        soundPlayer.release();
+
         super.onPause();
     }
 
@@ -1606,7 +1609,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         for (AlertDialog dialog : activeOnStartDialogs) {
             dialog.dismiss();
         }
-        soundPlayer.stop();
         if (toast != null) {
             toast.cancel();
         }
