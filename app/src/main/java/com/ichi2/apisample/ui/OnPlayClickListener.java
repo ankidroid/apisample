@@ -9,15 +9,23 @@ import com.ichi2.apisample.helper.AudioUtil;
 
 public class OnPlayClickListener implements View.OnClickListener {
     private final MainActivity mainActivity;
-    private final Button actionPlay;
     private final FilenameAdapter.UriPathName uriPathName;
+    private Button actionPlay;
     private Runnable callback;
     private boolean isPlaying;
 
-    public OnPlayClickListener(MainActivity mainActivity, Button actionPlay, FilenameAdapter.UriPathName uriPathName) {
+    public OnPlayClickListener(MainActivity mainActivity, FilenameAdapter.UriPathName uriPathName, Button actionPlay) {
         this.mainActivity = mainActivity;
-        this.actionPlay = actionPlay;
         this.uriPathName = uriPathName;
+        this.actionPlay = actionPlay;
+    }
+
+    public boolean isPlaying() {
+        return isPlaying;
+    }
+
+    public void setActionPlay(Button actionPlay) {
+        this.actionPlay = actionPlay;
     }
 
     @Override
@@ -32,7 +40,9 @@ public class OnPlayClickListener implements View.OnClickListener {
         String path = uriPathName.getPath();
         mainActivity.soundPlayer.play(uri, path);
 
-        actionPlay.setText(R.string.stop);
+        if (actionPlay != null) {
+            actionPlay.setText(R.string.stop);
+        }
         long duration = AudioUtil.getDuration(mainActivity, uri);
         callback = new Runnable() {
             @Override
@@ -50,7 +60,9 @@ public class OnPlayClickListener implements View.OnClickListener {
     }
 
     private void handleStopPlaying() {
-        actionPlay.setText(R.string.play);
+        if (actionPlay != null) {
+            actionPlay.setText(R.string.play);
+        }
         isPlaying = false;
     }
 }

@@ -12,12 +12,10 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.ichi2.apisample.R;
 
-import java.util.ArrayList;
-
 public class FilenameAdapter extends RecyclerView.Adapter<FilenameAdapter.ViewHolder> {
-    private final MainActivity mainActivity;
     private final UriPathName[] uriPathNames;
-    private final ArrayList<OnPlayClickListener> memberListeners;
+    private final OnPlayClickListener[] listeners;
+    private final OnGroupPlayClickListener[] groupListeners;
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         private final TextView textView;
@@ -39,10 +37,21 @@ public class FilenameAdapter extends RecyclerView.Adapter<FilenameAdapter.ViewHo
         }
     }
 
-    public FilenameAdapter(MainActivity mainActivity, UriPathName[] uriPathNames) {
-        this.mainActivity = mainActivity;
+    public FilenameAdapter(MainActivity mainActivity, UriPathName[] uriPathNames, OnPlayAllClickListener allListener) {
         this.uriPathNames = uriPathNames;
-        memberListeners = new ArrayList<>();
+        int nFilenames = uriPathNames.length;
+        listeners = new OnPlayClickListener[nFilenames];
+        groupListeners = new OnGroupPlayClickListener[nFilenames];
+        for (int i = 0; i < nFilenames; i++) {
+            OnPlayClickListener listener = new OnPlayClickListener(mainActivity, uriPathNames[i], null);
+            listeners[i] = listener;
+            OnGroupPlayClickListener groupListener = new OnGroupPlayClickListener(listener, listeners, allListener);
+            groupListeners[i] = groupListener;
+        }
+    }
+
+    public OnPlayClickListener[] getListeners() {
+        return listeners;
     }
 
     @NonNull
@@ -55,12 +64,14 @@ public class FilenameAdapter extends RecyclerView.Adapter<FilenameAdapter.ViewHo
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        final UriPathName uriPathName = uriPathNames[position];
-        holder.getTextView().setText(uriPathName.label);
+        int i = holder.getAdapterPosition();
+        final UriPathName uriPathName = uriPathNames[i];
+        holder.getTextView().setText(uriPathName.getLabel());
         Button actionPlay = holder.getActionPlay();
-        OnPlayClickListener onPlayClickListener = new OnPlayClickListener(mainActivity, actionPlay, uriPathName);
-        memberListeners.add(onPlayClickListener);
-        actionPlay.setOnClickListener(new OnGroupPlayClickListener(onPlayClickListener, memberListeners));
+        OnPlayClickListener listener = listeners[i];
+        actionPlay.setText(listener.isPlaying() ? R.string.stop : R.string.play);
+        listener.setActionPlay(actionPlay);
+        actionPlay.setOnClickListener(groupListeners[i]);
     }
 
     @Override
@@ -91,6 +102,10 @@ public class FilenameAdapter extends RecyclerView.Adapter<FilenameAdapter.ViewHo
 
         public String getName() {
             return name;
+        }
+
+        public String getLabel() {
+            return label;
         }
 
         public void setLabel(String label) {

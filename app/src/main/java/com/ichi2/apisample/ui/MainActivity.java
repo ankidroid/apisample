@@ -571,7 +571,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 actionPlay.setOnClickListener(new OnViewAllClickListener(this, uriPathNames));
             } else {
                 actionPlay.setText(R.string.play);
-                actionPlay.setOnClickListener(new OnPlayClickListener(this, actionPlay, uriFirst));
+                actionPlay.setOnClickListener(new OnPlayClickListener(this, uriFirst, actionPlay));
             }
 
             refreshFilenameText(uriFirst.getName());
