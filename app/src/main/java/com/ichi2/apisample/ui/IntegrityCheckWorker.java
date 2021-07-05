@@ -18,16 +18,14 @@ import java.util.Map;
 public class IntegrityCheckWorker implements Runnable {
     private final MainActivity mainActivity;
     private final ProgressDialog progressDialog;
-    private final Handler handler;
 
     private final NotesIntegrity notesIntegrity;
 
 
-    public IntegrityCheckWorker(NotesIntegrity notesIntegrity, MainActivity mainActivity, ProgressDialog progressDialog, Handler handler) {
+    public IntegrityCheckWorker(NotesIntegrity notesIntegrity, MainActivity mainActivity, ProgressDialog progressDialog) {
         this.notesIntegrity = notesIntegrity;
         this.mainActivity = mainActivity;
         this.progressDialog = progressDialog;
-        this.handler = handler;
     }
 
     @Override
@@ -35,7 +33,7 @@ public class IntegrityCheckWorker implements Runnable {
         try {
             NotesIntegrity.Summary summary = notesIntegrity.check();
             final String report = getReport(summary, mainActivity);
-            handler.post(new Thread(new Runnable() {
+            mainActivity.handler.post(new Thread(new Runnable() {
                 @Override
                 public void run() {
                     progressDialog.dismiss();
@@ -51,7 +49,7 @@ public class IntegrityCheckWorker implements Runnable {
                 }
             }));
         } catch (final Throwable t) {
-            handler.post(new Thread(new Runnable() {
+            mainActivity.handler.post(new Thread(new Runnable() {
                 @Override
                 public void run() {
                     progressDialog.dismiss();

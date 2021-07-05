@@ -14,21 +14,22 @@ import com.ichi2.apisample.R;
 
 public class FilenameAdapter extends RecyclerView.Adapter<FilenameAdapter.ViewHolder> {
     private final UriPathName[] uriPathNames;
-    private final SoundPlayer soundPlayer;
+    private final OnPlayClickListener[] listeners;
+    private final OnGroupPlayClickListener[] groupListeners;
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        private final TextView textView;
+        private final TextView textFilename;
         private final Button actionPlay;
 
         public ViewHolder(View view) {
             super(view);
 
-            textView = view.findViewById(R.id.textFilename);
+            textFilename = view.findViewById(R.id.textFilename);
             actionPlay = view.findViewById(R.id.actionPlay);
         }
 
-        public TextView getTextView() {
-            return textView;
+        public TextView getTextFilename() {
+            return textFilename;
         }
 
         public Button getActionPlay() {
@@ -36,9 +37,21 @@ public class FilenameAdapter extends RecyclerView.Adapter<FilenameAdapter.ViewHo
         }
     }
 
-    public FilenameAdapter(UriPathName[] uriPathNames, SoundPlayer soundPlayer) {
+    public FilenameAdapter(MainActivity mainActivity, UriPathName[] uriPathNames, OnPlayAllClickListener allListener) {
         this.uriPathNames = uriPathNames;
-        this.soundPlayer = soundPlayer;
+        int nFilenames = uriPathNames.length;
+        listeners = new OnPlayClickListener[nFilenames];
+        groupListeners = new OnGroupPlayClickListener[nFilenames];
+        for (int i = 0; i < nFilenames; i++) {
+            OnPlayClickListener listener = new OnPlayClickListener(mainActivity, uriPathNames[i], null);
+            listeners[i] = listener;
+            OnGroupPlayClickListener groupListener = new OnGroupPlayClickListener(listener, listeners, allListener);
+            groupListeners[i] = groupListener;
+        }
+    }
+
+    public OnPlayClickListener[] getListeners() {
+        return listeners;
     }
 
     @NonNull
@@ -51,14 +64,28 @@ public class FilenameAdapter extends RecyclerView.Adapter<FilenameAdapter.ViewHo
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        final UriPathName uriPathName = uriPathNames[position];
-        holder.getTextView().setText(uriPathName.label);
-        holder.getActionPlay().setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                soundPlayer.play(uriPathName.uri, uriPathName.path);
-            }
-        });
+        UriPathName uriPathName = uriPathNames[position];
+        String label = uriPathName.getLabel();
+        TextView textFilename = holder.getTextFilename();
+        textFilename.setText(label);
+
+        Button actionPlay = holder.getActionPlay();
+        actionPlay.setOnClickListener(groupListeners[position]);
+    }
+
+    @Override
+    public void onViewAttachedToWindow(@NonNull ViewHolder holder) {
+        int position = holder.getAdapterPosition();
+        OnPlayClickListener listener = listeners[position];
+        Button actionPlay = holder.getActionPlay();
+        listener.setActionPlay(actionPlay);
+        actionPlay.setText(listener.isPlaying() ? R.string.stop : R.string.play);
+    }
+
+    @Override
+    public void onViewDetachedFromWindow(@NonNull ViewHolder holder) {
+        int position = holder.getAdapterPosition();
+        listeners[position].setActionPlay(null);
     }
 
     @Override
@@ -89,6 +116,10 @@ public class FilenameAdapter extends RecyclerView.Adapter<FilenameAdapter.ViewHo
 
         public String getName() {
             return name;
+        }
+
+        public String getLabel() {
+            return label;
         }
 
         public void setLabel(String label) {

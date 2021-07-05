@@ -19,11 +19,13 @@ public class OnFilenamesSortingCheckedChangeListener implements RadioGroup.OnChe
     private final MainActivity mainActivity;
     private final FilenameAdapter.UriPathName[] uriPathNames;
     private final RecyclerView recyclerView;
+    private final OnPlayAllClickListener playAllListener;
 
-    public OnFilenamesSortingCheckedChangeListener(MainActivity mainActivity, FilenameAdapter.UriPathName[] uriPathNames, RecyclerView recyclerView) {
+    public OnFilenamesSortingCheckedChangeListener(MainActivity mainActivity, FilenameAdapter.UriPathName[] uriPathNames, RecyclerView recyclerView, OnPlayAllClickListener playAllListener) {
         this.mainActivity = mainActivity;
         this.uriPathNames = uriPathNames;
         this.recyclerView = recyclerView;
+        this.playAllListener = playAllListener;
     }
 
     @Override
@@ -79,6 +81,13 @@ public class OnFilenamesSortingCheckedChangeListener implements RadioGroup.OnChe
         mainActivity.filenames = uriStrings;
         mainActivity.refreshFilenameText(sortedUriPathNames[0].getName());
         mainActivity.actionPlay.setOnClickListener(new OnViewAllClickListener(mainActivity, sortedUriPathNames));
-        recyclerView.setAdapter(new FilenameAdapter(sortedUriPathNames, mainActivity.soundPlayer));
+        mainActivity.soundPlayer.stop();
+        if (playAllListener.isPlaying()) {
+            playAllListener.stop();
+        }
+        playAllListener.setUriPathNames(sortedUriPathNames);
+        FilenameAdapter adapter = new FilenameAdapter(mainActivity, sortedUriPathNames, playAllListener);
+        playAllListener.setListeners(adapter.getListeners());
+        recyclerView.setAdapter(adapter);
     }
 }

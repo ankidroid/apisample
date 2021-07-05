@@ -5,6 +5,7 @@ import android.content.Context;
 import android.media.MediaCodec;
 import android.media.MediaExtractor;
 import android.media.MediaFormat;
+import android.media.MediaMetadataRetriever;
 import android.media.MediaMuxer;
 import android.net.Uri;
 
@@ -14,10 +15,10 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-public class AudioExtractionUtil {
+public class AudioUtil {
     private static final int BUFFER_CAPACITY = 500 * 1024;
 
-    public static Uri extract(Context context, Uri sourceUri, String destFilePath) {
+    public static Uri extractFromVideo(Context context, Uri sourceUri, String destFilePath) {
         ContentResolver resolver = context.getContentResolver();
         String type = resolver.getType(sourceUri);
         if (!type.equals("video/mp4")) {
@@ -66,5 +67,12 @@ public class AudioExtractionUtil {
         } catch (IOException e) {
             return null;
         }
+    }
+
+    public static long getDuration(Context context, Uri uri) {
+        MediaMetadataRetriever metadataRetriever = new MediaMetadataRetriever();
+        metadataRetriever.setDataSource(context, uri);
+        String durationStr = metadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
+        return Long.parseLong(durationStr);
     }
 }

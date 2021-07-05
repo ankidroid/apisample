@@ -155,7 +155,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
     private ProgressDialog progressDialog;
 
-    private Handler mHandler;
+    Handler handler;
 
     private final static int[] CHECK_NOTE_IDS = new int[]{
             R.id.checkNoteC, R.id.checkNoteCSharp,
@@ -315,7 +315,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             }
         });
 
-        mHandler = new Handler();
+        handler = new Handler();
 
         configureClearAllButton();
         configureCaptureAudioButton();
@@ -571,12 +571,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 actionPlay.setOnClickListener(new OnViewAllClickListener(this, uriPathNames));
             } else {
                 actionPlay.setText(R.string.play);
-                actionPlay.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        soundPlayer.play(uriFirst.getUri(), uriFirst.getPath());
-                    }
-                });
+                actionPlay.setOnClickListener(new OnPlayClickListener(this, uriFirst, actionPlay));
             }
 
             refreshFilenameText(uriFirst.getName());
@@ -968,7 +963,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                         try {
                             getMusInterval().addToAnki(MainActivity.this, MainActivity.this);
                         } catch (final Throwable t) {
-                            mHandler.post(new Runnable() {
+                            handler.post(new Runnable() {
                                 @Override
                                 public void run() {
                                     progressDialog.dismiss();
@@ -989,12 +984,12 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         final boolean tagDuplicates = sharedPreferences.getBoolean(SettingsFragment.KEY_TAG_DUPLICATES_SWITCH, SettingsFragment.DEFAULT_TAG_DUPLICATES_SWITCH);
         final String duplicateTag = TAG_APPLICATION + AnkiDroidHelper.HIERARCHICAL_TAG_SEPARATOR + TAG_DUPLICATE;
 
-        mHandler.post(new DuplicatePromptWorker(this, tagDuplicates, duplicateTag, existingMis, handler));
+        this.handler.post(new DuplicatePromptWorker(this, tagDuplicates, duplicateTag, existingMis, handler));
     }
 
     @Override
     public void addingFinished(final MusInterval.AddingResult addingResult) {
-        mHandler.post(new Runnable() {
+        handler.post(new Runnable() {
             @Override
             public void run() {
                 progressDialog.dismiss();
@@ -1098,7 +1093,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
     @Override
     public void processException(final Throwable t) {
-        mHandler.post(new Runnable() {
+        handler.post(new Runnable() {
             @Override
             public void run() {
                 handleError(t);
@@ -1159,7 +1154,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     progressDialog.setCancelable(false);
                     progressDialog.show();
 
-                    new Thread(new IntegrityCheckWorker(integrity, MainActivity.this, progressDialog, mHandler)).start();
+                    new Thread(new IntegrityCheckWorker(integrity, MainActivity.this, progressDialog)).start();
                 } catch (Throwable e) {
                     handleError(e);
                 }
@@ -1169,7 +1164,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
     @Override
     public void setMessage(final int resId, final Object ...formatArgs) {
-        mHandler.post(new Runnable() {
+        handler.post(new Runnable() {
             @Override
             public void run() {
                 progressDialog.setMessage(getString(resId, formatArgs));
