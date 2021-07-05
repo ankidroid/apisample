@@ -903,8 +903,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 sortByDate = false;
                 refreshFilenames();
                 String addedInstrument = newMi.instrument;
-                savedInstruments.add(addedInstrument);
                 if (!savedInstruments.contains(addedInstrument)) {
+                    savedInstruments.add(addedInstrument);
                     savedInstrumentsAdapter.add(addedInstrument);
                 }
                 refreshExisting();
