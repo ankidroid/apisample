@@ -53,17 +53,7 @@ public class OnViewAllClickListener implements View.OnClickListener {
             layoutSorting.setVisibility(View.GONE);
         }
 
-        Button actionPlayAll = dialogView.findViewById(R.id.actionPlayAll);
-        actionPlayAll.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                for (FilenameAdapter.UriPathName uriPathName : uriPathNames) {
-                    mainActivity.soundPlayer.play(uriPathName.getUri(), uriPathName.getPath());
-                }
-            }
-        });
-
-        AlertDialog dialog = new AlertDialog.Builder(mainActivity)
+        final AlertDialog dialog = new AlertDialog.Builder(mainActivity)
                 .setView(dialogView)
                 .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
                     @Override
@@ -71,7 +61,20 @@ public class OnViewAllClickListener implements View.OnClickListener {
                         dialogInterface.dismiss();
                     }
                 })
+                .setNeutralButton(R.string.play_all, null)
                 .create();
+        dialog.setOnShowListener(new DialogInterface.OnShowListener() {
+            @Override
+            public void onShow(DialogInterface dialogInterface) {
+                Button button = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
+                button.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+
+                    }
+                });
+            }
+        });
         mainActivity.activeOnStartDialogs.add(dialog);
         dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
             @Override
