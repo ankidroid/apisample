@@ -5,6 +5,7 @@ import android.content.DialogInterface;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
@@ -51,6 +52,16 @@ public class OnViewAllClickListener implements View.OnClickListener {
         } else {
             layoutSorting.setVisibility(View.GONE);
         }
+
+        Button actionPlayAll = dialogView.findViewById(R.id.actionPlayAll);
+        actionPlayAll.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                for (FilenameAdapter.UriPathName uriPathName : uriPathNames) {
+                    mainActivity.soundPlayer.play(uriPathName.getUri(), uriPathName.getPath());
+                }
+            }
+        });
 
         AlertDialog dialog = new AlertDialog.Builder(mainActivity)
                 .setView(dialogView)
