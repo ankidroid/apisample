@@ -12,9 +12,12 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.ichi2.apisample.R;
 
+import java.util.ArrayList;
+
 public class FilenameAdapter extends RecyclerView.Adapter<FilenameAdapter.ViewHolder> {
+    private final MainActivity mainActivity;
     private final UriPathName[] uriPathNames;
-    private final SoundPlayer soundPlayer;
+    private final ArrayList<OnPlayClickListener> memberListeners;
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         private final TextView textView;
@@ -36,9 +39,10 @@ public class FilenameAdapter extends RecyclerView.Adapter<FilenameAdapter.ViewHo
         }
     }
 
-    public FilenameAdapter(UriPathName[] uriPathNames, SoundPlayer soundPlayer) {
+    public FilenameAdapter(MainActivity mainActivity, UriPathName[] uriPathNames) {
+        this.mainActivity = mainActivity;
         this.uriPathNames = uriPathNames;
-        this.soundPlayer = soundPlayer;
+        memberListeners = new ArrayList<>();
     }
 
     @NonNull
@@ -53,12 +57,10 @@ public class FilenameAdapter extends RecyclerView.Adapter<FilenameAdapter.ViewHo
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         final UriPathName uriPathName = uriPathNames[position];
         holder.getTextView().setText(uriPathName.label);
-        holder.getActionPlay().setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                soundPlayer.play(uriPathName.uri, uriPathName.path);
-            }
-        });
+        Button actionPlay = holder.getActionPlay();
+        OnPlayClickListener onPlayClickListener = new OnPlayClickListener(mainActivity, actionPlay, uriPathName);
+        memberListeners.add(onPlayClickListener);
+        actionPlay.setOnClickListener(new OnGroupPlayClickListener(onPlayClickListener, memberListeners));
     }
 
     @Override

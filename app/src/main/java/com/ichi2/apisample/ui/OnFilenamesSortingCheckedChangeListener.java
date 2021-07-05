@@ -79,6 +79,6 @@ public class OnFilenamesSortingCheckedChangeListener implements RadioGroup.OnChe
         mainActivity.filenames = uriStrings;
         mainActivity.refreshFilenameText(sortedUriPathNames[0].getName());
         mainActivity.actionPlay.setOnClickListener(new OnViewAllClickListener(mainActivity, sortedUriPathNames));
-        recyclerView.setAdapter(new FilenameAdapter(sortedUriPathNames, mainActivity.soundPlayer));
+        recyclerView.setAdapter(new FilenameAdapter(mainActivity, sortedUriPathNames));
     }
 }

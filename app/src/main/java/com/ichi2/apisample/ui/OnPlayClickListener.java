@@ -7,7 +7,7 @@ import android.widget.Button;
 import com.ichi2.apisample.R;
 import com.ichi2.apisample.helper.AudioUtil;
 
-class OnPlayClickListener implements View.OnClickListener {
+public class OnPlayClickListener implements View.OnClickListener {
     private final MainActivity mainActivity;
     private final Button actionPlay;
     private final FilenameAdapter.UriPathName uriPathName;
@@ -23,9 +23,8 @@ class OnPlayClickListener implements View.OnClickListener {
     @Override
     public void onClick(View view) {
         if (isPlaying) {
-            handlePlayingStop();
             mainActivity.soundPlayer.stop();
-            mainActivity.handler.removeCallbacks(callback);
+            stop();
             return;
         }
 
@@ -38,14 +37,19 @@ class OnPlayClickListener implements View.OnClickListener {
         callback = new Runnable() {
             @Override
             public void run() {
-                handlePlayingStop();
+                handleStopPlaying();
             }
         };
         mainActivity.handler.postDelayed(callback, duration);
         isPlaying = true;
     }
 
-    private void handlePlayingStop() {
+    void stop() {
+        mainActivity.handler.removeCallbacks(callback);
+        handleStopPlaying();
+    }
+
+    private void handleStopPlaying() {
         actionPlay.setText(R.string.play);
         isPlaying = false;
     }

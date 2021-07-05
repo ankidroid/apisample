@@ -35,7 +35,7 @@ public class OnViewAllClickListener implements View.OnClickListener {
         View dialogView = LayoutInflater.from(mainActivity).inflate(R.layout.dialog_filenames, viewGroup, false);
 
         final RecyclerView recyclerView = dialogView.findViewById(R.id.recyclerView);
-        recyclerView.setAdapter(new FilenameAdapter(uriPathNames, mainActivity.soundPlayer));
+        recyclerView.setAdapter(new FilenameAdapter(mainActivity, uriPathNames));
         recyclerView.setLayoutManager(new LinearLayoutManager(mainActivity));
 
         LinearLayout layoutSorting = dialogView.findViewById(R.id.layoutSorting);
