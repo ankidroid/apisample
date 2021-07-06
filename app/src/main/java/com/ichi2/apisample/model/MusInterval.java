@@ -738,6 +738,16 @@ public class MusInterval {
         return result;
     }
 
+    public MusInterval[] getExisting() throws ValidationException, AnkiDroidHelper.InvalidAnkiDatabaseException {
+        LinkedList<Map<String, String>> notes = getExistingNotes();
+        int nNotes = notes.size();
+        MusInterval[] mis = new MusInterval[nNotes];
+        for (int i = 0; i < nNotes; i++) {
+            mis[i] = getMusIntervalFromData(notes.get(i));
+        }
+        return mis;
+    }
+
     /**
      * Get list of existing (similar or equal) notes. Each note consists of main model fields, id field and tags.
      */
@@ -1063,7 +1073,7 @@ public class MusInterval {
                 * (intervals != null ? intervals.length : 0);
     }
 
-    public ArrayList<Map<String, String>> getCollectedDataSet() {
+    private ArrayList<Map<String, String>> getCollectedDataSet() {
         final String[] octaves = this.octaves != null ? this.octaves : Builder.EMPTY_SELECTION;
         final String[] notes = this.notes != null ? this.notes : Builder.EMPTY_SELECTION;
         final String[] intervals = this.intervals != null ? this.intervals : Builder.EMPTY_SELECTION;
