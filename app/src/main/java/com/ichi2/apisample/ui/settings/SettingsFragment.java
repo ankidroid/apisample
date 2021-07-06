@@ -36,6 +36,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
     public static final String KEY_TAG_DUPLICATES_SWITCH = "preference_tag_duplicates_switch";
     public static final String KEY_ANKI_DIR_PREFERENCE = "preference_anki_dir";
     public static final String KEY_FILES_DELETION_PREFERENCE = "preference_files_deletion";
+    public static final String KEY_FIELDS_MAPPING_PREFERENCE = "preference_fields_mapping";
     private static final String KEY_FIELDS_PREFERENCE_CATEGORY = "preference_fields";
 
     private static final String TEMPLATE_KEY_FIELD_PREFERENCE = "preference_%s_field";
@@ -76,6 +77,8 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             throw new AssertionError();
         }
     }
+
+    private static final String TAG_FIELDS_MAPPING_DIALOG = "FIELDS_MAPPING_DIALOG";
 
     private Context context;
     private PreferenceScreen preferenceScreen;
@@ -177,6 +180,12 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             }
         }
         updateFieldsPreferenceEntries(modelListPreference.getValue(), fullSignature, false);
+
+        MappingPreference fieldsMappingPreference = new MappingPreference(context);
+        fieldsMappingPreference.setKey(KEY_FIELDS_MAPPING_PREFERENCE);
+        fieldsMappingPreference.setTitle(R.string.fields_preference_category_title); // @fixme
+        fieldsMappingPreference.setDialogLayoutResource(R.layout.dialog_mapping);
+        preferenceScreen.addPreference(fieldsMappingPreference);
 
         final String[] mainSignature = MusInterval.Fields.getSignature(false);
         final CheckBoxPreference useDefaultModelCheckPreference = new CheckBoxPreference(context);
@@ -295,6 +304,29 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         preferenceScreen.addPreference(ankiDirPreference);
 
         setPreferenceScreen(preferenceScreen);
+    }
+
+    @Override
+    public void onDisplayPreferenceDialog(Preference preference) {
+        String key = preference.getKey();
+        switch (key) {
+            case KEY_FIELDS_MAPPING_PREFERENCE:
+                SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+                String modelName = preferences.getString(KEY_MODEL_PREFERENCE, MusInterval.Builder.DEFAULT_MODEL_NAME);
+                Long modelId = helper.findModelIdByName(modelName);
+                if (modelId == null) {
+                    return; // @todo: prob show some error msg here
+                }
+                boolean versionField = preferences.getBoolean(KEY_VERSION_FIELD_SWITCH, DEFAULT_VERSION_FIELD_SWITCH);
+                String[] signature = MusInterval.Fields.getSignature(versionField);
+                String[] modelFields = helper.getFieldList(modelId);
+                MappingDialogFragment fragment = MappingDialogFragment.newInstance(key, signature, modelFields);
+                fragment.setTargetFragment(this, 0);
+                fragment.show(getParentFragmentManager(), TAG_FIELDS_MAPPING_DIALOG);
+                break;
+            default:
+                super.onDisplayPreferenceDialog(preference);
+        }
     }
 
     public static String getFieldPreferenceKey(String fieldKey) {
