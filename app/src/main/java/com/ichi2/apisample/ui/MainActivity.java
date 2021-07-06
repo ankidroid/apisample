@@ -64,6 +64,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 
 public class MainActivity extends AppCompatActivity implements ActivityCompat.OnRequestPermissionsResultCallback, AddingPrompter, ProgressIndicator {
@@ -102,7 +103,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private static final String REF_DB_CHECK_INTERVAL_ANY = "checkIntervalAny";
     private static final String REF_DB_INPUT_TEMPO = "inputTempo";
     private static final String REF_DB_INPUT_INSTRUMENT = "inputInstrument";
-    private static final String REF_DB_SAVED_INSTRUMENTS = "savedInstruments";
     private static final String REF_DB_INPUT_FIRST_NOTE_DURATION_COEFFICIENT = "firstNoteDurationCoefficient";
     private static final String REF_DB_BATCH_ADDING_NOTICE_SEEN = "batchAddingNoticeSeen";
     private static final String REF_DB_NOTE_KEYS = "noteKeys";
@@ -239,8 +239,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
     private Integer permutationsNumber;
 
-    private HashSet<String> savedInstruments = new HashSet<>();
-    private ArrayAdapter<String> savedInstrumentsAdapter;
+    private ArrayAdapter<String> instrumentsAdapter;
 
     private AnkiDroidHelper mAnkiDroid;
 
@@ -389,10 +388,26 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     protected void onResume() {
         super.onResume();
 
+        refreshPreferences();
+
         LocalBroadcastManager broadcastManager = LocalBroadcastManager.getInstance(this);
         for (Map.Entry<String, BroadcastReceiver> actionReceiver : actionReceivers.entrySet()) {
             broadcastManager.registerReceiver(actionReceiver.getValue(), new IntentFilter(actionReceiver.getKey()));
         }
+
+        Set<String> instrumentOptions = new HashSet<>();
+        try {
+            MusInterval searchMi = getMusInterval(true);
+            MusInterval[] mis = searchMi.getExisting();
+            for (MusInterval mi : mis) {
+                instrumentOptions.add(mi.instrument);
+            }
+        } catch (Throwable t) {
+            // simply don't fill the options if there was an error
+        }
+        instrumentsAdapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_dropdown_item_1line, new ArrayList<>(instrumentOptions));
+        inputInstrument.setAdapter(instrumentsAdapter);
 
         refreshExisting();
         refreshPermutations();
@@ -422,6 +437,20 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
 
         soundPlayer = new SoundPlayer(this);
+    }
+
+    private void refreshPreferences() {
+        if (mAnkiDroid.shouldRequestPermission()) {
+            return;
+        }
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        boolean useDefaultModel = preferences.getBoolean(SettingsFragment.KEY_USE_DEFAULT_MODEL_CHECK, SettingsFragment.DEFAULT_USE_DEFAULT_MODEL_CHECK);
+        if (useDefaultModel) {
+            Long modelId = mAnkiDroid.findModelIdByName(MusInterval.Builder.DEFAULT_MODEL_NAME);
+            if (modelId != null) {
+                updateDefaultModelPreferences(modelId);
+            }
+        }
     }
 
     void refreshPermutations() {
@@ -1038,9 +1067,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 sortByDate = false;
                 refreshFilenames();
                 String addedInstrument = newMi.instrument;
-                savedInstruments.add(addedInstrument);
-                if (!savedInstruments.contains(addedInstrument)) {
-                    savedInstrumentsAdapter.add(addedInstrument);
+                if (instrumentsAdapter.getPosition(addedInstrument) == -1) {
+                    instrumentsAdapter.add(addedInstrument);
                 }
                 refreshExisting();
                 final int nAdded = newMi.sounds.length;
@@ -1224,7 +1252,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
         uiDbEditor.putString(REF_DB_INPUT_TEMPO, inputTempo.getText().toString());
         uiDbEditor.putString(REF_DB_INPUT_INSTRUMENT, inputInstrument.getText().toString());
-        uiDbEditor.putStringSet(REF_DB_SAVED_INSTRUMENTS, savedInstruments);
         uiDbEditor.putString(REF_DB_INPUT_FIRST_NOTE_DURATION_COEFFICIENT, inputFirstNoteDurationCoefficient.getText().toString());
         uiDbEditor.putBoolean(REF_DB_AFTER_ADDING, afterAdding);
         uiDbEditor.putBoolean(REF_DB_MISMATCHING_SORTING, mismatchingSorting);
@@ -1272,12 +1299,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
         inputTempo.setText(uiDb.getString(REF_DB_INPUT_TEMPO, ""));
         inputInstrument.setText(uiDb.getString(REF_DB_INPUT_INSTRUMENT, ""));
-        savedInstruments = (HashSet<String>) uiDb.getStringSet(REF_DB_SAVED_INSTRUMENTS, new HashSet<String>());
-        savedInstrumentsAdapter = new ArrayAdapter<>(this,
-                android.R.layout.simple_dropdown_item_1line, new ArrayList<>(savedInstruments));
-        inputInstrument.setAdapter(savedInstrumentsAdapter);
         inputFirstNoteDurationCoefficient.setText(uiDb.getString(REF_DB_INPUT_FIRST_NOTE_DURATION_COEFFICIENT, ""));
-
         afterAdding = uiDb.getBoolean(REF_DB_AFTER_ADDING, false);
         mismatchingSorting = uiDb.getBoolean(REF_DB_MISMATCHING_SORTING, false);
         intersectingNames = uiDb.getBoolean(REF_DB_INTERSECTING_NAMES, false);
@@ -1308,6 +1330,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 if (grantResults.length > 0) {
                     if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                         validateModel();
+                        refreshPreferences();
                         refreshExisting();
                         refreshPermutations();
                     } else {
@@ -1346,45 +1369,24 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     }
 
     private MusInterval getMusInterval() throws MusInterval.ValidationException {
-        final String anyStr = getResources().getString(R.string.any);
+        return getMusInterval(false);
+    }
 
-        final int radioDirectionId = radioGroupDirection.getCheckedRadioButtonId();
-        final View radioDirection = findViewById(radioDirectionId);
-        final String directionStr =
-                radioDirection instanceof RadioButton && radioDirectionId != -1 ?
-                        ((RadioButton) radioDirection).getText().toString() :
-                        anyStr;
-        final int radioTimingId = radioGroupTiming.getCheckedRadioButtonId();
-        final View radioTiming = findViewById(radioTimingId);
-        final String timingStr =
-                radioTiming instanceof RadioButton && radioTimingId != -1 ?
-                        ((RadioButton) radioTiming).getText().toString() :
-                        anyStr;
-
+    private MusInterval getMusInterval(boolean isEmpty) throws MusInterval.ValidationException {
         final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         final boolean versionField = sharedPreferences.getBoolean(SettingsFragment.KEY_VERSION_FIELD_SWITCH, SettingsFragment.DEFAULT_VERSION_FIELD_SWITCH);
         final String storedDeck = sharedPreferences.getString(SettingsFragment.KEY_DECK_PREFERENCE, MusInterval.Builder.DEFAULT_DECK_NAME);
         final String storedModel = sharedPreferences.getString(SettingsFragment.KEY_MODEL_PREFERENCE, MusInterval.Builder.DEFAULT_MODEL_NAME);
 
-        String[] notes = !checkNoteAny.isChecked() ? getCheckedValues(checkNotes) : null;
-        String[] octaves = !checkOctaveAny.isChecked() ? getCheckedValues(checkOctaves) : null;
-        String[] intervals = !checkIntervalAny.isChecked() ? getCheckedValues(checkIntervals, CHECK_INTERVAL_ID_VALUES) : null;
-
         MusInterval.Builder builder = new MusInterval.Builder(mAnkiDroid)
                 .deck(storedDeck)
                 .model(storedModel)
-                .sounds(filenames)
-                .notes(notes)
-                .octaves(octaves)
-                .direction(!directionStr.equals(anyStr) ? directionStr : "")
-                .timing(!timingStr.equals(anyStr) ? timingStr : "")
-                .intervals(intervals)
-                .tempo(inputTempo.getText().toString())
-                .instrument(inputInstrument.getText().toString())
-                .first_note_duration_coefficient(inputFirstNoteDurationCoefficient.getText().toString());
+                .notes(null)
+                .octaves(null)
+                .intervals(null);
 
-        if (versionField) {
-            builder.version(BuildConfig.VERSION_NAME);
+        if (!isEmpty) {
+            fillBuilderFromInputs(builder, versionField);
         }
 
         final boolean useDefaultModel = sharedPreferences.getBoolean(SettingsFragment.KEY_USE_DEFAULT_MODEL_CHECK, SettingsFragment.DEFAULT_USE_DEFAULT_MODEL_CHECK);
@@ -1401,21 +1403,52 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     .qfmt(qfmt)
                     .afmt(afmt)
                     .css(css);
-            Long modelId = mAnkiDroid.findModelIdByName(MusInterval.Builder.DEFAULT_MODEL_NAME);
-            if (modelId != null) {
-                updateModelPreferences(modelId);
-            }
         }
 
         String[] signature = MusInterval.Fields.getSignature(versionField);
         final Map<String, String> storedFields = new HashMap<>();
         for (String fieldKey : signature) {
             String fieldPreferenceKey = SettingsFragment.getFieldPreferenceKey(fieldKey);
-            storedFields.put(fieldKey, sharedPreferences.getString(fieldPreferenceKey, ""));
+            storedFields.put(fieldKey, sharedPreferences.getString(fieldPreferenceKey, fieldKey));
         }
         builder.model_fields(storedFields);
 
         return builder.build();
+    }
+
+    private void fillBuilderFromInputs(MusInterval.Builder builder, boolean versionField) {
+        final String anyStr = getResources().getString(R.string.any);
+
+        final int radioDirectionId = radioGroupDirection.getCheckedRadioButtonId();
+        final View radioDirection = findViewById(radioDirectionId);
+        final String directionStr =
+                radioDirection instanceof RadioButton && radioDirectionId != -1 ?
+                        ((RadioButton) radioDirection).getText().toString() :
+                        anyStr;
+        final int radioTimingId = radioGroupTiming.getCheckedRadioButtonId();
+        final View radioTiming = findViewById(radioTimingId);
+        final String timingStr =
+                radioTiming instanceof RadioButton && radioTimingId != -1 ?
+                        ((RadioButton) radioTiming).getText().toString() :
+                        anyStr;
+
+        String[] notes = !checkNoteAny.isChecked() ? getCheckedValues(checkNotes) : null;
+        String[] octaves = !checkOctaveAny.isChecked() ? getCheckedValues(checkOctaves) : null;
+        String[] intervals = !checkIntervalAny.isChecked() ? getCheckedValues(checkIntervals, CHECK_INTERVAL_ID_VALUES) : null;
+
+        builder.sounds(filenames)
+                .notes(notes)
+                .octaves(octaves)
+                .direction(!directionStr.equals(anyStr) ? directionStr : "")
+                .timing(!timingStr.equals(anyStr) ? timingStr : "")
+                .intervals(intervals)
+                .tempo(inputTempo.getText().toString())
+                .instrument(inputInstrument.getText().toString())
+                .first_note_duration_coefficient(inputFirstNoteDurationCoefficient.getText().toString());
+
+        if (versionField) {
+            builder.version(BuildConfig.VERSION_NAME);
+        }
     }
 
     private static String[] getCheckedValues(CheckBox[] checkBoxes) {
@@ -1507,7 +1540,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                                     e.getCss()
                             );
                             if (updatedModelId != null) {
-                                updateModelPreferences(updatedModelId);
+                                updateDefaultModelPreferences(updatedModelId);
                                 showMsg(R.string.update_model_success, MusInterval.Builder.DEFAULT_MODEL_NAME);
                             } else {
                                 new AlertDialog.Builder(MainActivity.this)
@@ -1607,7 +1640,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 css
         );
         if (newModelId != null) {
-            updateModelPreferences(newModelId);
+            updateDefaultModelPreferences(newModelId);
             refreshExisting();
             refreshPermutations();
             showMsg(R.string.create_model_success, modelName);
@@ -1616,7 +1649,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
     }
 
-    private void updateModelPreferences(long modelId) {
+    private void updateDefaultModelPreferences(long modelId) {
         String[] mainSignature = MusInterval.Fields.getSignature(false);
         SharedPreferences.Editor preferenceEditor = PreferenceManager.getDefaultSharedPreferences(MainActivity.this).edit();
         for (String fieldKey : mainSignature) {
