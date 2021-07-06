@@ -1,7 +1,5 @@
 package com.ichi2.apisample.model;
 
-import androidx.annotation.VisibleForTesting;
-
 import com.ichi2.apisample.R;
 import com.ichi2.apisample.helper.AnkiDroidHelper;
 import com.ichi2.apisample.helper.equality.DoubleValueEqualityChecker;

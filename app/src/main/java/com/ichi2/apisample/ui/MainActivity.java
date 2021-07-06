@@ -388,6 +388,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     protected void onResume() {
         super.onResume();
 
+        refreshPreferences();
+
         LocalBroadcastManager broadcastManager = LocalBroadcastManager.getInstance(this);
         for (Map.Entry<String, BroadcastReceiver> actionReceiver : actionReceivers.entrySet()) {
             broadcastManager.registerReceiver(actionReceiver.getValue(), new IntentFilter(actionReceiver.getKey()));
@@ -435,6 +437,20 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
 
         soundPlayer = new SoundPlayer(this);
+    }
+
+    private void refreshPreferences() {
+        if (mAnkiDroid.shouldRequestPermission()) {
+            return;
+        }
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        boolean useDefaultModel = preferences.getBoolean(SettingsFragment.KEY_USE_DEFAULT_MODEL_CHECK, SettingsFragment.DEFAULT_USE_DEFAULT_MODEL_CHECK);
+        if (useDefaultModel) {
+            Long modelId = mAnkiDroid.findModelIdByName(MusInterval.Builder.DEFAULT_MODEL_NAME);
+            if (modelId != null) {
+                updateDefaultModelPreferences(modelId);
+            }
+        }
     }
 
     void refreshPermutations() {
@@ -1314,6 +1330,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 if (grantResults.length > 0) {
                     if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                         validateModel();
+                        refreshPreferences();
                         refreshExisting();
                         refreshPermutations();
                     } else {
@@ -1386,10 +1403,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     .qfmt(qfmt)
                     .afmt(afmt)
                     .css(css);
-            Long modelId = mAnkiDroid.findModelIdByName(MusInterval.Builder.DEFAULT_MODEL_NAME);
-            if (modelId != null) {
-                updateDefaultModelPreferences(modelId); // @todo: this shouldn't be here
-            }
         }
 
         String[] signature = MusInterval.Fields.getSignature(versionField);
