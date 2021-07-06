@@ -5,8 +5,10 @@ import android.app.Activity;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.PixelFormat;
 import android.graphics.Typeface;
@@ -15,7 +17,6 @@ import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioPlaybackCaptureConfiguration;
 import android.media.AudioRecord;
-import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.media.ToneGenerator;
 import android.media.projection.MediaProjection;
@@ -61,6 +62,7 @@ public class AudioCaptureService extends Service {
 
     public final static String ACTION_FILES_UPDATED = "AudioCaptureService:FilesUpdated";
     public final static String EXTRA_URI_STRING = "AudioCaptureService:Extra:UriString";
+    public final static String ACTION_CLOSED = "AudioCaptureService:Closed";
 
     private final static int SERVICE_ID = 1;
     private final static String NOTIFICATION_CHANNEL_ID = "AudioCapture channel";
@@ -105,6 +107,13 @@ public class AudioCaptureService extends Service {
 
     private MediaPlayer mediaPlayer;
     private ToneGenerator toneGenerator;
+
+    private final BroadcastReceiver closeReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            tearDown();
+        }
+    };
 
     @Override
     @TargetApi(Build.VERSION_CODES.O)
@@ -189,10 +198,18 @@ public class AudioCaptureService extends Service {
         actionClose.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                tearDown();
+                LocalBroadcastManager.getInstance(AudioCaptureService.this).sendBroadcast(new Intent(ACTION_CLOSED));
+
+                SharedPreferences uiDb = getSharedPreferences(MainActivity.REF_DB_STATE, Context.MODE_PRIVATE);
+                SharedPreferences.Editor uiDbEditor = uiDb.edit();
+                uiDbEditor.putBoolean(MainActivity.REF_DB_IS_CAPTURING, false);
+                uiDbEditor.apply();
+
                 Intent intent = new Intent(AudioCaptureService.this, MainActivity.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(intent);
+
+                tearDown();
             }
         });
         actionClose.setOnTouchListener(moveOnTouchListener);
@@ -290,6 +307,8 @@ public class AudioCaptureService extends Service {
 
         windowManager.addView(overlayView, layoutParams);
         windowManager.addView(countdownView, layoutParams);
+
+        LocalBroadcastManager.getInstance(this).registerReceiver(closeReceiver, new IntentFilter(MainActivity.ACTION_CLOSE_CAPTURING));
     }
 
     private void handleStartCapture() {
@@ -329,6 +348,8 @@ public class AudioCaptureService extends Service {
     public void onDestroy() {
         windowManager.removeView(overlayView);
         windowManager.removeView(countdownView);
+
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(closeReceiver);
     }
 
     @Override
@@ -475,7 +496,6 @@ public class AudioCaptureService extends Service {
                 uiDbEditor.putBoolean(MainActivity.REF_DB_SORT_BY_DATE, false);
                 uiDbEditor.putBoolean(MainActivity.REF_DB_AFTER_SELECTING, false);
                 uiDbEditor.putBoolean(MainActivity.REF_DB_AFTER_ADDING, false);
-                uiDbEditor.apply();
             } else {
                 String[] filenames = MainActivity.getStoredFilenames(this);
                 newFilenames = new ArrayList<>(Arrays.asList(filenames));
@@ -483,6 +503,7 @@ public class AudioCaptureService extends Service {
             newFilenames.add(uri.toString());
             MainActivity.storeFilenames(this, newFilenames.toArray(new String[0]));
             uiDbEditor.putBoolean(MainActivity.REF_DB_AFTER_CAPTURING, true);
+            uiDbEditor.apply();
 
             long duration = System.currentTimeMillis() - recordingStartedAt;
             Recording recording = new Recording(uri, duration);

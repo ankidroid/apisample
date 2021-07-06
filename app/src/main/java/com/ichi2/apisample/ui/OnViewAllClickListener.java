@@ -87,6 +87,9 @@ public class OnViewAllClickListener implements View.OnClickListener {
                 mainActivity.soundPlayer.stop();
             }
         });
+        if (mainActivity.isCapturing) {
+            mainActivity.closeCapturing();
+        }
         dialog.show();
     }
 }
