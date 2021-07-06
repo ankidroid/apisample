@@ -57,6 +57,8 @@ import com.ichi2.apisample.model.AddingPrompter;
 import com.ichi2.apisample.model.MusInterval;
 import com.ichi2.apisample.model.NotesIntegrity;
 import com.ichi2.apisample.model.ProgressIndicator;
+import com.ichi2.apisample.ui.settings.SettingsActivity;
+import com.ichi2.apisample.ui.settings.SettingsFragment;
 
 import java.io.File;
 import java.util.ArrayList;

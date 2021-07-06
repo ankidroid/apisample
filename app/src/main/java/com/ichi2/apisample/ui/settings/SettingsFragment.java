@@ -1,4 +1,4 @@
-package com.ichi2.apisample.ui;
+package com.ichi2.apisample.ui.settings;
 
 import android.content.Context;
 import android.content.SharedPreferences;
