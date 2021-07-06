@@ -1,5 +1,7 @@
 package com.ichi2.apisample.model;
 
+import androidx.annotation.VisibleForTesting;
+
 import com.ichi2.apisample.R;
 import com.ichi2.apisample.helper.AnkiDroidHelper;
 import com.ichi2.apisample.helper.equality.DoubleValueEqualityChecker;
@@ -1073,7 +1075,7 @@ public class MusInterval {
                 * (intervals != null ? intervals.length : 0);
     }
 
-    private ArrayList<Map<String, String>> getCollectedDataSet() {
+    public ArrayList<Map<String, String>> getCollectedDataSet() {
         final String[] octaves = this.octaves != null ? this.octaves : Builder.EMPTY_SELECTION;
         final String[] notes = this.notes != null ? this.notes : Builder.EMPTY_SELECTION;
         final String[] intervals = this.intervals != null ? this.intervals : Builder.EMPTY_SELECTION;
