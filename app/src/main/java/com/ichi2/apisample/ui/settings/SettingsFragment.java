@@ -6,11 +6,9 @@ import android.os.Bundle;
 import android.os.Environment;
 
 import androidx.preference.CheckBoxPreference;
-import androidx.preference.DropDownPreference;
 import androidx.preference.EditTextPreference;
 import androidx.preference.ListPreference;
 import androidx.preference.Preference;
-import androidx.preference.PreferenceCategory;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceManager;
 import androidx.preference.PreferenceScreen;
@@ -21,7 +19,6 @@ import com.ichi2.apisample.R;
 import com.ichi2.apisample.helper.AnkiDroidHelper;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -30,17 +27,13 @@ import java.util.Set;
 
 public class SettingsFragment extends PreferenceFragmentCompat {
     public static final String KEY_DECK_PREFERENCE = "preference_deck";
-    public static final String KEY_USE_DEFAULT_MODEL_CHECK = "preference_use_default_model";
     public static final String KEY_MODEL_PREFERENCE = "preference_model";
+    public static final String KEY_FIELDS_PREFERENCE = "preference_fields";
+    public static final String KEY_USE_DEFAULT_MODEL_CHECK = "preference_use_default_model";
     public static final String KEY_VERSION_FIELD_SWITCH = "preference_version_field_switch";
     public static final String KEY_TAG_DUPLICATES_SWITCH = "preference_tag_duplicates_switch";
     public static final String KEY_ANKI_DIR_PREFERENCE = "preference_anki_dir";
     public static final String KEY_FILES_DELETION_PREFERENCE = "preference_files_deletion";
-    public static final String KEY_FIELDS_MAPPING_PREFERENCE = "preference_fields_mapping";
-    private static final String KEY_FIELDS_PREFERENCE_CATEGORY = "preference_fields";
-
-    private static final String TEMPLATE_KEY_FIELD_PREFERENCE = "preference_%s_field";
-    private static final String TEMPLATE_KEY_MODEL_FIELD_PREFERENCE = "%s_%s_model";
 
     public static final String VALUE_FILES_DELETION_DISABLED = "none";
     public static final String VALUE_FILES_DELETION_CREATED_ONLY = "created_only";
@@ -53,32 +46,20 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         put(VALUE_FILES_DELETION_ALWAYS_ASK, R.string.files_deletion_entry_always_ask);
     }};
 
+    public static final String DEFAULT_DECK = MusInterval.Builder.DEFAULT_DECK_NAME;
+    public static final String DEFAULT_MODEL = MusInterval.Builder.DEFAULT_MODEL_NAME;
+    public static final Map<String, String> DEFAULT_FIELDS = new HashMap<>();
+    static {
+        String[] signature = MusInterval.Fields.getSignature(true);
+        for (String fieldKey : signature) {
+            DEFAULT_FIELDS.put(fieldKey, fieldKey);
+        }
+    }
     public static final boolean DEFAULT_USE_DEFAULT_MODEL_CHECK = true;
     public static final boolean DEFAULT_VERSION_FIELD_SWITCH = false;
     public static final boolean DEFAULT_TAG_DUPLICATES_SWITCH = true;
     public static final String DEFAULT_ANKI_DIR = Environment.getExternalStorageDirectory().getPath() + "/AnkiDroid";
     public static final String DEFAULT_FILES_DELETION = VALUE_FILES_DELETION_ALWAYS_ASK;
-
-    private static final Map<String, Integer> FIELD_PREFERENCE_LABEL_STRING_IDS = new HashMap<String, Integer>() {{
-        put(MusInterval.Fields.SOUND, R.string.sound_field_list_preference_title);
-        put(MusInterval.Fields.SOUND_SMALLER, R.string.sound_smaller_field_list_preference_title);
-        put(MusInterval.Fields.SOUND_LARGER, R.string.sound_larger_field_list_preference_title);
-        put(MusInterval.Fields.START_NOTE, R.string.start_note_field_list_preference_title);
-        put(MusInterval.Fields.DIRECTION, R.string.direction_field_list_preference_title);
-        put(MusInterval.Fields.TIMING, R.string.timing_field_list_preference_title);
-        put(MusInterval.Fields.INTERVAL, R.string.interval_field_list_preference_title);
-        put(MusInterval.Fields.TEMPO, R.string.tempo_field_list_preference_title);
-        put(MusInterval.Fields.INSTRUMENT, R.string.instrument_field_list_preference_title);
-        put(MusInterval.Fields.FIRST_NOTE_DURATION_COEFFICIENT, R.string.first_note_duration_coefficient_field_list_preference_title);
-        put(MusInterval.Fields.VERSION, R.string.version_field_list_preference_title);
-    }};
-    static {
-        if (!FIELD_PREFERENCE_LABEL_STRING_IDS.keySet().equals(new HashSet<>(Arrays.asList(MusInterval.Fields.getSignature(true))))) {
-            throw new AssertionError();
-        }
-    }
-
-    private static final String TAG_FIELDS_MAPPING_DIALOG = "FIELDS_MAPPING_DIALOG";
 
     private Context context;
     private PreferenceScreen preferenceScreen;
@@ -98,10 +79,10 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         deckListPreference.setSummaryProvider(ListPreference.SimpleSummaryProvider.getInstance());
         Map<Long, String> deckList = helper.getDeckList();
         List<String> deckEntriesList = new ArrayList<>(deckList.values());
-        if (!deckEntriesList.contains(MusInterval.Builder.DEFAULT_DECK_NAME)) {
-            deckEntriesList.add(MusInterval.Builder.DEFAULT_DECK_NAME);
+        if (!deckEntriesList.contains(DEFAULT_DECK)) {
+            deckEntriesList.add(DEFAULT_DECK);
         }
-        deckListPreference.setDefaultValue(MusInterval.Builder.DEFAULT_DECK_NAME);
+        deckListPreference.setDefaultValue(DEFAULT_DECK);
         String[] deckEntries = deckEntriesList.toArray(new String[0]);
         deckListPreference.setEntries(deckEntries);
         deckListPreference.setEntryValues(deckEntries);
@@ -113,10 +94,10 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         modelListPreference.setSummaryProvider(ListPreference.SimpleSummaryProvider.getInstance());
         Map<Long, String> modelList = helper.getModelList();
         List<String> modelEntriesList = new ArrayList<>(modelList.values());
-        if (!modelEntriesList.contains(MusInterval.Builder.DEFAULT_MODEL_NAME)) {
-            modelEntriesList.add(MusInterval.Builder.DEFAULT_MODEL_NAME);
+        if (!modelEntriesList.contains(DEFAULT_MODEL)) {
+            modelEntriesList.add(DEFAULT_MODEL);
         }
-        modelListPreference.setDefaultValue(MusInterval.Builder.DEFAULT_MODEL_NAME);
+        modelListPreference.setDefaultValue(DEFAULT_MODEL);
         String[] modelEntries = modelEntriesList.toArray(new String[0]);
         modelListPreference.setEntries(modelEntries);
         modelListPreference.setEntryValues(modelEntries);
@@ -124,70 +105,32 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             @Override
             public boolean onPreferenceChange(Preference preference, Object newValue) {
                 SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+
                 String currModel = preferences.getString(KEY_MODEL_PREFERENCE, "");
-                final boolean versionField = preferences.getBoolean(KEY_VERSION_FIELD_SWITCH, DEFAULT_VERSION_FIELD_SWITCH);
-                final String[] signature = MusInterval.Fields.getSignature(versionField);
-                Long modelId = helper.findModelIdByName(currModel);
-                if (modelId != null) {
+                storeModelFields(currModel);
+
+                String newModel = (String) newValue;
+                Long newModelId = helper.findModelIdByName(newModel);
+                if (newModelId != null) {
                     SharedPreferences.Editor preferencesEditor = preferences.edit();
-                    for (String fieldKey : signature) {
-                        String fieldPreferenceKey = getFieldPreferenceKey(fieldKey);
-                        String fieldPreference = preferences.getString(fieldPreferenceKey, "");
-                        String modelFieldPreferenceKey = getModelFieldPreferenceKey(modelId, fieldPreferenceKey);
-                        preferencesEditor.putString(modelFieldPreferenceKey, fieldPreference);
-                    }
+                    String modelFieldsKey = getModelFieldsKey(newModelId);
+                    Set<String> modelFields = preferences.getStringSet(modelFieldsKey, new HashSet<String>());
+                    preferencesEditor.putStringSet(KEY_FIELDS_PREFERENCE, modelFields);
                     preferencesEditor.apply();
                 }
-                updateFieldsPreferenceEntries((String) newValue, signature, true);
+
                 return true;
             }
         });
         preferenceScreen.addPreference(modelListPreference);
 
-        final String[] fullSignature = MusInterval.Fields.getSignature(true);
-        PreferenceCategory fieldsPreferenceCategory = new PreferenceCategory(context);
-        fieldsPreferenceCategory.setKey(KEY_FIELDS_PREFERENCE_CATEGORY);
-        fieldsPreferenceCategory.setTitle(R.string.fields_preference_category_title);
-        fieldsPreferenceCategory.setInitialExpandedChildrenCount(0);
-        preferenceScreen.addPreference(fieldsPreferenceCategory);
-        for (String fieldKey : fullSignature) {
-            ListPreference fieldListPreference = new DropDownPreference(context);
-            fieldListPreference.setKey(getFieldPreferenceKey(fieldKey));
-            fieldListPreference.setTitle(getFieldPreferenceLabelString(fieldKey, context));
-            fieldListPreference.setSummaryProvider(ListPreference.SimpleSummaryProvider.getInstance());
-            fieldListPreference.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-                @Override
-                public boolean onPreferenceChange(Preference preference, Object newValue) {
-                    for (String fieldKey : fullSignature) {
-                        String fieldPreferenceKey = getFieldPreferenceKey(fieldKey);
-                        ListPreference fieldListPreference = preferenceScreen.findPreference(fieldPreferenceKey);
-                        if (fieldListPreference != null && fieldListPreference.getValue().equals(newValue)) {
-                            fieldListPreference.setValue("");
-                        }
-                    }
-                    return true;
-                }
-            });
-            fieldsPreferenceCategory.addPreference(fieldListPreference);
-        }
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
-        final boolean versionField = preferences.getBoolean(KEY_VERSION_FIELD_SWITCH, DEFAULT_VERSION_FIELD_SWITCH);
-        if (!versionField) {
-            String versionFieldPreferenceKey = getFieldPreferenceKey(MusInterval.Fields.VERSION);
-            ListPreference versionFieldListPreference = preferenceScreen.findPreference(versionFieldPreferenceKey);
-            if (versionFieldListPreference != null) {
-                versionFieldListPreference.setVisible(false);
-            }
-        }
-        updateFieldsPreferenceEntries(modelListPreference.getValue(), fullSignature, false);
-
-        MappingPreference fieldsMappingPreference = new MappingPreference(context);
-        fieldsMappingPreference.setKey(KEY_FIELDS_MAPPING_PREFERENCE);
-        fieldsMappingPreference.setTitle(R.string.fields_preference_category_title); // @fixme
+        final MappingPreference fieldsMappingPreference = new MappingPreference(context);
+        fieldsMappingPreference.setKey(KEY_FIELDS_PREFERENCE);
+        fieldsMappingPreference.setTitle(R.string.fields_mapping_preference_title);
+        // @todo summary ?
         fieldsMappingPreference.setDialogLayoutResource(R.layout.dialog_mapping);
         preferenceScreen.addPreference(fieldsMappingPreference);
 
-        final String[] mainSignature = MusInterval.Fields.getSignature(false);
         final CheckBoxPreference useDefaultModelCheckPreference = new CheckBoxPreference(context);
         useDefaultModelCheckPreference.setKey(KEY_USE_DEFAULT_MODEL_CHECK);
         useDefaultModelCheckPreference.setTitle(R.string.use_default_model_check_preference_title);
@@ -196,73 +139,50 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         useDefaultModelCheckPreference.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
             @Override
             public boolean onPreferenceChange(Preference preference, Object newValue) {
-                boolean newVal = (boolean) newValue;
-                for (String fieldKey : mainSignature) {
-                    String fieldPreferenceKey = getFieldPreferenceKey(fieldKey);
-                    ListPreference fieldListPreference = preferenceScreen.findPreference(fieldPreferenceKey);
-                    if (newVal) {
-                        fieldListPreference.setValue(fieldKey);
-                        fieldListPreference.setEnabled(false);
-                    } else {
-                        fieldListPreference.setEnabled(true);
+                if ((boolean) newValue) {
+                    String currModel = modelListPreference.getValue();
+                    if (!currModel.equals(DEFAULT_MODEL)) {
+                        storeModelFields(currModel);
                     }
-                }
 
-                final String defaultModel = MusInterval.Builder.DEFAULT_MODEL_NAME;
-                if (newVal) {
-                    final String currModel = modelListPreference.getValue();
-                    if (!currModel.equals(defaultModel)) {
-                        updateFieldsPreferenceEntries(defaultModel, fullSignature, true);
-                    }
-                    modelListPreference.setValue(defaultModel);
+                    modelListPreference.setValue(DEFAULT_MODEL);
                     modelListPreference.setEnabled(false);
 
-                    updateVersionFieldPreferenceEntries(true);
+                    fieldsMappingPreference.persistMapping(DEFAULT_FIELDS);
+                    fieldsMappingPreference.setEnabled(false); // @fixme
                 } else {
                     modelListPreference.setEnabled(true);
-                    updateFieldsPreferenceEntries(defaultModel, fullSignature, false);
+                    fieldsMappingPreference.setEnabled(true); // @fixme
                 }
                 return true;
             }
         });
         preferenceScreen.addPreference(useDefaultModelCheckPreference);
         modelListPreference.setEnabled(!useDefaultModelCheckPreference.isChecked());
-        for (String fieldKey : mainSignature) {
-            String fieldPreferenceKey = getFieldPreferenceKey(fieldKey);
-            ListPreference fieldListPreference = preferenceScreen.findPreference(fieldPreferenceKey);
-            if (useDefaultModelCheckPreference.isChecked()) {
-                fieldListPreference.setEnabled(false);
-                fieldListPreference.setValue(fieldKey);
-            } else {
-                fieldListPreference.setEnabled(true);
-            }
-        }
-        if (useDefaultModelCheckPreference.isChecked()) {
-            updateVersionFieldPreferenceEntries(true);
-        }
+        fieldsMappingPreference.setEnabled(!useDefaultModelCheckPreference.isChecked()); // @fixme
 
         SwitchPreference versionFieldSwitchPreference = new SwitchPreference(context);
         versionFieldSwitchPreference.setKey(KEY_VERSION_FIELD_SWITCH);
         versionFieldSwitchPreference.setTitle(R.string.version_field_switch_preference_title);
         versionFieldSwitchPreference.setSummary(R.string.version_field_switch_preference_summary);
         versionFieldSwitchPreference.setDefaultValue(DEFAULT_VERSION_FIELD_SWITCH);
-        versionFieldSwitchPreference.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-            @Override
-            public boolean onPreferenceChange(Preference preference, Object newValue) {
-                String versionFieldPreferenceKey = getFieldPreferenceKey(MusInterval.Fields.VERSION);
-                ListPreference versionFieldListPreference = preferenceScreen.findPreference(versionFieldPreferenceKey);
-                if (versionFieldListPreference != null) {
-                    final boolean versionField = (boolean) newValue;
-                    if (versionField) {
-                        versionFieldListPreference.setVisible(true);
-                        updateVersionFieldPreferenceEntries(useDefaultModelCheckPreference.isChecked());
-                    } else {
-                        versionFieldListPreference.setVisible(false);
-                    }
-                }
-                return true;
-            }
-        });
+//        versionFieldSwitchPreference.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+//            @Override
+//            public boolean onPreferenceChange(Preference preference, Object newValue) {
+//                String versionFieldPreferenceKey = getFieldPreferenceKey(MusInterval.Fields.VERSION);
+//                ListPreference versionFieldListPreference = preferenceScreen.findPreference(versionFieldPreferenceKey);
+//                if (versionFieldListPreference != null) {
+//                    final boolean versionField = (boolean) newValue;
+//                    if (versionField) {
+//                        versionFieldListPreference.setVisible(true);
+//                        updateVersionFieldPreferenceEntries(useDefaultModelCheckPreference.isChecked());
+//                    } else {
+//                        versionFieldListPreference.setVisible(false);
+//                    }
+//                }
+//                return true;
+//            }
+//        });
         preferenceScreen.addPreference(versionFieldSwitchPreference);
 
         ListPreference filesDeletionPreference = new ListPreference(context);
@@ -306,13 +226,33 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         setPreferenceScreen(preferenceScreen);
     }
 
+    private void storeModelFields(String modelName) {
+        Long modelId = helper.findModelIdByName(modelName);
+        if (modelId != null) {
+            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+            SharedPreferences.Editor preferencesEditor = preferences.edit();
+            String modelFieldsKey = getModelFieldsKey(modelId);
+            Set<String> fields = preferences.getStringSet(KEY_FIELDS_PREFERENCE, new HashSet<String>());
+            preferencesEditor.putStringSet(modelFieldsKey, fields);
+            preferencesEditor.apply();
+        }
+    }
+
+    private static final String TEMPLATE_KEY_MODEL_FIELD_PREFERENCE = KEY_FIELDS_PREFERENCE + "_%s_model";
+
+    public static String getModelFieldsKey(long modelId) {
+        return String.format(TEMPLATE_KEY_MODEL_FIELD_PREFERENCE, modelId);
+    }
+
+    private static final String TAG_FIELDS_MAPPING_DIALOG = "FIELDS_MAPPING_DIALOG";
+
     @Override
     public void onDisplayPreferenceDialog(Preference preference) {
         String key = preference.getKey();
         switch (key) {
-            case KEY_FIELDS_MAPPING_PREFERENCE:
+            case KEY_FIELDS_PREFERENCE:
                 SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
-                String modelName = preferences.getString(KEY_MODEL_PREFERENCE, MusInterval.Builder.DEFAULT_MODEL_NAME);
+                String modelName = preferences.getString(KEY_MODEL_PREFERENCE, DEFAULT_MODEL);
                 Long modelId = helper.findModelIdByName(modelName);
                 if (modelId == null) {
                     return; // @todo: prob show some error msg here
@@ -329,70 +269,30 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         }
     }
 
-    public static String getFieldPreferenceKey(String fieldKey) {
-        return String.format(TEMPLATE_KEY_FIELD_PREFERENCE, fieldKey);
-    }
-
-    public static String getModelFieldPreferenceKey(long modelId, String fieldPreferenceKey) {
-        return String.format(TEMPLATE_KEY_MODEL_FIELD_PREFERENCE, fieldPreferenceKey, modelId);
-    }
-
-    public static String getFieldPreferenceLabelString(String fieldKey, Context context) {
-        Integer resId = FIELD_PREFERENCE_LABEL_STRING_IDS.get(fieldKey);
-        return resId != null ? context.getResources().getString(resId) : "";
-    }
-
-    private void updateFieldsPreferenceEntries(String modelName, String[] signature, boolean modelChanged) {
-        Long modelId = helper.findModelIdByName(modelName);
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
-        String[] fieldList = modelId != null ? helper.getFieldList(modelId) : new String[]{};
-        String[] entries = new String[fieldList.length + 1];
-        entries[0] = "";
-        System.arraycopy(fieldList, 0, entries, 1, fieldList.length);
-        for (String fieldKey : signature) {
-            String fieldPreferenceKey = getFieldPreferenceKey(fieldKey);
-            String value = "";
-            if (modelChanged) {
-                if (modelId != null) {
-                    String modelFieldPreferenceKey = getModelFieldPreferenceKey(modelId, fieldPreferenceKey);
-                    value = preferences.getString(modelFieldPreferenceKey, "");
-                }
-            } else {
-                value = preferences.getString(fieldPreferenceKey, "");
-            }
-            ListPreference fieldListPreference = preferenceScreen.findPreference(fieldPreferenceKey);
-            if (fieldListPreference != null) {
-                fieldListPreference.setEntries(entries);
-                fieldListPreference.setEntryValues(entries);
-                fieldListPreference.setValue(value);
-            }
-        }
-    }
-
-    private void updateVersionFieldPreferenceEntries(boolean excludeTaken) {
-        String versionFieldPreferenceKey = getFieldPreferenceKey(MusInterval.Fields.VERSION);
-        String value = PreferenceManager.getDefaultSharedPreferences(context).getString(versionFieldPreferenceKey, "");
-        Long modelId = helper.findModelIdByName(MusInterval.Builder.DEFAULT_MODEL_NAME);
-        ArrayList<String> fields = modelId != null ? new ArrayList<>(Arrays.asList(helper.getFieldList(modelId))) : new ArrayList<String>();
-        ArrayList<String> availableFields = new ArrayList<>();
-        if (excludeTaken) {
-            Set<String> takenFields = new HashSet<>(Arrays.asList(MusInterval.Fields.getSignature(false)));
-            for (String fieldKey : fields) {
-                if (!takenFields.contains(fieldKey)) {
-                    availableFields.add(fieldKey);
-                }
-            }
-            if (takenFields.contains(value)) {
-                value = "";
-            }
-        } else {
-            availableFields = fields;
-        }
-        ListPreference versionFieldListPreference = preferenceScreen.findPreference(versionFieldPreferenceKey);
-        availableFields.add(0, "");
-        String[] versionEntries = availableFields.toArray(new String[0]);
-        versionFieldListPreference.setEntries(versionEntries);
-        versionFieldListPreference.setEntryValues(versionEntries);
-        versionFieldListPreference.setValue(value);
-    }
+//    private void updateVersionFieldPreferenceEntries(boolean excludeTaken) {
+//        String versionFieldPreferenceKey = getFieldPreferenceKey(MusInterval.Fields.VERSION);
+//        String value = PreferenceManager.getDefaultSharedPreferences(context).getString(versionFieldPreferenceKey, "");
+//        Long modelId = helper.findModelIdByName(MusInterval.Builder.DEFAULT_MODEL_NAME);
+//        ArrayList<String> fields = modelId != null ? new ArrayList<>(Arrays.asList(helper.getFieldList(modelId))) : new ArrayList<String>();
+//        ArrayList<String> availableFields = new ArrayList<>();
+//        if (excludeTaken) {
+//            Set<String> takenFields = new HashSet<>(Arrays.asList(MusInterval.Fields.getSignature(false)));
+//            for (String fieldKey : fields) {
+//                if (!takenFields.contains(fieldKey)) {
+//                    availableFields.add(fieldKey);
+//                }
+//            }
+//            if (takenFields.contains(value)) {
+//                value = "";
+//            }
+//        } else {
+//            availableFields = fields;
+//        }
+//        ListPreference versionFieldListPreference = preferenceScreen.findPreference(versionFieldPreferenceKey);
+//        availableFields.add(0, "");
+//        String[] versionEntries = availableFields.toArray(new String[0]);
+//        versionFieldListPreference.setEntries(versionEntries);
+//        versionFieldListPreference.setEntryValues(versionEntries);
+//        versionFieldListPreference.setValue(value);
+//    }
 }
