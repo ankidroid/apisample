@@ -5,6 +5,8 @@ import android.content.Context;
 import androidx.annotation.Nullable;
 import androidx.preference.DialogPreference;
 
+import com.ichi2.apisample.helper.MapUtil;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -37,6 +39,8 @@ public class MappingPreference extends DialogPreference {
     }
 
     public void persistMapping(Map<String, String> mapping) {
+        Map<String, String> persistedMapping = getPersistedMapping();
+        (new MapUtil<>(mapping)).putMissingKeys(persistedMapping);
         Set<String> entries = toEntries(mapping);
         persistStringSet(entries);
         notifyChanged();

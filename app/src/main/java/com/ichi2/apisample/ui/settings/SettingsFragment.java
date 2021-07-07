@@ -14,6 +14,7 @@ import androidx.preference.PreferenceManager;
 import androidx.preference.PreferenceScreen;
 import androidx.preference.SwitchPreference;
 
+import com.ichi2.apisample.helper.MapUtil;
 import com.ichi2.apisample.model.MusInterval;
 import com.ichi2.apisample.R;
 import com.ichi2.apisample.helper.AnkiDroidHelper;
@@ -51,11 +52,11 @@ public class SettingsFragment extends PreferenceFragmentCompat {
 
     public static final String DEFAULT_DECK = MusInterval.Builder.DEFAULT_DECK_NAME;
     public static final String DEFAULT_MODEL = MusInterval.Builder.DEFAULT_MODEL_NAME;
-    public static final Map<String, String> DEFAULT_FIELDS = new HashMap<>();
+    private static final Map<String, String> DEFAULT_FIELDS_MAPPING = new HashMap<>();
     static {
-        String[] signature = MusInterval.Fields.getSignature(true);
+        String[] signature = MusInterval.Fields.getSignature(false);
         for (String fieldKey : signature) {
-            DEFAULT_FIELDS.put(fieldKey, fieldKey);
+            DEFAULT_FIELDS_MAPPING.put(fieldKey, fieldKey);
         }
     }
     public static final boolean DEFAULT_USE_DEFAULT_MODEL_CHECK = true;
@@ -149,8 +150,10 @@ public class SettingsFragment extends PreferenceFragmentCompat {
                     modelListPreference.setValue(DEFAULT_MODEL);
                     modelListPreference.setEnabled(false);
 
-                    SharedPreferences.Editor preferencesEditor = PreferenceManager.getDefaultSharedPreferences(context).edit();
-                    preferencesEditor.putStringSet(KEY_FIELDS_PREFERENCE, MappingPreference.toEntries(DEFAULT_FIELDS)); // @todo factor
+                    SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+                    SharedPreferences.Editor preferencesEditor = preferences.edit();
+                    Set<String> defaultFields = getDefaultFields(preferences);
+                    preferencesEditor.putStringSet(KEY_FIELDS_PREFERENCE, defaultFields);
                     preferencesEditor.apply();
                 } else {
                     modelListPreference.setEnabled(true);
@@ -211,6 +214,14 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         if (ACTION_SHOW_FIELDS_MAPPING_DIALOG.equals(getActivity().getIntent().getAction())) {
             onDisplayPreferenceDialog(fieldsMappingPreference);
         }
+    }
+
+    public static Set<String> getDefaultFields(SharedPreferences preferences) {
+        Set<String> storedFields = preferences.getStringSet(KEY_FIELDS_PREFERENCE, new HashSet<String>());
+        Map<String, String> storedFieldsMapping = MappingPreference.toMapping(storedFields);
+        Map<String, String> defaultFieldsMapping = new HashMap<>(DEFAULT_FIELDS_MAPPING);
+        (new MapUtil<>(defaultFieldsMapping)).putMissingKeys(storedFieldsMapping);
+        return MappingPreference.toEntries(defaultFieldsMapping);
     }
 
     private void storeModelFields(String modelName) {

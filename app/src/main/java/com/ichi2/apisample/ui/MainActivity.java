@@ -1647,8 +1647,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     }
 
     private void updateDefaultModelPreferences(long modelId) {
-        SharedPreferences.Editor preferenceEditor = PreferenceManager.getDefaultSharedPreferences(this).edit();
-        Set<String> defaultFields = MappingPreference.toEntries(SettingsFragment.DEFAULT_FIELDS);
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences.Editor preferenceEditor = preferences.edit();
+        Set<String> defaultFields = SettingsFragment.getDefaultFields(preferences);
         preferenceEditor.putStringSet(SettingsFragment.KEY_FIELDS_PREFERENCE, defaultFields);
         String modelFieldsKey = SettingsFragment.getModelFieldsKey(modelId);
         preferenceEditor.putStringSet(modelFieldsKey, defaultFields);
