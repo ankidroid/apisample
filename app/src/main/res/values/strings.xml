@@ -81,6 +81,9 @@
     <string name="recorded_files">Files recorded: %d</string>
     <string name="countdown_skip">Skip countdown</string>
     <string name="first_note_duration_coefficient">First note duration coefficient</string>
+    <string name="sort_by">Order by:</string>
+    <string name="name">Name</string>
+    <string name="modification_date">Modification date</string>
 
     <!-- MainActivity messages-->
     <string name="anki_permission_denied">Could not get permission to access the AnkiDroid database</string>
@@ -208,6 +211,9 @@
     <string name="files_deletion_all">Delete all added</string>
     <string name="files_deletion_recorded">Delete recorded only</string>
     <string name="files_deletion_none">Do nothing</string>
+    <string name="mismatching_sorting">The selected files have different order when sorted by name and modification date.\nPlease choose which order should be used for batch adding (you\'ll be able to change it later in the file list)</string>
+    <string name="sort_by_name">Sort by name</string>
+    <string name="sort_by_date">Sort by date</string>
 
     <!-- SettingsActivity labels, fields and buttons -->
     <string name="deck_preference_title">Deck</string>
