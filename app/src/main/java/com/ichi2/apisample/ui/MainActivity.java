@@ -57,6 +57,9 @@ import com.ichi2.apisample.model.AddingPrompter;
 import com.ichi2.apisample.model.MusInterval;
 import com.ichi2.apisample.model.NotesIntegrity;
 import com.ichi2.apisample.model.ProgressIndicator;
+import com.ichi2.apisample.ui.settings.MappingPreference;
+import com.ichi2.apisample.ui.settings.SettingsActivity;
+import com.ichi2.apisample.ui.settings.SettingsFragment;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -1175,13 +1178,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                         return;
                     }
                 }
-                openSettings();
+                startActivity(new Intent(MainActivity.this, SettingsActivity.class));
             }
         });
-    }
-
-    private void openSettings() {
-        startActivity(new Intent(this, SettingsActivity.class));
     }
 
     private void configureCheckIntegrityButton() {
@@ -1375,8 +1374,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private MusInterval getMusInterval(boolean isEmpty) throws MusInterval.ValidationException {
         final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         final boolean versionField = sharedPreferences.getBoolean(SettingsFragment.KEY_VERSION_FIELD_SWITCH, SettingsFragment.DEFAULT_VERSION_FIELD_SWITCH);
-        final String storedDeck = sharedPreferences.getString(SettingsFragment.KEY_DECK_PREFERENCE, MusInterval.Builder.DEFAULT_DECK_NAME);
-        final String storedModel = sharedPreferences.getString(SettingsFragment.KEY_MODEL_PREFERENCE, MusInterval.Builder.DEFAULT_MODEL_NAME);
+        final String storedDeck = sharedPreferences.getString(SettingsFragment.KEY_DECK_PREFERENCE, SettingsFragment.DEFAULT_DECK);
+        final String storedModel = sharedPreferences.getString(SettingsFragment.KEY_MODEL_PREFERENCE, SettingsFragment.DEFAULT_MODEL);
 
         MusInterval.Builder builder = new MusInterval.Builder(mAnkiDroid)
                 .deck(storedDeck)
@@ -1405,13 +1404,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     .css(css);
         }
 
-        String[] signature = MusInterval.Fields.getSignature(versionField);
-        final Map<String, String> storedFields = new HashMap<>();
-        for (String fieldKey : signature) {
-            String fieldPreferenceKey = SettingsFragment.getFieldPreferenceKey(fieldKey);
-            storedFields.put(fieldKey, sharedPreferences.getString(fieldPreferenceKey, fieldKey));
-        }
-        builder.model_fields(storedFields);
+        Set<String> storedFields = sharedPreferences.getStringSet(SettingsFragment.KEY_FIELDS_PREFERENCE, null);
+        final Map<String, String> storedFieldsMapping = MappingPreference.toMapping(storedFields);
+        builder.model_fields(storedFieldsMapping);
 
         return builder.build();
     }
@@ -1582,14 +1577,16 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 if (fieldsStr.length() != 0) {
                     fieldsStr.append(", ");
                 }
-                fieldsStr.append(String.format("\"%s\"", SettingsFragment.getFieldPreferenceLabelString(field, this)));
+                fieldsStr.append(String.format("\"%s\"", field));
             }
             AlertDialog dialog = new AlertDialog.Builder(this)
                     .setMessage(
                             getResources().getQuantityString(R.plurals.invalid_model_fields, invalidModelFields.size(), modelName, fieldsStr.toString()))
                     .setPositiveButton(R.string.configure, new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
-                            openSettings();
+                            Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
+                            intent.setAction(SettingsFragment.ACTION_SHOW_FIELDS_MAPPING_DIALOG);
+                            startActivity(intent);
                         }
                     })
                     .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
@@ -1650,14 +1647,12 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     }
 
     private void updateDefaultModelPreferences(long modelId) {
-        String[] mainSignature = MusInterval.Fields.getSignature(false);
-        SharedPreferences.Editor preferenceEditor = PreferenceManager.getDefaultSharedPreferences(MainActivity.this).edit();
-        for (String fieldKey : mainSignature) {
-            String fieldPreferenceKey = SettingsFragment.getFieldPreferenceKey(fieldKey);
-            preferenceEditor.putString(fieldPreferenceKey, fieldKey);
-            String modelFieldPreferenceKey = SettingsFragment.getModelFieldPreferenceKey(modelId, fieldPreferenceKey);
-            preferenceEditor.putString(modelFieldPreferenceKey, fieldKey);
-        }
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences.Editor preferenceEditor = preferences.edit();
+        Set<String> defaultFields = SettingsFragment.getDefaultFields(preferences);
+        preferenceEditor.putStringSet(SettingsFragment.KEY_FIELDS_PREFERENCE, defaultFields);
+        String modelFieldsKey = SettingsFragment.getModelFieldsKey(modelId);
+        preferenceEditor.putStringSet(modelFieldsKey, defaultFields);
         preferenceEditor.apply();
     }
 
