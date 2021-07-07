@@ -27,6 +27,8 @@ import java.util.Map;
 import java.util.Set;
 
 public class SettingsFragment extends PreferenceFragmentCompat {
+    public static final String ACTION_SHOW_FIELDS_MAPPING_DIALOG = "SettingsFragment:ShowFieldsMappingDialog";
+
     public static final String KEY_DECK_PREFERENCE = "preference_deck";
     public static final String KEY_MODEL_PREFERENCE = "preference_model";
     public static final String KEY_FIELDS_PREFERENCE = "preference_fields";
@@ -63,14 +65,13 @@ public class SettingsFragment extends PreferenceFragmentCompat {
     public static final String DEFAULT_FILES_DELETION = VALUE_FILES_DELETION_ALWAYS_ASK;
 
     private Context context;
-    private PreferenceScreen preferenceScreen;
 
     private AnkiDroidHelper helper;
 
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
         context = getPreferenceManager().getContext();
-        preferenceScreen = getPreferenceManager().createPreferenceScreen(context);
+        PreferenceScreen preferenceScreen = getPreferenceManager().createPreferenceScreen(context);
 
         helper = new AnkiDroidHelper(context);
 
@@ -206,6 +207,10 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         preferenceScreen.addPreference(ankiDirPreference);
 
         setPreferenceScreen(preferenceScreen);
+
+        if (ACTION_SHOW_FIELDS_MAPPING_DIALOG.equals(getActivity().getIntent().getAction())) {
+            onDisplayPreferenceDialog(fieldsMappingPreference);
+        }
     }
 
     private void storeModelFields(String modelName) {
@@ -253,31 +258,4 @@ public class SettingsFragment extends PreferenceFragmentCompat {
                 super.onDisplayPreferenceDialog(preference);
         }
     }
-
-//    private void updateVersionFieldPreferenceEntries(boolean excludeTaken) {
-//        String versionFieldPreferenceKey = getFieldPreferenceKey(MusInterval.Fields.VERSION);
-//        String value = PreferenceManager.getDefaultSharedPreferences(context).getString(versionFieldPreferenceKey, "");
-//        Long modelId = helper.findModelIdByName(MusInterval.Builder.DEFAULT_MODEL_NAME);
-//        ArrayList<String> fields = modelId != null ? new ArrayList<>(Arrays.asList(helper.getFieldList(modelId))) : new ArrayList<String>();
-//        ArrayList<String> availableFields = new ArrayList<>();
-//        if (excludeTaken) {
-//            Set<String> takenFields = new HashSet<>(Arrays.asList(MusInterval.Fields.getSignature(false)));
-//            for (String fieldKey : fields) {
-//                if (!takenFields.contains(fieldKey)) {
-//                    availableFields.add(fieldKey);
-//                }
-//            }
-//            if (takenFields.contains(value)) {
-//                value = "";
-//            }
-//        } else {
-//            availableFields = fields;
-//        }
-//        ListPreference versionFieldListPreference = preferenceScreen.findPreference(versionFieldPreferenceKey);
-//        availableFields.add(0, "");
-//        String[] versionEntries = availableFields.toArray(new String[0]);
-//        versionFieldListPreference.setEntries(versionEntries);
-//        versionFieldListPreference.setEntryValues(versionEntries);
-//        versionFieldListPreference.setValue(value);
-//    }
 }

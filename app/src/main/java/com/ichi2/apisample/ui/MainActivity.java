@@ -1178,13 +1178,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                         return;
                     }
                 }
-                openSettings();
+                startActivity(new Intent(MainActivity.this, SettingsActivity.class));
             }
         });
-    }
-
-    private void openSettings() {
-        startActivity(new Intent(this, SettingsActivity.class));
     }
 
     private void configureCheckIntegrityButton() {
@@ -1588,7 +1584,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                             getResources().getQuantityString(R.plurals.invalid_model_fields, invalidModelFields.size(), modelName, fieldsStr.toString()))
                     .setPositiveButton(R.string.configure, new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
-                            openSettings();
+                            Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
+                            intent.setAction(SettingsFragment.ACTION_SHOW_FIELDS_MAPPING_DIALOG);
+                            startActivity(intent);
                         }
                     })
                     .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
