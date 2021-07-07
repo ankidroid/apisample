@@ -108,20 +108,9 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             @Override
             public boolean onPreferenceChange(Preference preference, Object newValue) {
                 SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
-
                 String currModel = preferences.getString(KEY_MODEL_PREFERENCE, "");
-                storeModelFields(currModel);
-
                 String newModel = (String) newValue;
-                Long newModelId = helper.findModelIdByName(newModel);
-                if (newModelId != null) {
-                    SharedPreferences.Editor preferencesEditor = preferences.edit();
-                    String modelFieldsKey = getModelFieldsKey(newModelId);
-                    Set<String> modelFields = preferences.getStringSet(modelFieldsKey, new HashSet<String>());
-                    preferencesEditor.putStringSet(KEY_FIELDS_PREFERENCE, modelFields);
-                    preferencesEditor.apply();
-                }
-
+                handleModelChange(currModel, newModel);
                 return true;
             }
         });
@@ -142,13 +131,11 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             @Override
             public boolean onPreferenceChange(Preference preference, Object newValue) {
                 if ((boolean) newValue) {
-                    String currModel = modelListPreference.getValue();
-                    if (!currModel.equals(DEFAULT_MODEL)) {
-                        storeModelFields(currModel);
-                    }
-
                     modelListPreference.setValue(DEFAULT_MODEL);
                     modelListPreference.setEnabled(false);
+
+                    String currModel = modelListPreference.getValue();
+                    handleModelChange(currModel, DEFAULT_MODEL);
 
                     SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
                     SharedPreferences.Editor preferencesEditor = preferences.edit();
@@ -224,16 +211,25 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         return MappingPreference.toEntries(defaultFieldsMapping);
     }
 
-    private void storeModelFields(String modelName) {
-        Long modelId = helper.findModelIdByName(modelName);
-        if (modelId != null) {
-            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
-            SharedPreferences.Editor preferencesEditor = preferences.edit();
-            String modelFieldsKey = getModelFieldsKey(modelId);
+    private void handleModelChange(String currModel, String newModel) {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+        SharedPreferences.Editor preferencesEditor = preferences.edit();
+
+        Long oldModelId = helper.findModelIdByName(currModel);
+        if (oldModelId != null) {
+            String modelFieldsKey = getModelFieldsKey(oldModelId);
             Set<String> fields = preferences.getStringSet(KEY_FIELDS_PREFERENCE, new HashSet<String>());
             preferencesEditor.putStringSet(modelFieldsKey, fields);
-            preferencesEditor.apply();
         }
+
+        Long newModelId = helper.findModelIdByName(newModel);
+        if (newModelId != null) {
+            String modelFieldsKey = getModelFieldsKey(newModelId);
+            Set<String> modelFields = preferences.getStringSet(modelFieldsKey, new HashSet<String>());
+            preferencesEditor.putStringSet(KEY_FIELDS_PREFERENCE, modelFields);
+        }
+
+        preferencesEditor.apply();
     }
 
     private static final String TEMPLATE_KEY_MODEL_FIELD_PREFERENCE = KEY_FIELDS_PREFERENCE + "_%s_model";
