@@ -1,5 +1,5 @@
 # MusicIntervals2Anki
-MusicIntervals2Anki is an Android app used to create and consolidate flashcards for ear training. It is based on two types of exercise: interval identification and interval comparison.
+MusicIntervals2Anki is an Android app used to create and consolidate flashcards for [ear training](https://en.wikipedia.org/wiki/Ear_training). It is based on two types of exercise: [interval](https://en.wikipedia.org/wiki/Interval_(music)) identification and interval comparison.
 
 ## Installation
 
@@ -69,7 +69,7 @@ The app is able to create a default "music interval" note type and keep it up to
 Besides this, the users are given the following settings:
 - select the deck for adding notes to
 - select whether or not audio/video files should be deleted upon insertion to Anki
-- enable app version log to added notes in a separate field
+- enable logging the app version to added notes in a separate field
 - disable marking duplicates with the error tag
 
 ## Contributing
