@@ -47,9 +47,14 @@ After completing the operation, the user will be presented with a report describ
 
 Additionally, both invalid notes and notes with incorrect relations are marked with error tags. The latter applies to notes that contain invalid links as well as notes that point to or are being pointed by inappropriate notes (i. e. invalid or relation condition isn't met).
 
-Integrity check, as well as mark operation, is executed on the result set of the search.
+The error tags utilize hierarchical structure and have the following format:
 
-// @todo: error tags format
+`mi2a::<issue>[::<field>[::<cause>]]`,
+
+where `issue` is either "invalid", "duplicate", or "suspicious", optional `field` specifies the field that has caused the error, and optional `cause` provides succinct error explanation if needed. 
+
+
+Integrity check, as well as mark operation, is executed on the result set of the search.
 
 ### Audio capturing & extraction
 
