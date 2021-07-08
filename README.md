@@ -21,7 +21,7 @@ The app allows to add notes to AnkiDroid provided the following attributes:
 - instrument
 - [optional] first note duration
 
-Under the hood, the app also manages two additional fields: smaller and larger sound files. These fields serve as links to related notes - ones with the same parameters but having respectively smaller and larger intervals by one semitone. Smaller & larger sound file fields are filled automatically and are used in interval comparison cards.
+Under the hood, the app also manages two additional fields: smaller and larger sound files. These fields serve as links to related notes - ones with the same parameters but having respectively smaller and larger intervals by one semitone. Smaller & larger sound file fields are filled automatically and used in interval comparison cards.
 
 ### Batch adding
 
