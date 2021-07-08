@@ -68,8 +68,28 @@ Besides this, the users are given the following settings:
 
 ## Contributing
 
-file an issue
+If you have any questions or suggestions, do not hesitate to open an [issue](https://github.com/lwp-emelnik/musicintervals2anki/issues).
 
-installation
+Pull requests are welcome. 
 
-TDD
+The project is built and run using [TDD](https://en.wikipedia.org/wiki/Test-driven_development). Please make sure to update tests as appropriate before submitting a pull request.
+
+### Environment setup
+Prerequisites:
+- Java SE Development Kit (JDK)
+- Android SDK
+
+#### Install
+```
+git clone https://github.com/lwp-emelnik/musicintervals2anki && cd musicintervals2anki
+```
+
+#### Build
+```
+./gradlew assembleDebug
+```
+
+#### Run tests
+```
+./gradlew test
+```
