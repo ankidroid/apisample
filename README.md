@@ -5,7 +5,7 @@ MusicIntervals2Anki is an Android app used to create and consolidate flashcards 
 
 Users can install the app by getting an APK from [the release section](https://github.com/lwp-emelnik/musicintervals2anki/releases).
 
-Development environment setup see [contributing](#contributing).
+For dev environment setup see [contributing](#contributing).
 
 ## Features
 
@@ -39,10 +39,17 @@ On top of being used for setting the attrubutes of added notes, all of the input
 
 ### Integrity check
 
-relations, duplicates, validation
+The integrity check operation can be used to monitor the correctness of saved notes. Its responsibilities are:
+- to validate field values based on predefined rules
+- search for duplicate notes
+- verify the actuality of existing relations
+- fill missing relations
 
-"Mark" and "Check integrity" operations are executed on the result set of this search.
+After completing the operation, the user will be presented with a report describing the integrity statistics. 
 
+Both invalid notes and notes with incorrect relations are marked with error tags. The latter applies to notes that contain invalid links as well as notes that point to or are being pointed by inappropriate notes (i. e. invalid or relation condition isn't met).
+
+Integrity check, as well as mark operation, are executed on the result set of the search.
 
 ### Audio capturing & extraction
 
