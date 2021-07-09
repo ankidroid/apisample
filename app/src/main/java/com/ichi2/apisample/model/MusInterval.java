@@ -268,6 +268,14 @@ public class MusInterval {
     public static class Builder {
         public static final String DEFAULT_DECK_NAME = "Music intervals";
         public static final String DEFAULT_MODEL_NAME = "Music.interval";
+        public static final Map<String, String> DEFAULT_MODEL_FIELDS = new HashMap<>();
+        static {
+            String[] signature = MusInterval.Fields.getSignature(false);
+            for (String fieldKey : signature) {
+                DEFAULT_MODEL_FIELDS.put(fieldKey, fieldKey);
+            }
+        }
+
         public static final Set<String> ADDING_MANDATORY_SINGULAR_KEYS = new HashSet<String>() {{
             add(Fields.DIRECTION);
             add(Fields.TIMING);
@@ -282,23 +290,14 @@ public class MusInterval {
             add(KEY_OCTAVES);
             add(KEY_INTERVALS);
         }};
+
         private static final String[] EMPTY_SELECTION = new String[]{"%"};
+
         private final AnkiDroidHelper mHelper;
-        private String mModelName = DEFAULT_MODEL_NAME;
-        private Map<String, String> mModelFields = new HashMap<String, String>() {{
-            put(Fields.SOUND, Fields.SOUND);
-            put(Fields.SOUND_SMALLER, Fields.SOUND_SMALLER);
-            put(Fields.SOUND_LARGER, Fields.SOUND_LARGER);
-            put(Fields.START_NOTE, Fields.START_NOTE);
-            put(Fields.DIRECTION, Fields.DIRECTION);
-            put(Fields.TIMING, Fields.TIMING);
-            put(Fields.INTERVAL, Fields.INTERVAL);
-            put(Fields.TEMPO, Fields.TEMPO);
-            put(Fields.INSTRUMENT, Fields.INSTRUMENT);
-            put(Fields.FIRST_NOTE_DURATION_COEFFICIENT, Fields.FIRST_NOTE_DURATION_COEFFICIENT);
-            put(Fields.VERSION, Fields.VERSION);
-        }};
+
         private String mDeckName = DEFAULT_DECK_NAME;
+        private String mModelName = DEFAULT_MODEL_NAME;
+        private Map<String, String> mModelFields = DEFAULT_MODEL_FIELDS;
         private String[] mSounds = new String[]{};
         private String[] mSoundsSmaller = new String[]{};
         private String[] mSoundsLarger = new String[]{};
