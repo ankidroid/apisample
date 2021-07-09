@@ -1404,7 +1404,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     .css(css);
         }
 
-        Set<String> storedFields = sharedPreferences.getStringSet(SettingsFragment.KEY_FIELDS_PREFERENCE, null);
+        Set<String> storedFields = sharedPreferences.getStringSet(SettingsFragment.KEY_FIELDS_PREFERENCE, SettingsFragment.getDefaultFields(sharedPreferences));
         final Map<String, String> storedFieldsMapping = MappingPreference.toMapping(storedFields);
         builder.model_fields(storedFieldsMapping);
 
