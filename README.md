@@ -38,15 +38,13 @@ For example, a note with the following parameters:
 
 Would result in the following interval identification card:
 
-#### Card 1
-
 | Front | [▶️](https://lwp-ygavrilenko.github.io/C4_2_ascending_melodic_Maj3_80_bass-guitar-5-strings-MIDI.mp3) Which interval is it?                                                        |
 |-------|--------------------------------------------------------------------------------|
 | Back  | Major 3rd<br>C4, ascending, melodic, Maj3, 80BPM, bass guitar, 5 strings, MIDI |
 
 Under the hood, the app also manages two additional fields: smaller and larger sound files. These fields serve as links to related notes - ones with the same parameters but having respectively smaller and larger intervals by one semitone. Smaller & larger sound file fields are filled automatically and used in interval comparison cards.
 
-So if we would to add another note, identical to the [previous one](#note-1), but having `interval` field, say, smaller by one semitone (for Maj3 it would be min3):
+In other words, if we would to add another note, identical to the [previous](#note-1) one, but having `interval` field, say, smaller by one semitone (for Maj3 that would be min3):
 
 #### Note 2
 
@@ -61,7 +59,7 @@ So if we would to add another note, identical to the [previous one](#note-1), bu
 | tempo          | 80                           |
 | instrument     | bass guitar, 5 strings, MIDI |
 
-, first note's `sound_larger` field now would be filled with second note's `sound` and, conversely, second note's `sound_smaller` would fill with first note's `sound.
+, the [first](#note-1) note's `sound_larger` field now would be filled with the [second](#note-2) note's `sound` and, conversely, the [second](#note-2) note's `sound_smaller` would fill with the [first](#note-1) note's `sound`.
 
 As a result, we get two interval comparison cards:
 
