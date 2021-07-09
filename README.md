@@ -13,6 +13,7 @@ MusicIntervals2Anki is an Android app used to create and consolidate flashcards 
     * [Configuration](#configuration)
 * [Contributing](#contributing)
     * [Environment setup](#environment-setup)
+* [Examples](#examples)
 
 ## Installation
 
@@ -85,6 +86,8 @@ and
 | Front | [▶️](https://lwp-ygavrilenko.github.io/C4_2_ascending_melodic_min3_80_bass-guitar-5-strings-MIDI.mp3) [▶️](https://lwp-ygavrilenko.github.io/C4_2_ascending_melodic_Maj3_80_bass-guitar-5-strings-MIDI.mp3) Which interval is larger?                                            |
 |-------|--------------------------------------------------------------------------|
 | Back  | C4, ascending, melodic: min3 - Maj3; 80BPM, bass guitar, 5 strings, MIDI |
+
+For more cases showcasing the correct ways of filling out fields for particular music intervals see [examples](#examples).
 
 ### Batch adding
 
@@ -161,3 +164,35 @@ git clone https://github.com/lwp-emelnik/musicintervals2anki && cd musicinterval
 ```
 ./gradlew test
 ```
+
+## Examples
+
+Harmonic interval that starts with a sharp (#) note:
+
+| Field          | Value                        |
+|----------------|------------------------------|
+| sound          | [sound:[sample3.mp3](https://lwp-ygavrilenko.github.io/C%235_1_ascending_harmonic_Maj2_120_piano-MIDI.mp3)]         |
+| note1          | C#2                          |
+| note1.duration | 1                            |
+| direction      | ascending                    |
+| timing         | harmonic                     |
+| interval       | Maj2                         |
+| tempo          | 120                          |
+| instrument     | piano, MIDI                  |
+
+Flat (♭) notation isn't supported - use respective sharps.
+
+Descending interval with empty optional field:
+
+| Field          | Value                        |
+|----------------|------------------------------|
+| sound          | [sound:[sample4.mp3](https://lwp-ygavrilenko.github.io/G%232__descending_melodic_P4_60_piano-MIDI.mp3)]         |
+| note1          | G#2                          |
+| note1.duration |                              |
+| direction      | descending                   |
+| timing         | melodic                      |
+| interval       | P3                           |
+| tempo          | 60                           |
+| instrument     | piano, MIDI                  |
+
+In the case of `note1.duration` field, the absence of a value is treated the same way as the default value (1). This applies to filling/validating relations and counting duplicate notes.
