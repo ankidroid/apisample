@@ -36,7 +36,7 @@ For example, a note with the following parameters:
 | tempo          | 80                           |
 | instrument     | bass guitar, 5 strings, MIDI |
 
-Would result in the following interval identification card:
+would result in the following interval identification card:
 
 | Front | [▶️](https://lwp-ygavrilenko.github.io/C4_2_ascending_melodic_Maj3_80_bass-guitar-5-strings-MIDI.mp3) Which interval is it?                                                        |
 |-------|--------------------------------------------------------------------------------|
