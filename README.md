@@ -1,6 +1,19 @@
 # MusicIntervals2Anki
 MusicIntervals2Anki is an Android app used to create and consolidate flashcards for [ear training](https://en.wikipedia.org/wiki/Ear_training). It is based on two types of exercise: [interval](https://en.wikipedia.org/wiki/Interval_(music)) identification and interval comparison.
 
+## Table of contents
+
+* [Installation](#installation)
+* [Features](#features)
+    * [Adding notes](#adding-notes)
+    * [Batch adding](#batch-adding)
+    * [Searching](#searching)
+    * [Integrity check](#integrity-check)
+    * [Audio capturing & extraction](#audio-capturing-and-extraction)
+    * [Configuration](#configuration)
+* [Contributing](#contributing)
+    * [Environment setup](#environment-setup)
+
 ## Installation
 
 Users can install the app by getting an APK from [the release section](https://github.com/lwp-emelnik/musicintervals2anki/releases).
@@ -106,7 +119,7 @@ where `issue` is either "invalid", "duplicate", or "suspicious", optional `field
 
 Integrity check, as well as mark operation, is executed on the result set of the search.
 
-### Audio capturing & extraction
+### Audio capturing and extraction
 
 Alongside the option of playing back the selected sound files, the app provides built-in tools to capture device audio in case you want to use other apps to generate sounds.
 
