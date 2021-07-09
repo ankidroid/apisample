@@ -362,6 +362,16 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         configureSettingsButton();
         configureCheckIntegrityButton();
 
+        Button actionHelp = findViewById(R.id.actionHelp);
+        actionHelp.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Uri uri = Uri.parse(getString(R.string.uri_readme));
+                Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+                startActivity(intent);
+            }
+        });
+
         mAnkiDroid = new AnkiDroidHelper(this);
     }
 
