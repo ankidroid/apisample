@@ -11,7 +11,7 @@ For dev environment setup see [contributing](#contributing).
 
 ### Adding notes
 
-The app allows to add notes to AnkiDroid provided the following attributes:
+The app allows to add notes to [AnkiDroid](https://github.com/ankidroid/Anki-Android) provided the following attributes:
 - sound file
 - start note and octave
 - direction (ascending/descending)
