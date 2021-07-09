@@ -59,7 +59,7 @@ In other words, if we would to add another note, identical to the [previous](#no
 | tempo          | 80                           |
 | instrument     | bass guitar, 5 strings, MIDI |
 
-, the [first](#note-1) note's `sound_larger` field now would be filled with the [second](#note-2) note's `sound` and, conversely, the [second](#note-2) note's `sound_smaller` would fill with the [first](#note-1) note's `sound`.
+, the [first](#note-1) note's `sound_smaller` field now would be filled with the [second](#note-2) note's `sound` and, conversely, the [second](#note-2) note's `sound_larger` would fill with the [first](#note-1) note's `sound`.
 
 As a result, we get two interval comparison cards:
 
