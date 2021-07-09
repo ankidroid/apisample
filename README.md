@@ -21,7 +21,59 @@ The app allows to add notes to AnkiDroid provided the following attributes:
 - instrument
 - [optional] first note duration
 
+For example, a note with the following parameters:
+
+#### Note 1
+
+| Field          | Value                        |
+|----------------|------------------------------|
+| sound          | [sound:[sample1.mp3](https://lwp-ygavrilenko.github.io/C4_2_ascending_melodic_Maj3_80_bass-guitar-5-strings-MIDI.mp3)]           |
+| note1          | C4                           |
+| note1.duration | 2                            |
+| direction      | ascending                    |
+| timing         | melodic                      |
+| interval       | Maj3                         |
+| tempo          | 80                           |
+| instrument     | bass guitar, 5 strings, MIDI |
+
+Would result in the following interval identification card:
+
+#### Card 1
+
+| Front | [▶️](https://lwp-ygavrilenko.github.io/C4_2_ascending_melodic_Maj3_80_bass-guitar-5-strings-MIDI.mp3) Which interval is it?                                                        |
+|-------|--------------------------------------------------------------------------------|
+| Back  | Major 3rd<br>C4, ascending, melodic, Maj3, 80BPM, bass guitar, 5 strings, MIDI |
+
 Under the hood, the app also manages two additional fields: smaller and larger sound files. These fields serve as links to related notes - ones with the same parameters but having respectively smaller and larger intervals by one semitone. Smaller & larger sound file fields are filled automatically and used in interval comparison cards.
+
+So if we would to add another note, identical to the [previous one](#note-1), but having `interval` field, say, smaller by one semitone (for Maj3 it would be min3):
+
+#### Note 2
+
+| Field          | Value                        |
+|----------------|------------------------------|
+| sound          | [sound:[sample2.mp3](https://lwp-ygavrilenko.github.io/C4_2_ascending_melodic_min3_80_bass-guitar-5-strings-MIDI.mp3)]           |
+| note1          | C4                           |
+| note1.duration | 2                            |
+| direction      | ascending                    |
+| timing         | melodic                      |
+| interval       | min3                         |
+| tempo          | 80                           |
+| instrument     | bass guitar, 5 strings, MIDI |
+
+, first note's `sound_larger` field now would be filled with second note's `sound` and, conversely, second note's `sound_smaller` would fill with first note's `sound.
+
+As a result, we get two interval comparison cards:
+
+| Front | [▶️](https://lwp-ygavrilenko.github.io/C4_2_ascending_melodic_Maj3_80_bass-guitar-5-strings-MIDI.mp3) [▶️](https://lwp-ygavrilenko.github.io/C4_2_ascending_melodic_min3_80_bass-guitar-5-strings-MIDI.mp3) Which interval is larger?                                            |
+|-------|--------------------------------------------------------------------------|
+| Back  | C4, ascending, melodic: Maj3 - min3; 80BPM, bass guitar, 5 strings, MIDI |
+
+and
+
+| Front | [▶️](https://lwp-ygavrilenko.github.io/C4_2_ascending_melodic_min3_80_bass-guitar-5-strings-MIDI.mp3) [▶️](https://lwp-ygavrilenko.github.io/C4_2_ascending_melodic_Maj3_80_bass-guitar-5-strings-MIDI.mp3) Which interval is larger?                                            |
+|-------|--------------------------------------------------------------------------|
+| Back  | C4, ascending, melodic: min3 - Maj3; 80BPM, bass guitar, 5 strings, MIDI |
 
 ### Batch adding
 
