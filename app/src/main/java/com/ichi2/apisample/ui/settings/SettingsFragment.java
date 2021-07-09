@@ -1,5 +1,6 @@
 package com.ichi2.apisample.ui.settings;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -50,15 +51,6 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         put(VALUE_FILES_DELETION_ALWAYS_ASK, R.string.files_deletion_entry_always_ask);
     }};
 
-    public static final String DEFAULT_DECK = MusInterval.Builder.DEFAULT_DECK_NAME;
-    public static final String DEFAULT_MODEL = MusInterval.Builder.DEFAULT_MODEL_NAME;
-    private static final Map<String, String> DEFAULT_FIELDS_MAPPING = new HashMap<>();
-    static {
-        String[] signature = MusInterval.Fields.getSignature(false);
-        for (String fieldKey : signature) {
-            DEFAULT_FIELDS_MAPPING.put(fieldKey, fieldKey);
-        }
-    }
     public static final boolean DEFAULT_USE_DEFAULT_MODEL_CHECK = true;
     public static final boolean DEFAULT_VERSION_FIELD_SWITCH = false;
     public static final boolean DEFAULT_TAG_DUPLICATES_SWITCH = true;
@@ -82,10 +74,10 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         deckListPreference.setSummaryProvider(ListPreference.SimpleSummaryProvider.getInstance());
         Map<Long, String> deckList = helper.getDeckList();
         List<String> deckEntriesList = new ArrayList<>(deckList.values());
-        if (!deckEntriesList.contains(DEFAULT_DECK)) {
-            deckEntriesList.add(DEFAULT_DECK);
+        if (!deckEntriesList.contains(MusInterval.Builder.DEFAULT_DECK_NAME)) {
+            deckEntriesList.add(MusInterval.Builder.DEFAULT_DECK_NAME);
         }
-        deckListPreference.setDefaultValue(DEFAULT_DECK);
+        deckListPreference.setDefaultValue(MusInterval.Builder.DEFAULT_DECK_NAME);
         String[] deckEntries = deckEntriesList.toArray(new String[0]);
         deckListPreference.setEntries(deckEntries);
         deckListPreference.setEntryValues(deckEntries);
@@ -97,10 +89,10 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         modelListPreference.setSummaryProvider(ListPreference.SimpleSummaryProvider.getInstance());
         Map<Long, String> modelList = helper.getModelList();
         List<String> modelEntriesList = new ArrayList<>(modelList.values());
-        if (!modelEntriesList.contains(DEFAULT_MODEL)) {
-            modelEntriesList.add(DEFAULT_MODEL);
+        if (!modelEntriesList.contains(MusInterval.Builder.DEFAULT_MODEL_NAME)) {
+            modelEntriesList.add(MusInterval.Builder.DEFAULT_MODEL_NAME);
         }
-        modelListPreference.setDefaultValue(DEFAULT_MODEL);
+        modelListPreference.setDefaultValue(MusInterval.Builder.DEFAULT_MODEL_NAME);
         String[] modelEntries = modelEntriesList.toArray(new String[0]);
         modelListPreference.setEntries(modelEntries);
         modelListPreference.setEntryValues(modelEntries);
@@ -131,11 +123,11 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             @Override
             public boolean onPreferenceChange(Preference preference, Object newValue) {
                 if ((boolean) newValue) {
-                    modelListPreference.setValue(DEFAULT_MODEL);
+                    modelListPreference.setValue(MusInterval.Builder.DEFAULT_MODEL_NAME);
                     modelListPreference.setEnabled(false);
 
                     String currModel = modelListPreference.getValue();
-                    handleModelChange(currModel, DEFAULT_MODEL);
+                    handleModelChange(currModel, MusInterval.Builder.DEFAULT_MODEL_NAME);
 
                     SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
                     SharedPreferences.Editor preferencesEditor = preferences.edit();
@@ -198,7 +190,8 @@ public class SettingsFragment extends PreferenceFragmentCompat {
 
         setPreferenceScreen(preferenceScreen);
 
-        if (ACTION_SHOW_FIELDS_MAPPING_DIALOG.equals(getActivity().getIntent().getAction())) {
+        Activity activity = getActivity();
+        if (activity != null && ACTION_SHOW_FIELDS_MAPPING_DIALOG.equals(activity.getIntent().getAction())) {
             onDisplayPreferenceDialog(fieldsMappingPreference);
         }
     }
@@ -206,7 +199,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
     public static Set<String> getDefaultFields(SharedPreferences preferences) {
         Set<String> storedFields = preferences.getStringSet(KEY_FIELDS_PREFERENCE, new HashSet<String>());
         Map<String, String> storedFieldsMapping = MappingPreference.toMapping(storedFields);
-        Map<String, String> defaultFieldsMapping = new HashMap<>(DEFAULT_FIELDS_MAPPING);
+        Map<String, String> defaultFieldsMapping = new HashMap<>(MusInterval.Builder.DEFAULT_MODEL_FIELDS);
         (new MapUtil<>(defaultFieldsMapping)).putMissingKeys(storedFieldsMapping);
         return MappingPreference.toEntries(defaultFieldsMapping);
     }
@@ -246,7 +239,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         switch (key) {
             case KEY_FIELDS_PREFERENCE:
                 SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
-                String modelName = preferences.getString(KEY_MODEL_PREFERENCE, DEFAULT_MODEL);
+                String modelName = preferences.getString(KEY_MODEL_PREFERENCE, MusInterval.Builder.DEFAULT_MODEL_NAME);
                 Long modelId = helper.findModelIdByName(modelName);
                 if (modelId == null) {
                     return;

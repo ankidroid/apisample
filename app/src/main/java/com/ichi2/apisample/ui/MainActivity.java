@@ -1374,8 +1374,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private MusInterval getMusInterval(boolean isEmpty) throws MusInterval.ValidationException {
         final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         final boolean versionField = sharedPreferences.getBoolean(SettingsFragment.KEY_VERSION_FIELD_SWITCH, SettingsFragment.DEFAULT_VERSION_FIELD_SWITCH);
-        final String storedDeck = sharedPreferences.getString(SettingsFragment.KEY_DECK_PREFERENCE, SettingsFragment.DEFAULT_DECK);
-        final String storedModel = sharedPreferences.getString(SettingsFragment.KEY_MODEL_PREFERENCE, SettingsFragment.DEFAULT_MODEL);
+        final String storedDeck = sharedPreferences.getString(SettingsFragment.KEY_DECK_PREFERENCE, MusInterval.Builder.DEFAULT_DECK_NAME);
+        final String storedModel = sharedPreferences.getString(SettingsFragment.KEY_MODEL_PREFERENCE, MusInterval.Builder.DEFAULT_MODEL_NAME);
 
         MusInterval.Builder builder = new MusInterval.Builder(mAnkiDroid)
                 .deck(storedDeck)
