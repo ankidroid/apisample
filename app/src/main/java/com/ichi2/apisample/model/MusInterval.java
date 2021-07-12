@@ -252,7 +252,6 @@ public class MusInterval {
                     new PatternValidator(Interval.getValidationPattern())
             });
             put(TEMPO, new Validator[]{
-                    VALIDATOR_EMPTY,
                     new PatternValidator("^[0-9]*$"),
                     Tempo.RANGE_VALIDATOR
             });
@@ -279,7 +278,6 @@ public class MusInterval {
         public static final Set<String> ADDING_MANDATORY_SINGULAR_KEYS = new HashSet<String>() {{
             add(Fields.DIRECTION);
             add(Fields.TIMING);
-            add(Fields.TEMPO);
             add(Fields.INSTRUMENT);
         }};
         public static final String KEY_NOTES = "notes";
@@ -858,7 +856,6 @@ public class MusInterval {
         final Map<String, String> singularFieldValues = new HashMap<String, String>() {{
             put(Fields.DIRECTION, direction);
             put(Fields.TIMING, timing);
-            put(Fields.TEMPO, tempo);
             put(Fields.INSTRUMENT, instrument);
         }};
         if (!singularFieldValues.keySet().equals(Builder.ADDING_MANDATORY_SINGULAR_KEYS)) {
