@@ -216,7 +216,7 @@ public class MusInterval {
             put(TEMPO, new IntegerSearchExpressionMaker());
             put(FIRST_NOTE_DURATION_COEFFICIENT, new DoubleSearchExpressionMaker());
         }};
-        private static final Map<String, SearchExpressionMaker> RELATIVES_SEARCH_EXPRESSION_MAKERS = new HashMap<String, SearchExpressionMaker>() {{
+        static final Map<String, SearchExpressionMaker> RELATIVES_SEARCH_EXPRESSION_MAKERS = new HashMap<String, SearchExpressionMaker>() {{
             put(TEMPO, new AnySearchExpressionMaker());
         }};
 

@@ -3,10 +3,16 @@ package com.ichi2.apisample.model;
 import com.ichi2.apisample.helper.AnkiDroidHelper;
 import com.ichi2.apisample.helper.equality.EqualityChecker;
 import com.ichi2.apisample.helper.equality.FieldEqualityChecker;
+import com.ichi2.apisample.helper.search.SearchExpressionMaker;
+import com.ichi2.apisample.validation.FieldValidator;
+import com.ichi2.apisample.validation.FixableNoteValidator;
+import com.ichi2.apisample.validation.NoteValidator;
+import com.ichi2.apisample.validation.Validator;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
@@ -57,7 +63,7 @@ public abstract class RelatedIntervalSoundField {
         return isRelationPossible(intervalIdx) && relatedInterval.equalsIgnoreCase(getRelatedInterval(intervalIdx));
     }
 
-    public int autoFill(Map<String, String> noteData, boolean updateReverse) throws AnkiDroidHelper.InvalidAnkiDatabaseException { // @todo: review usages (reverse)
+    public int autoFill(Map<String, String> noteData, boolean updateReverse) throws AnkiDroidHelper.InvalidAnkiDatabaseException {
         final String intervalField = musInterval.modelFields.getOrDefault(MusInterval.Fields.INTERVAL, MusInterval.Fields.INTERVAL);
         final String interval = noteData.getOrDefault(intervalField, "");
         final int intervalIdx = MusInterval.Fields.Interval.getIndex(interval);
@@ -91,16 +97,56 @@ public abstract class RelatedIntervalSoundField {
                     musInterval.modelId,
                     noteData,
                     musInterval.defaultValues,
-                    musInterval.relativesSearchExpressionMakers, // @fixme: might include invalid values
+                    musInterval.relativesSearchExpressionMakers,
                     musInterval.equalityCheckers
             );
+
+            Iterator<Map<String, String>> iterator = relatedNotesData.iterator();
+            outer:
+            while (iterator.hasNext()) {
+                Map<String, String> relatedData = iterator.next();
+                long relatedId = Long.parseLong(relatedData.get(AnkiDroidHelper.KEY_ID));
+                for (Map.Entry<String, SearchExpressionMaker> relativesMakers :
+                        MusInterval.Fields.RELATIVES_SEARCH_EXPRESSION_MAKERS.entrySet()) {
+                    String fieldKey = relativesMakers.getKey();
+                    String modelField = musInterval.modelFields.getOrDefault(fieldKey, fieldKey);
+                    Validator[] validators = MusInterval.Fields.VALIDATORS.getOrDefault(fieldKey, new Validator[]{});
+                    for (Validator validator : validators) {
+                        boolean isValid;
+                        if (validator instanceof FieldValidator) {
+                            String value = relatedData.getOrDefault(modelField, "");
+                            isValid = ((FieldValidator) validator).isValid(value);
+                        } else if (validator instanceof NoteValidator) {
+                            isValid = ((NoteValidator) validator).isValid(relatedData, musInterval.modelFields);
+                            if (!isValid && validator instanceof FixableNoteValidator) {
+                                isValid = ((FixableNoteValidator) validator).fix(
+                                        musInterval.modelId,
+                                        relatedId,
+                                        relatedData,
+                                        musInterval.modelFields,
+                                        helper
+                                );
+                            }
+                        } else {
+                            throw new IllegalStateException();
+                        }
+                        if (!isValid) {
+                            iterator.remove();
+                            continue outer;
+                        }
+                    }
+                }
+            }
+
             if (relatedNotesData != null && relatedNotesData.size() >= 1) {
-                for (Map<String, String> relatedData : relatedNotesData) {
-                    long id = Long.parseLong(relatedData.get(AnkiDroidHelper.KEY_ID));
-                    if (updateReverse && !relatedData.getOrDefault(relatedSoundField, "").equals(sound)) {
-                        relatedData.put(reverseRelatedSoundField, sound);
-                        helper.updateNote(musInterval.modelId, id, relatedData);
-                        updatedLinks++;
+                if (updateReverse) { // @todo
+                    for (Map<String, String> relatedData : relatedNotesData) {
+                        long id = Long.parseLong(relatedData.get(AnkiDroidHelper.KEY_ID));
+                        if (!relatedData.getOrDefault(relatedSoundField, "").equals(sound)) {
+                            relatedData.put(reverseRelatedSoundField, sound);
+                            helper.updateNote(musInterval.modelId, id, relatedData);
+                            updatedLinks++;
+                        }
                     }
                 }
 
