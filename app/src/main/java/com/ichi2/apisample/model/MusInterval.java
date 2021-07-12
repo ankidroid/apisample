@@ -7,6 +7,7 @@ import com.ichi2.apisample.helper.equality.EqualityChecker;
 import com.ichi2.apisample.helper.equality.FieldEqualityChecker;
 import com.ichi2.apisample.helper.equality.IntegerValueEqualityChecker;
 import com.ichi2.apisample.helper.equality.NoteEqualityChecker;
+import com.ichi2.apisample.helper.search.AnySearchExpressionMaker;
 import com.ichi2.apisample.helper.search.DoubleSearchExpressionMaker;
 import com.ichi2.apisample.helper.search.IntegerSearchExpressionMaker;
 import com.ichi2.apisample.helper.search.SearchExpressionMaker;
@@ -214,12 +215,20 @@ public class MusInterval {
             put(TEMPO, new IntegerSearchExpressionMaker());
             put(FIRST_NOTE_DURATION_COEFFICIENT, new DoubleSearchExpressionMaker());
         }};
+        public static final Map<String, SearchExpressionMaker> RELATIVES_SEARCH_EXPRESSION_MAKERS = new HashMap<String, SearchExpressionMaker>() {{
+            put(TEMPO, new AnySearchExpressionMaker());
+        }};
 
         public static final Map<String, EqualityChecker> EQUALITY_CHECKERS = new HashMap<String, EqualityChecker>() {{
             put(DIRECTION, Direction.EQUALITY_CHECKER);
             put(TEMPO, new FieldEqualityChecker(TEMPO, new IntegerValueEqualityChecker()));
             put(FIRST_NOTE_DURATION_COEFFICIENT, new FieldEqualityChecker(FIRST_NOTE_DURATION_COEFFICIENT, new DoubleValueEqualityChecker()));
         }};
+
+        public static final RelativesPriorityComparator[] RELATIVES_PRIORITY_COMPARATORS = new RelativesPriorityComparator[]{
+                new LowestDifferenceComparator(TEMPO),
+                new LargestValueComparator(AnkiDroidHelper.KEY_ID)
+        };
 
         private static final FieldValidator VALIDATOR_EMPTY = new EmptyValidator();
         private static final FieldValidator VALIDATOR_SOUND = new PatternValidator("^$|^\\[sound:.*\\]$");
@@ -540,6 +549,7 @@ public class MusInterval {
     public final Map<String, String> modelFields;
     final Map<String, String> modelFieldsDefaultValues;
     final Map<String, SearchExpressionMaker> modelFieldsSearchExpressionMakers;
+    final Map<String, SearchExpressionMaker> modelFieldsRelativesSearchExpressionMakers; // @fixme: rename these
     final Map<String, EqualityChecker> modelFieldsEqualityCheckers;
     public final Long modelId;
     public final String deckName;
@@ -621,6 +631,7 @@ public class MusInterval {
         modelFields = builder.mModelFields;
         modelFieldsDefaultValues = new HashMap<>();
         modelFieldsSearchExpressionMakers = new HashMap<>();
+        modelFieldsRelativesSearchExpressionMakers = new HashMap<>();
         modelFieldsEqualityCheckers = new HashMap<>();
         for (String fieldKey : Fields.getSignature(true)) {
             String modelField = modelFields.getOrDefault(fieldKey, fieldKey);
@@ -628,7 +639,12 @@ public class MusInterval {
                 modelFieldsDefaultValues.put(modelField, Fields.DEFAULT_VALUES.get(fieldKey));
             }
             if (Fields.SEARCH_EXPRESSION_MAKERS.containsKey(fieldKey)) {
-                modelFieldsSearchExpressionMakers.put(modelField, Fields.SEARCH_EXPRESSION_MAKERS.get(fieldKey));
+                SearchExpressionMaker expressionMaker = Fields.SEARCH_EXPRESSION_MAKERS.get(fieldKey);
+                modelFieldsSearchExpressionMakers.put(modelField, expressionMaker);
+                modelFieldsRelativesSearchExpressionMakers.put(modelField, expressionMaker);
+            }
+            if (Fields.RELATIVES_SEARCH_EXPRESSION_MAKERS.containsKey(fieldKey)) {
+                modelFieldsRelativesSearchExpressionMakers.replace(modelField, Fields.RELATIVES_SEARCH_EXPRESSION_MAKERS.get(fieldKey));
             }
             if (Fields.EQUALITY_CHECKERS.containsKey(fieldKey)) {
                 EqualityChecker equalityChecker = Fields.EQUALITY_CHECKERS.get(fieldKey);
