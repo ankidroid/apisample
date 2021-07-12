@@ -24,6 +24,8 @@ import android.provider.DocumentsContract;
 import android.provider.OpenableColumns;
 import android.provider.Settings;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
@@ -289,8 +291,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Toolbar mainToolbar = findViewById(R.id.main_toolbar);
-        setSupportActionBar(mainToolbar);
+        Toolbar toolbarMain = findViewById(R.id.toolbarMain);
+        setSupportActionBar(toolbarMain);
 
         switchBatch = findViewById(R.id.switchBatch);
         textFilename = findViewById(R.id.textFilename);
@@ -359,20 +361,44 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         configureSelectFileButton();
         configureMarkExistingButton();
         configureAddToAnkiButton();
-        configureSettingsButton();
         configureCheckIntegrityButton();
 
-        Button actionHelp = findViewById(R.id.actionHelp);
-        actionHelp.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+        mAnkiDroid = new AnkiDroidHelper(this);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.actionSettings:
+                if (mAnkiDroid.shouldRequestPermission()) {
+                    mAnkiDroid.requestPermission(MainActivity.this, AD_PERM_REQUEST);
+                    return true;
+                }
+                try {
+                    getMusInterval();
+                } catch (Throwable e) {
+                    // handle IllegalStateException on unconfirmed permissions in AnkiDroid
+                    if (!(e instanceof MusInterval.ValidationException)) {
+                        handleError(e);
+                        return true;
+                    }
+                }
+                startActivity(new Intent(MainActivity.this, SettingsActivity.class));
+                return true;
+            case R.id.actionHelp:
                 Uri uri = Uri.parse(getString(R.string.uri_readme));
                 Intent intent = new Intent(Intent.ACTION_VIEW, uri);
                 startActivity(intent);
-            }
-        });
-
-        mAnkiDroid = new AnkiDroidHelper(this);
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     @Override
@@ -1166,29 +1192,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             @Override
             public void run() {
                 handleError(t);
-            }
-        });
-    }
-
-    private void configureSettingsButton() {
-        final Button actionOpenSettings = findViewById(R.id.actionOpenSettings);
-        actionOpenSettings.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (mAnkiDroid.shouldRequestPermission()) {
-                    mAnkiDroid.requestPermission(MainActivity.this, AD_PERM_REQUEST);
-                    return;
-                }
-                try {
-                    getMusInterval();
-                } catch (Throwable e) {
-                    // handle IllegalStateException on unconfirmed permissions in AnkiDroid
-                    if (!(e instanceof MusInterval.ValidationException)) {
-                        handleError(e);
-                        return;
-                    }
-                }
-                startActivity(new Intent(MainActivity.this, SettingsActivity.class));
             }
         });
     }

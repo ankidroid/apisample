@@ -6,36 +6,11 @@
     tools:context="com.luckywarepro.apisample.MainActivity">
 
     <androidx.appcompat.widget.Toolbar
-        android:id="@+id/main_toolbar"
+        android:id="@+id/toolbarMain"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="?attr/colorPrimary"
-        android:theme="@style/ThemeOverlay.AppCompat.ActionBar">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="right"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/actionHelp"
-                android:layout_width="25sp"
-                android:layout_height="25sp"
-                android:layout_gravity="center|right"
-                android:layout_marginEnd="8dp"
-                android:background="@drawable/ic_help" />
-
-            <Button
-                android:id="@+id/actionOpenSettings"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="end"
-                android:text="@string/open_settings" />
-
-        </LinearLayout>
-
-    </androidx.appcompat.widget.Toolbar>
+        android:theme="@style/ThemeOverlay.AppCompat.ActionBar"/>
 
     <ScrollView
         android:layout_width="fill_parent"
