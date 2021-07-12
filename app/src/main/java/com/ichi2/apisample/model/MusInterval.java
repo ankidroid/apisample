@@ -67,7 +67,7 @@ public class MusInterval {
                 }
             }
 
-            public static String getValidationPattern() {
+            private static String getValidationPattern() {
                 return "[A-Ga-g]#?[1-6]";
             }
         }
@@ -186,7 +186,7 @@ public class MusInterval {
         public static class FirstNoteDurationCoefficient {
             public static final double DEFAULT_VALUE = 1.0;
 
-            public static final FieldValidator FORMAT_VALIDATOR = new PositiveDecimalValidator();
+            private static final FieldValidator FORMAT_VALIDATOR = new PositiveDecimalValidator();
         }
 
         public static String[] getSignature(boolean versionField) {
@@ -212,25 +212,25 @@ public class MusInterval {
             put(FIRST_NOTE_DURATION_COEFFICIENT, String.valueOf(FirstNoteDurationCoefficient.DEFAULT_VALUE));
         }};
 
-        public static final Map<String, SearchExpressionMaker> SEARCH_EXPRESSION_MAKERS = new HashMap<String, SearchExpressionMaker>() {{
+        private static final Map<String, SearchExpressionMaker> SEARCH_EXPRESSION_MAKERS = new HashMap<String, SearchExpressionMaker>() {{
             put(TEMPO, new IntegerSearchExpressionMaker());
             put(FIRST_NOTE_DURATION_COEFFICIENT, new DoubleSearchExpressionMaker());
         }};
-        public static final Map<String, SearchExpressionMaker> RELATIVES_SEARCH_EXPRESSION_MAKERS = new HashMap<String, SearchExpressionMaker>() {{
+        private static final Map<String, SearchExpressionMaker> RELATIVES_SEARCH_EXPRESSION_MAKERS = new HashMap<String, SearchExpressionMaker>() {{
             put(TEMPO, new AnySearchExpressionMaker());
         }};
 
-        public static final Map<String, EqualityChecker> EQUALITY_CHECKERS = new HashMap<String, EqualityChecker>() {{
+        private static final Map<String, EqualityChecker> EQUALITY_CHECKERS = new HashMap<String, EqualityChecker>() {{
             put(DIRECTION, Direction.EQUALITY_CHECKER);
             put(TEMPO, new FieldEqualityChecker(TEMPO, new IntegerValueEqualityChecker()));
             put(FIRST_NOTE_DURATION_COEFFICIENT, new FieldEqualityChecker(FIRST_NOTE_DURATION_COEFFICIENT, new DoubleValueEqualityChecker()));
         }};
 
-        public static final Map<String, EqualityChecker> RELATIVES_EQUALITY_CHECKERS = new HashMap<String, EqualityChecker>() {{
+        private static final Map<String, EqualityChecker> RELATIVES_EQUALITY_CHECKERS = new HashMap<String, EqualityChecker>() {{
             put(TEMPO, new FieldEqualityChecker(TEMPO, new AnyEqualityChecker()));
         }};
 
-        public static final RelativesPriorityComparator[] RELATIVES_PRIORITY_COMPARATORS = new RelativesPriorityComparator[]{
+        private static final RelativesPriorityComparator[] RELATIVES_PRIORITY_COMPARATORS = new RelativesPriorityComparator[]{
                 new LowestDifferenceComparator(TEMPO),
                 new LargestValueComparator(AnkiDroidHelper.KEY_ID)
         };
