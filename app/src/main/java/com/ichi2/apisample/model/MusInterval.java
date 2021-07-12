@@ -547,10 +547,10 @@ public class MusInterval {
 
     public final String modelName;
     public final Map<String, String> modelFields;
-    final Map<String, String> modelFieldsDefaultValues;
-    final Map<String, SearchExpressionMaker> modelFieldsSearchExpressionMakers;
-    final Map<String, SearchExpressionMaker> modelFieldsRelativesSearchExpressionMakers; // @fixme: rename these
-    final Map<String, EqualityChecker> modelFieldsEqualityCheckers;
+    final Map<String, String> defaultValues;
+    final Map<String, SearchExpressionMaker> searchExpressionMakers;
+    final Map<String, SearchExpressionMaker> relativesSearchExpressionMakers;
+    final Map<String, EqualityChecker> equalityCheckers;
     public final Long modelId;
     public final String deckName;
     private Long deckId;
@@ -629,22 +629,22 @@ public class MusInterval {
 
         modelName = builder.mModelName;
         modelFields = builder.mModelFields;
-        modelFieldsDefaultValues = new HashMap<>();
-        modelFieldsSearchExpressionMakers = new HashMap<>();
-        modelFieldsRelativesSearchExpressionMakers = new HashMap<>();
-        modelFieldsEqualityCheckers = new HashMap<>();
+        defaultValues = new HashMap<>();
+        searchExpressionMakers = new HashMap<>();
+        relativesSearchExpressionMakers = new HashMap<>();
+        equalityCheckers = new HashMap<>();
         for (String fieldKey : Fields.getSignature(true)) {
             String modelField = modelFields.getOrDefault(fieldKey, fieldKey);
             if (Fields.DEFAULT_VALUES.containsKey(fieldKey)) {
-                modelFieldsDefaultValues.put(modelField, Fields.DEFAULT_VALUES.get(fieldKey));
+                defaultValues.put(modelField, Fields.DEFAULT_VALUES.get(fieldKey));
             }
             if (Fields.SEARCH_EXPRESSION_MAKERS.containsKey(fieldKey)) {
                 SearchExpressionMaker expressionMaker = Fields.SEARCH_EXPRESSION_MAKERS.get(fieldKey);
-                modelFieldsSearchExpressionMakers.put(modelField, expressionMaker);
-                modelFieldsRelativesSearchExpressionMakers.put(modelField, expressionMaker);
+                searchExpressionMakers.put(modelField, expressionMaker);
+                relativesSearchExpressionMakers.put(modelField, expressionMaker);
             }
             if (Fields.RELATIVES_SEARCH_EXPRESSION_MAKERS.containsKey(fieldKey)) {
-                modelFieldsRelativesSearchExpressionMakers.replace(modelField, Fields.RELATIVES_SEARCH_EXPRESSION_MAKERS.get(fieldKey));
+                relativesSearchExpressionMakers.replace(modelField, Fields.RELATIVES_SEARCH_EXPRESSION_MAKERS.get(fieldKey));
             }
             if (Fields.EQUALITY_CHECKERS.containsKey(fieldKey)) {
                 EqualityChecker equalityChecker = Fields.EQUALITY_CHECKERS.get(fieldKey);
@@ -660,7 +660,7 @@ public class MusInterval {
                     }
                     noteEqualityChecker.setModelFields(modelFields);
                 }
-                modelFieldsEqualityCheckers.put(modelField, equalityChecker);
+                equalityCheckers.put(modelField, equalityChecker);
             }
         }
         modelId = helper.findModelIdByName(builder.mModelName);
@@ -775,9 +775,9 @@ public class MusInterval {
             return helper.findNotes(
                     modelId,
                     dataSet,
-                    modelFieldsDefaultValues,
-                    modelFieldsSearchExpressionMakers,
-                    modelFieldsEqualityCheckers
+                    defaultValues,
+                    searchExpressionMakers,
+                    equalityCheckers
             );
         } else {
             return new LinkedList<>();

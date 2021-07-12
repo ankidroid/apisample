@@ -39,7 +39,7 @@ public abstract class RelatedIntervalSoundField {
             if (relatedNoteData != null) {
                 String relatedInterval = relatedNoteData.getOrDefault(intervalField, "");
                 Map<String, String> relatedNoteKeyData = getIntervalIdentityData(relatedNoteData);
-                if (!isCorrectRelation(keyData, relatedNoteKeyData, musInterval.modelFieldsDefaultValues, musInterval.modelFieldsEqualityCheckers, intervalField)
+                if (!isCorrectRelation(keyData, relatedNoteKeyData, musInterval.defaultValues, musInterval.equalityCheckers, intervalField)
                         || !isCorrectRelation(intervalIdx, relatedInterval)) {
                     Set<Map<String, String>> pointed = suspiciousRelatedNotesData.getOrDefault(relatedSoundField, new HashSet<Map<String, String>>());
                     pointed.add(relatedNoteData);
@@ -90,9 +90,9 @@ public abstract class RelatedIntervalSoundField {
             LinkedList<Map<String, String>> relatedNotesData = helper.findNotes(
                     musInterval.modelId,
                     noteData,
-                    musInterval.modelFieldsDefaultValues,
-                    musInterval.modelFieldsRelativesSearchExpressionMakers, // @fixme: might include invalid values
-                    musInterval.modelFieldsEqualityCheckers
+                    musInterval.defaultValues,
+                    musInterval.relativesSearchExpressionMakers, // @fixme: might include invalid values
+                    musInterval.equalityCheckers
             );
             if (relatedNotesData != null && relatedNotesData.size() >= 1) {
                 for (Map<String, String> relatedData : relatedNotesData) {

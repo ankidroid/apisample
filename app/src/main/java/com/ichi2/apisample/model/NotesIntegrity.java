@@ -68,9 +68,9 @@ public class NotesIntegrity {
         LinkedList<Map<String, String>> allNotesData = helper.findNotes(
                 musInterval.modelId,
                 new HashMap<String, String>(),
-                musInterval.modelFieldsDefaultValues,
-                musInterval.modelFieldsSearchExpressionMakers,
-                musInterval.modelFieldsEqualityCheckers
+                musInterval.defaultValues,
+                musInterval.searchExpressionMakers,
+                musInterval.equalityCheckers
         );
         Map<String, Map<String, String>> soundDict = new HashMap<>();
         for (Map<String, String> noteData : allNotesData) {
@@ -226,7 +226,7 @@ public class NotesIntegrity {
                 }
             }
             for (String key : keyData.keySet()) {
-                SearchExpressionMaker expressionMaker = musInterval.modelFieldsSearchExpressionMakers.getOrDefault(
+                SearchExpressionMaker expressionMaker = musInterval.searchExpressionMakers.getOrDefault(
                         key,
                         AnkiDroidHelper.DEFAULT_SEARCH_EXPRESSION_MAKER
                 );
