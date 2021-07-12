@@ -39,7 +39,7 @@ public abstract class RelatedIntervalSoundField {
             if (relatedNoteData != null) {
                 String relatedInterval = relatedNoteData.getOrDefault(intervalField, "");
                 Map<String, String> relatedNoteKeyData = getIntervalIdentityData(relatedNoteData);
-                if (!isCorrectRelation(keyData, relatedNoteKeyData, musInterval.defaultValues, musInterval.equalityCheckers, intervalField)
+                if (!isEqualData(keyData, relatedNoteKeyData, musInterval.defaultValues, musInterval.relativesEqualityCheckers, intervalField)
                         || !isCorrectRelation(intervalIdx, relatedInterval)) {
                     Set<Map<String, String>> pointed = suspiciousRelatedNotesData.getOrDefault(relatedSoundField, new HashSet<Map<String, String>>());
                     pointed.add(relatedNoteData);
@@ -106,14 +106,12 @@ public abstract class RelatedIntervalSoundField {
 
                 int priorityCount = 0;
                 while (relatedNotesData.size() > 1) {
-                    RelativesPriorityComparator comparator = MusInterval.Fields.RELATIVES_PRIORITY_COMPARATORS[priorityCount];
+                    RelativesPriorityComparator comparator = musInterval.relativesPriorityComparators[priorityCount];
 
                     String fieldKey = comparator.getFieldKey();
                     String modelField = musInterval.modelFields.getOrDefault(fieldKey, fieldKey);
                     String targetValue = noteData.getOrDefault(modelField, "");
-
                     comparator.setTargetValue(targetValue);
-                    comparator.setModelFields(musInterval.modelFields);
 
                     relatedNotesData.sort(comparator);
                     Collections.reverse(relatedNotesData);
@@ -165,10 +163,10 @@ public abstract class RelatedIntervalSoundField {
         }};
     }
 
-    private static boolean isCorrectRelation(Map<String, String> data1, Map<String, String> data2,
-                                             Map<String, String> modelFieldsDefaultValues,
-                                             Map<String, EqualityChecker> modelFieldsEqualityCheckers, String intervalField) {
-        Set<String> keySet1 = new HashSet<>(data1.keySet()); // @todo: update
+    private static boolean isEqualData(Map<String, String> data1, Map<String, String> data2,
+                                       Map<String, String> modelFieldsDefaultValues,
+                                       Map<String, EqualityChecker> modelFieldsEqualityCheckers, String intervalField) {
+        Set<String> keySet1 = new HashSet<>(data1.keySet());
         keySet1.remove(intervalField);
         Set<String> keySet2 = new HashSet<>(data2.keySet());
         keySet2.remove(intervalField);

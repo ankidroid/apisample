@@ -2,6 +2,7 @@ package com.ichi2.apisample.model;
 
 import com.ichi2.apisample.R;
 import com.ichi2.apisample.helper.AnkiDroidHelper;
+import com.ichi2.apisample.helper.equality.AnyEqualityChecker;
 import com.ichi2.apisample.helper.equality.DoubleValueEqualityChecker;
 import com.ichi2.apisample.helper.equality.EqualityChecker;
 import com.ichi2.apisample.helper.equality.FieldEqualityChecker;
@@ -223,6 +224,10 @@ public class MusInterval {
             put(DIRECTION, Direction.EQUALITY_CHECKER);
             put(TEMPO, new FieldEqualityChecker(TEMPO, new IntegerValueEqualityChecker()));
             put(FIRST_NOTE_DURATION_COEFFICIENT, new FieldEqualityChecker(FIRST_NOTE_DURATION_COEFFICIENT, new DoubleValueEqualityChecker()));
+        }};
+
+        public static final Map<String, EqualityChecker> RELATIVES_EQUALITY_CHECKERS = new HashMap<String, EqualityChecker>() {{
+            put(TEMPO, new FieldEqualityChecker(TEMPO, new AnyEqualityChecker()));
         }};
 
         public static final RelativesPriorityComparator[] RELATIVES_PRIORITY_COMPARATORS = new RelativesPriorityComparator[]{
@@ -551,6 +556,8 @@ public class MusInterval {
     final Map<String, SearchExpressionMaker> searchExpressionMakers;
     final Map<String, SearchExpressionMaker> relativesSearchExpressionMakers;
     final Map<String, EqualityChecker> equalityCheckers;
+    final Map<String, EqualityChecker> relativesEqualityCheckers;
+    final RelativesPriorityComparator[] relativesPriorityComparators;
     public final Long modelId;
     public final String deckName;
     private Long deckId;
@@ -633,6 +640,7 @@ public class MusInterval {
         searchExpressionMakers = new HashMap<>();
         relativesSearchExpressionMakers = new HashMap<>();
         equalityCheckers = new HashMap<>();
+        relativesEqualityCheckers = new HashMap<>();
         for (String fieldKey : Fields.getSignature(true)) {
             String modelField = modelFields.getOrDefault(fieldKey, fieldKey);
             if (Fields.DEFAULT_VALUES.containsKey(fieldKey)) {
@@ -648,20 +656,19 @@ public class MusInterval {
             }
             if (Fields.EQUALITY_CHECKERS.containsKey(fieldKey)) {
                 EqualityChecker equalityChecker = Fields.EQUALITY_CHECKERS.get(fieldKey);
-                if (equalityChecker instanceof FieldEqualityChecker) {
-                    ((FieldEqualityChecker) equalityChecker).setField(modelField);
-                } else if (equalityChecker instanceof NoteEqualityChecker) {
-                    NoteEqualityChecker noteEqualityChecker = (NoteEqualityChecker) equalityChecker;
-                    String[] fields = noteEqualityChecker.getModelFields();
-                    String[] modelFields = new String[fields.length];
-                    for (int i = 0; i < modelFields.length; i++) {
-                        String field = fields[i];
-                        modelFields[i] = this.modelFields.getOrDefault(field, field);
-                    }
-                    noteEqualityChecker.setModelFields(modelFields);
-                }
+                passModelFields(equalityChecker, modelField);
                 equalityCheckers.put(modelField, equalityChecker);
+                relativesEqualityCheckers.put(modelField, equalityChecker);
             }
+            if (Fields.RELATIVES_EQUALITY_CHECKERS.containsKey(fieldKey)) {
+                EqualityChecker equalityChecker = Fields.RELATIVES_EQUALITY_CHECKERS.get(fieldKey);
+                passModelFields(equalityChecker, modelField);
+                relativesEqualityCheckers.replace(fieldKey, equalityChecker);
+            }
+        }
+        relativesPriorityComparators = Fields.RELATIVES_PRIORITY_COMPARATORS;
+        for (RelativesPriorityComparator comparator : relativesPriorityComparators) {
+            comparator.setModelFields(modelFields);
         }
         modelId = helper.findModelIdByName(builder.mModelName);
         deckName = builder.mDeckName;
@@ -681,6 +688,21 @@ public class MusInterval {
         version = builder.mVersion;
 
         validateFields(builder.mDefaultModel, builder.mFields, builder.mCards, builder.mQfmt, builder.mAfmt, builder.mCss);
+    }
+
+    private void passModelFields(EqualityChecker equalityChecker, String modelField) {
+        if (equalityChecker instanceof FieldEqualityChecker) {
+            ((FieldEqualityChecker) equalityChecker).setField(modelField);
+        } else if (equalityChecker instanceof NoteEqualityChecker) {
+            NoteEqualityChecker noteEqualityChecker = (NoteEqualityChecker) equalityChecker;
+            String[] fields = noteEqualityChecker.getModelFields();
+            String[] modelFields = new String[fields.length];
+            for (int i = 0; i < modelFields.length; i++) {
+                String field = fields[i];
+                modelFields[i] = this.modelFields.getOrDefault(field, field);
+            }
+            noteEqualityChecker.setModelFields(modelFields);
+        }
     }
 
     protected void validateFields(boolean isDefaultModel, String[] fields, String[] cards, String[] qfmt, String[] afmt, String css)
