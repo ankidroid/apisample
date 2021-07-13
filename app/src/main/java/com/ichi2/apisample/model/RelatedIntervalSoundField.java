@@ -4,9 +4,7 @@ import com.ichi2.apisample.helper.AnkiDroidHelper;
 import com.ichi2.apisample.helper.equality.EqualityChecker;
 import com.ichi2.apisample.helper.equality.FieldEqualityChecker;
 import com.ichi2.apisample.helper.search.SearchExpressionMaker;
-import com.ichi2.apisample.validation.FieldValidator;
-import com.ichi2.apisample.validation.FixableNoteValidator;
-import com.ichi2.apisample.validation.NoteValidator;
+import com.ichi2.apisample.validation.ValidationUtil;
 import com.ichi2.apisample.validation.Validator;
 
 import java.util.Collections;
@@ -101,82 +99,76 @@ public abstract class RelatedIntervalSoundField {
                     musInterval.equalityCheckers
             );
 
-            Iterator<Map<String, String>> iterator = relatedNotesData.iterator();
-            outer:
-            while (iterator.hasNext()) {
-                Map<String, String> relatedData = iterator.next();
-                long relatedId = Long.parseLong(relatedData.get(AnkiDroidHelper.KEY_ID));
-                for (Map.Entry<String, SearchExpressionMaker> relativesMakers :
-                        MusInterval.Fields.RELATIVES_SEARCH_EXPRESSION_MAKERS.entrySet()) {
-                    String fieldKey = relativesMakers.getKey();
-                    String modelField = musInterval.modelFields.getOrDefault(fieldKey, fieldKey);
-                    Validator[] validators = MusInterval.Fields.VALIDATORS.getOrDefault(fieldKey, new Validator[]{});
-                    for (Validator validator : validators) {
-                        boolean isValid;
-                        if (validator instanceof FieldValidator) {
-                            String value = relatedData.getOrDefault(modelField, "");
-                            isValid = ((FieldValidator) validator).isValid(value);
-                        } else if (validator instanceof NoteValidator) {
-                            isValid = ((NoteValidator) validator).isValid(relatedData, musInterval.modelFields);
-                            if (!isValid && validator instanceof FixableNoteValidator) {
-                                isValid = ((FixableNoteValidator) validator).fix(
-                                        musInterval.modelId,
-                                        relatedId,
-                                        relatedData,
-                                        musInterval.modelFields,
-                                        helper
-                                );
+            if (relatedNotesData != null) {
+                Iterator<Map<String, String>> iterator = relatedNotesData.iterator();
+                outer:
+                while (iterator.hasNext()) {
+                    Map<String, String> relatedData = iterator.next();
+                    long relatedId = Long.parseLong(relatedData.get(AnkiDroidHelper.KEY_ID));
+                    for (Map.Entry<String, SearchExpressionMaker> relativesMakers :
+                            MusInterval.Fields.RELATIVES_SEARCH_EXPRESSION_MAKERS.entrySet()) {
+                        String fieldKey = relativesMakers.getKey();
+                        Validator[] validators = MusInterval.Fields.VALIDATORS.getOrDefault(fieldKey, new Validator[]{});
+                        for (Validator validator : validators) {
+                            boolean isValid = ValidationUtil.isValid(
+                                    validator,
+                                    musInterval.modelId,
+                                    relatedId,
+                                    relatedData,
+                                    fieldKey,
+                                    musInterval.modelFields,
+                                    helper,
+                                    true
+                            );
+                            if (!isValid) {
+                                iterator.remove();
+                                continue outer;
                             }
-                        } else {
-                            throw new IllegalStateException();
-                        }
-                        if (!isValid) {
-                            iterator.remove();
-                            continue outer;
-                        }
-                    }
-                }
-            }
-
-            if (relatedNotesData != null && relatedNotesData.size() >= 1) {
-                if (updateReverse) { // @todo
-                    for (Map<String, String> relatedData : relatedNotesData) {
-                        long id = Long.parseLong(relatedData.get(AnkiDroidHelper.KEY_ID));
-                        if (!relatedData.getOrDefault(relatedSoundField, "").equals(sound)) {
-                            relatedData.put(reverseRelatedSoundField, sound);
-                            helper.updateNote(musInterval.modelId, id, relatedData);
-                            updatedLinks++;
                         }
                     }
                 }
 
-                int priorityCount = 0;
-                while (relatedNotesData.size() > 1) {
-                    RelativesPriorityComparator comparator = musInterval.relativesPriorityComparators[priorityCount];
+                if (relatedNotesData.size() >= 1) {
 
-                    String fieldKey = comparator.getFieldKey();
-                    String modelField = musInterval.modelFields.getOrDefault(fieldKey, fieldKey);
-                    String targetValue = noteData.getOrDefault(modelField, "");
-                    comparator.setTargetValue(targetValue);
-
-                    relatedNotesData.sort(comparator);
-                    Collections.reverse(relatedNotesData);
-
-                    Map<String, String> maxData = relatedNotesData.getFirst();
-                    for (int i = relatedNotesData.size() - 1; i > 0; i--) {
-                        Map<String, String> relatedData = relatedNotesData.get(i);
-                        if (comparator.compare(maxData, relatedData) != 0) {
-                            relatedNotesData.remove(i);
+                    if (updateReverse) { // @todo
+                        for (Map<String, String> relatedData : relatedNotesData) {
+                            long id = Long.parseLong(relatedData.get(AnkiDroidHelper.KEY_ID));
+                            if (!relatedData.getOrDefault(relatedSoundField, "").equals(sound)) {
+                                relatedData.put(reverseRelatedSoundField, sound);
+                                helper.updateNote(musInterval.modelId, id, relatedData);
+                                updatedLinks++;
+                            }
                         }
                     }
 
-                    priorityCount++;
-                }
+                    int priorityCount = 0;
+                    while (relatedNotesData.size() > 1) {
+                        RelativesPriorityComparator comparator = musInterval.relativesPriorityComparators[priorityCount];
 
-                String newRelatedSound = relatedNotesData.getFirst().get(soundField);
-                if (!relatedSound.equals(newRelatedSound)) {
-                    relatedSound = newRelatedSound;
-                    updatedLinks++;
+                        String fieldKey = comparator.getFieldKey();
+                        String modelField = musInterval.modelFields.getOrDefault(fieldKey, fieldKey);
+                        String targetValue = noteData.getOrDefault(modelField, "");
+                        comparator.setTargetValue(targetValue);
+
+                        relatedNotesData.sort(comparator);
+                        Collections.reverse(relatedNotesData);
+
+                        Map<String, String> maxData = relatedNotesData.getFirst();
+                        for (int i = relatedNotesData.size() - 1; i > 0; i--) {
+                            Map<String, String> relatedData = relatedNotesData.get(i);
+                            if (comparator.compare(maxData, relatedData) != 0) {
+                                relatedNotesData.remove(i);
+                            }
+                        }
+
+                        priorityCount++;
+                    }
+
+                    String newRelatedSound = relatedNotesData.getFirst().get(soundField);
+                    if (!relatedSound.equals(newRelatedSound)) {
+                        relatedSound = newRelatedSound;
+                        updatedLinks++;
+                    }
                 }
             }
         }
