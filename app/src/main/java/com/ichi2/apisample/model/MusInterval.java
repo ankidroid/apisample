@@ -664,7 +664,7 @@ public class MusInterval {
             if (Fields.RELATIVES_EQUALITY_CHECKERS.containsKey(fieldKey)) {
                 EqualityChecker equalityChecker = Fields.RELATIVES_EQUALITY_CHECKERS.get(fieldKey);
                 passModelFields(equalityChecker, modelField);
-                relativesEqualityCheckers.replace(fieldKey, equalityChecker);
+                relativesEqualityCheckers.replace(modelField, equalityChecker);
             }
         }
         relativesPriorityComparators = Fields.RELATIVES_PRIORITY_COMPARATORS;
