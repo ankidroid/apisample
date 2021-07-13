@@ -1,5 +1,7 @@
 package com.ichi2.apisample.model;
 
+import android.service.autofill.Validators;
+
 import com.ichi2.apisample.helper.AnkiDroidHelper;
 import com.ichi2.apisample.helper.equality.EqualityChecker;
 import com.ichi2.apisample.helper.equality.FieldEqualityChecker;
@@ -147,7 +149,27 @@ public abstract class RelatedIntervalSoundField {
                                 if (currentRelationSearchResult.size() != 1) {
                                     continue;
                                 }
-                                Map<String, String> currentRelationData = currentRelationSearchResult.getFirst(); // @todo: validate ?
+                                Map<String, String> currentRelationData = currentRelationSearchResult.getFirst();
+                                long currentRelationId = Long.parseLong(currentRelationData.get(AnkiDroidHelper.KEY_ID));
+                                for (Map.Entry<String, Validator[]> fieldValidators : MusInterval.Fields.VALIDATORS.entrySet()) {
+                                    String fieldKey = fieldValidators.getKey();
+                                    Validator[] validators = fieldValidators.getValue();
+                                    for (Validator validator : validators) {
+                                        boolean isValid = ValidationUtil.isValid(
+                                                validator,
+                                                musInterval.modelId,
+                                                currentRelationId,
+                                                currentRelationData,
+                                                fieldKey,
+                                                musInterval.modelFields,
+                                                helper,
+                                                true
+                                        );
+                                        if (!isValid) {
+                                            continue outer;
+                                        }
+                                    }
+                                }
                                 for (int i = 0; i < musInterval.relativesPriorityComparators.length - 1; i++) {
                                     RelativesPriorityComparator comparator = musInterval.relativesPriorityComparators[i];
                                     comparator.setTargetValueFromData(relatedData);
