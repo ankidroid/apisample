@@ -2,11 +2,13 @@ package com.ichi2.apisample.model;
 
 import com.ichi2.apisample.R;
 import com.ichi2.apisample.helper.AnkiDroidHelper;
+import com.ichi2.apisample.helper.equality.AnyEqualityChecker;
 import com.ichi2.apisample.helper.equality.DoubleValueEqualityChecker;
 import com.ichi2.apisample.helper.equality.EqualityChecker;
 import com.ichi2.apisample.helper.equality.FieldEqualityChecker;
 import com.ichi2.apisample.helper.equality.IntegerValueEqualityChecker;
 import com.ichi2.apisample.helper.equality.NoteEqualityChecker;
+import com.ichi2.apisample.helper.search.AnySearchExpressionMaker;
 import com.ichi2.apisample.helper.search.DoubleSearchExpressionMaker;
 import com.ichi2.apisample.helper.search.IntegerSearchExpressionMaker;
 import com.ichi2.apisample.helper.search.SearchExpressionMaker;
@@ -65,7 +67,7 @@ public class MusInterval {
                 }
             }
 
-            public static String getValidationPattern() {
+            private static String getValidationPattern() {
                 return "[A-Ga-g]#?[1-6]";
             }
         }
@@ -184,7 +186,7 @@ public class MusInterval {
         public static class FirstNoteDurationCoefficient {
             public static final double DEFAULT_VALUE = 1.0;
 
-            public static final FieldValidator FORMAT_VALIDATOR = new PositiveDecimalValidator();
+            private static final FieldValidator FORMAT_VALIDATOR = new PositiveDecimalValidator();
         }
 
         public static String[] getSignature(boolean versionField) {
@@ -210,16 +212,28 @@ public class MusInterval {
             put(FIRST_NOTE_DURATION_COEFFICIENT, String.valueOf(FirstNoteDurationCoefficient.DEFAULT_VALUE));
         }};
 
-        public static final Map<String, SearchExpressionMaker> SEARCH_EXPRESSION_MAKERS = new HashMap<String, SearchExpressionMaker>() {{
+        private static final Map<String, SearchExpressionMaker> SEARCH_EXPRESSION_MAKERS = new HashMap<String, SearchExpressionMaker>() {{
             put(TEMPO, new IntegerSearchExpressionMaker());
             put(FIRST_NOTE_DURATION_COEFFICIENT, new DoubleSearchExpressionMaker());
         }};
+        static final Map<String, SearchExpressionMaker> RELATIVES_SEARCH_EXPRESSION_MAKERS = new HashMap<String, SearchExpressionMaker>() {{
+            put(TEMPO, new AnySearchExpressionMaker());
+        }};
 
-        public static final Map<String, EqualityChecker> EQUALITY_CHECKERS = new HashMap<String, EqualityChecker>() {{
+        private static final Map<String, EqualityChecker> EQUALITY_CHECKERS = new HashMap<String, EqualityChecker>() {{
             put(DIRECTION, Direction.EQUALITY_CHECKER);
             put(TEMPO, new FieldEqualityChecker(TEMPO, new IntegerValueEqualityChecker()));
             put(FIRST_NOTE_DURATION_COEFFICIENT, new FieldEqualityChecker(FIRST_NOTE_DURATION_COEFFICIENT, new DoubleValueEqualityChecker()));
         }};
+
+        private static final Map<String, EqualityChecker> RELATIVES_EQUALITY_CHECKERS = new HashMap<String, EqualityChecker>() {{
+            put(TEMPO, new FieldEqualityChecker(TEMPO, new AnyEqualityChecker()));
+        }};
+
+        private static final RelativesPriorityComparator[] RELATIVES_PRIORITY_COMPARATORS = new RelativesPriorityComparator[]{
+                new LowestDifferenceComparator(TEMPO),
+                new LargestValueComparator(AnkiDroidHelper.KEY_ID)
+        };
 
         private static final FieldValidator VALIDATOR_EMPTY = new EmptyValidator();
         private static final FieldValidator VALIDATOR_SOUND = new PatternValidator("^$|^\\[sound:.*\\]$");
@@ -252,7 +266,6 @@ public class MusInterval {
                     new PatternValidator(Interval.getValidationPattern())
             });
             put(TEMPO, new Validator[]{
-                    VALIDATOR_EMPTY,
                     new PatternValidator("^[0-9]*$"),
                     Tempo.RANGE_VALIDATOR
             });
@@ -268,10 +281,17 @@ public class MusInterval {
     public static class Builder {
         public static final String DEFAULT_DECK_NAME = "Music intervals";
         public static final String DEFAULT_MODEL_NAME = "Music.interval";
+        public static final Map<String, String> DEFAULT_MODEL_FIELDS = new HashMap<>();
+        static {
+            String[] signature = MusInterval.Fields.getSignature(false);
+            for (String fieldKey : signature) {
+                DEFAULT_MODEL_FIELDS.put(fieldKey, fieldKey);
+            }
+        }
+
         public static final Set<String> ADDING_MANDATORY_SINGULAR_KEYS = new HashSet<String>() {{
             add(Fields.DIRECTION);
             add(Fields.TIMING);
-            add(Fields.TEMPO);
             add(Fields.INSTRUMENT);
         }};
         public static final String KEY_NOTES = "notes";
@@ -282,23 +302,14 @@ public class MusInterval {
             add(KEY_OCTAVES);
             add(KEY_INTERVALS);
         }};
+
         private static final String[] EMPTY_SELECTION = new String[]{"%"};
+
         private final AnkiDroidHelper mHelper;
-        private String mModelName = DEFAULT_MODEL_NAME;
-        private Map<String, String> mModelFields = new HashMap<String, String>() {{
-            put(Fields.SOUND, Fields.SOUND);
-            put(Fields.SOUND_SMALLER, Fields.SOUND_SMALLER);
-            put(Fields.SOUND_LARGER, Fields.SOUND_LARGER);
-            put(Fields.START_NOTE, Fields.START_NOTE);
-            put(Fields.DIRECTION, Fields.DIRECTION);
-            put(Fields.TIMING, Fields.TIMING);
-            put(Fields.INTERVAL, Fields.INTERVAL);
-            put(Fields.TEMPO, Fields.TEMPO);
-            put(Fields.INSTRUMENT, Fields.INSTRUMENT);
-            put(Fields.FIRST_NOTE_DURATION_COEFFICIENT, Fields.FIRST_NOTE_DURATION_COEFFICIENT);
-            put(Fields.VERSION, Fields.VERSION);
-        }};
+
         private String mDeckName = DEFAULT_DECK_NAME;
+        private String mModelName = DEFAULT_MODEL_NAME;
+        private Map<String, String> mModelFields = DEFAULT_MODEL_FIELDS;
         private String[] mSounds = new String[]{};
         private String[] mSoundsSmaller = new String[]{};
         private String[] mSoundsLarger = new String[]{};
@@ -541,9 +552,12 @@ public class MusInterval {
 
     public final String modelName;
     public final Map<String, String> modelFields;
-    final Map<String, String> modelFieldsDefaultValues;
-    final Map<String, SearchExpressionMaker> modelFieldsSearchExpressionMakers;
-    final Map<String, EqualityChecker> modelFieldsEqualityCheckers;
+    final Map<String, String> defaultValues;
+    final Map<String, SearchExpressionMaker> searchExpressionMakers;
+    final Map<String, SearchExpressionMaker> relativesSearchExpressionMakers;
+    final Map<String, EqualityChecker> equalityCheckers;
+    final Map<String, EqualityChecker> relativesEqualityCheckers;
+    final RelativesPriorityComparator[] relativesPriorityComparators;
     public final Long modelId;
     public final String deckName;
     private Long deckId;
@@ -615,40 +629,47 @@ public class MusInterval {
     public MusInterval(Builder builder) throws ValidationException {
         helper = builder.mHelper;
 
-        relatedSoundFields = new RelatedIntervalSoundField[]{
-                new SmallerIntervalSoundField(helper, this),
-                new LargerIntervalSoundField(helper, this)
-        };
+        RelatedIntervalSoundField soundSmallerField = new SmallerIntervalSoundField(helper, this);
+        RelatedIntervalSoundField soundLargerField = new LargerIntervalSoundField(helper, this);
+        soundSmallerField.setReverse(soundLargerField);
+        soundLargerField.setReverse(soundSmallerField);
+        relatedSoundFields = new RelatedIntervalSoundField[]{soundSmallerField, soundLargerField};
 
         modelName = builder.mModelName;
         modelFields = builder.mModelFields;
-        modelFieldsDefaultValues = new HashMap<>();
-        modelFieldsSearchExpressionMakers = new HashMap<>();
-        modelFieldsEqualityCheckers = new HashMap<>();
+        defaultValues = new HashMap<>();
+        searchExpressionMakers = new HashMap<>();
+        relativesSearchExpressionMakers = new HashMap<>();
+        equalityCheckers = new HashMap<>();
+        relativesEqualityCheckers = new HashMap<>();
         for (String fieldKey : Fields.getSignature(true)) {
             String modelField = modelFields.getOrDefault(fieldKey, fieldKey);
             if (Fields.DEFAULT_VALUES.containsKey(fieldKey)) {
-                modelFieldsDefaultValues.put(modelField, Fields.DEFAULT_VALUES.get(fieldKey));
+                defaultValues.put(modelField, Fields.DEFAULT_VALUES.get(fieldKey));
             }
             if (Fields.SEARCH_EXPRESSION_MAKERS.containsKey(fieldKey)) {
-                modelFieldsSearchExpressionMakers.put(modelField, Fields.SEARCH_EXPRESSION_MAKERS.get(fieldKey));
+                SearchExpressionMaker expressionMaker = Fields.SEARCH_EXPRESSION_MAKERS.get(fieldKey);
+                searchExpressionMakers.put(modelField, expressionMaker);
+                relativesSearchExpressionMakers.put(modelField, expressionMaker);
+            }
+            if (Fields.RELATIVES_SEARCH_EXPRESSION_MAKERS.containsKey(fieldKey)) {
+                relativesSearchExpressionMakers.replace(modelField, Fields.RELATIVES_SEARCH_EXPRESSION_MAKERS.get(fieldKey));
             }
             if (Fields.EQUALITY_CHECKERS.containsKey(fieldKey)) {
                 EqualityChecker equalityChecker = Fields.EQUALITY_CHECKERS.get(fieldKey);
-                if (equalityChecker instanceof FieldEqualityChecker) {
-                    ((FieldEqualityChecker) equalityChecker).setField(modelField);
-                } else if (equalityChecker instanceof NoteEqualityChecker) {
-                    NoteEqualityChecker noteEqualityChecker = (NoteEqualityChecker) equalityChecker;
-                    String[] fields = noteEqualityChecker.getModelFields();
-                    String[] modelFields = new String[fields.length];
-                    for (int i = 0; i < modelFields.length; i++) {
-                        String field = fields[i];
-                        modelFields[i] = this.modelFields.getOrDefault(field, field);
-                    }
-                    noteEqualityChecker.setModelFields(modelFields);
-                }
-                modelFieldsEqualityCheckers.put(modelField, equalityChecker);
+                passModelFields(equalityChecker, modelField);
+                equalityCheckers.put(modelField, equalityChecker);
+                relativesEqualityCheckers.put(modelField, equalityChecker);
             }
+            if (Fields.RELATIVES_EQUALITY_CHECKERS.containsKey(fieldKey)) {
+                EqualityChecker equalityChecker = Fields.RELATIVES_EQUALITY_CHECKERS.get(fieldKey);
+                passModelFields(equalityChecker, modelField);
+                relativesEqualityCheckers.replace(fieldKey, equalityChecker);
+            }
+        }
+        relativesPriorityComparators = Fields.RELATIVES_PRIORITY_COMPARATORS;
+        for (RelativesPriorityComparator comparator : relativesPriorityComparators) {
+            comparator.setModelFields(modelFields);
         }
         modelId = helper.findModelIdByName(builder.mModelName);
         deckName = builder.mDeckName;
@@ -668,6 +689,21 @@ public class MusInterval {
         version = builder.mVersion;
 
         validateFields(builder.mDefaultModel, builder.mFields, builder.mCards, builder.mQfmt, builder.mAfmt, builder.mCss);
+    }
+
+    private void passModelFields(EqualityChecker equalityChecker, String modelField) {
+        if (equalityChecker instanceof FieldEqualityChecker) {
+            ((FieldEqualityChecker) equalityChecker).setField(modelField);
+        } else if (equalityChecker instanceof NoteEqualityChecker) {
+            NoteEqualityChecker noteEqualityChecker = (NoteEqualityChecker) equalityChecker;
+            String[] fields = noteEqualityChecker.getModelFields();
+            String[] modelFields = new String[fields.length];
+            for (int i = 0; i < modelFields.length; i++) {
+                String field = fields[i];
+                modelFields[i] = this.modelFields.getOrDefault(field, field);
+            }
+            noteEqualityChecker.setModelFields(modelFields);
+        }
     }
 
     protected void validateFields(boolean isDefaultModel, String[] fields, String[] cards, String[] qfmt, String[] afmt, String css)
@@ -762,9 +798,9 @@ public class MusInterval {
             return helper.findNotes(
                     modelId,
                     dataSet,
-                    modelFieldsDefaultValues,
-                    modelFieldsSearchExpressionMakers,
-                    modelFieldsEqualityCheckers
+                    defaultValues,
+                    searchExpressionMakers,
+                    equalityCheckers
             );
         } else {
             return new LinkedList<>();
@@ -859,7 +895,6 @@ public class MusInterval {
         final Map<String, String> singularFieldValues = new HashMap<String, String>() {{
             put(Fields.DIRECTION, direction);
             put(Fields.TIMING, timing);
-            put(Fields.TEMPO, tempo);
             put(Fields.INSTRUMENT, instrument);
         }};
         if (!singularFieldValues.keySet().equals(Builder.ADDING_MANDATORY_SINGULAR_KEYS)) {

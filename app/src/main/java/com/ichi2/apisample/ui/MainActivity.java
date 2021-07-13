@@ -118,7 +118,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private final static Map<String, Integer> FIELD_LABEL_STRING_IDS_SINGULAR = new HashMap<String, Integer>() {{
         put(MusInterval.Fields.DIRECTION, R.string.direction);
         put(MusInterval.Fields.TIMING, R.string.timing);
-        put(MusInterval.Fields.TEMPO, R.string.tempo);
         put(MusInterval.Fields.INSTRUMENT, R.string.instrument);
     }};
     static {
@@ -1387,8 +1386,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private MusInterval getMusInterval(boolean isEmpty) throws MusInterval.ValidationException {
         final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         final boolean versionField = sharedPreferences.getBoolean(SettingsFragment.KEY_VERSION_FIELD_SWITCH, SettingsFragment.DEFAULT_VERSION_FIELD_SWITCH);
-        final String storedDeck = sharedPreferences.getString(SettingsFragment.KEY_DECK_PREFERENCE, SettingsFragment.DEFAULT_DECK);
-        final String storedModel = sharedPreferences.getString(SettingsFragment.KEY_MODEL_PREFERENCE, SettingsFragment.DEFAULT_MODEL);
+        final String storedDeck = sharedPreferences.getString(SettingsFragment.KEY_DECK_PREFERENCE, MusInterval.Builder.DEFAULT_DECK_NAME);
+        final String storedModel = sharedPreferences.getString(SettingsFragment.KEY_MODEL_PREFERENCE, MusInterval.Builder.DEFAULT_MODEL_NAME);
 
         MusInterval.Builder builder = new MusInterval.Builder(mAnkiDroid)
                 .deck(storedDeck)
@@ -1417,7 +1416,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     .css(css);
         }
 
-        Set<String> storedFields = sharedPreferences.getStringSet(SettingsFragment.KEY_FIELDS_PREFERENCE, null);
+        Set<String> storedFields = sharedPreferences.getStringSet(SettingsFragment.KEY_FIELDS_PREFERENCE, SettingsFragment.getDefaultFields(sharedPreferences));
         final Map<String, String> storedFieldsMapping = MappingPreference.toMapping(storedFields);
         builder.model_fields(storedFieldsMapping);
 
