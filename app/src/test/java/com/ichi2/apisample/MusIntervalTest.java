@@ -5137,16 +5137,35 @@ public class MusIntervalTest {
                 .build();
 
         final LinkedList<MusInterval> musIntervalsAdded = new LinkedList<>();
+        final LinkedList<MusInterval> addedMusIntervals = new LinkedList<>();
 
         doAnswer(new Answer<LinkedList<Map<String, String>>>() {
             @Override
             public LinkedList<Map<String, String>> answer(InvocationOnMock invocation) {
                 Map<String, String> inputData = new HashMap<>((Map<String, String>) invocation.getArgument(1));
                 LinkedList<Map<String, String>> result = new LinkedList<>();
+
+                if (inputData.size() == 1) {
+                    for (int i = 0; i < addedMusIntervals.size(); i++) {
+                        MusInterval mi = addedMusIntervals.get(i);
+                        Map<String, String> data;
+                        try {
+                            data = mi.getCollectedDataSet().get(0);
+                        } catch (Throwable e) {
+                            data = new HashMap<>();
+                        }
+                        String key = inputData.keySet().toArray(new String[0])[0];
+                        String value = inputData.get(key);
+                        if (data.getOrDefault(key, "").equals(value)) {
+                            data.put("id", String.valueOf(i));
+                            result.add(data);
+                        }
+                    }
+                    return result;
+                }
+
                 for (int i = 0; i < musIntervalsAdded.size(); i++) {
                     MusInterval mi = musIntervalsAdded.get(i);
-                    String sound = mi.sounds[0];
-                    String tempo = mi.tempo;
                     Map<String, String> data;
                     try {
                         data = mi.getCollectedDataSet().get(0);
@@ -5162,8 +5181,10 @@ public class MusIntervalTest {
                         data.put("id", String.valueOf(i));
                         result.add(data);
                     }
-                    data.put(MusInterval.Fields.SOUND, sound);
-                    data.replace(MusInterval.Fields.TEMPO, tempo);
+                    data.put(MusInterval.Fields.SOUND, mi.sounds[0]);
+                    data.put(MusInterval.Fields.SOUND_SMALLER, mi.soundsSmaller[0]);
+                    data.put(MusInterval.Fields.SOUND_LARGER, mi.soundsLarger[0]);
+                    data.replace(MusInterval.Fields.TEMPO, mi.tempo);
                 }
                 return result;
             }
@@ -5205,7 +5226,6 @@ public class MusIntervalTest {
             }
         }).when(prompter).promptAddDuplicate(any(MusInterval[].class), any(AddingHandler.class));
 
-        final LinkedList<MusInterval> addedMusIntervals = new LinkedList<>();
         doAnswer(new Answer() {
             @Override
             public Object answer(InvocationOnMock invocation) {
