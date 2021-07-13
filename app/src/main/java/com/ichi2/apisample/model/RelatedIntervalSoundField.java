@@ -132,10 +132,10 @@ public abstract class RelatedIntervalSoundField {
                     if (updateReverse) {
                         outer:
                         for (Map<String, String> relatedData : relatedNotesData) {
-                            final String currentRelatedSound = relatedData.getOrDefault(relatedSoundField, "");
-                            if (!currentRelatedSound.equals(sound)) {
+                            final String relatedReverseSound = relatedData.getOrDefault(reverseRelatedSoundField, "");
+                            if (!relatedReverseSound.isEmpty()) {
                                 Map<String, String> searchData = new HashMap<String, String>() {{
-                                    put(soundField, currentRelatedSound);
+                                    put(soundField, relatedReverseSound);
                                 }};
                                 LinkedList<Map<String, String>> currentRelationSearchResult = helper.findNotes(
                                         musInterval.modelId,
@@ -147,7 +147,7 @@ public abstract class RelatedIntervalSoundField {
                                 if (currentRelationSearchResult.size() != 1) {
                                     continue;
                                 }
-                                Map<String, String> currentRelationData = currentRelationSearchResult.getFirst();
+                                Map<String, String> currentRelationData = currentRelationSearchResult.getFirst(); // @todo: validate ?
                                 for (int i = 0; i < musInterval.relativesPriorityComparators.length - 1; i++) {
                                     RelativesPriorityComparator comparator = musInterval.relativesPriorityComparators[i];
                                     comparator.setTargetValueFromData(relatedData);
@@ -155,11 +155,11 @@ public abstract class RelatedIntervalSoundField {
                                         continue outer;
                                     }
                                 }
-                                relatedData.put(reverseRelatedSoundField, sound);
-                                long relatedId = Long.parseLong(relatedData.get(AnkiDroidHelper.KEY_ID));
-                                helper.updateNote(musInterval.modelId, relatedId, relatedData);
-                                updatedLinks++;
                             }
+                            relatedData.put(reverseRelatedSoundField, sound);
+                            long relatedId = Long.parseLong(relatedData.get(AnkiDroidHelper.KEY_ID));
+                            helper.updateNote(musInterval.modelId, relatedId, relatedData);
+                            updatedLinks++;
                         }
                     }
 
