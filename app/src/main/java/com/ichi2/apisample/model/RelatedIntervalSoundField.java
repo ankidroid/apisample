@@ -136,68 +136,11 @@ public abstract class RelatedIntervalSoundField {
 
                 if (relatedNotesData.size() >= 1) {
                     if (updateReverse) {
-                        outer:
-                        for (Map<String, String> relatedData : relatedNotesData) {
-                            final String relatedReverseSound = relatedData.getOrDefault(reverseRelatedSoundField, "");
-                            if (!relatedReverseSound.isEmpty()) {
-                                Map<String, String> searchData = new HashMap<String, String>() {{
-                                    put(soundField, relatedReverseSound);
-                                }};
-                                LinkedList<Map<String, String>> currentReverseSearchResult = helper.findNotes(
-                                        musInterval.modelId,
-                                        searchData,
-                                        musInterval.defaultValues,
-                                        musInterval.searchExpressionMakers,
-                                        musInterval.equalityCheckers
-                                );
-                                if (currentReverseSearchResult.size() != 1) {
-                                    continue;
-                                }
-                                Map<String, String> currentReverseData = currentReverseSearchResult.getFirst();
-                                long currentReverseId = Long.parseLong(currentReverseData.get(AnkiDroidHelper.KEY_ID));
-                                for (Map.Entry<String, Validator[]> fieldValidators : MusInterval.Fields.VALIDATORS.entrySet()) {
-                                    String fieldKey = fieldValidators.getKey();
-                                    Validator[] validators = fieldValidators.getValue();
-                                    for (Validator validator : validators) {
-                                        boolean isValid = ValidationUtil.isValid(
-                                                validator,
-                                                musInterval.modelId,
-                                                currentReverseId,
-                                                currentReverseData,
-                                                fieldKey,
-                                                musInterval.modelFields,
-                                                helper,
-                                                true
-                                        );
-                                        if (!isValid) {
-                                            continue outer;
-                                        }
-                                    }
-                                }
-                                int relatedIntervalIdx = MusInterval.Fields.Interval.getIndex(relatedInterval);
-                                String currentReverseInterval = currentReverseData.getOrDefault(intervalField, "");
-                                if (!reverse.isCorrectRelation(relatedIntervalIdx, currentReverseInterval) ||
-                                        !isEqualData(
-                                                getIntervalIdentityData(relatedData),
-                                                getIntervalIdentityData(currentReverseData),
-                                                musInterval.defaultValues,
-                                                musInterval.relativesEqualityCheckers,
-                                                intervalField)) {
-                                    continue;
-                                }
-                                for (int i = 0; i < musInterval.relativesPriorityComparators.length - 1; i++) {
-                                    RelativesPriorityComparator comparator = musInterval.relativesPriorityComparators[i];
-                                    comparator.setTargetValueFromData(relatedData);
-                                    if (comparator.compare(noteData, currentReverseData) < 0) {
-                                        continue outer;
-                                    }
-                                }
-                            }
-                            relatedData.put(reverseRelatedSoundField, sound);
-                            long relatedId = Long.parseLong(relatedData.get(AnkiDroidHelper.KEY_ID));
-                            helper.updateNote(musInterval.modelId, relatedId, relatedData);
-                            updatedLinks++;
-                        }
+                        updatedLinks += updateReverse(
+                                relatedNotesData, noteData,
+                                sound, relatedInterval,
+                                soundField, reverseRelatedSoundField, intervalField
+                        );
                     }
 
                     int priorityCount = 0;
@@ -234,6 +177,80 @@ public abstract class RelatedIntervalSoundField {
         noteData.put(reverseRelatedSoundField, reverseRelatedSound);
         noteData.put(soundField, sound);
         noteData.put(versionField, version);
+        return updatedLinks;
+    }
+
+    private int updateReverse(LinkedList<Map<String, String>> relatedNotesData, Map<String, String> noteData,
+                              String sound, String relatedInterval,
+                              final String soundField, String reverseRelatedSoundField, String intervalField)
+            throws AnkiDroidHelper.InvalidAnkiDatabaseException {
+
+        int updatedLinks = 0;
+        outer:
+        for (Map<String, String> relatedData : relatedNotesData) {
+            final String relatedReverseSound = relatedData.getOrDefault(reverseRelatedSoundField, "");
+            if (!relatedReverseSound.isEmpty()) {
+                Map<String, String> searchData = new HashMap<String, String>() {{
+                    put(soundField, relatedReverseSound);
+                }};
+                LinkedList<Map<String, String>> currentReverseSearchResult = helper.findNotes(
+                        musInterval.modelId,
+                        searchData,
+                        musInterval.defaultValues,
+                        musInterval.searchExpressionMakers,
+                        musInterval.equalityCheckers
+                );
+                if (currentReverseSearchResult.size() != 1) {
+                    continue;
+                }
+
+                Map<String, String> currentReverseData = currentReverseSearchResult.getFirst();
+                long currentReverseId = Long.parseLong(currentReverseData.get(AnkiDroidHelper.KEY_ID));
+                for (Map.Entry<String, Validator[]> fieldValidators : MusInterval.Fields.VALIDATORS.entrySet()) {
+                    String fieldKey = fieldValidators.getKey();
+                    Validator[] validators = fieldValidators.getValue();
+                    for (Validator validator : validators) {
+                        boolean isValid = ValidationUtil.isValid(
+                                validator,
+                                musInterval.modelId,
+                                currentReverseId,
+                                currentReverseData,
+                                fieldKey,
+                                musInterval.modelFields,
+                                helper,
+                                true
+                        );
+                        if (!isValid) {
+                            continue outer;
+                        }
+                    }
+                }
+
+                int relatedIntervalIdx = MusInterval.Fields.Interval.getIndex(relatedInterval);
+                String currentReverseInterval = currentReverseData.getOrDefault(intervalField, "");
+                if (!reverse.isCorrectRelation(relatedIntervalIdx, currentReverseInterval) ||
+                        !isEqualData(
+                                getIntervalIdentityData(relatedData),
+                                getIntervalIdentityData(currentReverseData),
+                                musInterval.defaultValues,
+                                musInterval.relativesEqualityCheckers,
+                                intervalField)) {
+                    continue;
+                }
+
+                for (int i = 0; i < musInterval.relativesPriorityComparators.length - 1; i++) {
+                    RelativesPriorityComparator comparator = musInterval.relativesPriorityComparators[i];
+                    comparator.setTargetValueFromData(relatedData);
+                    if (comparator.compare(noteData, currentReverseData) < 0) {
+                        continue outer;
+                    }
+                }
+            }
+            relatedData.put(reverseRelatedSoundField, sound);
+            long relatedId = Long.parseLong(relatedData.get(AnkiDroidHelper.KEY_ID));
+            helper.updateNote(musInterval.modelId, relatedId, relatedData);
+            updatedLinks++;
+        }
         return updatedLinks;
     }
 
