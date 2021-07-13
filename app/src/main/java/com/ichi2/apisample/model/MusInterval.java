@@ -629,10 +629,11 @@ public class MusInterval {
     public MusInterval(Builder builder) throws ValidationException {
         helper = builder.mHelper;
 
-        relatedSoundFields = new RelatedIntervalSoundField[]{
-                new SmallerIntervalSoundField(helper, this),
-                new LargerIntervalSoundField(helper, this)
-        };
+        RelatedIntervalSoundField soundSmallerField = new SmallerIntervalSoundField(helper, this);
+        RelatedIntervalSoundField soundLargerField = new LargerIntervalSoundField(helper, this);
+        soundSmallerField.setReverse(soundLargerField);
+        soundLargerField.setReverse(soundSmallerField);
+        relatedSoundFields = new RelatedIntervalSoundField[]{soundSmallerField, soundLargerField};
 
         modelName = builder.mModelName;
         modelFields = builder.mModelFields;
