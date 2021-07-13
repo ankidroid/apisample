@@ -31,8 +31,8 @@ The app allows to add notes to [AnkiDroid](https://github.com/ankidroid/Anki-And
 - direction (ascending/descending)
 - timing (melodic/harmonic)
 - interval
-- tempo (beats per minute)
 - instrument
+- [optional] tempo (beats per minute)
 - [optional] first note duration
 
 For example, a note with the following parameters:
@@ -43,7 +43,7 @@ For example, a note with the following parameters:
 |----------------|------------------------------|
 | sound          | [sound:[sample1.mp3](https://lwp-ygavrilenko.github.io/C4_2_ascending_melodic_Maj3_80_bass-guitar-5-strings-MIDI.mp3)]           |
 | note1          | C4                           |
-| note1.duration | 2                            |
+| note1.duration | 1.5                          |
 | direction      | ascending                    |
 | timing         | melodic                      |
 | interval       | Maj3                         |
@@ -66,7 +66,7 @@ In other words, if we would to add another note, identical to the [previous](#no
 |----------------|------------------------------|
 | sound          | [sound:[sample2.mp3](https://lwp-ygavrilenko.github.io/C4_2_ascending_melodic_min3_80_bass-guitar-5-strings-MIDI.mp3)]           |
 | note1          | C4                           |
-| note1.duration | 2                            |
+| note1.duration | 1.5                          |
 | direction      | ascending                    |
 | timing         | melodic                      |
 | interval       | min3                         |
@@ -172,27 +172,29 @@ Harmonic interval that starts with a sharp (#) note:
 | Field          | Value                        |
 |----------------|------------------------------|
 | sound          | [sound:[sample3.mp3](https://lwp-ygavrilenko.github.io/C%235_1_ascending_harmonic_Maj2_120_piano-MIDI.mp3)]         |
-| note1          | C#2                          |
+| note1          | C#5                          |
 | note1.duration | 1                            |
 | direction      | ascending                    |
 | timing         | harmonic                     |
 | interval       | Maj2                         |
-| tempo          | 120                          |
+| tempo          | 90                           |
 | instrument     | piano, MIDI                  |
 
 Flat (♭) notation isn't supported - use respective sharps.
 
-Descending interval with empty optional field:
+Descending interval with empty optional fields:
 
 | Field          | Value                        |
 |----------------|------------------------------|
-| sound          | [sound:[sample4.mp3](https://lwp-ygavrilenko.github.io/G%232__descending_melodic_P4_60_piano-MIDI.mp3)]         |
-| note1          | G#2                          |
+| sound          | [sound:[sample4.mp3](https://lwp-ygavrilenko.github.io/D3__descending_melodic_P4_150_piano-MIDI.mp3)]         |
+| note1          | D3                           |
 | note1.duration |                              |
 | direction      | descending                   |
 | timing         | melodic                      |
-| interval       | P3                           |
-| tempo          | 60                           |
+| interval       | P4                           |
+| tempo          |                              |
 | instrument     | piano, MIDI                  |
 
-In the case of `note1.duration` field, the absence of a value is treated the same way as the default value (1). This applies to filling/validating relations and counting duplicate notes.
+In case of `note1.duration` field, the absence of a value is treated the same way as the default value (1). This applies to filling/validating relations and counting duplicate notes.
+
+`tempo` field is treated a little bit differently. Specifically, for the purpose of link creation, exact match on this field is not required. However, in case multiple notes are suitable, the note with the nearest value will be chosen. 
