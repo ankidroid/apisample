@@ -129,13 +129,35 @@ public abstract class RelatedIntervalSoundField {
                 }
 
                 if (relatedNotesData.size() >= 1) {
-
-                    if (updateReverse) { // @todo
+                    if (updateReverse) {
+                        outer:
                         for (Map<String, String> relatedData : relatedNotesData) {
-                            long id = Long.parseLong(relatedData.get(AnkiDroidHelper.KEY_ID));
-                            if (!relatedData.getOrDefault(relatedSoundField, "").equals(sound)) {
+                            final String currentRelatedSound = relatedData.getOrDefault(relatedSoundField, "");
+                            if (!currentRelatedSound.equals(sound)) {
+                                Map<String, String> searchData = new HashMap<String, String>() {{
+                                    put(soundField, currentRelatedSound);
+                                }};
+                                LinkedList<Map<String, String>> currentRelationSearchResult = helper.findNotes(
+                                        musInterval.modelId,
+                                        searchData,
+                                        musInterval.defaultValues,
+                                        musInterval.searchExpressionMakers,
+                                        musInterval.equalityCheckers
+                                );
+                                if (currentRelationSearchResult.size() != 1) {
+                                    continue;
+                                }
+                                Map<String, String> currentRelationData = currentRelationSearchResult.getFirst();
+                                for (int i = 0; i < musInterval.relativesPriorityComparators.length - 1; i++) {
+                                    RelativesPriorityComparator comparator = musInterval.relativesPriorityComparators[i];
+                                    comparator.setTargetValueFromData(relatedData);
+                                    if (comparator.compare(noteData, currentRelationData) < 0) {
+                                        continue outer;
+                                    }
+                                }
                                 relatedData.put(reverseRelatedSoundField, sound);
-                                helper.updateNote(musInterval.modelId, id, relatedData);
+                                long relatedId = Long.parseLong(relatedData.get(AnkiDroidHelper.KEY_ID));
+                                helper.updateNote(musInterval.modelId, relatedId, relatedData);
                                 updatedLinks++;
                             }
                         }
@@ -144,11 +166,7 @@ public abstract class RelatedIntervalSoundField {
                     int priorityCount = 0;
                     while (relatedNotesData.size() > 1) {
                         RelativesPriorityComparator comparator = musInterval.relativesPriorityComparators[priorityCount];
-
-                        String fieldKey = comparator.getFieldKey();
-                        String modelField = musInterval.modelFields.getOrDefault(fieldKey, fieldKey);
-                        String targetValue = noteData.getOrDefault(modelField, "");
-                        comparator.setTargetValue(targetValue);
+                        comparator.setTargetValueFromData(noteData);
 
                         relatedNotesData.sort(comparator);
                         Collections.reverse(relatedNotesData);

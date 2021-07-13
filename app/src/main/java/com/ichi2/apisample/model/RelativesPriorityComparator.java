@@ -12,15 +12,12 @@ public abstract class RelativesPriorityComparator implements Comparator<Map<Stri
         this.fieldKey = fieldKey;
     }
 
-    public String getFieldKey() {
-        return fieldKey;
-    }
-
     public void setModelFields(Map<String, String> modelFields) {
         this.modelFields = modelFields;
     }
 
-    public void setTargetValue(String targetValue) {
-        this.targetValue = targetValue;
+    public void setTargetValueFromData(Map<String, String> targetData) {
+        String modelField = modelFields.getOrDefault(fieldKey, fieldKey);
+        targetValue = targetData.getOrDefault(modelField, "");
     }
 }
