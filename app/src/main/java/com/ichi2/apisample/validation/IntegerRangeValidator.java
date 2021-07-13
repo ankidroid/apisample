@@ -13,14 +13,16 @@ public class IntegerRangeValidator implements FieldValidator {
 
     @Override
     public boolean isValid(String value) {
-        int intVal = Integer.parseInt(value);
-        if (intVal < minValue) {
-            errorTag = "below" + minValue;
-            return false;
-        }
-        if (intVal > maxValue) {
-            errorTag = "above" + maxValue;
-            return false;
+        if (!value.isEmpty()) {
+            int intVal = Integer.parseInt(value);
+            if (intVal < minValue) {
+                errorTag = "below" + minValue;
+                return false;
+            }
+            if (intVal > maxValue) {
+                errorTag = "above" + maxValue;
+                return false;
+            }
         }
         return true;
     }

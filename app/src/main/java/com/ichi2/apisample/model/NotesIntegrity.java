@@ -3,9 +3,7 @@ package com.ichi2.apisample.model;
 import com.ichi2.apisample.R;
 import com.ichi2.apisample.helper.AnkiDroidHelper;
 import com.ichi2.apisample.helper.search.SearchExpressionMaker;
-import com.ichi2.apisample.validation.FieldValidator;
-import com.ichi2.apisample.validation.FixableNoteValidator;
-import com.ichi2.apisample.validation.NoteValidator;
+import com.ichi2.apisample.validation.ValidationUtil;
 import com.ichi2.apisample.validation.Validator;
 
 import java.util.ArrayList;
@@ -68,9 +66,9 @@ public class NotesIntegrity {
         LinkedList<Map<String, String>> allNotesData = helper.findNotes(
                 musInterval.modelId,
                 new HashMap<String, String>(),
-                musInterval.modelFieldsDefaultValues,
-                musInterval.modelFieldsSearchExpressionMakers,
-                musInterval.modelFieldsEqualityCheckers
+                musInterval.defaultValues,
+                musInterval.searchExpressionMakers,
+                musInterval.equalityCheckers
         );
         Map<String, Map<String, String>> soundDict = new HashMap<>();
         for (Map<String, String> noteData : allNotesData) {
@@ -159,7 +157,6 @@ public class NotesIntegrity {
             boolean noteValid = true;
             for (Map.Entry<String, Validator[]> validators : MusInterval.Fields.VALIDATORS.entrySet()) {
                 String fieldKey = validators.getKey();
-                String field = musInterval.modelFields.getOrDefault(fieldKey, fieldKey);
                 for (Validator validator : validators.getValue()) {
                     final String errorTag = (
                             corruptedTag
@@ -171,18 +168,16 @@ public class NotesIntegrity {
                     final String errorTagCheckStr = String.format(" %s ", errorTag);
                     boolean hasErrorTag = noteTags.contains(errorTagCheckStr);
 
-                    boolean isValid;
-                    if (validator instanceof FieldValidator) {
-                        String value = noteData.getOrDefault(field, "");
-                        isValid = ((FieldValidator) validator).isValid(value);
-                    } else if (validator instanceof NoteValidator) {
-                        isValid = ((NoteValidator) validator).isValid(noteData, musInterval.modelFields);
-                        if (!isValid && validator instanceof FixableNoteValidator) {
-                            isValid = ((FixableNoteValidator) validator).fix(musInterval.modelId, noteId, noteData, musInterval.modelFields, helper);
-                        }
-                    } else {
-                        throw new IllegalStateException();
-                    }
+                    boolean isValid = ValidationUtil.isValid(
+                            validator,
+                            musInterval.modelId,
+                            noteId,
+                            noteData,
+                            fieldKey,
+                            musInterval.modelFields,
+                            helper,
+                            true
+                    );
 
                     if (!isValid) {
                         int currentCount = corruptedFieldCounts.getOrDefault(fieldKey, 0);
@@ -226,7 +221,7 @@ public class NotesIntegrity {
                 }
             }
             for (String key : keyData.keySet()) {
-                SearchExpressionMaker expressionMaker = musInterval.modelFieldsSearchExpressionMakers.getOrDefault(
+                SearchExpressionMaker expressionMaker = musInterval.searchExpressionMakers.getOrDefault(
                         key,
                         AnkiDroidHelper.DEFAULT_SEARCH_EXPRESSION_MAKER
                 );

@@ -116,7 +116,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private final static Map<String, Integer> FIELD_LABEL_STRING_IDS_SINGULAR = new HashMap<String, Integer>() {{
         put(MusInterval.Fields.DIRECTION, R.string.direction);
         put(MusInterval.Fields.TIMING, R.string.timing);
-        put(MusInterval.Fields.TEMPO, R.string.tempo);
         put(MusInterval.Fields.INSTRUMENT, R.string.instrument);
     }};
     static {
