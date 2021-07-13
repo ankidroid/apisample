@@ -17,14 +17,16 @@ public class LowestDifferenceComparator extends RelativesPriorityComparator {
         if (v1Empty && v2Empty) {
             return 0;
         }
-        if (targetValue.trim().isEmpty()) {
+        String target = targetValue.trim();
+        if (target.isEmpty()) {
             return v1Empty ? 1 :
                     v2Empty ? -1 :
                             Integer.compare(Integer.parseInt(v2), Integer.parseInt(v1));
         } else {
+            int targetInt = Integer.parseInt(target);
             return v1Empty ? -1 :
                     v2Empty ? 1 :
-                            Integer.compare(Integer.parseInt(v1), Integer.parseInt(v2));
+                            Integer.compare(Math.abs(targetInt - Integer.parseInt(v2)), Math.abs(targetInt - Integer.parseInt(v1)));
         }
     }
 }
