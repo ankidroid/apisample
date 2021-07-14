@@ -18,6 +18,6 @@ public class LargestValueComparator extends RelativesPriorityComparator {
             return v1Empty && v2Empty ? 0 :
                     v1Empty ? -1 : 1;
         }
-        return Integer.compare(Integer.parseInt(v1), Integer.parseInt(v2));
+        return Long.compare(Long.parseLong(v1), Long.parseLong(v2));
     }
 }
