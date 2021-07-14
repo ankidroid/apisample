@@ -1,6 +1,7 @@
 package com.ichi2.apisample.model;
 
 import com.ichi2.apisample.helper.AnkiDroidHelper;
+import com.ichi2.apisample.helper.MapUtil;
 import com.ichi2.apisample.helper.equality.EqualityChecker;
 import com.ichi2.apisample.helper.equality.FieldEqualityChecker;
 import com.ichi2.apisample.helper.search.SearchExpressionMaker;
@@ -112,8 +113,9 @@ public abstract class RelatedIntervalSoundField {
                     Map<String, String> relatedData = iterator.next();
                     long relatedId = Long.parseLong(relatedData.get(AnkiDroidHelper.KEY_ID));
                     for (Map.Entry<String, SearchExpressionMaker> relativesMakers :
-                            MusInterval.Fields.RELATIVES_SEARCH_EXPRESSION_MAKERS.entrySet()) {
-                        String fieldKey = relativesMakers.getKey();
+                            musInterval.relativesSearchExpressionMakers.entrySet()) {
+                        String modelField = relativesMakers.getKey();
+                        String fieldKey = MapUtil.getKeyByValue(musInterval.modelFields, modelField);
                         Validator[] validators = MusInterval.Fields.VALIDATORS.getOrDefault(fieldKey, new Validator[]{});
                         for (Validator validator : validators) {
                             boolean isValid = ValidationUtil.isValid(
