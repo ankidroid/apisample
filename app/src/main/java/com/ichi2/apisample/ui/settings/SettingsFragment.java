@@ -200,7 +200,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         Set<String> storedFields = preferences.getStringSet(KEY_FIELDS_PREFERENCE, new HashSet<String>());
         Map<String, String> storedFieldsMapping = MappingPreference.toMapping(storedFields);
         Map<String, String> defaultFieldsMapping = new HashMap<>(MusInterval.Builder.DEFAULT_MODEL_FIELDS);
-        (new MapUtil<>(defaultFieldsMapping)).putMissingKeys(storedFieldsMapping);
+        MapUtil.putMissingKeys(storedFieldsMapping, defaultFieldsMapping);
         return MappingPreference.toEntries(defaultFieldsMapping);
     }
 
