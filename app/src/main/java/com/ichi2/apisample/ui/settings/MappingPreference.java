@@ -40,7 +40,7 @@ public class MappingPreference extends DialogPreference {
 
     public void persistMapping(Map<String, String> mapping) {
         Map<String, String> persistedMapping = getPersistedMapping();
-        (new MapUtil<>(mapping)).putMissingKeys(persistedMapping);
+        MapUtil.putMissingKeys(persistedMapping, mapping);
         Set<String> entries = toEntries(mapping);
         persistStringSet(entries);
         notifyChanged();
