@@ -216,7 +216,7 @@ public class MusInterval {
             put(TEMPO, new IntegerSearchExpressionMaker());
             put(FIRST_NOTE_DURATION_COEFFICIENT, new DoubleSearchExpressionMaker());
         }};
-        static final Map<String, SearchExpressionMaker> RELATIVES_SEARCH_EXPRESSION_MAKERS = new HashMap<String, SearchExpressionMaker>() {{
+        private static final Map<String, SearchExpressionMaker> RELATIVES_SEARCH_EXPRESSION_MAKERS = new HashMap<String, SearchExpressionMaker>() {{
             put(TEMPO, new AnySearchExpressionMaker());
         }};
 
@@ -225,7 +225,6 @@ public class MusInterval {
             put(TEMPO, new FieldEqualityChecker(TEMPO, new IntegerValueEqualityChecker()));
             put(FIRST_NOTE_DURATION_COEFFICIENT, new FieldEqualityChecker(FIRST_NOTE_DURATION_COEFFICIENT, new DoubleValueEqualityChecker()));
         }};
-
         private static final Map<String, EqualityChecker> RELATIVES_EQUALITY_CHECKERS = new HashMap<String, EqualityChecker>() {{
             put(TEMPO, new FieldEqualityChecker(TEMPO, new AnyEqualityChecker()));
         }};
