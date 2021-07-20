@@ -8,6 +8,6 @@ public class AnySearchExpressionMaker implements SearchExpressionMaker {
 
     @Override
     public boolean isDefinitive() {
-        return true;
+        return false;
     }
 }

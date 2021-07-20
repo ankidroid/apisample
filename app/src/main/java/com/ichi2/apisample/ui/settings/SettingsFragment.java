@@ -52,7 +52,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
     }};
 
     public static final boolean DEFAULT_USE_DEFAULT_MODEL_CHECK = true;
-    public static final boolean DEFAULT_VERSION_FIELD_SWITCH = false;
+    public static final boolean DEFAULT_VERSION_FIELD_SWITCH = true;
     public static final boolean DEFAULT_TAG_DUPLICATES_SWITCH = true;
     public static final String DEFAULT_ANKI_DIR = Environment.getExternalStorageDirectory().getPath() + "/AnkiDroid";
     public static final String DEFAULT_FILES_DELETION = VALUE_FILES_DELETION_ALWAYS_ASK;
@@ -114,6 +114,12 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         fieldsMappingPreference.setDialogLayoutResource(R.layout.dialog_mapping);
         preferenceScreen.addPreference(fieldsMappingPreference);
 
+        final SwitchPreference versionFieldSwitchPreference = new SwitchPreference(context);
+        versionFieldSwitchPreference.setKey(KEY_VERSION_FIELD_SWITCH);
+        versionFieldSwitchPreference.setTitle(R.string.version_field_switch_preference_title);
+        versionFieldSwitchPreference.setSummary(R.string.version_field_switch_preference_summary);
+        versionFieldSwitchPreference.setDefaultValue(DEFAULT_VERSION_FIELD_SWITCH);
+
         final CheckBoxPreference useDefaultModelCheckPreference = new CheckBoxPreference(context);
         useDefaultModelCheckPreference.setKey(KEY_USE_DEFAULT_MODEL_CHECK);
         useDefaultModelCheckPreference.setTitle(R.string.use_default_model_check_preference_title);
@@ -123,6 +129,9 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             @Override
             public boolean onPreferenceChange(Preference preference, Object newValue) {
                 if ((boolean) newValue) {
+                    versionFieldSwitchPreference.setChecked(true);
+                    versionFieldSwitchPreference.setEnabled(false);
+
                     modelListPreference.setValue(MusInterval.Builder.DEFAULT_MODEL_NAME);
                     modelListPreference.setEnabled(false);
 
@@ -135,20 +144,16 @@ public class SettingsFragment extends PreferenceFragmentCompat {
                     preferencesEditor.putStringSet(KEY_FIELDS_PREFERENCE, defaultFields);
                     preferencesEditor.apply();
                 } else {
+                    versionFieldSwitchPreference.setEnabled(true);
                     modelListPreference.setEnabled(true);
                 }
                 return true;
             }
         });
         preferenceScreen.addPreference(useDefaultModelCheckPreference);
-        modelListPreference.setEnabled(!useDefaultModelCheckPreference.isChecked());
-
-        SwitchPreference versionFieldSwitchPreference = new SwitchPreference(context);
-        versionFieldSwitchPreference.setKey(KEY_VERSION_FIELD_SWITCH);
-        versionFieldSwitchPreference.setTitle(R.string.version_field_switch_preference_title);
-        versionFieldSwitchPreference.setSummary(R.string.version_field_switch_preference_summary);
-        versionFieldSwitchPreference.setDefaultValue(DEFAULT_VERSION_FIELD_SWITCH);
         preferenceScreen.addPreference(versionFieldSwitchPreference);
+        versionFieldSwitchPreference.setEnabled(!useDefaultModelCheckPreference.isChecked());
+        modelListPreference.setEnabled(!useDefaultModelCheckPreference.isChecked());
 
         ListPreference filesDeletionPreference = new ListPreference(context);
         filesDeletionPreference.setKey(KEY_FILES_DELETION_PREFERENCE);
@@ -249,7 +254,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
                 String[] modelFields = helper.getFieldList(modelId);
                 boolean useDefaultModel = preferences.getBoolean(KEY_USE_DEFAULT_MODEL_CHECK, DEFAULT_USE_DEFAULT_MODEL_CHECK);
                 Set<String> disabledFieldKeys = !useDefaultModel ? new HashSet<String>() :
-                        new HashSet<>(Arrays.asList(MusInterval.Fields.getSignature(false)));
+                        new HashSet<>(Arrays.asList(MusInterval.Fields.getSignature(true)));
                 MappingDialogFragment fragment = MappingDialogFragment.newInstance(key, signature, modelFields, disabledFieldKeys);
                 fragment.setTargetFragment(this, 0);
                 fragment.show(getParentFragmentManager(), TAG_FIELDS_MAPPING_DIALOG);

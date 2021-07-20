@@ -12,8 +12,6 @@ import com.ichi2.apisample.helper.search.AnySearchExpressionMaker;
 import com.ichi2.apisample.helper.search.DoubleSearchExpressionMaker;
 import com.ichi2.apisample.helper.search.IntegerSearchExpressionMaker;
 import com.ichi2.apisample.helper.search.SearchExpressionMaker;
-import com.ichi2.apisample.validation.FixableNoteValidator;
-import com.ichi2.apisample.validation.NoteValidator;
 import com.ichi2.apisample.validation.PositiveDecimalValidator;
 import com.ichi2.apisample.validation.EmptyValidator;
 import com.ichi2.apisample.validation.IntegerRangeValidator;
@@ -38,8 +36,10 @@ public class MusInterval {
      */
     public static class Fields {
         public static final String SOUND = "sound";
-        public static final String SOUND_SMALLER = "sound_smaller";
-        public static final String SOUND_LARGER = "sound_larger";
+        public static final String SOUND_SMALLER = "sound.smaller";
+        public static final String SOUND_SMALLER_ALT = "sound.smaller.alt";
+        public static final String SOUND_LARGER = "sound.larger";
+        public static final String SOUND_LARGER_ALT = "sound.larger.alt";
         public static final String START_NOTE = "note1";
         public static final String DIRECTION = "ascending_descending";
         public static final String TIMING = "melodic_harmonic";
@@ -47,7 +47,7 @@ public class MusInterval {
         public static final String TEMPO = "tempo";
         public static final String INSTRUMENT = "instrument";
         public static final String FIRST_NOTE_DURATION_COEFFICIENT = "note1.duration";
-        public static final String VERSION = "mi2a_version";
+        public static final String VERSION = "mi2a.version";
 
         public static class StartNote {
             private static final String[] NOTES = new String[]{
@@ -60,10 +60,93 @@ public class MusInterval {
 
             public static final String[] VALUES = new String[NOTES.length * OCTAVES.length];
             static {
-                for (int i = 0; i < NOTES.length; i++) {
-                    for (int j = 0; j < OCTAVES.length; j++) {
-                        VALUES[i * OCTAVES.length + j] = NOTES[i] + OCTAVES[j];
+                for (int i = 0; i < OCTAVES.length; i++) {
+                    for (int j = 0; j < NOTES.length; j++) {
+                        VALUES[i * NOTES.length + j] = NOTES[j] + OCTAVES[i];
                     }
+                }
+            }
+
+            public static int getIndex(String value) {
+                for (int i = 0; i < VALUES.length; i++) {
+                    if (VALUES[i].equalsIgnoreCase(value)) {
+                        return i;
+                    }
+                }
+                return -1;
+            }
+
+            public static String getEndNote(String startNote, String direction, String interval) {
+                ArrayList<String> notes = new ArrayList<>(Arrays.asList(VALUES));
+                int startIdx = notes.indexOf(startNote);
+                int distance = Interval.getIndex(interval);
+                if (startIdx == -1 || distance == -1) {
+                    throw new IllegalArgumentException();
+                }
+
+                int endIdx;
+                if (direction.equalsIgnoreCase(Direction.ASC)) {
+                    endIdx = startIdx + distance;
+                } else if (direction.equalsIgnoreCase(Direction.DESC)) {
+                    endIdx = startIdx - distance;
+                } else {
+                    return startNote;
+                }
+
+                return endIdx >= 0 && endIdx < VALUES.length ? VALUES[endIdx] : null;
+            }
+
+            private static final NoteEqualityChecker EQUALITY_CHECKER =
+                    new NoteEqualityChecker(new String[]{START_NOTE, DIRECTION, TIMING, INTERVAL}) {
+                        private static final int IDX_START_NOTE = 0;
+                        private static final int IDX_DIRECTION = 1;
+                        private static final int IDX_TIMING = 2;
+                        private static final int IDX_INTERVAL = 3;
+
+                        @Override
+                        public boolean areEqual(Map<String, String> data1, Map<String, String> data2) {
+                            String startNoteField = modelFields[IDX_START_NOTE];
+                            String directionField = modelFields[IDX_DIRECTION];
+                            String timingField = modelFields[IDX_TIMING];
+                            String intervalField = modelFields[IDX_INTERVAL];
+                            String startNote1 = data1.getOrDefault(startNoteField, "");
+                            String startNote2 = data2.getOrDefault(startNoteField, "");
+                            String direction1 = data1.getOrDefault(directionField, "");
+                            String direction2 = data2.getOrDefault(directionField, "");
+                            String timing1 = data1.getOrDefault(timingField, "");
+                            String timing2 = data2.getOrDefault(timingField, "");
+                            String interval1 = data1.getOrDefault(intervalField, "");
+                            String interval2 = data2.getOrDefault(intervalField, "");
+                            boolean regularEquality = match(startNote1, startNote2);
+                            boolean harmonicEquality = (interval1.equals("%") || interval1.equalsIgnoreCase(interval2)) &&
+                                    (direction1.equalsIgnoreCase(Direction.ASC) && direction2.equalsIgnoreCase(Direction.DESC) ||
+                                            direction1.equalsIgnoreCase(Direction.DESC) && direction2.equalsIgnoreCase(Direction.ASC)) &&
+                                    timing1.equalsIgnoreCase(Timing.HARMONIC) && timing2.equalsIgnoreCase(Timing.HARMONIC) &&
+                                    match(startNote1, StartNote.getEndNote(startNote2, direction2, interval2));
+                            return regularEquality || harmonicEquality;
+                        }
+                    };
+
+            private static boolean match(String pattern, String value) {
+                boolean noteProvided = !pattern.startsWith("%");
+                boolean octaveProvided = !pattern.endsWith("%");
+                if (noteProvided || octaveProvided) {
+                    if (noteProvided && octaveProvided) {
+                        return pattern.equalsIgnoreCase(value);
+                    }
+                    String providedPart = pattern.replaceAll("%", "");
+                    boolean hasSharp = value.contains("#");
+                    int octaveIdx = hasSharp ? 2 : 1;
+                    if (value.length() < octaveIdx) {
+                        return false;
+                    }
+                    if (noteProvided) {
+                        return providedPart.equalsIgnoreCase(value.substring(0, octaveIdx));
+                    } else {
+                        return providedPart.equals(value.substring(octaveIdx));
+                    }
+                } else {
+                    return true;
                 }
             }
 
@@ -77,62 +160,62 @@ public class MusInterval {
             public static final String DESC = "descending";
 
             private static final NoteEqualityChecker EQUALITY_CHECKER =
-                    new NoteEqualityChecker(new String[]{DIRECTION, INTERVAL}) {
-                        private static final int IDX_DIRECTION = 0;
-                        private static final int IDX_INTERVAL = 1;
+                    new NoteEqualityChecker(new String[]{START_NOTE, DIRECTION, TIMING, INTERVAL}) {
+                        private static final int IDX_START_NOTE = 0;
+                        private static final int IDX_DIRECTION = 1;
+                        private static final int IDX_TIMING = 2;
+                        private static final int IDX_INTERVAL = 3;
 
                         @Override
                         public boolean areEqual(Map<String, String> data1, Map<String, String> data2) {
+                            String startNoteField = modelFields[IDX_START_NOTE];
                             String directionField = modelFields[IDX_DIRECTION];
+                            String timingField = modelFields[IDX_TIMING];
                             String intervalField = modelFields[IDX_INTERVAL];
-                            String direction1 = data1.getOrDefault(directionField, "");
-                            String direction2 = data2.getOrDefault(directionField, "");
                             String interval1 = data1.getOrDefault(intervalField, "");
                             String interval2 = data2.getOrDefault(intervalField, "");
-                            return direction1.equalsIgnoreCase(direction2) ||
+                            boolean unisonEquality = interval1.equals("%") ||
                                     interval1.equalsIgnoreCase(Interval.VALUE_UNISON) ||
                                     interval2.equalsIgnoreCase(Interval.VALUE_UNISON);
+                            return match(data1, data2, startNoteField, directionField, timingField, intervalField) || unisonEquality;
                         }
                     };
 
-            private static final FixableNoteValidator NON_EMPTY_UNISON_VALIDATOR = new FixableNoteValidator() {
-                @Override
-                public boolean fix(long modelId, long noteId, Map<String, String> data, Map<String, String> modelFields, AnkiDroidHelper helper) {
-                    String directionField = modelFields.getOrDefault(DIRECTION, DIRECTION);
-                    data.replace(directionField, "");
-                    return helper.updateNote(modelId, noteId, data);
-                }
+            private static final NoteEqualityChecker RELATIVES_EQUALITY_CHECKER =
+                    new NoteEqualityChecker(new String[]{START_NOTE, DIRECTION, TIMING, INTERVAL}) {
+                        private static final int IDX_START_NOTE = 0;
+                        private static final int IDX_DIRECTION = 1;
+                        private static final int IDX_TIMING = 2;
+                        private static final int IDX_INTERVAL = 3;
 
-                @Override
-                public boolean isValid(Map<String, String> data, Map<String, String> modelFields) {
-                    String directionField = modelFields.getOrDefault(Fields.DIRECTION, Fields.DIRECTION);
-                    String direction = data.getOrDefault(directionField, "");
-                    String intervalField = modelFields.getOrDefault(Fields.INTERVAL, Fields.INTERVAL);
-                    String interval = data.getOrDefault(intervalField, "");
-                    return !Fields.Interval.VALUE_UNISON.equalsIgnoreCase(interval) || direction.trim().isEmpty();
-                }
+                        @Override
+                        public boolean areEqual(Map<String, String> data1, Map<String, String> data2) {
+                            String startNoteField = modelFields[IDX_START_NOTE];
+                            String directionField = modelFields[IDX_DIRECTION];
+                            String timingField = modelFields[IDX_TIMING];
+                            String intervalField = modelFields[IDX_INTERVAL];
+                            return match(data1, data2, startNoteField, directionField, timingField, intervalField);
+                        }
+                    };
 
-                @Override
-                public String getErrorTag() {
-                    return "non-empty";
-                }
-            };
-
-            private static final NoteValidator EMPTY_NON_UNISON_VALIDATOR = new NoteValidator() {
-                @Override
-                public boolean isValid(Map<String, String> data, Map<String, String> modelFields) {
-                    String directionField = modelFields.getOrDefault(Fields.DIRECTION, Fields.DIRECTION);
-                    String direction = data.getOrDefault(directionField, "");
-                    String intervalField = modelFields.getOrDefault(Fields.INTERVAL, Fields.INTERVAL);
-                    String interval = data.getOrDefault(intervalField, "");
-                    return !direction.trim().isEmpty() || Fields.Interval.VALUE_UNISON.equalsIgnoreCase(interval);
-                }
-
-                @Override
-                public String getErrorTag() {
-                    return "empty";
-                }
-            };
+            private static boolean match(Map<String, String> data1, Map<String, String> data2,
+                                         String startNoteField, String directionField, String timingField, String intervalField) {
+                String startNote1 = data1.getOrDefault(startNoteField, "");
+                String startNote2 = data2.getOrDefault(startNoteField, "");
+                String direction1 = data1.getOrDefault(directionField, "");
+                String direction2 = data2.getOrDefault(directionField, "");
+                String timing1 = data1.getOrDefault(timingField, "");
+                String timing2 = data2.getOrDefault(timingField, "");
+                String interval1 = data1.getOrDefault(intervalField, "");
+                String interval2 = data2.getOrDefault(intervalField, "");
+                boolean regularEquality = direction1.equalsIgnoreCase(direction2);
+                boolean harmonicEquality = (interval1.equals("%") || interval1.equalsIgnoreCase(interval2)) &&
+                        (direction1.equalsIgnoreCase(Direction.ASC) && direction2.equalsIgnoreCase(Direction.DESC) ||
+                                direction1.equalsIgnoreCase(Direction.DESC) && direction2.equalsIgnoreCase(Direction.ASC)) &&
+                        timing1.equalsIgnoreCase(Timing.HARMONIC) && timing2.equalsIgnoreCase(Timing.HARMONIC) &&
+                        StartNote.match(startNote1, StartNote.getEndNote(startNote2, direction2, interval2));
+                return regularEquality || harmonicEquality;
+            }
         }
 
         public static class Timing {
@@ -192,15 +275,17 @@ public class MusInterval {
         public static String[] getSignature(boolean versionField) {
             ArrayList<String> signature = new ArrayList<String>() {{
                 add(SOUND);
-                add(SOUND_SMALLER);
-                add(SOUND_LARGER);
                 add(START_NOTE);
+                add(FIRST_NOTE_DURATION_COEFFICIENT);
                 add(DIRECTION);
                 add(TIMING);
                 add(INTERVAL);
                 add(TEMPO);
                 add(INSTRUMENT);
-                add(FIRST_NOTE_DURATION_COEFFICIENT);
+                add(SOUND_SMALLER);
+                add(SOUND_SMALLER_ALT);
+                add(SOUND_LARGER);
+                add(SOUND_LARGER_ALT);
             }};
             if (versionField) {
                 signature.add(VERSION);
@@ -213,19 +298,28 @@ public class MusInterval {
         }};
 
         private static final Map<String, SearchExpressionMaker> SEARCH_EXPRESSION_MAKERS = new HashMap<String, SearchExpressionMaker>() {{
+            put(START_NOTE, new AnySearchExpressionMaker());
+            put(DIRECTION, new AnySearchExpressionMaker());
             put(TEMPO, new IntegerSearchExpressionMaker());
             put(FIRST_NOTE_DURATION_COEFFICIENT, new DoubleSearchExpressionMaker());
         }};
-        private static final Map<String, SearchExpressionMaker> RELATIVES_SEARCH_EXPRESSION_MAKERS = new HashMap<String, SearchExpressionMaker>() {{
-            put(TEMPO, new AnySearchExpressionMaker());
+        static final Map<String, SearchExpressionMaker> RELATIVES_SEARCH_EXPRESSION_MAKERS = new HashMap<String, SearchExpressionMaker>() {{
+            put(TEMPO, new AnySearchExpressionMaker() {
+                @Override
+                public boolean isDefinitive() {
+                    return true;
+                }
+            });
         }};
 
         private static final Map<String, EqualityChecker> EQUALITY_CHECKERS = new HashMap<String, EqualityChecker>() {{
+            put(START_NOTE, StartNote.EQUALITY_CHECKER);
             put(DIRECTION, Direction.EQUALITY_CHECKER);
             put(TEMPO, new FieldEqualityChecker(TEMPO, new IntegerValueEqualityChecker()));
             put(FIRST_NOTE_DURATION_COEFFICIENT, new FieldEqualityChecker(FIRST_NOTE_DURATION_COEFFICIENT, new DoubleValueEqualityChecker()));
         }};
         private static final Map<String, EqualityChecker> RELATIVES_EQUALITY_CHECKERS = new HashMap<String, EqualityChecker>() {{
+            put(DIRECTION, Direction.RELATIVES_EQUALITY_CHECKER);
             put(TEMPO, new FieldEqualityChecker(TEMPO, new AnyEqualityChecker()));
         }};
 
@@ -244,7 +338,13 @@ public class MusInterval {
             put(SOUND_SMALLER, new Validator[]{
                     VALIDATOR_SOUND
             });
+            put(SOUND_SMALLER_ALT, new Validator[]{
+                    VALIDATOR_SOUND
+            });
             put(SOUND_LARGER, new Validator[]{
+                    VALIDATOR_SOUND
+            });
+            put(SOUND_LARGER_ALT, new Validator[]{
                     VALIDATOR_SOUND
             });
             put(START_NOTE, new Validator[]{
@@ -252,8 +352,7 @@ public class MusInterval {
                     new PatternValidator(StartNote.getValidationPattern())
             });
             put(DIRECTION, new Validator[]{
-                    Direction.NON_EMPTY_UNISON_VALIDATOR,
-                    Direction.EMPTY_NON_UNISON_VALIDATOR,
+                    VALIDATOR_EMPTY,
                     new PatternValidator(String.format("^$|(?i)%s|%s", Direction.ASC, Direction.DESC))
             });
             put(TIMING, new Validator[]{
@@ -282,7 +381,7 @@ public class MusInterval {
         public static final String DEFAULT_MODEL_NAME = "Music.interval";
         public static final Map<String, String> DEFAULT_MODEL_FIELDS = new HashMap<>();
         static {
-            String[] signature = MusInterval.Fields.getSignature(false);
+            String[] signature = MusInterval.Fields.getSignature(true);
             for (String fieldKey : signature) {
                 DEFAULT_MODEL_FIELDS.put(fieldKey, fieldKey);
             }
@@ -311,7 +410,9 @@ public class MusInterval {
         private Map<String, String> mModelFields = DEFAULT_MODEL_FIELDS;
         private String[] mSounds = new String[]{};
         private String[] mSoundsSmaller = new String[]{};
+        private String[] mSoundsSmallerAlt = new String[]{};
         private String[] mSoundsLarger = new String[]{};
+        private String[] mSoundsLargerAlt = new String[]{};
         private String[] mNotes = new String[]{};
         private String[] mOctaves = new String[]{};
         private String mDirection = "";
@@ -392,8 +493,18 @@ public class MusInterval {
             return this;
         }
 
-        public Builder sounds_larger(String[] sdls) {
-            mSoundsLarger = sdls;
+        public Builder sounds_smaller_alt(String[] sdssa) {
+            mSoundsSmallerAlt = sdssa;
+            return this;
+        }
+
+        public Builder sounds_larger(String[] sdsl) {
+            mSoundsLarger = sdsl;
+            return this;
+        }
+
+        public Builder sounds_larger_alt(String[] sdsla) {
+            mSoundsLargerAlt = sdsla;
             return this;
         }
 
@@ -564,7 +675,9 @@ public class MusInterval {
     // Data of model's fields
     public final String[] sounds;
     public final String[] soundsSmaller;
+    public final String[] soundsSmallerAlt;
     public final String[] soundsLarger;
+    public final String[] soundsLargerAlt;
     public final String[] notes;
     public final String[] octaves;
     public final String direction;
@@ -592,10 +705,22 @@ public class MusInterval {
                 return mi.soundsSmaller[0];
             }
         });
+        put(Fields.SOUND_SMALLER_ALT, new FieldAccessor() {
+            @Override
+            public String getFieldValue(MusInterval mi) {
+                return mi.soundsSmallerAlt[0];
+            }
+        });
         put(Fields.SOUND_LARGER, new FieldAccessor() {
             @Override
             public String getFieldValue(MusInterval mi) {
                 return mi.soundsLarger[0];
+            }
+        });
+        put(Fields.SOUND_LARGER_ALT, new FieldAccessor() {
+            @Override
+            public String getFieldValue(MusInterval mi) {
+                return mi.soundsLargerAlt[0];
             }
         });
         put(Builder.KEY_NOTES, new FieldAccessor() {
@@ -628,14 +753,12 @@ public class MusInterval {
     public MusInterval(Builder builder) throws ValidationException {
         helper = builder.mHelper;
 
-        RelatedIntervalSoundField soundSmallerField = new SmallerIntervalSoundField(helper, this);
-        RelatedIntervalSoundField soundLargerField = new LargerIntervalSoundField(helper, this);
-        soundSmallerField.setReverse(soundLargerField);
-        soundLargerField.setReverse(soundSmallerField);
-        relatedSoundFields = new RelatedIntervalSoundField[]{soundSmallerField, soundLargerField};
-
+        deckName = builder.mDeckName;
+        deckId = helper.findDeckIdByName(builder.mDeckName);
         modelName = builder.mModelName;
+        modelId = helper.findModelIdByName(builder.mModelName);
         modelFields = builder.mModelFields;
+
         defaultValues = new HashMap<>();
         searchExpressionMakers = new HashMap<>();
         relativesSearchExpressionMakers = new HashMap<>();
@@ -670,13 +793,18 @@ public class MusInterval {
         for (RelativesPriorityComparator comparator : relativesPriorityComparators) {
             comparator.setModelFields(modelFields);
         }
-        modelId = helper.findModelIdByName(builder.mModelName);
-        deckName = builder.mDeckName;
-        deckId = helper.findDeckIdByName(builder.mDeckName);
+
+        RelatedIntervalSoundField soundSmallerField = new SmallerIntervalSoundField(helper, this);
+        RelatedIntervalSoundField soundLargerField = new LargerIntervalSoundField(helper, this);
+        soundSmallerField.setReverse(soundLargerField);
+        soundLargerField.setReverse(soundSmallerField);
+        relatedSoundFields = new RelatedIntervalSoundField[]{soundSmallerField, soundLargerField};
 
         sounds = builder.mSounds;
         soundsSmaller = builder.mSoundsSmaller;
+        soundsSmallerAlt = builder.mSoundsSmallerAlt;
         soundsLarger = builder.mSoundsLarger;
+        soundsLargerAlt = builder.mSoundsLargerAlt;
         notes = builder.mNotes;
         octaves = builder.mOctaves;
         direction = builder.mDirection.trim().toLowerCase();
@@ -773,14 +901,16 @@ public class MusInterval {
         return result;
     }
 
-    public MusInterval[] getExisting() throws ValidationException, AnkiDroidHelper.InvalidAnkiDatabaseException {
+    public Set<String> getUniqueValues(String fieldKey) throws AnkiDroidHelper.InvalidAnkiDatabaseException {
         LinkedList<Map<String, String>> notes = getExistingNotes();
-        int nNotes = notes.size();
-        MusInterval[] mis = new MusInterval[nNotes];
-        for (int i = 0; i < nNotes; i++) {
-            mis[i] = getMusIntervalFromData(notes.get(i));
+        Set<String> result = new HashSet<>();
+        String modelField = modelFields.getOrDefault(fieldKey, fieldKey);
+        for (Map<String, String> data : notes) {
+            if (data.containsKey(modelField)) {
+                result.add(data.get(modelField));
+            }
         }
-        return mis;
+        return result;
     }
 
     /**
@@ -791,7 +921,9 @@ public class MusInterval {
             for (Map<String, String> data : dataSet) {
                 data.remove(modelFields.get(Fields.SOUND));
                 data.remove(modelFields.get(Fields.SOUND_SMALLER));
+                data.remove(modelFields.get(Fields.SOUND_SMALLER_ALT));
                 data.remove(modelFields.get(Fields.SOUND_LARGER));
+                data.remove(modelFields.get(Fields.SOUND_LARGER_ALT));
                 data.remove(modelFields.get(Fields.VERSION));
             }
             return helper.findNotes(
@@ -1064,7 +1196,9 @@ public class MusInterval {
                 .model_fields(modelFields)
                 .sounds(new String[]{data.get(modelFields.get(Fields.SOUND))})
                 .sounds_smaller(new String[]{data.get(modelFields.get(Fields.SOUND_SMALLER))})
+                .sounds_smaller_alt(new String[]{data.get(modelFields.get(Fields.SOUND_SMALLER_ALT))})
                 .sounds_larger(new String[]{data.get(modelFields.get(Fields.SOUND_LARGER))})
+                .sounds_larger_alt(new String[]{data.get(modelFields.get(Fields.SOUND_LARGER_ALT))})
                 .notes(note != null ? new String[]{note} : new String[]{})
                 .octaves(octave != null ? new String[]{octave} : new String[]{})
                 .direction(data.get(modelFields.get(Fields.DIRECTION)))
@@ -1086,7 +1220,9 @@ public class MusInterval {
                 .model_fields(modelFields)
                 .sounds(addedNotesOwnFields.get(Fields.SOUND).toArray(new String[0]))
                 .sounds_smaller(addedNotesOwnFields.get(Fields.SOUND_SMALLER).toArray(new String[0]))
+                .sounds_smaller_alt(addedNotesOwnFields.get(Fields.SOUND_SMALLER_ALT).toArray(new String[0]))
                 .sounds_larger(addedNotesOwnFields.get(Fields.SOUND_LARGER).toArray(new String[0]))
+                .sounds_larger_alt(addedNotesOwnFields.get(Fields.SOUND_LARGER_ALT).toArray(new String[0]))
                 .notes(addedNotesOwnFields.get(Builder.KEY_NOTES).toArray(new String[0]))
                 .octaves(addedNotesOwnFields.get(Builder.KEY_OCTAVES).toArray(new String[0]))
                 .direction(direction)
@@ -1115,7 +1251,9 @@ public class MusInterval {
         int i = 0;
         final boolean soundsProvided = sounds != null;
         final boolean soundsSmallerProvided = soundsSmaller != null;
+        final boolean soundsSmallerAltProvided = soundsSmallerAlt != null;
         final boolean soundsLargerProvided = soundsLarger != null;
+        final boolean soundsLargerAltProvided = soundsLargerAlt != null;
         for (String octave : octaves) {
             for (String note : notes) {
                 for (String interval : intervals) {
@@ -1124,10 +1262,14 @@ public class MusInterval {
                     miData.put(modelFields.get(Fields.SOUND), sound);
                     String soundSmaller = soundsSmallerProvided && soundsSmaller.length > i ? soundsSmaller[i] : "";
                     miData.put(modelFields.get(Fields.SOUND_SMALLER), soundSmaller);
+                    String soundSmallerAlt = soundsSmallerAltProvided && soundsSmallerAlt.length > i ? soundsSmallerAlt[i] : "";
+                    miData.put(modelFields.get(Fields.SOUND_SMALLER_ALT), soundSmallerAlt);
                     String soundLarger = soundsLargerProvided && soundsLarger.length > i ? soundsLarger[i] : "";
                     miData.put(modelFields.get(Fields.SOUND_LARGER), soundLarger);
+                    String soundLargerAlt = soundsLargerAltProvided && soundsLargerAlt.length > i ? soundsLargerAlt[i] : "";
+                    miData.put(modelFields.get(Fields.SOUND_LARGER_ALT), soundLargerAlt);
                     miData.put(modelFields.get(Fields.START_NOTE), note + octave);
-                    miData.put(modelFields.get(Fields.DIRECTION), !Fields.Interval.VALUE_UNISON.equals(interval) ? direction : "");
+                    miData.put(modelFields.get(Fields.DIRECTION), direction);
                     miData.put(modelFields.get(Fields.TIMING), timing);
                     miData.put(modelFields.get(Fields.INTERVAL), interval);
                     miData.put(modelFields.get(Fields.TEMPO), tempo);

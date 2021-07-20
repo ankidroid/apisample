@@ -5,7 +5,6 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.res.Resources;
-import android.os.Handler;
 
 import com.ichi2.apisample.R;
 import com.ichi2.apisample.helper.StringUtil;
@@ -66,7 +65,9 @@ public class IntegrityCheckWorker implements Runnable {
     private static final Map<String, GetStringArgs> FIELD_VALIDATION_STRING_ARGS = new HashMap<String, GetStringArgs>() {{
         put(MusInterval.Fields.SOUND, new GetStringArgs(R.string.validation_sound));
         put(MusInterval.Fields.SOUND_SMALLER, new GetStringArgs(R.string.validation_sound));
+        put(MusInterval.Fields.SOUND_SMALLER_ALT, new GetStringArgs(R.string.validation_sound));
         put(MusInterval.Fields.SOUND_LARGER, new GetStringArgs(R.string.validation_sound));
+        put(MusInterval.Fields.SOUND_LARGER_ALT, new GetStringArgs(R.string.validation_sound));
         put(MusInterval.Fields.START_NOTE, new GetStringArgs(R.string.validation_allowed_values, ALLOWED_START_NOTES_STR));
         put(MusInterval.Fields.DIRECTION, new GetStringArgs(R.string.validation_direction, ALLOWED_DIRECTIONS_STR));
         put(MusInterval.Fields.TIMING, new GetStringArgs(R.string.validation_allowed_values, ALLOWED_TIMINGS_STR));

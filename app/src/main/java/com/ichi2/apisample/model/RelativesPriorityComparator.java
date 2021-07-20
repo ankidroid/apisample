@@ -1,6 +1,8 @@
 package com.ichi2.apisample.model;
 
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.LinkedList;
 import java.util.Map;
 
 public abstract class RelativesPriorityComparator implements Comparator<Map<String, String>> {
@@ -19,5 +21,22 @@ public abstract class RelativesPriorityComparator implements Comparator<Map<Stri
     public void setTargetValueFromData(Map<String, String> targetData) {
         String modelField = modelFields.getOrDefault(fieldKey, fieldKey);
         targetValue = targetData.getOrDefault(modelField, "");
+    }
+
+    public LinkedList<Map<String, String>> getLeadingRelatives(LinkedList<Map<String, String>> relatedNotesData) {
+        relatedNotesData = new LinkedList<>(relatedNotesData);
+        if (relatedNotesData.isEmpty()) {
+            return relatedNotesData;
+        }
+        relatedNotesData.sort(this);
+        Collections.reverse(relatedNotesData);
+        Map<String, String> maxData = relatedNotesData.getFirst();
+        for (int j = relatedNotesData.size() - 1; j > 0; j--) {
+            Map<String, String> relatedData = relatedNotesData.get(j);
+            if (compare(maxData, relatedData) != 0) {
+                relatedNotesData.remove(j);
+            }
+        }
+        return relatedNotesData;
     }
 }

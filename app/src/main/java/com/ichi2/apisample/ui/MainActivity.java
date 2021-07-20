@@ -436,10 +436,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         Set<String> instrumentOptions = new HashSet<>();
         try {
             MusInterval searchMi = getMusInterval(true);
-            MusInterval[] mis = searchMi.getExisting();
-            for (MusInterval mi : mis) {
-                instrumentOptions.add(mi.instrument);
-            }
+            instrumentOptions = searchMi.getUniqueValues(MusInterval.Fields.INSTRUMENT);
         } catch (Throwable t) {
             // simply don't fill the options if there was an error
         }
@@ -1682,8 +1679,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private void processInvalidAnkiDatabase(AnkiDroidHelper.InvalidAnkiDatabaseException invalidAnkiDatabaseException) {
         try {
             throw invalidAnkiDatabaseException;
-        } catch (AnkiDroidHelper.InvalidAnkiDatabase_fieldAndFieldNameCountMismatchException e) {
-            showMsg(R.string.InvalidAnkiDatabase_fieldAndFieldNameCountMismatch);
+        } catch (AnkiDroidHelper.InvalidAnkiDatabase_rowValuesAndFieldsCountMismatchException e) {
+            showMsg(R.string.InvalidAnkiDatabase_rowValuesAndFieldsCountMismatchException);
         } catch (AnkiDroidHelper.InvalidAnkiDatabaseException e) {
             showMsg(R.string.InvalidAnkiDatabase_unknownError);
         }
