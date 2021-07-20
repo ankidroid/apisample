@@ -684,6 +684,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         actionClearAll.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (isCapturing) {
+                    closeCapturing();
+                }
                 filenames = new String[]{};
                 afterAdding = false;
                 mismatchingSorting = false;
@@ -1200,6 +1203,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 if (mAnkiDroid.shouldRequestPermission()) {
                     mAnkiDroid.requestPermission(MainActivity.this, AD_PERM_REQUEST);
                     return;
+                }
+                if (isCapturing) {
+                    closeCapturing();
                 }
                 try {
                     MusInterval mi = getMusInterval();

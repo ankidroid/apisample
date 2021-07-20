@@ -6,6 +6,8 @@ import android.view.View;
 import android.view.WindowManager;
 
 public class MoveViewOnTouchListener implements View.OnTouchListener {
+    private static final long CLICK_THRESHOLD = 100;
+
     private final WindowManager windowManager;
     private final View movableView;
 
@@ -13,6 +15,7 @@ public class MoveViewOnTouchListener implements View.OnTouchListener {
     private float dY;
 
     private boolean isMoving;
+    private long pressedAt;
 
     public MoveViewOnTouchListener(WindowManager windowManager, View movableView) {
         this.windowManager = windowManager;
@@ -26,9 +29,11 @@ public class MoveViewOnTouchListener implements View.OnTouchListener {
             case MotionEvent.ACTION_DOWN:
                 dX = layoutParams.x - motionEvent.getRawX();
                 dY = layoutParams.y - motionEvent.getRawY();
+                pressedAt = System.currentTimeMillis();
                 break;
             case MotionEvent.ACTION_UP:
-                if (!isMoving) {
+                long pressedMilis = System.currentTimeMillis() - pressedAt;
+                if (!isMoving || pressedMilis <= CLICK_THRESHOLD) {
                     view.performClick();
                 } else {
                     isMoving = false;
