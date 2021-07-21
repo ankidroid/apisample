@@ -8,7 +8,9 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.graphics.PixelFormat;
+import android.graphics.PorterDuff;
 import android.graphics.Typeface;
 import android.media.AudioAttributes;
 import android.media.AudioFormat;
@@ -175,6 +177,8 @@ public class AudioCaptureService extends Service {
                 } else {
                     stopAudioCapture();
                     isRecording = false;
+                    actionRecord.setTextColor(Color.DKGRAY);
+                    actionRecord.getBackground().clearColorFilter();
                     actionRecord.setText(R.string.record);
                 }
             }
@@ -294,6 +298,8 @@ public class AudioCaptureService extends Service {
         startAudioCapture();
         isRecording = true;
         actionRecord.setEnabled(true);
+        actionRecord.getBackground().setColorFilter(Color.DKGRAY, PorterDuff.Mode.MULTIPLY);
+        actionRecord.setTextColor(Color.WHITE);
         actionRecord.setText(R.string.stop);
         textTop.setTypeface(null, Typeface.BOLD);
         toneGenerator.startTone(ToneGenerator.TONE_CDMA_ALERT_CALL_GUARD, 150);
