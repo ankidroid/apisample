@@ -167,7 +167,7 @@ public class AnkiDroidHelper {
         cursor.moveToNext();
         String existingCss = cursor.getString(cursor.getColumnIndex(FlashCardsContract.Model.CSS));
         String existingNumCards = cursor.getString(cursor.getColumnIndex(FlashCardsContract.Model.NUM_CARDS));
-        if (!StringUtil.strip(existingCss).equals(css) || Integer.parseInt(existingNumCards) != cards.length) {
+        if (!StringUtil.strip(existingCss).equals(css) || Integer.parseInt(existingNumCards) < cards.length) {
             return false;
         }
 
