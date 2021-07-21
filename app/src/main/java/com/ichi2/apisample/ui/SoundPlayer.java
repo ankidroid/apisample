@@ -10,7 +10,7 @@ import java.io.IOException;
 
 public class SoundPlayer {
     private final MainActivity mainActivity;
-    private final MediaPlayer mediaPlayer;
+    private MediaPlayer mediaPlayer;
 
     public SoundPlayer(MainActivity mainActivity) {
         this.mainActivity = mainActivity;
@@ -39,12 +39,13 @@ public class SoundPlayer {
     }
 
     public void stop() {
-        if (mediaPlayer.isPlaying()) {
+        if (mediaPlayer != null && mediaPlayer.isPlaying()) {
             mediaPlayer.stop();
         }
     }
 
     public void release() {
         mediaPlayer.release();
+        mediaPlayer = null;
     }
 }
