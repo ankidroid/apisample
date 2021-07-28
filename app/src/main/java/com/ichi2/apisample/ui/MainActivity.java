@@ -26,9 +26,11 @@ import android.provider.Settings;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
@@ -1712,5 +1714,27 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         toast = Toast.makeText(this, text, Toast.LENGTH_LONG);
         lastToastText = text;
         toast.show();
+    }
+
+    private long touchDownAt;
+
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+        switch (ev.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+                touchDownAt = System.currentTimeMillis();
+                break;
+            case MotionEvent.ACTION_UP:
+                if (System.currentTimeMillis() - touchDownAt > 100) {
+                    break;
+                }
+                View v = getCurrentFocus();
+                if (getCurrentFocus() != null) {
+                    InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                    inputMethodManager.hideSoftInputFromWindow(v.getWindowToken(), 0);
+                }
+                break;
+        }
+        return super.dispatchTouchEvent(ev);
     }
 }
