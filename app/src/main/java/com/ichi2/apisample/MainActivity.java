@@ -50,7 +50,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         // Create the example data
         mListData = AnkiDroidConfig.getExampleData();
         // Setup the ListView containing the example data
-        mListView = (ListView) findViewById(R.id.main_list);
+        mListView = findViewById(R.id.main_list);
         mListView.setAdapter(new SimpleAdapter(this, mListData, R.layout.word_layout,
                 Arrays.copyOfRange(AnkiDroidConfig.FIELDS, 0, 3),
                 new int[]{R.id.word_item, R.id.word_item_reading, R.id.word_item_translation}));
@@ -64,6 +64,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == AD_PERM_REQUEST && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             addCardsToAnkiDroid(getSelectedData());
         } else {

@@ -25,8 +25,8 @@ public class AnkiDroidHelper {
     private static final String DECK_REF_DB = "com.ichi2.anki.api.decks";
     private static final String MODEL_REF_DB = "com.ichi2.anki.api.models";
 
-    private AddContentApi mApi;
-    private Context mContext;
+    private final AddContentApi mApi;
+    private final Context mContext;
 
     public AnkiDroidHelper(Context context) {
         mContext = context.getApplicationContext();
@@ -99,7 +99,7 @@ public class AnkiDroidHelper {
         if (tags.size() != fields.size()) {
             throw new IllegalStateException("List of tags must be the same length as the list of fields");
         }
-        if (duplicateNotes == null || duplicateNotes.size() == 0 || fields.size() == 0 || tags.size() == 0) {
+        if (duplicateNotes == null || duplicateNotes.size() == 0 || fields.isEmpty() || tags.isEmpty()) {
             return;
         }
         if (duplicateNotes.keyAt(duplicateNotes.size() - 1) >= fields.size()) {
