@@ -6,10 +6,12 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.os.Bundle;
+
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.ShareCompat;
 import androidx.appcompat.app.AppCompatActivity;
+
 import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.ActionProvider;
@@ -60,9 +62,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     }
 
 
-    public void onRequestPermissionsResult (int requestCode, @NonNull String[] permissions,
-                                            @NonNull int[] grantResults) {
-        if (requestCode==AD_PERM_REQUEST && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        if (requestCode == AD_PERM_REQUEST && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             addCardsToAnkiDroid(getSelectedData());
         } else {
             Toast.makeText(MainActivity.this, R.string.permission_denied, Toast.LENGTH_LONG).show();
@@ -115,22 +117,21 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         @Override
         public boolean onActionItemClicked(android.view.ActionMode mode, MenuItem item) {
             // This is called when the contextual action bar buttons are pressed
-            switch (item.getItemId()) {
-                case R.id.share_data_button:
-                    /* Use AnkiDroid provider if installed, otherwise use ACTION_SEND intent
-                     * If you don't need to share with any apps other than AnkiDroid, you can completely replace
-                     * this code block with the code in AnkiDroidActionProvider.onMenuItemClick()
-                     */
-                    if (AnkiDroidHelper.isApiAvailable(MainActivity.this)) {
-                        // Use AnkiDroidActionProvider to handle the click event if the provider is installed
-                        item.setActionProvider(new AnkiDroidActionProvider(MainActivity.this, getSelectedData()));
-                    } else {
-                        // Only 1 piece of text is supported by the ACTION_SEND intent, so take first entry
-                        shareViaSendIntent(getSelectedData().get(0));
-                    }
-                    return true;
-                default:
-                    return false;
+            if (item.getItemId() == R.id.share_data_button) {
+                /* Use AnkiDroid provider if installed, otherwise use ACTION_SEND intent
+                 * If you don't need to share with any apps other than AnkiDroid, you can completely replace
+                 * this code block with the code in AnkiDroidActionProvider.onMenuItemClick()
+                 */
+                if (AnkiDroidHelper.isApiAvailable(MainActivity.this)) {
+                    // Use AnkiDroidActionProvider to handle the click event if the provider is installed
+                    item.setActionProvider(new AnkiDroidActionProvider(MainActivity.this, getSelectedData()));
+                } else {
+                    // Only 1 piece of text is supported by the ACTION_SEND intent, so take first entry
+                    shareViaSendIntent(getSelectedData().get(0));
+                }
+                return true;
+            } else {
+                return false;
             }
         }
 
@@ -144,7 +145,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         // Extract the selected data
         SparseBooleanArray checked = mListView.getCheckedItemPositions();
         List<Map<String, String>> selectedData = new ArrayList<>();
-        for (int i=0;i<checked.size();i++) {
+        for (int i = 0; i < checked.size(); i++) {
             if (checked.valueAt(i)) {
                 selectedData.add(mListData.get(checked.keyAt(i)));
             }
@@ -168,7 +169,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
          *
          * @param context Context for accessing resources.
          */
-        public AnkiDroidActionProvider(Activity context,List<Map<String, String>> selectedData) {
+        public AnkiDroidActionProvider(Activity context, List<Map<String, String>> selectedData) {
             super(context);
             mSelectedData = selectedData;
         }
@@ -194,7 +195,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             Resources res = getApplicationContext().getResources();
             // Add AnkiDroid "instant add" to the menu
             try {
-                ApplicationInfo appInfo = manager.getApplicationInfo(AddContentApi.getAnkiDroidPackageName(MainActivity.this),0);
+                ApplicationInfo appInfo = manager.getApplicationInfo(AddContentApi.getAnkiDroidPackageName(MainActivity.this), 0);
                 String label = manager.getApplicationLabel(appInfo) + " " + res.getString(R.string.instant_add);
                 subMenu.add(0, ANKIDROID_INSTANT_ADD, ANKIDROID_INSTANT_ADD, label)
                         .setIcon(appInfo.loadIcon(manager))
@@ -236,7 +237,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private void shareViaSendIntent(Map<String, String> data) {
         // Use ShareCompat so that the sending app info is correctly included in the share intent
         Activity context = MainActivity.this;
-        Intent shareIntent = ShareCompat.IntentBuilder.from(context)
+        Intent shareIntent = new ShareCompat.IntentBuilder(context)
                 .setType("text/plain")
                 .setText(data.get(AnkiDroidConfig.BACK_SIDE_KEY))
                 .setSubject(data.get(AnkiDroidConfig.FRONT_SIDE_KEY))
@@ -248,6 +249,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
     /**
      * get the deck id
+     *
      * @return might be null if there was a problem
      */
     private Long getDeckId() {
@@ -261,6 +263,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
     /**
      * get model id
+     *
      * @return might be null if there was an error
      */
     private Long getModelId() {
@@ -275,6 +278,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
     /**
      * Use the instant-add API to add flashcards directly to AnkiDroid.
+     *
      * @param data List of cards to be added. Each card has a HashMap of field name / field value pairs.
      */
     private void addCardsToAnkiDroid(final List<Map<String, String>> data) {
@@ -292,9 +296,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             return;
         }
         // Build list of fields and tags
-        LinkedList<String []> fields = new LinkedList<>();
+        LinkedList<String[]> fields = new LinkedList<>();
         LinkedList<Set<String>> tags = new LinkedList<>();
-        for (Map<String, String> fieldMap: data) {
+        for (Map<String, String> fieldMap : data) {
             // Build a field map accounting for the fact that the user could have changed the fields in the model
             String[] flds = new String[fieldNames.length];
             for (int i = 0; i < flds.length; i++) {
