@@ -2,20 +2,26 @@ apply plugin: 'com.android.application'
 def homePath = System.properties['user.home']
 
 android {
-    compileSdkVersion 28
+    namespace 'com.ichi2.apisample'
+    compileSdkVersion 35
+    buildToolsVersion "35.0.0"
 
     defaultConfig {
         applicationId "com.ichi2.apisample"
         minSdkVersion 15
-        targetSdkVersion 28
+        targetSdkVersion 33
         versionCode 2
         versionName "1.0.1"
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
     signingConfigs {
         release {
             storeFile file("${homePath}/src/android-keystore")
             keyAlias "nrkeystorealias"
-            storePassword "ENTER_PASSWORD" 
+            storePassword "ENTER_PASSWORD"
             keyPassword "ENTER_PASSWORD"
         }
     }
@@ -30,6 +36,6 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'androidx.appcompat:appcompat:1.0.0'
-    implementation 'com.ichi2.anki:api:1.1.0alpha6'
+    implementation 'androidx.appcompat:appcompat:1.7.1'
+    implementation 'com.github.ankidroid:Anki-Android:api-v1.1.0'
 }
