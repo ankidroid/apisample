@@ -3,7 +3,7 @@
 buildscript {
     repositories {
         google()
-        jcenter()
+        mavenCentral()
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:8.10.1'
@@ -17,8 +17,8 @@ allprojects {
     repositories {
         google()
         mavenCentral()
-        maven { url 'https://jitpack.io' }
-        maven { url 'https://github.com/ankidroid/Anki-Android/raw/master/api/repository' }
+        maven {url = uri('https://jitpack.io') }
+        maven { url = uri('https://github.com/ankidroid/Anki-Android/raw/master/api/repository') }
     }
 
     gradle.projectsEvaluated {
